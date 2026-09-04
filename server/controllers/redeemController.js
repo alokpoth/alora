@@ -51,6 +51,7 @@ const claimRedeemCode = async (req, res) => {
         id: String(user._id || user.id),
         role: user.role || 'user',
         plan: finalPlanName,
+        expires_at: expiresAt.toISOString(),
         name: user.name || '',
         email: user.email || ''
       }, process.env.JWT_SECRET || 'REDACTED_HISTORICAL_JWT_SECRET', { expiresIn: '30d' });
@@ -103,6 +104,7 @@ const claimRedeemCode = async (req, res) => {
         id: String(user._id || user.id),
         role: user.role || 'user',
         plan: finalPlanName,
+        expires_at: expiresAt.toISOString(),
         name: user.name || '',
         email: user.email || ''
       }, process.env.JWT_SECRET || 'REDACTED_HISTORICAL_JWT_SECRET', { expiresIn: '30d' });
