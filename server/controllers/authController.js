@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const User = require('../models/User');
 const { getIsMongoConnected } = require('../config/db');
 const { memoryStore, debouncedSave } = require('../config/memoryStore');
+const { JWT_SECRET } = require('../config/jwtSecret');
 
 const generateToken = (user) => {
   const payload = (user && typeof user === 'object') ? {
@@ -15,7 +16,7 @@ const generateToken = (user) => {
     email: user.email || ''
   } : { id: String(user) };
 
-  return jwt.sign(payload, process.env.JWT_SECRET || 'REDACTED_HISTORICAL_JWT_SECRET', {
+  return jwt.sign(payload, JWT_SECRET, {
     expiresIn: '30d'
   });
 };
