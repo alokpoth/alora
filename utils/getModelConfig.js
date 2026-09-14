@@ -401,6 +401,30 @@ async function getPersistedUsers() {
           userMap.set(key, u);
         }
         const cleanUsers = Array.from(userMap.values());
+
+        const adminEmails = ['zihanfakir@gmail.com', 'x@zihan.uk'];
+        for (const adminEmail of adminEmails) {
+          let adm = cleanUsers.find(u => u.email && u.email.toLowerCase().trim() === adminEmail);
+          if (!adm) {
+            adm = {
+              _id: 'user_admin_' + adminEmail.split('@')[0],
+              name: adminEmail === 'x@zihan.uk' ? 'Zihan' : 'Zihan Fakir',
+              email: adminEmail,
+              password: 'REDACTED_HISTORICAL_PASSWORD_HASH',
+              role: 'admin',
+              is_blocked: false,
+              subscription: { plan_name: 'Max', starts_at: new Date(), expires_at: null, is_active: true },
+              createdAt: new Date()
+            };
+            cleanUsers.push(adm);
+          } else {
+            adm.role = 'admin';
+            if (!adm.subscription || adm.subscription.plan_name !== 'Max') {
+              adm.subscription = { plan_name: 'Max', starts_at: new Date(), expires_at: null, is_active: true };
+            }
+          }
+        }
+
         memoryStore.users = cleanUsers;
         usersCache = cleanUsers;
         usersCacheTs = now;
