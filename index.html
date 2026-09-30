@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11507,7 +11507,7 @@ Capabilities & Code Generation Instructions (CRITICAL):
             if (fullResult && fullResult.trim().length > 0) {
               try {
                 renderCurrentState();
-                aiTextElement.insertAdjacentHTML('beforeend', `<div class="generation-error-note"><svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;display:inline-block;vertical-align:-2px;margin-right:6px;"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>${isEnNow ? "Temporary connection issue. Click button below to retry." : "সংযোগে সাময়িক সমস্যা হয়েছে। পুনরায় চেষ্টা করতে নিচের বোতামে চাপুন।"}</div>`;
+                aiTextElement.insertAdjacentHTML('beforeend', `<div class="generation-error-note"><svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;display:inline-block;vertical-align:-2px;margin-right:6px;"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>${isEnNow ? "Temporary connection issue. Click button below to retry." : "সংযোগে সাময়িক সমস্যা হয়েছে। পুনরায় চেষ্টা করতে নিচের বোতামে চাপুন।"}</div>`);
                 enhanceCodeBlocks(aiTextElement);
               } catch {
                 aiTextElement.textContent = fullResult;
