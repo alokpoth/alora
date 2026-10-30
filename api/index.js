@@ -9,6 +9,8 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 const { connectDB, getIsMongoConnected } = require('../server/config/db');
 const { memoryStore } = require('../server/config/memoryStore');
 const { createRateLimiter } = require('../server/middleware/ipRateLimiter');
+const { protect } = require('../server/middleware/authMiddleware');
+const { adminOnly } = require('../server/middleware/adminMiddleware');
 
 const authRoutes   = require('../server/routes/authRoutes');
 const chatRoutes   = require('../server/routes/chatRoutes');
@@ -98,7 +100,8 @@ app.head('/api', (req, res) => res.status(200).end());
 app.get('/', healthHandler);
 app.head('/', (req, res) => res.status(200).end());
 
-app.get('/api/debug-models', async (req, res) => {
+// Diagnostic debug-models endpoint (admin only: the documents contain provider API keys)
+app.get('/api/debug-models', protect, adminOnly, async (req, res) => {
   try {
     const { getPersistedModels, getDeletedModelIds } = require('../utils/getModelConfig');
     const AiModel = require('../server/models/AiModel');

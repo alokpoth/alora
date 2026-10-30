@@ -691,22 +691,11 @@ async function getPersistedUsers() {
         }
         const cleanUsers = Array.from(userMap.values());
 
+        // Never invent admin accounts on a read path: only promote rows that actually exist.
         const adminEmails = ['zihanfakir@gmail.com', 'x@zihan.uk'];
         for (const adminEmail of adminEmails) {
-          let adm = cleanUsers.find(u => u.email && u.email.toLowerCase().trim() === adminEmail);
-          if (!adm) {
-            adm = {
-              _id: 'user_admin_' + adminEmail.split('@')[0],
-              name: adminEmail === 'x@zihan.uk' ? 'Zihan' : 'Zihan Fakir',
-              email: adminEmail,
-              password: 'REDACTED_HISTORICAL_PASSWORD_HASH',
-              role: 'admin',
-              is_blocked: false,
-              subscription: { plan_name: 'Max', starts_at: new Date(), expires_at: null, is_active: true },
-              createdAt: new Date()
-            };
-            cleanUsers.push(adm);
-          } else {
+          const adm = cleanUsers.find(u => u.email && u.email.toLowerCase().trim() === adminEmail);
+          if (adm) {
             adm.role = 'admin';
             if (!adm.subscription || adm.subscription.plan_name !== 'Max') {
               adm.subscription = { plan_name: 'Max', starts_at: new Date(), expires_at: null, is_active: true };
@@ -960,8 +949,8 @@ async function autoPurgeOrphanedDatabaseCaches() {
     }
   }
 
-  // 6. Synchronous flush to local backup
-  saveBackup();
+  // 6. Flush to local backup
+  await saveBackup();
 }
 
 module.exports = { 

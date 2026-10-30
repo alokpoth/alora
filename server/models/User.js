@@ -3,7 +3,9 @@ const bcrypt = require('bcryptjs');
 
 const UserSchema = new mongoose.Schema({
   _id: {
-    type: mongoose.Schema.Types.Mixed,
+    // Must stay a concrete ObjectId type: as Mixed, Mongoose skips query casting and
+    // findById('<24-hex string>') never matches the stored ObjectId.
+    type: mongoose.Schema.Types.ObjectId,
     default: () => new mongoose.Types.ObjectId()
   },
   avatar: {

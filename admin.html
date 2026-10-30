@@ -1074,6 +1074,7 @@
         <button type="button" class="tab-btn" data-target="secRedeem">🎟️ রিডিম কোড জেনারেটর</button>
         <button type="button" class="tab-btn" data-target="secModels">🧠 মডেল সেটিংস</button>
         <button type="button" class="tab-btn" data-target="secSettings">🌸 ইমেজ ও সার্চ API</button>
+        <button type="button" class="tab-btn" data-target="secSystemPrompt">⚙️ সিস্টেম প্রম্পট</button>
       </div>
     </div>
 
@@ -1483,6 +1484,29 @@
         </div>
       </form>
     </div>
+
+    <!-- Section 6: System Prompt Settings -->
+    <div class="section" id="secSystemPrompt">
+      <div class="section-header-wrap">
+        <h3 id="systemPromptSectionHeader">⚙️ সিস্টেম প্রম্পট (System Prompt)</h3>
+        <span class="section-subtitle">AI-এর মূল আচরণ, নির্দেশনা এবং ব্যক্তিত্ব পরিবর্তন করুন</span>
+      </div>
+
+      <form id="systemPromptSettingsForm" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); padding: 20px; border-radius: 14px; display: flex; flex-direction: column; gap: 16px;">
+        <div class="form-group">
+          <label>সিস্টেম প্রম্পট</label>
+          <textarea id="settingSystemPrompt" rows="12" placeholder="You are Alora, a helpful AI assistant..." style="width: 100%; font-family: monospace; font-size: 0.85rem;"></textarea>
+          <span style="font-size: 0.76rem; color: var(--text-muted); margin-top: 4px;">এই প্রম্পটটি চ্যাটের সময় AI-এর কাছে মূল নির্দেশিকা হিসেবে পাঠানো হবে।</span>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: 6px;">
+          <button type="submit" id="btnSaveSystemPrompt" class="btn btn-primary" style="padding: 9px 24px;">
+            💾 প্রম্পট সংরক্ষণ করুন
+          </button>
+        </div>
+      </form>
+    </div>
+
   </div>
 
   <script>
@@ -1686,11 +1710,13 @@
         tabRedeem: "🎟️ Redeem Codes",
         tabModels: "🧠 AI Models",
         tabSettings: "🌸 Image & Search APIs",
+        tabSystemPrompt: "⚙️ System Prompt",
         usersHeader: "User Directory & Account Controls",
         plansHeader: "Dynamic Plan Settings",
         redeemHeader: "Redeem Code Generator",
         modelsHeader: "AI Model Settings",
         settingsHeader: "Image Model & Web Search API Configuration",
+        systemPromptHeader: "System Prompt Settings",
         searchUserPlaceholder: "Search users (name, email, or plan)...",
         thName: "Name",
         thEmail: "Email",
@@ -1714,11 +1740,13 @@
         tabRedeem: "🎟️ রিডিম কোড",
         tabModels: "🧠 AI মডেল",
         tabSettings: "🌸 ইমেজ ও সার্চ API",
+        tabSystemPrompt: "⚙️ সিস্টেম প্রম্পট",
         usersHeader: "ইউজার তালিকা ও অ্যাকাউন্ট নিয়ন্ত্রণ",
         plansHeader: "ডাইনামিক প্ল্যান সেটিংস",
         redeemHeader: "রিডিম কোড জেনারেটর",
         modelsHeader: "AI মডেল সেটিংস",
         settingsHeader: "ইমেজ মডেল ও ওয়েব সার্চ API কনফিগারেশন",
+        systemPromptHeader: "সিস্টেম প্রম্পট সেটিংস",
         searchUserPlaceholder: "ইউজার খুঁজুন (নাম, ইমেইল বা প্ল্যান)...",
         thName: "নাম",
         thEmail: "ইমেইল",
@@ -1761,16 +1789,20 @@
 
       // Tab buttons
       const tabBtns = document.querySelectorAll(".tab-btn");
-      if (tabBtns && tabBtns.length >= 5) {
+      if (tabBtns && tabBtns.length >= 6) {
         tabBtns[0].textContent = d.tabUsers;
         tabBtns[1].textContent = d.tabPlans;
         tabBtns[2].textContent = d.tabRedeem;
         tabBtns[3].textContent = d.tabModels;
         tabBtns[4].textContent = d.tabSettings;
+        tabBtns[5].textContent = d.tabSystemPrompt;
       }
 
       const sHead = document.getElementById("settingsSectionHeader");
       if (sHead) sHead.textContent = d.settingsHeader;
+      
+      const spHead = document.getElementById("systemPromptSectionHeader");
+      if (spHead) spHead.textContent = d.systemPromptHeader;
 
       const uSearch = document.getElementById("userSearchInput");
       if (uSearch) uSearch.placeholder = d.searchUserPlaceholder;
@@ -3104,6 +3136,10 @@
 
           const customRow = document.getElementById("customSearchUrlRow");
           if (customRow) customRow.style.display = (searchProvider === "custom") ? "flex" : "none";
+
+          // System Prompt Field
+          const inputSystemPrompt = document.getElementById("settingSystemPrompt");
+          if (inputSystemPrompt) inputSystemPrompt.value = s.system_prompt || "";
         }
       } catch (err) {
         console.warn("Failed to load settings:", err);
@@ -3207,6 +3243,38 @@
           const data = await res.json();
           if (data.success) {
             showToast("ওয়েব সার্চ সেটিংস সফলভাবে সংরক্ষিত হয়েছে", "success");
+            loadSettings();
+          } else {
+            showToast(data.error || "সেভ করতে সমস্যা হয়েছে", "error");
+          }
+        } catch (err) {
+          showToast("সার্ভারে সমস্যা হয়েছে", "error");
+        } finally {
+          if (btn) btn.disabled = false;
+        }
+      });
+    }
+
+    // Save System Prompt Settings
+    const systemPromptSettingsForm = document.getElementById("systemPromptSettingsForm");
+    if (systemPromptSettingsForm) {
+      systemPromptSettingsForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById("btnSaveSystemPrompt");
+        if (btn) btn.disabled = true;
+
+        const payload = {
+          system_prompt: (document.getElementById("settingSystemPrompt")?.value || "").trim()
+        };
+
+        try {
+          const res = await authFetch(`${API_BASE}/admin/settings`, {
+            method: "PUT",
+            body: JSON.stringify(payload)
+          });
+          const data = await res.json();
+          if (data.success) {
+            showToast("সিস্টেম প্রম্পট সফলভাবে সংরক্ষিত হয়েছে", "success");
             loadSettings();
           } else {
             showToast(data.error || "সেভ করতে সমস্যা হয়েছে", "error");

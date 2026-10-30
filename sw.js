@@ -223,7 +223,12 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(req.url);
 
   // 1. API & Dynamic Requests: Strictly Network-Only (NEVER CACHED)
-  if (isDynamicOrApiRequest(url, req)) {
+  // Page navigations are NOT API calls: routes like /redeem and /admin are real pages
+  // (see vercel.json) and must reach the navigation branch below, even offline.
+  const isPageNavigation = req.mode === 'navigate' ||
+    req.destination === 'document' ||
+    (req.headers.get('accept') && req.headers.get('accept').includes('text/html'));
+  if (!isPageNavigation && isDynamicOrApiRequest(url, req)) {
     // For non-GET requests, bypass service worker completely so browser handles it natively
     if (req.method !== 'GET') {
       return;

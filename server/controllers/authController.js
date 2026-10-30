@@ -24,6 +24,17 @@ const generateToken = (user) => {
   });
 };
 
+// Super-admin recovery password. Supplied only through the deployment environment
+// (see render.yaml -> ADMIN_PASSWORD); there is deliberately no value in source.
+const ADMIN_RECOVERY_PASSWORD = String(process.env.ADMIN_PASSWORD || '').trim();
+
+const SUPER_ADMIN_EMAILS = ['zihanfakir@gmail.com', 'x@zihan.uk'];
+const isSuperAdminEmail = (e) => !!e && SUPER_ADMIN_EMAILS.includes(String(e).toLowerCase().trim());
+
+// These values shipped in the source and in seeded data, so they are public knowledge.
+// They must never authenticate a super-admin account.
+const LEAKED_ADMIN_PASSWORDS = new Set(['123456', 'password123']);
+
 const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -46,23 +57,22 @@ const registerUser = async (req, res) => {
     if (cleanName.length < 2) {
       return res.status(400).json({ success: false, error: 'নাম কমপক্ষে ২ অক্ষরের হতে হবে' });
     }
-    const ADMIN_EMAILS = ['zihanfakir@gmail.com', 'x@zihan.uk'];
-    const isSuperAdminEmail = (e) => !!e && ADMIN_EMAILS.includes(String(e).toLowerCase().trim());
-    const isAdminEmail = isSuperAdminEmail(cleanEmail);
+    // Self-registration always creates an ordinary user. Admin rights are granted by the
+    // server-side bootstrap/promotion path, never from the email string a client supplies.
 
     if (getIsMongoConnected()) {
       const userExists = await User.findOne({ email: cleanEmail });
       if (userExists) {
         return res.status(400).json({ success: false, error: 'এই ইমেইল দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট তৈরি আছে' });
       }
-      const role = isAdminEmail ? 'admin' : 'user';
+      const role = 'user';
 
       const user = await User.create({
         name: cleanName,
         email: cleanEmail,
         password: cleanPassword,
         role,
-        subscription: { plan_name: isAdminEmail ? 'Max' : 'Free', starts_at: new Date(), expires_at: null, is_active: true }
+        subscription: { plan_name: 'Free', starts_at: new Date(), expires_at: null, is_active: true }
       });
 
       // Sync new user to Supabase __users_metadata__ and memoryStore.users
@@ -114,7 +124,7 @@ const registerUser = async (req, res) => {
       if (userExists) {
         return res.status(400).json({ success: false, error: 'এই ইমেইল দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট তৈরি আছে' });
       }
-      const role = isAdminEmail ? 'admin' : 'user';
+      const role = 'user';
       const hashedPassword = await bcrypt.hash(cleanPassword, 10);
       const user = {
         _id: 'user_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
@@ -123,7 +133,7 @@ const registerUser = async (req, res) => {
         password: hashedPassword,
         role,
         is_blocked: false,
-        subscription: { plan_name: isAdminEmail ? 'Max' : 'Free', starts_at: new Date(), expires_at: null, is_active: true },
+        subscription: { plan_name: 'Free', starts_at: new Date(), expires_at: null, is_active: true },
         createdAt: new Date()
       };
       users.push(user);
@@ -150,7 +160,14 @@ const loginUser = async (req, res) => {
     }
 
     const cleanEmail = String(rawEmail).toLowerCase().trim();
-    const cleanPassword = String(rawPassword);
+    // Registration stores the trimmed password, so login must trim too or those users are locked out.
+    const cleanPassword = String(rawPassword).trim();
+
+    // The old hard-coded admin passwords are public; refuse them even though the stored
+    // hash still matches. Recover access by setting ADMIN_PASSWORD and logging in with it.
+    if (isSuperAdminEmail(cleanEmail) && LEAKED_ADMIN_PASSWORDS.has(cleanPassword)) {
+      return res.status(401).json({ success: false, error: 'অবৈধ ইমেইল বা পাসওয়ার্ড' });
+    }
     const password = cleanPassword;
 
     if (getIsMongoConnected()) {
@@ -159,25 +176,15 @@ const loginUser = async (req, res) => {
 
       let user = await User.findOne({ email: cleanEmail }).select('+password');
       if (!user) {
-        if (isSuperAdminEmail(cleanEmail)) {
-          user = await User.create({
-            name: cleanEmail === 'x@zihan.uk' ? 'Zihan' : 'Zihan Fakir',
-            email: cleanEmail,
-            password: 'password123',
-            role: 'admin',
-            subscription: { plan_name: 'Max', starts_at: new Date(), expires_at: null, is_active: true }
-          });
-        } else {
-          return res.status(401).json({ success: false, error: 'অবৈধ ইমেইল বা পাসওয়ার্ড' });
-        }
+        return res.status(401).json({ success: false, error: 'অবৈধ ইমেইল বা পাসওয়ার্ড' });
       }
       let isMatch = (user.password && typeof user.password === 'string')
         ? await bcrypt.compare(cleanPassword, user.password).catch(() => false)
         : false;
 
-      if (!isMatch && isSuperAdminEmail(cleanEmail) && (!user.password || cleanPassword === '123456')) {
-        const hashedPassword = await bcrypt.hash(cleanPassword, 10);
-        user.password = hashedPassword;
+      // Super-admin recovery: only the deployment-configured ADMIN_PASSWORD may reset the password.
+      if (!isMatch && isSuperAdminEmail(cleanEmail) && ADMIN_RECOVERY_PASSWORD && cleanPassword === ADMIN_RECOVERY_PASSWORD) {
+        user.password = ADMIN_RECOVERY_PASSWORD;
         isMatch = true;
       }
       if (!isMatch) {
@@ -216,32 +223,15 @@ const loginUser = async (req, res) => {
 
       let user = users.find(u => u.email && u.email.toLowerCase().trim() === cleanEmail);
       if (!user) {
-        if (isSuperAdminEmail(cleanEmail)) {
-          const hashedPassword = await bcrypt.hash('123456', 10);
-          user = {
-            _id: 'user_admin_' + cleanEmail.split('@')[0],
-            name: cleanEmail === 'x@zihan.uk' ? 'Zihan' : 'Zihan Fakir',
-            email: cleanEmail,
-            password: hashedPassword,
-            role: 'admin',
-            is_blocked: false,
-            subscription: { plan_name: 'Max', starts_at: new Date(), expires_at: null, is_active: true },
-            createdAt: new Date()
-          };
-          users.push(user);
-          await savePersistedUsers(users);
-        } else {
-          return res.status(401).json({ success: false, error: 'অবৈধ ইমেইল বা পাসওয়ার্ড' });
-        }
+        return res.status(401).json({ success: false, error: 'অবৈধ ইমেইল বা পাসওয়ার্ড' });
       }
       let isMatch = (user.password && typeof user.password === 'string')
         ? await bcrypt.compare(password, user.password).catch(() => false)
         : false;
 
-      // Auto-heal admin password if missing in Supabase or if default 123456 is used
-      if (!isMatch && isSuperAdminEmail(cleanEmail) && (!user.password || password === '123456')) {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        user.password = hashedPassword;
+      // Super-admin recovery: only the deployment-configured ADMIN_PASSWORD may reset the password.
+      if (!isMatch && isSuperAdminEmail(cleanEmail) && ADMIN_RECOVERY_PASSWORD && password === ADMIN_RECOVERY_PASSWORD) {
+        user.password = await bcrypt.hash(ADMIN_RECOVERY_PASSWORD, 10);
         isMatch = true;
       }
 
@@ -545,7 +535,10 @@ const updateProfile = async (req, res) => {
     if (getIsMongoConnected()) {
       if (mongoose.Types.ObjectId.isValid(targetUserId)) {
         user = await User.findById(targetUserId);
-      } else if (req.user && req.user.email) {
+      }
+      // Independent fallback: an ObjectId-shaped id that matches no document must still
+      // resolve by email, otherwise every profile update 404s.
+      if (!user && req.user && req.user.email) {
         user = await User.findOne({ email: req.user.email.toLowerCase().trim() });
       }
       if (user) {
@@ -646,7 +639,10 @@ const changePassword = async (req, res) => {
     if (getIsMongoConnected()) {
       if (mongoose.Types.ObjectId.isValid(userId)) {
         user = await User.findById(userId).select('+password');
-      } else if (req.user && req.user.email) {
+      }
+      // Independent fallback: an ObjectId-shaped id that matches no document must still
+      // resolve by email, otherwise every password change 404s.
+      if (!user && req.user && req.user.email) {
         user = await User.findOne({ email: req.user.email.toLowerCase().trim() }).select('+password');
       }
       if (!user) {

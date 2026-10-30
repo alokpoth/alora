@@ -124,7 +124,8 @@ const updateUserPlan = async (req, res) => {
   try {
     const { userId } = req.params;
     const { plan_name, duration_days = 30 } = req.body;
-    if (plan_name && !['Free', 'Pro', 'Max'].includes(plan_name)) {
+    // A missing/blank plan_name must be rejected: defaulting to 'Free' silently revoked paid plans.
+    if (!['Free', 'Pro', 'Max'].includes(plan_name)) {
       return res.status(400).json({ success: false, error: 'প্ল্যান অবশ্যই Free, Pro অথবা Max হতে হবে' });
     }
 
@@ -260,8 +261,10 @@ const toggleBlockUser = async (req, res) => {
     const { userId } = req.params;
     const { is_blocked } = req.body;
     const cleanTarget = String(userId).toLowerCase().trim();
+    const requesterId = String((req.user && (req.user._id || req.user.id)) || '').toLowerCase().trim();
 
-    if (isSuperAdminEmail(cleanTarget) || (req.user && (cleanTarget === String(req.user._id).toLowerCase() || cleanTarget === String(req.user.id).toLowerCase() || isSuperAdminEmail(req.user.email)))) {
+    // Only the TARGET account may block the operation: a super-admin account, or the requester blocking themselves.
+    if (isSuperAdminEmail(cleanTarget) || (requesterId && cleanTarget === requesterId)) {
       return res.status(400).json({ success: false, error: 'মূল অ্যাডমিন অ্যাকাউন্ট ব্লক করা সম্ভব নয়।' });
     }
 

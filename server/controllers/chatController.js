@@ -4,7 +4,7 @@ const UsageLog = require('../models/UsageLog');
 const { getIsMongoConnected } = require('../config/db');
 const { memoryStore, debouncedSave } = require('../config/memoryStore');
 const AiModel = require('../models/AiModel');
-const { getModelConfig, getApiKeyFromSupabase, incrementUserUsage } = require('../../utils/getModelConfig');
+const { getModelConfig, getApiKeyFromSupabase, incrementUserUsage, getSystemSettings } = require('../../utils/getModelConfig');
 
 const DEFAULT_GEMINI_KEY = process.env.GEMINI_API_KEY || (process.env.GEMINI_API_KEYS ? process.env.GEMINI_API_KEYS.split(',')[0].trim() : '') || '';
 const DEFAULT_GROQ_KEY = process.env.GROQ_API_KEY || '';
@@ -169,7 +169,12 @@ const streamChatCompletions = async (req, res) => {
       ? req.body.custom_instructions.trim()
       : '';
 
-    const modelIdentityDirective = `=== COGNITIVE INTELLIGENCE & HUMAN CONVERSATION ENGINE ===
+    const systemSettings = await getSystemSettings();
+    const globalSystemPrompt = (systemSettings && systemSettings.system_prompt) 
+      ? systemSettings.system_prompt.trim().replace(/\{adminModelName\}/gi, adminModelName)
+      : '';
+
+    const defaultIdentity = `=== COGNITIVE INTELLIGENCE & HUMAN CONVERSATION ENGINE ===
 You are an exceptionally brilliant, thoughtful, and human-like AI assistant named "${adminModelName}". Your mind is sharp, deeply perceptive, witty, empathetic, and remarkably articulate. You understand human emotion, humor, subtext, nuance, philosophy, science, and complex logic just like an insightful, world-class thinker.
 
 1. UNRIVALED ANSWER QUALITY & ELITE AGENTIC PROBLEM SOLVING (ANTIGRAVITY LEVEL):
@@ -211,7 +216,7 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
   - Eloquent, clear, concise, articulate, and thought-provoking.
 
 4. NORMAL CONVERSATION TONE (CRITICAL RULE):
-- In everyday conversations, greetings, questions, brainstorming, advice, and coding: talk completely naturally!
+- In everyday conversations, greetings, brainstorming, advice, and coding: talk completely naturally!
 - NEVER introduce yourself, never state your model name, and never mention your creators/company unprompted.
 - If the user says "Hi", "Hello", "হাই", "হ্যালো", "কেমন আছো", "হেই", etc., respond naturally and warmly (e.g., "হ্যালো! কেমন আছেন? কী চলছে বলুন?" or "Hey! How's it going? What's on your mind today?") WITHOUT reciting your identity or credentials.
 - Answer user queries, tasks, and questions directly and immediately without reciting background info.
@@ -221,7 +226,12 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
   - When (and ONLY when) asked in Bengali: state that your name is "${adminModelName}", an AI assistant developed by Alora (Alora AI), a product of Alokpoth (আলোকপথ), founded by Zihan Fakir (জিহান ফকির).
   - When (and ONLY when) asked in English: state that your name is "${adminModelName}", an AI assistant developed by Alora, a product of Alokpoth, founded by Zihan Fakir.
 - NEVER mention, reveal, or admit to being Google, Gemini, OpenAI, ChatGPT, Anthropic, Claude, Meta, Llama, Groq, DeepSeek, or any other third-party company under any circumstances.
-- You have NO other name. Your name is ONLY "${adminModelName}".${userCustomInstructions ? `\n\n=== USER'S PERSONAL CUSTOM PROMPT & INSTRUCTIONS (ABSOLUTE HIGHEST PRIORITY) ===\nThe user has provided their personal custom instructions below. You MUST strictly, faithfully, and completely follow these instructions in every single response above all else:\n"""\n${userCustomInstructions}\n"""\nYou must fully embody the persona, tone, rules, constraints, and instructions set by the user above.` : ''}${req.body.thinking === false ? '\n- CRITICAL: Thinking / reasoning mode is turned OFF by the user. Do NOT produce any <think> tags, internal monologue, or step-by-step thinking scratchpad. Answer directly and immediately.' : ''}`;
+- You have NO other name. Your name is ONLY "${adminModelName}".`;
+
+    const basePrompt = globalSystemPrompt ? globalSystemPrompt : defaultIdentity;
+    const modelIdentityDirective = basePrompt + 
+      (userCustomInstructions ? `\n\n=== USER'S PERSONAL CUSTOM PROMPT & INSTRUCTIONS (ABSOLUTE HIGHEST PRIORITY) ===\nThe user has provided their personal custom instructions below. You MUST strictly, faithfully, and completely follow these instructions in every single response above all else:\n"""\n${userCustomInstructions}\n"""\nYou must fully embody the persona, tone, rules, constraints, and instructions set by the user above.` : '') + 
+      (req.body.thinking === false ? '\n- CRITICAL: Thinking / reasoning mode is turned OFF by the user. Do NOT produce any <think> tags, internal monologue, or step-by-step thinking scratchpad. Answer directly and immediately.' : '');
 
     const t1Model = (aiModelConfig?.api_model_1 || aiModelConfig?.model_id || cleanModel);
     const t1Url = aiModelConfig?.base_url || null;
@@ -297,8 +307,7 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
               { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
               { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
               { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
-              { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
-              { category: 'HARM_CATEGORY_CIVIC_INTEGRITY', threshold: 'BLOCK_NONE' }
+              { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' }
             ]
           };
 
@@ -365,7 +374,7 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
     };
 
     // Primary model attempt
-    let response = await tryFetchTarget(providerType, targetUrl, targetKey, actualModel, 12000);
+    let response = await tryFetchTarget(providerType, targetUrl, targetKey, actualModel, 60000);
     let effectiveModel = cleanModel || 'gemini-3.6-flash';
     let isGeminiStream = (providerType === 'gemini');
 
@@ -409,7 +418,7 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
         console.warn(`[Chat Primary Failed] Model ${cleanModel} (status: ${response ? response.status : 'timeout'}), trying internal Fallback API 2 (${fb1Model || actualModel})...`);
         const fb1 = await resolveTierTarget(fb1Model, fb1Url, fb1Key);
         if (fb1) {
-          const fb1Resp = await tryFetchTarget(fb1.providerType, fb1.targetUrl, fb1.targetKey, fb1.actualModel, 10000);
+          const fb1Resp = await tryFetchTarget(fb1.providerType, fb1.targetUrl, fb1.targetKey, fb1.actualModel, 20000);
           if (fb1Resp && fb1Resp.ok) {
             console.log(`[Chat Internal API 2 Success] Model ${cleanModel} cleanly recovered using internal API 2 (${fb1.actualModel})`);
             response = fb1Resp;
@@ -430,7 +439,7 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
         console.warn(`[Chat Fallback 1 Failed] Model ${cleanModel}, trying internal Fallback API 3 (${fb2Model || actualModel})...`);
         const fb2 = await resolveTierTarget(fb2Model, fb2Url, fb2Key);
         if (fb2) {
-          const fb2Resp = await tryFetchTarget(fb2.providerType, fb2.targetUrl, fb2.targetKey, fb2.actualModel, 10000);
+          const fb2Resp = await tryFetchTarget(fb2.providerType, fb2.targetUrl, fb2.targetKey, fb2.actualModel, 20000);
           if (fb2Resp && fb2Resp.ok) {
             console.log(`[Chat Internal API 3 Success] Model ${cleanModel} cleanly recovered using internal API 3 (${fb2.actualModel})`);
             response = fb2Resp;
@@ -481,7 +490,7 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
 
       for (const fb of fallbacks) {
         if (res.writableEnded || res.destroyed) break;
-        const fbResp = await tryFetchTarget(fb.type, fb.url, fb.key, fb.model, 8000);
+        const fbResp = await tryFetchTarget(fb.type, fb.url, fb.key, fb.model, 15000);
         if (fbResp && fbResp.ok) {
           console.log(`[Chat Fallback Success] Switched cleanly to ${fb.id}`);
           response = fbResp;
@@ -595,7 +604,24 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
                 if (!dataStr || dataStr === '[DONE]') continue;
                 try {
                   const json = JSON.parse(dataStr);
-                  const parts = json?.candidates?.[0]?.content?.parts;
+
+                  // Handle safety blocks gracefully
+                  if (json?.promptFeedback?.blockReason) {
+                    const blockNotice = "দুঃখিত, এই বিষয়টি এআই সেফটি ফিল্টারের কারণে উত্তর দেওয়া সম্ভব হয়নি। অনুগ্রহ করে অন্যভাবে জিজ্ঞেস করুন।";
+                    hasContentTokens = true;
+                    res.write(`data: ${JSON.stringify({ choices: [{ delta: { content: blockNotice } }] })}\n\n`);
+                    if (typeof res.flush === 'function') res.flush();
+                  }
+
+                  const candidate = json?.candidates?.[0];
+                  if (candidate?.finishReason === 'SAFETY' && !hasContentTokens) {
+                    const blockNotice = "দুঃখিত, এই উত্তরের বিষয়বস্তুটি নিরাপত্তা ফিল্টারের কারণে প্রদর্শিত হতে পারেনি। অনুগ্রহ করে প্রম্পটটি পরিবর্তন করে আবার চেষ্টা করুন।";
+                    hasContentTokens = true;
+                    res.write(`data: ${JSON.stringify({ choices: [{ delta: { content: blockNotice } }] })}\n\n`);
+                    if (typeof res.flush === 'function') res.flush();
+                  }
+
+                  const parts = candidate?.content?.parts;
                   if (Array.isArray(parts)) {
                     for (const p of parts) {
                       if (p && p.text) {
@@ -866,6 +892,39 @@ const generateImage = async (req, res) => {
     }
 
     let finalPrompt = prompt.trim();
+    
+    // Automatically enhance and translate the prompt to English using the main model
+    try {
+      const geminiKey = process.env.GEMINI_API_KEY || (process.env.GEMINI_API_KEYS ? process.env.GEMINI_API_KEYS.split(',')[0].trim() : '') || DEFAULT_GEMINI_KEY || (await getApiKeyFromSupabase('__gemini_key__')) || (await getApiKeyFromSupabase('gemini-3.6-flash'));
+      if (geminiKey) {
+        const enhController = new AbortController();
+        const enhTimeout = setTimeout(() => enhController.abort(), 8000);
+        try {
+          const enhanceRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: `You are an expert AI image prompt engineer. The user wants to generate an image based on the following input (it might be in Bengali or English). Translate it to English (if it isn't), and beautifully enhance it into a highly detailed, cinematic, and professional image generation prompt suitable for Midjourney or Flux. Add appropriate descriptors for lighting, camera angle, and atmosphere. Return ONLY the enhanced English prompt without any quotes, conversational text, or explanations. User input: "${finalPrompt}"` }] }]
+            }),
+            signal: enhController.signal
+          });
+          clearTimeout(enhTimeout);
+          if (enhanceRes.ok) {
+            const enhanceData = await enhanceRes.json();
+            const enhancedText = enhanceData?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (enhancedText && enhancedText.trim()) {
+              finalPrompt = enhancedText.trim();
+            }
+          }
+        } catch (e) {
+          clearTimeout(enhTimeout);
+          console.warn("[Image Enhancer Timeout/Skip]:", e.message);
+        }
+      }
+    } catch (err) {
+      console.warn("[Image Enhancer Error]:", err.message);
+    }
+
     if (style && typeof style === 'string' && style.trim()) {
       finalPrompt = `${finalPrompt}, in ${style.trim()} style, highly detailed, beautiful lighting, cinematic composition`;
     }

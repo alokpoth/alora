@@ -8,6 +8,8 @@ const { connectDB, getIsMongoConnected } = require('./config/db');
 const Plan = require('./models/Plan');
 const AiModel = require('./models/AiModel');
 const { createRateLimiter } = require('./middleware/ipRateLimiter');
+const { protect } = require('./middleware/authMiddleware');
+const { adminOnly } = require('./middleware/adminMiddleware');
 
 const authRoutes = require('./routes/authRoutes');
 const chatRoutes = require('./routes/chatRoutes');
@@ -146,11 +148,9 @@ app.get('/api/health', serverHealthHandler);
 app.head('/api/health', (req, res) => res.status(200).end());
 app.get('/health', serverHealthHandler);
 app.head('/health', (req, res) => res.status(200).end());
-app.get('/', serverHealthHandler);
-app.head('/', (req, res) => res.status(200).end());
 
-// Diagnostic debug-models endpoint
-app.get('/api/debug-models', async (req, res) => {
+// Diagnostic debug-models endpoint (admin only: the documents contain provider API keys)
+app.get('/api/debug-models', protect, adminOnly, async (req, res) => {
   try {
     const { getPersistedModels, getDeletedModelIds } = require('../utils/getModelConfig');
     const isMongo = getIsMongoConnected();
@@ -276,8 +276,13 @@ app.get('/app', (req, res) => res.sendFile(path.join(ROOT_DIR, 'download.html'))
   app.get(`/${p}`, (req, res) => res.sendFile(path.join(ROOT_DIR, `${p}.html`)));
 });
 
-// 404 handler
+// 404 handler — serve the styled 404 page to page navigations, JSON to API/asset callers
 app.use((req, res) => {
+  const isApiRequest = req.path === '/api' || req.path.startsWith('/api/');
+  const acceptsHtml = String(req.headers.accept || '').includes('text/html');
+  if (!isApiRequest && acceptsHtml && (req.method === 'GET' || req.method === 'HEAD')) {
+    return res.status(404).sendFile(path.join(ROOT_DIR, '404.html'));
+  }
   res.status(404).json({ success: false, error: 'Route not found' });
 });
 

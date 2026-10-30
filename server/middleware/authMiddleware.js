@@ -124,24 +124,8 @@ const protect = async (req, res, next) => {
       }
     }
 
-    if (!user && decoded && userId) {
-      const isVerifiedAdminEmail = decoded.email && adminEmails.includes(decoded.email.toLowerCase().trim());
-      if (isVerifiedAdminEmail) {
-        user = {
-          _id: String(userId),
-          id: String(userId),
-          name: decoded.name || 'Zihan Fakir',
-          email: decoded.email,
-          role: 'admin',
-          is_blocked: false,
-          subscription: { plan_name: 'Max', expires_at: null, is_active: true }
-        };
-        if (!memoryStore.users.some(u => String(u._id || u.id) === String(userId))) {
-          memoryStore.users.push(user);
-        }
-      }
-    }
-
+    // No record in any store means no session: identity (and especially role/plan) is never
+    // synthesised from token claims.
     if (!user) {
       return res.status(401).json({ success: false, error: 'ব্যবহারকারী খুঁজে পাওয়া যায়নি!' });
     }
@@ -251,24 +235,8 @@ const optionalProtect = async (req, res, next) => {
       }
     }
 
-    if (!user && decoded && userId) {
-      const isVerifiedAdminEmail = decoded.email && adminEmails.includes(decoded.email.toLowerCase().trim());
-      if (isVerifiedAdminEmail) {
-        user = {
-          _id: String(userId),
-          id: String(userId),
-          name: decoded.name || 'Zihan Fakir',
-          email: decoded.email,
-          role: 'admin',
-          is_blocked: false,
-          subscription: { plan_name: 'Max', expires_at: null, is_active: true }
-        };
-        if (!memoryStore.users.some(u => String(u._id || u.id) === String(userId))) {
-          memoryStore.users.push(user);
-        }
-      }
-    }
-
+    // Identity, role and plan are never synthesised from token claims; an unresolvable
+    // token simply leaves req.user unset on this optional-auth path.
     if (user && user.is_blocked) {
       return res.status(403).json({ success: false, error: 'আপনার অ্যাকাউন্টটি ব্লক করা হয়েছে!' });
     }

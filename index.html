@@ -4444,7 +4444,7 @@
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
   (function() {
     if (window.location.pathname.endsWith('.html')) {
@@ -5612,7 +5612,7 @@
       const lowerCur = cur.toLowerCase();
 
       // Explicit user switch to English
-      const englishSwitchRegex = /\b(speak (in )?english|in english|reply in english|answer in english|talk in english|use english|write in english|switch to english|ইংরেজি|ইংলিশ)\b/i;
+      const englishSwitchRegex = /\b(speak (in )?english|in english|reply in english|answer in english|talk in english|use english|write in english|switch to english|ইংরেজি|ইংলিশ|ইংরেজিতে)\b/i;
       if (englishSwitchRegex.test(lowerCur)) {
         return "en";
       }
@@ -5628,26 +5628,32 @@
         return "bn";
       }
 
-      // Inspect recent conversation turns (last 6 messages)
+      // Does current text contain common Banglish words?
+      const banglishRegex = /\b(kemon|acho|achhen|khobor|kivabe|keno|bolo|bolun|likho|likhun|koro|korun|korbo|hobena|hobe|lagbe|chai|dao|den|bujhi|bujhlam|thik|bhai|apni|tumi|tumar|tomar|amar|amader|apnar|shuru|sesh|kaj|ekhon|pore|aro|kisu|kichu|parbo|parbe|dekhao|dekhun|shunte|janen|jani|bolte|kotha|bhalo|valo|thako|thakun|jabo|korchi|korchen)\b/i;
+      if (banglishRegex.test(lowerCur)) {
+        return "bn";
+      }
+
+      // Inspect entire conversation history:
+      // If the conversation was established in Bengali (or user previously asked for Bengali),
+      // we MUST stay in Bengali unless the user explicitly switches to English!
       if (Array.isArray(history) && history.length > 0) {
-        const recent = history.slice(-6);
-        for (let i = recent.length - 1; i >= 0; i--) {
-          const msg = recent[i];
+        for (let i = history.length - 1; i >= 0; i--) {
+          const msg = history[i];
           const content = typeof msg.content === "string" ? msg.content : "";
           if (!content) continue;
 
           if (msg.role === "user") {
             const lowerMsg = content.toLowerCase();
             if (englishSwitchRegex.test(lowerMsg)) return "en";
-            if (bengaliSwitchRegex.test(lowerMsg)) return "bn";
-            if (/[\u0980-\u09FF]/.test(content)) return "bn";
+            if (bengaliSwitchRegex.test(lowerMsg) || banglishRegex.test(lowerMsg) || /[\u0980-\u09FF]/.test(content)) return "bn";
           } else if (msg.role === "assistant") {
             if (/[\u0980-\u09FF]/.test(content)) return "bn";
           }
         }
       }
 
-      // Fallback
+      // Fallback: Default to Bengali for Alo AI unless explicitly English
       return fallbackLang === "en" ? "en" : "bn";
     }
 
@@ -10402,7 +10408,7 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
     });
 
     if (window.pdfjsLib) {
-      pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.js";
+      pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
     }
 
     async function extractPdfText(file) {
@@ -12745,8 +12751,10 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
         }
 
         let searchContext = "";
-        // Web Search Logic based on Toggle
-        if (isWebSearchEnabled && lastUserMsg && lastUserMsg.content) {
+        // Web Search Logic based on Toggle or Intent Detection
+        const searchIntentRegex = /\b(search (the )?web|browse (the )?web|google|duckduckgo|current news|today'?s news|weather today|latest price|current price|আজকের খবর|আজকের আবহাওয়া|আজকের দিন|বর্তমান মূল্য|খোঁজ করো|সার্চ করো|লাইভ খবর)\b/i;
+        const autoSearchNeeded = searchIntentRegex.test(lastUserMsg?.content || "");
+        if ((isWebSearchEnabled || autoSearchNeeded) && lastUserMsg && lastUserMsg.content) {
           try {
             const activeChatLang = detectActiveChatLanguage(messagesHistory, lastUserMsg.content, currentLanguage);
             const isEnNow = (activeChatLang === "en");
@@ -12760,30 +12768,35 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
               searchContext = isEnNow
                 ? `\n\n[Web Search]: No live web results found, rely on your existing knowledge.`
                 : `\n\n[Web Search]: সরাসরি কোনো তথ্য পাওয়া যায়নি, আপনার সাধারণ জ্ঞান ব্যবহার করুন।`;
-              showToast(isEnNow ? "No search results found" : "সার্চে কোনো ফলাফল পাওয়া যায়নি", "error");
+              if (isWebSearchEnabled) {
+                showToast(isEnNow ? "No search results found" : "সার্চে কোনো ফলাফল পাওয়া যায়নি", "error");
+              }
             }
           } catch (searchErr) {
             console.warn("[Web Search Error]:", searchErr);
           } finally {
-            // Auto turn off toggle reliably
-            const isEnNow = (typeof currentLanguage !== "undefined" && currentLanguage === "en");
-            isWebSearchEnabled = false; 
-            updateAttachBtnActiveState();
-            if (webSearchText) webSearchText.textContent = isEnNow ? "Web Search: Off" : "ওয়েব সার্চ: বন্ধ"; 
-            if (attachWebSearchOption) {
-              attachWebSearchOption.style.color = "var(--text-main)"; 
-              const span = attachWebSearchOption.querySelector("span");
-              if (span) span.style.color = "var(--text-sub)"; 
-              const svg = attachWebSearchOption.querySelector("svg");
-              if (svg) svg.style.stroke = "var(--text-sub)";
+            // Auto turn off toggle reliably if manually activated
+            if (isWebSearchEnabled) {
+              const isEnNow = (typeof currentLanguage !== "undefined" && currentLanguage === "en");
+              isWebSearchEnabled = false; 
+              updateAttachBtnActiveState();
+              if (webSearchText) webSearchText.textContent = isEnNow ? "Web Search: Off" : "ওয়েব সার্চ: বন্ধ"; 
+              if (attachWebSearchOption) {
+                attachWebSearchOption.style.color = "var(--text-main)"; 
+                const span = attachWebSearchOption.querySelector("span");
+                if (span) span.style.color = "var(--text-sub)"; 
+                const svg = attachWebSearchOption.querySelector("svg");
+                if (svg) svg.style.stroke = "var(--text-sub)";
+              }
             }
           }
         }
 
         const activeChatLang = detectActiveChatLanguage(messagesHistory, lastUserMsg?.content || "", currentLanguage);
         const isEnChat = (activeChatLang === "en");
+        const userExplicitlyWantsEnglish = /\b(speak (in )?english|in english|reply in english|answer in english|talk in english|use english|write in english|switch to english|ইংরেজি|ইংলিশ|ইংরেজিতে)\b/i.test((lastUserMsg?.content || "").toLowerCase());
         const langReminder = isEnChat
-          ? "\n\n[Language Directive: Please respond clearly, naturally, and fluently in English.]"
+          ? (userExplicitlyWantsEnglish ? "\n\n[Language Directive: The user specifically requested English. Please respond clearly, naturally, and fluently in English.]" : "")
           : "\n\n[ভাষার নির্দেশিকা: সম্পূর্ণ উত্তর অবশ্যই অত্যন্ত সুন্দর, সাবলীল, প্রাঞ্জল ও শুদ্ধ প্রমিত চলিত বাংলায় দিন। নিজে থেকে কখনোই ইংরেজি বা অন্য ভাষায় পরিবর্তন করবেন না।]";
 
         const lastUserIdx = messagesHistory.map((m) => m.role).lastIndexOf("user");
@@ -12878,7 +12891,7 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
         
         let lastRenderTime = 0;
         // On mobile / touch devices, throttle rendering to 65ms (15fps) to save battery and stop phone overheating
-        const RENDER_THROTTLE = (window.innerWidth <= 768 || ('ontouchstart' in window)) ? 65 : 40;
+        const RENDER_THROTTLE = (window.innerWidth <= 768 || ('ontouchstart' in window)) ? 120 : 60;
 
         let overallWatchdog = setTimeout(() => {
           if (!apiFinished) {
@@ -12887,7 +12900,7 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
               try { currentAbortController.abort("timeout"); } catch(e) { console.error('[Alokpoth]', e); }
             }
           }
-        }, 45000);
+        }, 120000);
 
         const finishUp = () => {
           if (overallWatchdog) {

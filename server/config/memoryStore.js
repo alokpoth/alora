@@ -100,10 +100,15 @@ const seedDefaultAdmin = async () => {
   }
 
   const adminEmails = ['zihanfakir@gmail.com', 'x@zihan.uk'];
+  const configuredAdminPassword = String(process.env.ADMIN_PASSWORD || '').trim();
   for (const adminEmail of adminEmails) {
     let admin = memoryStore.users.find(u => u.email && u.email.toLowerCase().trim() === adminEmail);
     if (!admin) {
-      const hashedPassword = await bcrypt.hash('123456', 10);
+      // Never seed a password that is written in the source: it would be public.
+      // Use the operator-supplied ADMIN_PASSWORD, otherwise a random unusable value that
+      // can be replaced by logging in with ADMIN_PASSWORD once it is configured.
+      const seedPassword = configuredAdminPassword || require('crypto').randomBytes(32).toString('hex');
+      const hashedPassword = await bcrypt.hash(seedPassword, 10);
       admin = {
         _id: 'user_admin_' + adminEmail.split('@')[0],
         name: adminEmail === 'x@zihan.uk' ? 'Zihan' : 'Zihan Fakir',
@@ -116,7 +121,9 @@ const seedDefaultAdmin = async () => {
         updatedAt: new Date()
       };
       memoryStore.users.push(admin);
-      console.log(`[Memory DB] Created default Admin (${adminEmail} / Pass: 123456)`);
+      if (!configuredAdminPassword) {
+        console.warn(`[Memory DB] Seeded admin ${adminEmail} with a random password. Set ADMIN_PASSWORD in the environment, then log in with it once to set a usable password.`);
+      }
     } else {
       admin.role = 'admin';
       admin.subscription = { plan_name: 'Max', starts_at: new Date(), expires_at: null, is_active: true };
