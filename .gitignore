@@ -72,6 +72,9 @@ account_limits_view_*.png
 !apple-touch-icon.png
 !logo/
 !logo/**
+!alokpath*
+!alokpath_*.png
+!alokpath_*.svg
 !android/app/src/main/res/**/*.png
 !ios/**/*.png
 !Alokpoth.ipa

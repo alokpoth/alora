@@ -4441,6 +4441,139 @@
         scroll-behavior: auto !important;
       }
     }
+
+    /* Meta / Facebook Style Startup Splash Screen & Alokpath Branding */
+    .alora-startup-splash {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      background: #000000;
+      z-index: 9999999;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: calc(env(safe-area-inset-top, 0px) + 50px) 24px calc(env(safe-area-inset-bottom, 0px) + 40px);
+      transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.45s;
+      user-select: none;
+      -webkit-user-select: none;
+      pointer-events: all;
+    }
+    :root[data-theme="light"] .alora-startup-splash {
+      background: #ffffff;
+    }
+    .alora-startup-splash.splash-dismissed {
+      opacity: 0 !important;
+      transform: scale(1.03) !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
+    .splash-center {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      animation: splashIconIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .splash-icon-wrap {
+      width: 86px;
+      height: 86px;
+      border-radius: 22px;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+    :root[data-theme="light"] .splash-icon-wrap {
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.14);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+    }
+    .splash-app-icon {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .splash-app-name {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      color: #ffffff;
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    }
+    :root[data-theme="light"] .splash-app-name {
+      color: #111827;
+    }
+    .splash-app-tagline {
+      font-size: 0.82rem;
+      color: #8e8e93;
+      font-weight: 500;
+      margin-top: 4px;
+      letter-spacing: 0.3px;
+    }
+    .splash-bottom {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding-bottom: 8px;
+      animation: splashBottomIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .splash-from-text {
+      font-size: 0.72rem;
+      text-transform: lowercase;
+      letter-spacing: 1.2px;
+      color: #8e8e93;
+      font-weight: 500;
+    }
+    .splash-alokpath-brand {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .splash-alokpath-logo {
+      height: 25px;
+      width: auto;
+      object-fit: contain;
+    }
+    
+    /* Universal Alokpath theme toggler for images */
+    .alokpath-theme-logo-dark,
+    .alokpath-theme-icon-dark {
+      display: inline-block;
+    }
+    .alokpath-theme-logo-light,
+    .alokpath-theme-icon-light {
+      display: none;
+    }
+    :root[data-theme="light"] .alokpath-theme-logo-dark,
+    :root[data-theme="light"] .alokpath-theme-icon-dark {
+      display: none !important;
+    }
+    :root[data-theme="light"] .alokpath-theme-logo-light,
+    :root[data-theme="light"] .alokpath-theme-icon-light {
+      display: inline-block !important;
+    }
+
+    @keyframes splashIconIn {
+      0% { opacity: 0; transform: scale(0.92); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    @keyframes splashBottomIn {
+      0% { opacity: 0; transform: translateY(8px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
@@ -4478,12 +4611,32 @@
 
 <div class="toast-container" id="toastContainer"></div>
 
+  <!-- Meta / Facebook Style Startup Splash Screen (From Alokpath) -->
+  <div id="aloraStartupSplash" class="alora-startup-splash" aria-hidden="true">
+    <div class="splash-center">
+      <div class="splash-icon-wrap">
+        <img src="app_logo.png" alt="Alora" class="splash-app-icon">
+      </div>
+      <div class="splash-app-name">Alora</div>
+      <div class="splash-app-tagline">AI Intelligence &amp; Creativity</div>
+    </div>
+    
+    <div class="splash-bottom">
+      <span class="splash-from-text">from</span>
+      <div class="splash-alokpath-brand">
+        <img src="alokpath_logo_dark.png" alt="আলোকপথ" class="splash-alokpath-logo alokpath-theme-logo-dark">
+        <img src="alokpath_logo_light.png" alt="আলোকপথ" class="splash-alokpath-logo alokpath-theme-logo-light">
+      </div>
+    </div>
+  </div>
+
   <!-- Sliding Sidebar Navigation Drawer & Backdrop -->
   <div class="drawer-backdrop" id="drawerBackdrop"></div>
   <aside class="sidebar-drawer" id="sidebarDrawer" aria-label="প্রধান মেনু" style="display: flex; flex-direction: column;">
     <div class="drawer-top-bar" style="display: flex; align-items: center; justify-content: space-between; padding: 16px 18px 12px;">
-      <div style="display: flex; align-items: center; height: 28px;">
-        <img class="theme-wordmark" src="logo_wordmark_white.png" alt="Alora" style="height: 26px; width: auto; object-fit: contain;" onerror="if(!this.src.includes('/logo/'))this.src='logo/logo_wordmark_white.png';">
+      <div style="display: flex; flex-direction: column; justify-content: center;">
+        <img class="theme-wordmark" src="logo_wordmark_white.png" alt="Alora" style="height: 24px; width: auto; object-fit: contain;" onerror="if(!this.src.includes('/logo/'))this.src='logo/logo_wordmark_white.png';">
+        <span style="font-size: 0.65rem; color: var(--text-dim, #8e8e93); font-weight: 600; letter-spacing: 0.4px; margin-top: 1px;">An Alokpath Product</span>
       </div>
       <div style="display: flex; align-items: center; gap: 8px;">
         <button type="button" id="drawerSearchToggleBtn" aria-label="Search chats" style="background: transparent; border: none; color: var(--text-sub); width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;">
@@ -4553,6 +4706,14 @@
         <div style="display: flex; flex-direction: column; overflow: hidden;">
           <div class="drawer-user-name" id="drawerUserName" style="font-size: 0.95rem; font-weight: 600; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Zihan Fakir</div>
         </div>
+      </div>
+    </div>
+    <!-- Meta-style From Alokpath Drawer Footer -->
+    <div class="drawer-alokpath-meta-footer" style="padding: 12px 18px 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; background: var(--bg-main); border-top: 1px solid var(--border-color);">
+      <span style="font-size: 0.68rem; color: var(--text-sub); letter-spacing: 0.8px; text-transform: lowercase;">from</span>
+      <div style="display: flex; align-items: center; gap: 7px;">
+        <img src="alokpath_logo_dark.png" alt="আলোকপথ" class="alokpath-theme-logo-dark" style="height: 20px; width: auto; object-fit: contain;">
+        <img src="alokpath_logo_light.png" alt="আলোকপথ" class="alokpath-theme-logo-light" style="height: 20px; width: auto; object-fit: contain;">
       </div>
     </div>
   </aside>
@@ -4823,6 +4984,14 @@
                 <span id="setMenuLogoutLabel">লগ আউট / লগইন</span>
               </div>
             </button>
+          </div>
+          <div class="settings-from-alokpath" style="text-align: center; padding: 22px 0 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;">
+            <span style="font-size: 0.72rem; color: var(--text-sub); letter-spacing: 0.8px; text-transform: lowercase;">from</span>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <img src="alokpath_logo_dark.png" alt="আলোকপথ" class="alokpath-theme-logo-dark" style="height: 22px; width: auto; object-fit: contain;">
+              <img src="alokpath_logo_light.png" alt="আলোকপথ" class="alokpath-theme-logo-light" style="height: 22px; width: auto; object-fit: contain;">
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-sub); margin-top: 2px;">Alora • An Alokpath Product • Developed by Zihan Fakir</div>
           </div>
         </div>
       </div>
@@ -5352,6 +5521,11 @@
       <div class="empty-state" id="emptyState">
         <img class="empty-state-logo theme-icon" src="logo_icon_white.png" alt="Alora Logo" onerror="if(!this.src.includes('/logo/'))this.src='logo/logo_icon_white.png';">
         <div id="heroGreetingText">How can I help you?</div>
+        <div class="empty-state-alokpath-tag" style="font-size: 0.78rem; color: var(--text-dim, #8e8e93); margin-top: 6px; letter-spacing: 0.5px; font-weight: 500; display: flex; align-items: center; gap: 6px;">
+          <span>An Alokpath Product</span>
+          <span>•</span>
+          <span>আলোকপথ</span>
+        </div>
       </div>
     </div>
   </div>
@@ -13430,7 +13604,29 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
       }
     });
 
-    window.dismissSplashLoader = function() {};
+    // Meta / Facebook Style Startup Splash Screen auto-dismiss
+    (function() {
+      var splash = document.getElementById('aloraStartupSplash');
+      if (!splash) return;
+      var dismissed = false;
+      function dismiss() {
+        if (dismissed) return;
+        dismissed = true;
+        splash.classList.add('splash-dismissed');
+        setTimeout(function() {
+          if (splash && splash.parentNode) splash.parentNode.removeChild(splash);
+        }, 500);
+      }
+      window.dismissSplashLoader = dismiss;
+      if (document.readyState === 'complete') {
+        setTimeout(dismiss, 1100);
+      } else {
+        window.addEventListener('load', function() {
+          setTimeout(dismiss, 900);
+        });
+        setTimeout(dismiss, 1600);
+      }
+    })();
   </script>
 </body>
 </html>

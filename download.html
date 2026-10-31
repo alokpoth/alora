@@ -946,6 +946,12 @@
       color: var(--text-sub);
       line-height: 1.5;
     }
+
+    /* Alokpath Theme Images */
+    .alokpath-theme-logo-dark { display: inline-block; }
+    .alokpath-theme-logo-light { display: none; }
+    :root[data-theme="light"] .alokpath-theme-logo-dark { display: none !important; }
+    :root[data-theme="light"] .alokpath-theme-logo-light { display: inline-block !important; }
   </style>
 <script>
   (function() {
@@ -979,6 +985,13 @@
       <div class="hero-glow"></div>
       <div class="app-icon-wrap">
         <img src="app_logo.png" alt="Alora App Logo" width="96" height="96">
+      </div>
+      <div style="display: flex; justify-content: center; margin-bottom: 12px;">
+        <div style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; border-radius: 9999px; background: rgba(255,255,255,0.06); border: 1px solid var(--border-color); font-size: 0.82rem; font-weight: 500; color: var(--text-muted);">
+          <span>An Alokpath Product</span>
+          <span>•</span>
+          <span>আলোকপথ</span>
+        </div>
       </div>
       <h1 class="hero-title" id="heroTitle">Alora for Android & iOS</h1>
       <p class="hero-subtitle" id="heroSubtitle">
@@ -1259,8 +1272,15 @@
     </div>
 
     <!-- FOOTER -->
-    <footer class="footer">
-      <span>Alora v1.2.0 (Build 12) • Developed by Zihan Fakir</span>
+        <footer class="footer">
+      <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; margin-bottom: 12px;">
+        <span style="font-size: 0.72rem; color: var(--text-muted); letter-spacing: 0.8px; text-transform: lowercase;">from</span>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <img src="alokpath_logo_dark.png" alt="আলোকপথ" class="alokpath-theme-logo-dark" style="height: 24px; width: auto; object-fit: contain;">
+          <img src="alokpath_logo_light.png" alt="আলোকপথ" class="alokpath-theme-logo-light" style="height: 24px; width: auto; object-fit: contain;">
+        </div>
+      </div>
+      <span>Alora v1.2.0 (Build 12) • An Alokpath Product • Developed by Zihan Fakir</span>
       <span><a href="/">Home</a> • <a href="account">Settings</a> • <a href="help">Help Center</a></span>
     </footer>
 
