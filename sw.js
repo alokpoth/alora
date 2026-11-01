@@ -1,5 +1,5 @@
 /* Alora AI - Progressive Web App Service Worker (v1.6.0) */
-const CACHE_NAME = 'alora-ai-v1.6.0';
+const CACHE_NAME = 'alora-ai-v1.6.1';
 
 // Core assets to pre-cache on service worker install
 const CORE_ASSETS = [
@@ -30,7 +30,12 @@ const CORE_ASSETS = [
   '/logo_icon_white.png',
   '/logo_icon_black.png',
   '/logo_wordmark_white.png',
-  '/logo_wordmark_black.png'
+  '/logo_wordmark_black.png',
+  '/alokpath_logo_dark.png',
+  '/alokpath_logo_light.png',
+  '/alokpath_icon_dark.png',
+  '/alokpath_icon_light.png',
+  '/alokpath_logo.svg'
 ];
 
 /**

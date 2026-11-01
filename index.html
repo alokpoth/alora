@@ -4697,15 +4697,21 @@
     <div id="drawerEmptyState" style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; padding: 32px 24px; text-align: center;">
       <div style="font-size: 1.05rem; font-weight: 600; color: var(--text-main); margin-bottom: 6px;" data-i18n="drawerNoChatsTitle">কোনো চ্যাট নেই</div>
       <div style="font-size: 0.82rem; color: var(--text-sub); margin-bottom: 16px;" data-i18n="drawerNoChatsSub">আপনার Alora-এর সাথে চ্যাট এখানে প্রদর্শিত হবে।</div>
+      <button class="drawer-empty-new-chat-btn" id="drawerEmptyNewChatBtn" type="button" style="display: inline-flex; align-items: center; gap: 8px; background: var(--accent-color, #3b82f6); color: #fff; border: none; border-radius: 9999px; padding: 9px 18px; font-size: 0.85rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(59,130,246,0.3);">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span data-i18n="newChat">নতুন চ্যাট শুরু করুন</span>
+      </button>
     </div>
 
     <!-- Bottom User Row (Screenshot 3) -->
     <div class="drawer-footer" style="padding: 14px 18px; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; cursor: pointer; background: var(--bg-main);" id="drawerUserCardWrap" role="button" tabindex="0" aria-label="সেটিংস ও একাউন্ট" onclick="handleDrawerUserCardClick(event)">
       <div style="display: flex; align-items: center; gap: 12px; width: 100%; pointer-events: none;">
         <div class="drawer-avatar" id="drawerAvatar" style="width: 36px; height: 36px; border-radius: 50%; font-size: 1rem; background: var(--sheen-base-hover, rgba(128,128,128,0.15)); color: var(--text-main); display: flex; align-items: center; justify-content: center; font-weight: 600; flex-shrink: 0; border: 1px solid var(--border-color); overflow: hidden;">Z</div>
-        <div style="display: flex; flex-direction: column; overflow: hidden;">
+        <div style="display: flex; flex-direction: column; overflow: hidden; flex: 1;">
           <div class="drawer-user-name" id="drawerUserName" style="font-size: 0.95rem; font-weight: 600; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Zihan Fakir</div>
+          <div class="drawer-user-plan" id="drawerUserPlan" style="font-size: 0.75rem; color: var(--text-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Free Plan</div>
         </div>
+        <span class="drawer-limit-badge" id="drawerLimitBadge" style="font-size: 0.72rem; padding: 2px 8px; border-radius: 9999px; background: rgba(59,130,246,0.12); color: #3b82f6; font-weight: 600; white-space: nowrap;">Free</span>
       </div>
     </div>
     <!-- Meta-style From Alokpath Drawer Footer -->
@@ -4730,7 +4736,10 @@
         <svg class="chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
       </button>
     </div>
-    <div class="navbar-right">
+    <div class="navbar-right" style="display: flex; align-items: center; gap: 8px;">
+      <div class="nav-credit-badge" id="navCreditBadge" role="button" tabindex="0" title="ব্যবহারের কোটা ও ক্রেডিট" style="cursor: pointer;">
+        <span id="navCreditCount">...</span>
+      </div>
       <button class="icon-btn" id="quickNewChatNavBtn" type="button" aria-label="নতুন চ্যাট" title="নতুন চ্যাট শুরু করুন" style="background: transparent; border: none; color: var(--text-main); padding: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -6044,12 +6053,64 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
 
     // ===== Sound Synthesizer Engine (Completely Muted per user request) =====
     const soundEngine = {
-      getCtx() { return null; },
-      playSend() {},
-      playReceive() {},
-      playClick() {},
-      playSuccess() {},
-      playError() {}
+      muted: localStorage.getItem("alokpoth_sound_enabled") === "false",
+      _ctx: null,
+      getCtx() {
+        if (!this._ctx && (window.AudioContext || window.webkitAudioContext)) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          this._ctx = new AudioContextClass();
+        }
+        if (this._ctx && this._ctx.state === "suspended") {
+          this._ctx.resume().catch(() => {});
+        }
+        return this._ctx;
+      },
+      _playTone(freqStart, freqEnd, duration, type = "sine", gainVal = 0.2) {
+        if (this.muted) return;
+        if (localStorage.getItem("alokpoth_sound_enabled") === "false") return;
+        try {
+          const ctx = this.getCtx();
+          if (!ctx) return;
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = type;
+          const now = ctx.currentTime;
+          osc.frequency.setValueAtTime(freqStart, now);
+          if (freqEnd && freqEnd !== freqStart) {
+            osc.frequency.exponentialRampToValueAtTime(freqEnd, now + duration * 0.7);
+          }
+          gain.gain.setValueAtTime(gainVal, now);
+          gain.gain.exponentialRampToValueAtTime(0.005, now + duration);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + duration);
+        } catch (e) {}
+      },
+      playSend() {
+        this._playTone(440, 660, 0.08, "sine", 0.15);
+      },
+      playReceive() {
+        if (localStorage.getItem("alokpoth_chime_enabled") === "false") return;
+        const tone = localStorage.getItem("alokpoth_sound_tone") || "subtle";
+        if (tone === "chime") {
+          this._playTone(587.33, 880, 0.35, "sine", 0.18);
+        } else if (tone === "cosmic") {
+          this._playTone(320, 640, 0.3, "triangle", 0.2);
+        } else {
+          // Subtle Pop
+          this._playTone(800, 400, 0.08, "sine", 0.2);
+        }
+      },
+      playClick() {
+        this._playTone(600, 300, 0.04, "sine", 0.08);
+      },
+      playSuccess() {
+        this._playTone(523.25, 659.25, 0.2, "sine", 0.18);
+      },
+      playError() {
+        this._playTone(260, 180, 0.18, "sawtooth", 0.15);
+      }
     };
 
     function triggerHaptic(type = "light") {
@@ -7618,7 +7679,13 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
       }
     });
 
-    let MODELS = [];
+    const DEFAULT_FALLBACK_MODELS = [
+      { id: "openrouter/free", name: "ALO 2.5 Lite", description: "দ্রুত এবং দৈনন্দিন কাজের জন্য আদর্শ", provider: "Alora", efficient: false, premium: false, status: "online" },
+      { id: "agnes-3.0-flash", name: "ALO 3 Mini", description: "স্মার্ট এবং দ্রুত রেসপন্স", provider: "Alora", efficient: false, premium: false, status: "online" },
+      { id: "deepseek-v4.1", name: "ALO 3.1 Omi", description: "উন্নত যুক্তি ও কোডিং সক্ষমতা", provider: "Alora", efficient: false, premium: true, status: "online" },
+      { id: "claude-fable-5.1", name: "ALO 3 Moko", description: "সর্বোচ্চ বুদ্ধিমত্তা ও সৃজনশীলতা", provider: "Alora", efficient: true, premium: true, status: "online" }
+    ];
+    let MODELS = [...DEFAULT_FALLBACK_MODELS];
     try {
       const cachedModelsStr = localStorage.getItem("alokpoth_cached_models");
       if (cachedModelsStr) {
@@ -10214,7 +10281,7 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
     // Register Service Worker for offline app loading
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
-        navigator.serviceWorker.register("/sw.js").then((reg) => {
+        navigator.serviceWorker.register("sw.js").then((reg) => {
           console.log("[PWA Service Worker] Registered:", reg.scope);
         }).catch((err) => {
           console.warn("[PWA Service Worker] Registration failed:", err);
@@ -11051,12 +11118,18 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
         <div class="empty-state" id="emptyState">
           <img class="empty-state-logo theme-icon" src="${(document.documentElement.getAttribute('data-theme') === 'light' || document.documentElement.getAttribute('data-theme') === 'eyecare') ? 'logo_icon_black.png' : 'logo_icon_white.png'}" alt="Alora Logo">
           <div id="heroGreetingText">${greeting}</div>
+          <div class="empty-state-alokpath-tag" style="font-size: 0.78rem; color: var(--text-dim, #8e8e93); margin-top: 6px; letter-spacing: 0.5px; font-weight: 500; display: flex; align-items: center; gap: 6px;">
+            <span>An Alokpath Product</span>
+            <span>•</span>
+            <span>আলোকপথ</span>
+          </div>
           ${bannerHtml}
         </div>
       `;
     }
 
     function startNewChat() {
+    window.createNewSession = startNewChat;
       currentSessionId = null;
       try { localStorage.removeItem(CURRENT_SESSION_KEY); } catch(e) { console.error('[Alokpoth]', e); }
       if (window.location.hash) {
@@ -11081,7 +11154,7 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
         });
       }
 
-      const scrollContainer = document.getElementById("chatStreamContainer");
+      const scrollContainer = document.getElementById("scrollContainer");
       if (scrollContainer) scrollContainer.scrollTop = 0;
       closeBrandMenu();
     }
@@ -13463,7 +13536,7 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
       if (quickNewChatNavBtn) {
         quickNewChatNavBtn.addEventListener("click", () => {
           triggerHaptic("light");
-          if (typeof createNewSession === "function") createNewSession();
+          if (typeof startNewChat === "function") startNewChat();
         });
       }
 
