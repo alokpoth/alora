@@ -483,7 +483,33 @@
       border-radius: 28px !important;
     }
 
-  </style>
+  
+    /* ==========================================================================
+       GLISSE DESIGN SYSTEM (Liquid Glass & Ultra-Rounded Overrides)
+       - Strict zero hover vertical displacement (transform: translateY OFF)
+       - Ultra-rounded pills (border-radius: 9999px) on all buttons & inputs
+       - Rounded squircles (border-radius: 20px) on panels, cards, sheets
+       - Exactly 3 theme modes: OLED (Dark), Light, Eye Care
+       ========================================================================== */
+    *:hover {
+      transform: none !important;
+    }
+    button:active, a:active, .btn:active, .icon-btn:active, .action-btn:active {
+      transform: scale(0.97) !important;
+      transition: transform 0.08s ease !important;
+    }
+    button, .btn, .btn-primary, .btn-secondary, .icon-btn, .action-btn,
+    .settings-back-link, .lang-pill-btn, .back-btn, input, .search-input,
+    .pill-btn, .tab-btn, .cta-btn, .plan-cta-btn, .download-btn, .submit-btn,
+    .badge, .status-pill, .role-pill, .filter-chip, .page-back-link {
+      border-radius: 9999px !important;
+    }
+    .card, .content-card, .plan-card, .feature-card, .settings-group,
+    .modal-sheet, .modal-box, .glass-panel, .info-box, .account-card {
+      border-radius: 20px !important;
+    }
+
+</style>
 <script>
   (function() {
     if (window.location.pathname.endsWith('.html')) {
@@ -491,6 +517,16 @@
       if (clean === '/index') clean = '/';
       window.history.replaceState(null, '', clean + window.location.search + window.location.hash);
     }
+  })();
+</script>
+<script>
+  (function() {
+    try {
+      var saved = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "oled";
+      if (saved !== "light" && saved !== "eyecare") saved = "oled";
+      document.documentElement.setAttribute("data-theme-mode", saved);
+      document.documentElement.setAttribute("data-theme", saved);
+    } catch(e) {}
   })();
 </script>
 </head>

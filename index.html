@@ -22,20 +22,10 @@
   <script>
     (function() {
       try {
-        const saved = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "system";
-        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var saved = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "oled";
+        if (saved !== "light" && saved !== "eyecare") saved = "oled";
         document.documentElement.setAttribute("data-theme-mode", saved);
-        if (saved === "system") {
-          if (!prefersDark) {
-            document.documentElement.setAttribute("data-theme", "light");
-          } else {
-            document.documentElement.removeAttribute("data-theme");
-          }
-        } else if (saved === "dark") {
-          document.documentElement.removeAttribute("data-theme");
-        } else {
-          document.documentElement.setAttribute("data-theme", saved);
-        }
+        document.documentElement.setAttribute("data-theme", saved);
       } catch(e) { console.error('[Alokpoth]', e); }
     })();
   </script>
@@ -5012,7 +5002,206 @@
       100% { opacity: 1; filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.85)); }
     }
 
-  </style>
+  
+    /* ==========================================================================
+       GLISSE DESIGN SYSTEM (Kelvin Zhang Inspired Liquid Glass & Ultra-Rounded)
+       - Strict zero hover vertical displacement (transform: translateY OFF)
+       - Ultra-rounded pills (border-radius: 9999px) on all buttons & inputs
+       - Rounded squircles (border-radius: 20px) on panels, drawers, cards
+       - Floating Glisse Liquid Glass <Menu> dropdown component
+       - Exactly 3 themes: OLED (Dark), Light, Eye Care
+       ========================================================================== */
+
+    /* STRICT ZERO HOVER DISPLACEMENT */
+    button:hover, a:hover, input:hover, .btn:hover, .icon-btn:hover, .action-btn:hover,
+    .model-selector-btn:hover, .drawer-session-item:hover, .drawer-session-action-btn:hover,
+    .sheen-surface:hover, .empty-state-logo:hover, .brand-menu-item:hover {
+      transform: none !important;
+    }
+
+    /* TACTILE ACTIVE MICRO-PRESS (SPRING PHYSICS) */
+    button:active, a:active, .btn:active, .icon-btn:active, .action-btn:active,
+    .model-selector-btn:active, .drawer-session-action-btn:active, .glisse-menu-item:active {
+      transform: scale(0.97) !important;
+      transition: transform 0.08s ease !important;
+    }
+
+    /* UNIVERSAL ULTRA-ROUNDED PILLS FOR ALL BUTTONS & INPUTS */
+    button, .btn, .icon-btn, .action-btn, .model-selector-btn, .native-tool-btn,
+    .native-mic-btn, .drawer-new-chat-btn, .drawer-session-action-btn, .custom-dialog-btn,
+    .lang-pill-btn, .page-back-btn, .search-pill-clear-btn, #sendBtn, #quickNewChatNavBtn,
+    .drawer-search-wrap, .drawer-search-input, .search-pill-input, .brand-menu-item,
+    .nav-credit-badge, .badge, .status-pill, .settings-select-item, .settings-row {
+      border-radius: 9999px !important;
+    }
+
+    /* UNIVERSAL SQUIRCLE ROUNDING FOR CARDS & DIALOGS */
+    .modal-sheet, .custom-dialog-box, .drawer-content, .card, .user-bubble, .bot-bubble,
+    .settings-group, .account-card, .model-card, .sheen-surface {
+      border-radius: 20px !important;
+    }
+
+    /* GLISSE FLOATING LIQUID GLASS MENU */
+    .glisse-menu-popover {
+      position: fixed;
+      z-index: 999999;
+      opacity: 0;
+      transform: scale(0.96);
+      transform-origin: top center;
+      transition: opacity 0.15s cubic-bezier(0.16, 1, 0.3, 1), transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+      background: rgba(18, 18, 22, 0.88);
+      -webkit-backdrop-filter: blur(28px) saturate(190%) contrast(105%);
+      backdrop-filter: blur(28px) saturate(190%) contrast(105%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 18px 42px -6px rgba(0, 0, 0, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.18);
+      border-radius: 18px !important;
+      padding: 6px;
+      box-sizing: border-box;
+      max-width: calc(100vw - 24px);
+    }
+
+    :root[data-theme="light"] .glisse-menu-popover {
+      background: rgba(255, 255, 255, 0.92);
+      border-color: rgba(0, 0, 0, 0.08);
+      box-shadow: 0 14px 36px -4px rgba(0, 0, 0, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.85);
+    }
+
+    :root[data-theme="eyecare"] .glisse-menu-popover {
+      background: rgba(246, 241, 231, 0.95);
+      border-color: rgba(146, 64, 14, 0.16);
+      box-shadow: 0 14px 36px -4px rgba(74, 59, 44, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.6);
+    }
+
+    .glisse-menu-popover.glisse-menu-open {
+      opacity: 1;
+      transform: scale(1);
+      pointer-events: auto;
+    }
+
+    .glisse-menu-item {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 9px 14px;
+      border-radius: 12px !important;
+      border: none;
+      background: transparent;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 13.5px;
+      font-weight: 500;
+      text-align: left;
+      cursor: pointer;
+      transition: background 0.12s ease, color 0.12s ease;
+      user-select: none;
+      -webkit-user-select: none;
+      transform: none !important;
+    }
+
+    .glisse-menu-item:hover {
+      background: rgba(255, 255, 255, 0.08) !important;
+      transform: none !important;
+    }
+
+    :root[data-theme="light"] .glisse-menu-item:hover {
+      background: rgba(0, 0, 0, 0.05) !important;
+    }
+
+    :root[data-theme="eyecare"] .glisse-menu-item:hover {
+      background: rgba(74, 59, 44, 0.08) !important;
+    }
+
+    .glisse-menu-item-left {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .glisse-menu-item-icon {
+      width: 18px;
+      height: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: currentColor;
+      opacity: 0.85;
+    }
+
+    .glisse-menu-item-icon svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .glisse-menu-item-label {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .glisse-menu-item-right {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .glisse-menu-item-badge {
+      font-size: 10.5px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 9999px !important;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-sub);
+    }
+
+    :root[data-theme="light"] .glisse-menu-item-badge {
+      background: rgba(0, 0, 0, 0.06);
+    }
+
+    .glisse-menu-item-check {
+      width: 15px;
+      height: 15px;
+      stroke: var(--accent-color, #3b82f6);
+      stroke-width: 2.4;
+      fill: none;
+    }
+
+    .glisse-menu-separator {
+      height: 1px;
+      margin: 5px 6px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    :root[data-theme="light"] .glisse-menu-separator {
+      background: rgba(0, 0, 0, 0.06);
+    }
+
+    :root[data-theme="eyecare"] .glisse-menu-separator {
+      background: rgba(146, 64, 14, 0.1);
+    }
+
+    .glisse-menu-item.destructive {
+      color: #ff453a !important;
+    }
+
+    .glisse-menu-item.destructive:hover {
+      background: rgba(255, 69, 58, 0.12) !important;
+      color: #ff5b50 !important;
+    }
+
+    /* Pinned chat item styling */
+    .drawer-session-item.is-pinned {
+      background: rgba(59, 130, 246, 0.06);
+      border-left: 2px solid var(--accent-color, #3b82f6);
+    }
+
+</style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -5569,35 +5758,23 @@
         <div class="page-header-bar">
           <button class="page-back-btn" type="button" onclick="showSettingsView('settingsMainView')">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-            <span data-i18n="backToSettings">সেটিংস</span>
+            <span data-i18n="backToSettings">Settings</span>
           </button>
-          <span class="page-nav-title" data-i18n="theme">চেহারা (থিম)</span>
+          <span class="page-nav-title" data-i18n="theme">Color Theme</span>
           <div class="page-header-spacer"></div>
         </div>
         <div class="settings-subview-content">
           <div class="settings-group">
-            <button class="settings-select-item" id="themeOptSystem" type="button" onclick="selectAppTheme('system')">
-              <span data-i18n="themeSystem">সিস্টেম থিম (ডিভাইস অনুযায়ী)</span>
-              <svg class="settings-check" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg>
-            </button>
-            <button class="settings-select-item" id="themeOptDark" type="button" onclick="selectAppTheme('dark')">
-              <span data-i18n="themeDark">ডার্ক (Dark - স্ট্যান্ডার্ড)</span>
+            <button class="settings-select-item" id="themeOptOled" type="button" onclick="selectAppTheme('oled')">
+              <span data-i18n="themeOled">Dark (OLED)</span>
               <svg class="settings-check" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg>
             </button>
             <button class="settings-select-item" id="themeOptLight" type="button" onclick="selectAppTheme('light')">
-              <span data-i18n="themeLight">লাইট (Light)</span>
-              <svg class="settings-check" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg>
-            </button>
-            <button class="settings-select-item" id="themeOptOled" type="button" onclick="selectAppTheme('oled')">
-              <span data-i18n="themeOled">ওলেড (OLED - খাঁটি কালো)</span>
-              <svg class="settings-check" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg>
-            </button>
-            <button class="settings-select-item" id="themeOptSapphire" type="button" onclick="selectAppTheme('sapphire')">
-              <span data-i18n="themeSapphire">স্যাফায়ার (Sapphire - নেভি ব্লু)</span>
+              <span data-i18n="themeLight">Light</span>
               <svg class="settings-check" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg>
             </button>
             <button class="settings-select-item" id="themeOptEyecare" type="button" onclick="selectAppTheme('eyecare')">
-              <span data-i18n="themeEyecare">আইকেয়ার (Eye Care - সেপিয়া)</span>
+              <span data-i18n="themeEyecare">Eye Care</span>
               <svg class="settings-check" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg>
             </button>
           </div>
@@ -6485,101 +6662,7 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
       } catch(e) { console.error('[Alokpoth]', e); }
     }
 
-        // ===== Matrix Encrypted Text Engine (EncryptedText / 21st.dev) =====
-    const MATRIX_CHARSET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-={}[];:,.<>/?";
-
-    function renderStreamingEncryptedContent(content, isFinal = false) {
-      if (isFinal || !content) {
-        return safeMarkdown(content, isFinal);
-      }
-      // If actively inside an unclosed code block (odd number of backticks), preserve syntax
-      const backtickMatches = content.match(/```/g);
-      const inCodeBlock = backtickMatches && (backtickMatches.length % 2 !== 0);
-      if (inCodeBlock) {
-        return safeMarkdown(content, false) + `<span class="streaming-cursor"></span>`;
-      }
-
-      // Plaintext streaming frontier: scramble trailing ~8-14 characters
-      const scrambleLen = Math.min(14, Math.max(3, Math.floor(content.length * 0.35)));
-      const stableText = content.slice(0, -scrambleLen);
-      const trailingText = content.slice(-scrambleLen);
-
-      let scrambled = "";
-      for (let i = 0; i < trailingText.length; i++) {
-        const ch = trailingText[i];
-        if (/\s/.test(ch)) {
-          scrambled += ch;
-        } else {
-          scrambled += MATRIX_CHARSET[Math.floor(Math.random() * MATRIX_CHARSET.length)];
-        }
-      }
-
-      const stableHtml = safeMarkdown(stableText, false);
-      const encryptedSpan = `<span class="encrypted-text-stream" title="Decrypting..."><span class="encrypted-char-matrix">${escapeHtml(scrambled)}</span></span><span class="streaming-cursor"></span>`;
-
-      if (stableHtml.endsWith("</p>")) {
-        return stableHtml.slice(0, -4) + " " + encryptedSpan + "</p>";
-      }
-      return stableHtml + encryptedSpan;
-    }
-
-    // Standalone EncryptedText Component API (Inspired by 21st.dev / Aceternity UI)
-    function EncryptedText(element, targetText, options = {}) {
-      if (!element) return;
-      const {
-        revealDelayMs = 50,
-        flipDelayMs = 45,
-        charset = MATRIX_CHARSET,
-        encryptedClassName = "encrypted-char-matrix",
-        revealedClassName = "revealed-char-matrix",
-        onComplete = null
-      } = options;
-
-      let currentIndex = 0;
-      let flipInterval = null;
-      let revealInterval = null;
-
-      const chars = Array.from(targetText);
-      const displayChars = chars.map((ch, idx) => ({
-        original: ch,
-        isRevealed: /\s/.test(ch),
-        current: /\s/.test(ch) ? ch : charset[Math.floor(Math.random() * charset.length)]
-      }));
-
-      function render() {
-        element.innerHTML = displayChars.map(c => {
-          if (c.isRevealed) {
-            return `<span class="${revealedClassName}">${escapeHtml(c.original)}</span>`;
-          }
-          return `<span class="${encryptedClassName}">${escapeHtml(c.current)}</span>`;
-        }).join("");
-      }
-
-      flipInterval = setInterval(() => {
-        for (let i = currentIndex; i < displayChars.length; i++) {
-          if (!displayChars[i].isRevealed && !/\s/.test(displayChars[i].original)) {
-            displayChars[i].current = charset[Math.floor(Math.random() * charset.length)];
-          }
-        }
-        render();
-      }, flipDelayMs);
-
-      revealInterval = setInterval(() => {
-        if (currentIndex < displayChars.length) {
-          displayChars[currentIndex].isRevealed = true;
-          displayChars[currentIndex].current = displayChars[currentIndex].original;
-          currentIndex++;
-          render();
-        } else {
-          clearInterval(revealInterval);
-          clearInterval(flipInterval);
-          if (typeof onComplete === "function") onComplete();
-        }
-      }, revealDelayMs);
-
-      render();
-    }
-    window.EncryptedText = EncryptedText;
+        // Matrix scramble removed per user request for instantaneous clean streaming
 
     function safeMarkdown(md, isFinal = false) {
       try {
@@ -8755,11 +8838,208 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
     }
     window.openModelPicker = openModal;
 
-    modelTrigger.addEventListener("click", openModal);
+    function selectModelById(modelId) {
+      const m = MODELS.find(x => x.id === modelId);
+      if (!m) return;
+      selectedModelId = m.id;
+      try { localStorage.setItem("alokpoth_selected_model", m.id); } catch(e) { console.error('[Alokpoth]', e); }
+      if (modelTriggerLabel) modelTriggerLabel.textContent = m.name;
+      if (messagesHistory[0] && messagesHistory[0].role === "system") {
+        messagesHistory[0].content = getDynamicSystemPrompt();
+      }
+      if (typeof updateComposerQuotaUI === "function") updateComposerQuotaUI();
+      if (typeof updateWebSearchAvailability === "function") updateWebSearchAvailability();
+      if (typeof updateImageGenAvailability === "function") updateImageGenAvailability();
+      if (typeof renderModelList === "function") renderModelList();
+    }
+    window.selectModelById = selectModelById;
+
+    modelTrigger.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (typeof closeSidebarDrawer === "function") closeSidebarDrawer();
+      if (typeof closeBrandMenu === "function") closeBrandMenu();
+
+      const isEn = (typeof currentLanguage !== "undefined" && currentLanguage === "en");
+      const items = (MODELS || []).map(m => {
+        const isCurrent = (m.id === selectedModelId);
+        return {
+          label: m.name,
+          badge: m.premium ? "Pro" : (m.efficient ? "Fast" : "Free"),
+          active: isCurrent,
+          icon: isCurrent 
+            ? `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
+            : `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/></svg>`,
+          onSelect: () => {
+            selectModelById(m.id);
+            if (typeof triggerHaptic === "function") triggerHaptic("light");
+          }
+        };
+      });
+
+      items.push("separator");
+      items.push({
+        label: isEn ? "All Models & Settings..." : "সব মডেল ও সেটিংস...",
+        icon: `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/></svg>`,
+        onSelect: () => {
+          openModal();
+        }
+      });
+
+      GlisseMenu.show({
+        trigger: modelTrigger,
+        ariaLabel: isEn ? "Select AI Model" : "মডেল নির্বাচন করুন",
+        align: "start",
+        items: items
+      });
+    });
     modelModalClose.addEventListener("click", () => closeModal());
     modelModalOverlay.addEventListener("click", (e) => {
       if (e.target === modelModalOverlay) closeModal();
     });
+
+    
+    /* ==========================================================================
+       GLISSE MENU ENGINE (Kelvin Zhang Inspired Liquid Glass Context Menu)
+       - Implements <Menu aria-label="..." items={[...]} /> API
+       - Auto-positions with viewport bounds safety
+       - Supports Pin, Rename, Duplicate, separator, Delete (destructive: true)
+       ========================================================================== */
+    window.GlisseMenu = {
+      activeMenu: null,
+      cleanup: null,
+
+      show({ trigger, items, ariaLabel = "Options", align = "end" }) {
+        this.close();
+
+        const menuEl = document.createElement("div");
+        menuEl.className = "glisse-menu-popover";
+        menuEl.setAttribute("role", "menu");
+        menuEl.setAttribute("aria-label", ariaLabel);
+
+        items.forEach((item) => {
+          if (item === "separator" || (item && item.type === "separator")) {
+            const sep = document.createElement("div");
+            sep.className = "glisse-menu-separator";
+            menuEl.appendChild(sep);
+            return;
+          }
+          if (!item || !item.label) return;
+
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = `glisse-menu-item ${item.destructive ? "destructive" : ""} ${item.active ? "active" : ""}`;
+          btn.setAttribute("role", "menuitem");
+
+          const left = document.createElement("div");
+          left.className = "glisse-menu-item-left";
+          if (item.icon) {
+            const iconSpan = document.createElement("span");
+            iconSpan.className = "glisse-menu-item-icon";
+            if (typeof item.icon === "string") {
+              iconSpan.innerHTML = item.icon;
+            } else if (item.icon instanceof Node) {
+              iconSpan.appendChild(item.icon);
+            }
+            left.appendChild(iconSpan);
+          }
+          const labelSpan = document.createElement("span");
+          labelSpan.className = "glisse-menu-item-label";
+          labelSpan.textContent = item.label;
+          left.appendChild(labelSpan);
+          btn.appendChild(left);
+
+          const right = document.createElement("div");
+          right.className = "glisse-menu-item-right";
+          if (item.badge) {
+            const badgeSpan = document.createElement("span");
+            badgeSpan.className = "glisse-menu-item-badge";
+            badgeSpan.textContent = item.badge;
+            right.appendChild(badgeSpan);
+          }
+          if (item.active) {
+            const checkSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            checkSvg.setAttribute("viewBox", "0 0 24 24");
+            checkSvg.setAttribute("class", "glisse-menu-item-check");
+            checkSvg.innerHTML = '<polyline points="20 6 9 17 4 12"/>';
+            right.appendChild(checkSvg);
+          }
+          btn.appendChild(right);
+
+          btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            this.close();
+            if (typeof item.onSelect === "function") {
+              item.onSelect();
+            }
+          });
+
+          menuEl.appendChild(btn);
+        });
+
+        document.body.appendChild(menuEl);
+        this.activeMenu = menuEl;
+
+        const rect = trigger.getBoundingClientRect();
+        const menuWidth = 210;
+        menuEl.style.position = "fixed";
+        menuEl.style.zIndex = "999999";
+        menuEl.style.minWidth = `${Math.max(menuWidth, rect.width)}px`;
+
+        let top = rect.bottom + 6;
+        let left = (align === "end") ? (rect.right - menuWidth) : rect.left;
+
+        if (left + menuWidth > window.innerWidth - 12) {
+          left = window.innerWidth - menuWidth - 12;
+        }
+        if (left < 12) left = 12;
+
+        const estimatedHeight = items.length * 42;
+        if (top + estimatedHeight > window.innerHeight - 12) {
+          top = Math.max(12, rect.top - estimatedHeight - 6);
+        }
+
+        menuEl.style.top = `${top}px`;
+        menuEl.style.left = `${left}px`;
+
+        requestAnimationFrame(() => {
+          menuEl.classList.add("glisse-menu-open");
+        });
+
+        const handleOutsideClick = (e) => {
+          if (!menuEl.contains(e.target) && !trigger.contains(e.target)) {
+            this.close();
+          }
+        };
+        const handleKeyDown = (e) => {
+          if (e.key === "Escape") this.close();
+        };
+
+        setTimeout(() => {
+          document.addEventListener("click", handleOutsideClick);
+          document.addEventListener("keydown", handleKeyDown);
+        }, 10);
+
+        this.cleanup = () => {
+          document.removeEventListener("click", handleOutsideClick);
+          document.removeEventListener("keydown", handleKeyDown);
+        };
+      },
+
+      close() {
+        if (this.cleanup) {
+          this.cleanup();
+          this.cleanup = null;
+        }
+        if (this.activeMenu) {
+          this.activeMenu.classList.remove("glisse-menu-open");
+          const el = this.activeMenu;
+          this.activeMenu = null;
+          setTimeout(() => {
+            if (el && el.parentNode) el.parentNode.removeChild(el);
+          }, 150);
+        }
+      }
+    };
 
     // ===== Sliding Sidebar Drawer Engine =====
     const drawerToggleBtn = document.getElementById("drawerToggleBtn");
@@ -9005,6 +9285,7 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
 
       const isEn = (typeof currentLanguage !== "undefined" && currentLanguage === "en");
       const groups = {
+        pinned: { label: isEn ? "Pinned" : "পিন করা", items: [] },
         today: { label: isEn ? "Today" : "আজ", items: [] },
         yesterday: { label: isEn ? "Yesterday" : "গতকাল", items: [] },
         week: { label: isEn ? "Previous 7 Days" : "বিগত ৭ দিন", items: [] },
@@ -9012,6 +9293,10 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
       };
 
       sessions.forEach((s) => {
+        if (s.pinned) {
+          groups.pinned.items.push(s);
+          return;
+        }
         const t = s.updatedAt || 0;
         if (t >= todayStart) groups.today.items.push(s);
         else if (t >= yesterdayStart) groups.yesterday.items.push(s);
@@ -9028,16 +9313,22 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
 
         group.items.forEach((session) => {
           const item = document.createElement("div");
-          item.className = `drawer-session-item ${session.id === currentSessionId ? "active" : ""}`;
+          const isAct = (session.id === currentSessionId);
+          item.className = `drawer-session-item ${isAct ? "active" : ""} ${session.pinned ? "is-pinned" : ""}`;
+
+          const pinSvg = session.pinned
+            ? `<svg viewBox="0 0 24 24" style="width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.2;margin-right:6px;flex-shrink:0;color:var(--accent-color, #3b82f6);" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V5h1a1 1 0 0 0 0-2H8a1 1 0 0 0 0 2h1z"/></svg>`
+            : "";
 
           item.innerHTML = `
-            <div class="drawer-session-title" title="${escapeHtml(session.title || (isEn ? "Untitled Chat" : "নামহীন চ্যাট"))}">${escapeHtml(session.title || (isEn ? "Untitled Chat" : "নামহীন চ্যাট"))}</div>
+            <div class="drawer-session-title" title="${escapeHtml(session.title || (isEn ? "Untitled Chat" : "নামহীন চ্যাট"))}">
+              ${pinSvg}<span>${escapeHtml(session.title || (isEn ? "Untitled Chat" : "নামহীন চ্যাট"))}</span>
+            </div>
             <div class="drawer-session-actions">
-              <button type="button" class="drawer-session-action-btn edit-session-btn" title="${isEn ? "Rename" : "নাম পরিবর্তন করুন"}" aria-label="${isEn ? "Rename" : "নাম পরিবর্তন করুন"}">
-                <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
-              </button>
-              <button type="button" class="drawer-session-action-btn del-session-btn" title="${isEn ? "Delete" : "মুছে ফেলুন"}" aria-label="${isEn ? "Delete" : "মুছে ফেলুন"}">
-                <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+              <button type="button" class="drawer-session-action-btn session-menu-trigger-btn" aria-label="${isEn ? "Chat options" : "চ্যাট বিকল্প"}" title="${isEn ? "Options" : "বিকল্প"}">
+                <svg viewBox="0 0 24 24" style="width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.2;" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="1.5"/><circle cx="6" cy="12" r="1.5"/><circle cx="18" cy="12" r="1.5"/>
+                </svg>
               </button>
             </div>
           `;
@@ -9048,37 +9339,96 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
             closeSidebarDrawer();
           });
 
-          const editBtn = item.querySelector(".edit-session-btn");
-          editBtn.addEventListener("click", (e) => {
+          // Glisse <Menu> Trigger
+          const menuTriggerBtn = item.querySelector(".session-menu-trigger-btn");
+          menuTriggerBtn.addEventListener("click", (e) => {
             e.stopPropagation();
-            showCustomUI("prompt", "চ্যাটের নতুন শিরোনাম লিখুন:", session.title, (newTitle) => {
-              if (newTitle && newTitle.trim()) {
-                session.title = newTitle.trim();
-                const all = loadAllSessions();
-                const idx = all.findIndex(s => s.id === session.id);
-                if (idx !== -1) {
-                  all[idx].title = session.title;
-                  saveAllSessions(all);
-                  renderDrawerHistoryList(drawerSearchInput ? drawerSearchInput.value : "");
-                  renderChatHistoryList();
-                  showToast("শিরোনাম পরিবর্তিত হয়েছে", "success");
-                }
-              }
-            });
-          });
 
-          const delBtn = item.querySelector(".del-session-btn");
-          delBtn.addEventListener("click", (e) => {
-            e.stopPropagation();
-            showCustomUI("confirm", "আপনি কি এই চ্যাটটি মুছে ফেলতে চান?", null, (confirmed) => {
-              if (confirmed) {
-                const remaining = loadAllSessions().filter((s) => s.id !== session.id);
-                saveAllSessions(remaining);
-                if (currentSessionId === session.id) startNewChat();
-                renderDrawerHistoryList(drawerSearchInput ? drawerSearchInput.value : "");
-                renderChatHistoryList();
-                showToast("চ্যাট মুছে ফেলা হয়েছে", "success");
-              }
+            GlisseMenu.show({
+              trigger: menuTriggerBtn,
+              ariaLabel: isEn ? "Chat Options" : "চ্যাট বিকল্প",
+              align: "end",
+              items: [
+                {
+                  label: isEn ? (session.pinned ? "Unpin" : "Pin") : (session.pinned ? "আনপিন" : "পিন"),
+                  icon: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V5h1a1 1 0 0 0 0-2H8a1 1 0 0 0 0 2h1z"/></svg>`,
+                  onSelect: () => {
+                    session.pinned = !session.pinned;
+                    const all = loadAllSessions();
+                    const idx = all.findIndex(s => s.id === session.id);
+                    if (idx !== -1) {
+                      all[idx].pinned = session.pinned;
+                      saveAllSessions(all);
+                      renderDrawerHistoryList(drawerSearchInput ? drawerSearchInput.value : "");
+                      showToast(isEn ? (session.pinned ? "Chat pinned" : "Chat unpinned") : (session.pinned ? "চ্যাট পিন করা হয়েছে" : "চ্যাট আনপিন করা হয়েছে"), "success");
+                    }
+                  }
+                },
+                {
+                  label: isEn ? "Rename" : "নাম পরিবর্তন",
+                  icon: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>`,
+                  onSelect: () => {
+                    showCustomUI("prompt", isEn ? "Enter new chat title:" : "চ্যাটের নতুন শিরোনাম লিখুন:", session.title, (newTitle) => {
+                      if (newTitle && newTitle.trim()) {
+                        session.title = newTitle.trim();
+                        const all = loadAllSessions();
+                        const idx = all.findIndex(s => s.id === session.id);
+                        if (idx !== -1) {
+                          all[idx].title = session.title;
+                          saveAllSessions(all);
+                          renderDrawerHistoryList(drawerSearchInput ? drawerSearchInput.value : "");
+                          renderChatHistoryList();
+                          showToast(isEn ? "Title updated" : "শিরোনাম পরিবর্তিত হয়েছে", "success");
+                        }
+                      }
+                    });
+                  }
+                },
+                {
+                  label: isEn ? "Duplicate" : "ডুপ্লিকেট করুন",
+                  icon: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="13" height="13" x="9" y="9" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`,
+                  onSelect: () => {
+                    const all = loadAllSessions();
+                    const target = all.find(s => s.id === session.id);
+                    if (target) {
+                      const copyTitle = (target.title || (isEn ? "Untitled Chat" : "নামহীন চ্যাট")) + (isEn ? " (Copy)" : " (কপি)");
+                      const duplicated = {
+                        ...target,
+                        id: "session_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7),
+                        title: copyTitle,
+                        createdAt: Date.now(),
+                        updatedAt: Date.now(),
+                        pinned: false,
+                        messagesHistory: (target.messagesHistory || []).map(m => ({ ...m }))
+                      };
+                      all.unshift(duplicated);
+                      saveAllSessions(all);
+                      loadSession(duplicated.id);
+                      renderDrawerHistoryList(drawerSearchInput ? drawerSearchInput.value : "");
+                      renderChatHistoryList();
+                      showToast(isEn ? "Chat duplicated" : "চ্যাট ডুপ্লিকেট করা হয়েছে", "success");
+                    }
+                  }
+                },
+                "separator",
+                {
+                  label: isEn ? "Delete" : "মুছে ফেলুন",
+                  icon: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>`,
+                  destructive: true,
+                  onSelect: () => {
+                    showCustomUI("confirm", isEn ? "Are you sure you want to delete this chat?" : "আপনি কি এই চ্যাটটি মুছে ফেলতে চান?", null, (confirmed) => {
+                      if (confirmed) {
+                        const remaining = loadAllSessions().filter((s) => s.id !== session.id);
+                        saveAllSessions(remaining);
+                        if (currentSessionId === session.id) startNewChat();
+                        renderDrawerHistoryList(drawerSearchInput ? drawerSearchInput.value : "");
+                        renderChatHistoryList();
+                        showToast(isEn ? "Chat deleted" : "চ্যাট মুছে ফেলা হয়েছে", "info");
+                      }
+                    });
+                  }
+                }
+              ]
             });
           });
 
@@ -10020,14 +10370,12 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
     window.selectAppTheme = selectAppTheme;
 
     function refreshThemeSubpageUI() {
-      const currentMode = localStorage.getItem("alokpoth_theme") || "system";
+      let currentMode = localStorage.getItem("alokpoth_theme") || "oled";
+      if (currentMode !== "light" && currentMode !== "eyecare") currentMode = "oled";
       const themeItems = {
-        system: document.getElementById("themeOptSystem"),
-        dark: document.getElementById("themeOptDark"),
-        sapphire: document.getElementById("themeOptSapphire"),
+        oled: document.getElementById("themeOptOled"),
         light: document.getElementById("themeOptLight"),
-        eyecare: document.getElementById("themeOptEyecare"),
-        oled: document.getElementById("themeOptOled")
+        eyecare: document.getElementById("themeOptEyecare")
       };
       Object.keys(themeItems).forEach(t => {
         if (themeItems[t]) {
@@ -10886,21 +11234,15 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
       }, 2200);
     }
 
-    const AVAILABLE_THEMES = ["system", "dark", "light", "oled", "sapphire", "eyecare"];
+    const AVAILABLE_THEMES = ["oled", "light", "eyecare"];
     const THEME_NAMES = {
-      system: "সিস্টেম থিম (অটো)",
-      dark: "ডার্ক থিম (স্ট্যান্ডার্ড)",
-      light: "লাইট থিম",
-      oled: "সেভিং / ওলেড থিম",
-      sapphire: "স্যাফায়ার থিম",
-      eyecare: "আই কেয়ার থিম"
+      oled: "Dark (OLED)",
+      light: "Light",
+      eyecare: "Eye Care"
     };
     const THEME_META_COLORS = {
-      system: "#09090b",
-      dark: "#09090b",
-      light: "#f9fafb",
       oled: "#000000",
-      sapphire: "#070d19",
+      light: "#ffffff",
       eyecare: "#f5eedc"
     };
 
@@ -10964,7 +11306,9 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
     }
 
     function setTheme(theme, notify = false) {
-      if (!AVAILABLE_THEMES.includes(theme)) theme = "system";
+      if (theme === "dark" || theme === "system" || theme === "sapphire" || !AVAILABLE_THEMES.includes(theme)) {
+        theme = "oled";
+      }
       
       let effectiveTheme = theme;
       if (theme === "system") {
@@ -13747,7 +14091,7 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
              </details>`;
            }
            if (finalContent) {
-             html += `<div class="content-block">${renderStreamingEncryptedContent(finalContent, isFinal)}</div>`;
+             html += `<div class="content-block">${safeMarkdown(finalContent, isFinal)}${!isFinal ? ' <span class="streaming-cursor"></span>' : ''}</div>`;
            } else if (!apiFinished) {
              html += `<span class="streaming-cursor"></span>`;
            } else if (apiFinished && !finalContent && finalReasoning) {

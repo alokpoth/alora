@@ -17,65 +17,45 @@
   <style>
     :root {
       --bg-base: #000000;
-      --bg-card: #18181b;
-      --bg-card-hover: #222226;
-      --border-card: rgba(255, 255, 255, 0.08);
-      --border-divider: rgba(255, 255, 255, 0.06);
+      --bg-card: rgba(22, 22, 26, 0.82);
+      --bg-card-hover: rgba(30, 30, 36, 0.88);
+      --border-card: rgba(255, 255, 255, 0.12);
+      --border-divider: rgba(255, 255, 255, 0.08);
       --text-main: #ffffff;
-      --text-sub: #71717a;
-      --text-dim: #a1a1aa;
+      --text-sub: #a1a1aa;
+      --text-dim: #71717a;
       --accent-blue: #3b82f6;
-      --accent-blue-hover: #2563eb;
-      --accent-danger: #ef4444;
       --font-main: 'Plus Jakarta Sans', 'Hind Siliguri', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-
-    [data-theme="dark"] {
-      --bg-base: #09090b;
-      --bg-card: #18181b;
-      --bg-card-hover: #222226;
-      --border-card: rgba(255, 255, 255, 0.08);
-      --border-divider: rgba(255, 255, 255, 0.06);
-      --text-main: #ffffff;
-      --text-sub: #71717a;
     }
 
     [data-theme="oled"] {
       --bg-base: #000000;
-      --bg-card: #111113;
-      --bg-card-hover: #1c1c1f;
+      --bg-card: rgba(18, 18, 22, 0.82);
+      --bg-card-hover: rgba(26, 26, 32, 0.88);
       --border-card: rgba(255, 255, 255, 0.12);
-      --border-divider: rgba(255, 255, 255, 0.06);
+      --border-divider: rgba(255, 255, 255, 0.08);
       --text-main: #ffffff;
-      --text-sub: #71717a;
-    }
-
-    [data-theme="sapphire"] {
-      --bg-base: #070d19;
-      --bg-card: #0f1c32;
-      --bg-card-hover: #152744;
-      --border-card: rgba(56, 189, 248, 0.15);
-      --border-divider: rgba(56, 189, 248, 0.08);
-      --text-main: #f8fafc;
-      --text-sub: #94a3b8;
+      --text-sub: #a1a1aa;
+      --text-dim: #71717a;
     }
 
     [data-theme="eyecare"] {
       --bg-base: #f5eedc;
-      --bg-card: #eadeca;
-      --bg-card-hover: #dfcfb8;
-      --border-card: rgba(146, 64, 14, 0.15);
+      --bg-card: rgba(245, 238, 220, 0.88);
+      --bg-card-hover: rgba(238, 230, 210, 0.95);
+      --border-card: rgba(146, 64, 14, 0.16);
       --border-divider: rgba(146, 64, 14, 0.08);
       --text-main: #4a3b2c;
       --text-sub: #7a6b5c;
+      --text-dim: #9c8a77;
     }
 
     [data-theme="light"] {
-      --bg-base: #f4f4f5;
-      --bg-card: #ffffff;
-      --bg-card-hover: #f8fafc;
+      --bg-base: #f8fafc;
+      --bg-card: rgba(255, 255, 255, 0.9);
+      --bg-card-hover: rgba(245, 247, 250, 0.95);
       --border-card: rgba(0, 0, 0, 0.08);
-      --border-divider: rgba(0, 0, 0, 0.05);
+      --border-divider: rgba(0, 0, 0, 0.06);
       --text-main: #09090b;
       --text-sub: #71717a;
       --text-dim: #52525b;
@@ -85,249 +65,241 @@
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      -webkit-tap-highlight-color: transparent !important;
-      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
     }
 
-    a {
-      text-decoration: none !important;
-      color: inherit;
+    /* ZERO HOVER TRANSLATEY / LIFTING */
+    *:hover {
+      transform: none !important;
+    }
+    button:active, a:active, .theme-item:active {
+      transform: scale(0.98) !important;
+      transition: transform 0.1s ease;
     }
 
     body {
-      font-family: var(--font-main);
       background-color: var(--bg-base);
       color: var(--text-main);
+      font-family: var(--font-main);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      position: relative;
       overflow-x: hidden;
-      padding-bottom: max(32px, env(safe-area-inset-bottom, 20px));
-      transition: background-color 0.2s ease;
+      padding-top: env(safe-area-inset-top, 0);
+      padding-bottom: env(safe-area-inset-bottom, 0);
+      padding-left: env(safe-area-inset-left, 0);
+      padding-right: env(safe-area-inset-right, 0);
+      transition: background-color 0.2s ease, color 0.2s ease;
     }
 
-    /* Top Navigation Bar */
+    /* Glisse Liquid Glass Navigation */
     .settings-nav {
       position: sticky;
       top: 0;
-      z-index: 50;
-      background: var(--bg-base);
-      border-bottom: 1px solid var(--border-divider);
+      z-index: 100;
+      height: 60px;
+      padding: 0 16px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      height: calc(56px + env(safe-area-inset-top, 0px));
-      padding: env(safe-area-inset-top, 0px) 16px 0 16px;
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      background: var(--bg-card);
+      backdrop-filter: blur(28px) saturate(190%) contrast(105%);
+      -webkit-backdrop-filter: blur(28px) saturate(190%) contrast(105%);
+      border-bottom: 1px solid var(--border-divider);
     }
 
     .settings-back-link {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      color: var(--text-main);
-      text-decoration: none;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      padding: 6px 8px;
-      border-radius: 8px;
-      transition: opacity 0.15s;
-    }
-    .settings-back-link:active {
-      opacity: 0.7;
-    }
-    .settings-back-link svg {
-      width: 20px;
-      height: 20px;
-      stroke-width: 2.4;
-      stroke: currentColor;
-      fill: none;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-
-    .nav-title {
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: var(--text-main);
-    }
-
-    .nav-actions {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .lang-pill-btn {
+      padding: 7px 14px;
+      border-radius: 9999px !important;
       background: rgba(255, 255, 255, 0.08);
       border: 1px solid var(--border-card);
       color: var(--text-main);
-      font-size: 0.8rem;
-      font-weight: 600;
-      padding: 5px 10px;
-      border-radius: 9999px;
-      cursor: pointer;
-      transition: background 0.15s;
+      text-decoration: none;
+      font-size: 13.5px;
+      font-weight: 500;
+      transition: background 0.15s ease;
     }
-    .lang-pill-btn:active {
-      background: rgba(255, 255, 255, 0.15);
+    :root[data-theme="light"] .settings-back-link {
+      background: rgba(0, 0, 0, 0.04);
+    }
+    .settings-back-link svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2.2;
     }
 
-    /* Main Container */
+    .nav-title {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .lang-pill-btn {
+      padding: 6px 14px;
+      border-radius: 9999px !important;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-card);
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s ease;
+    }
+    :root[data-theme="light"] .lang-pill-btn {
+      background: rgba(0, 0, 0, 0.04);
+    }
+
     .content-container {
       width: 100%;
-      max-width: 580px;
-      margin: 0 auto;
-      padding: 20px 16px 40px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
+      max-width: 620px;
+      margin: 24px auto;
+      padding: 0 16px;
+      flex: 1;
     }
 
     .themes-group {
       background: var(--bg-card);
+      backdrop-filter: blur(28px) saturate(190%) contrast(105%);
+      -webkit-backdrop-filter: blur(28px) saturate(190%) contrast(105%);
       border: 1px solid var(--border-card);
-      border-radius: 16px;
+      border-radius: 20px !important;
+      box-shadow: 0 12px 36px -4px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12);
       overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     }
 
     .theme-item {
-      padding: 14px 16px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      padding: 16px 20px;
       cursor: pointer;
-      transition: background 0.15s;
       user-select: none;
+      -webkit-user-select: none;
+      transition: background 0.15s ease;
     }
-    .theme-item:hover, .theme-item:active {
+
+    .theme-item:hover {
       background: var(--bg-card-hover);
-    }
-    .theme-item:focus-visible {
-      outline: 2px solid var(--accent-blue);
-      outline-offset: -2px;
     }
 
     .theme-lead {
       display: flex;
       align-items: center;
       gap: 14px;
+      flex: 1;
     }
 
     .theme-swatch {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      border: 2px solid rgba(255, 255, 255, 0.15);
+      width: 38px;
+      height: 38px;
+      border-radius: 9999px !important;
       flex-shrink: 0;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+      border: 1.5px solid rgba(255, 255, 255, 0.15);
     }
-    .theme-swatch.system { background: linear-gradient(135deg, #18181b 50%, #f4f4f5 50%); border-color: #3b82f6; }
-    .theme-swatch.dark { background: #18181b; }
-    .theme-swatch.oled { background: #000000; border-color: #3f3f46; }
-    .theme-swatch.sapphire { background: #070d19; border-color: #38bdf8; }
-    .theme-swatch.eyecare { background: #f5eedc; border-color: #92400e; }
-    .theme-swatch.light { background: #f4f4f5; border-color: #cbd5e1; }
+
+    .theme-swatch.oled {
+      background: #000000;
+      border-color: #3b82f6;
+    }
+
+    .theme-swatch.light {
+      background: #ffffff;
+      border-color: rgba(0, 0, 0, 0.15);
+    }
+
+    .theme-swatch.eyecare {
+      background: #f5eedc;
+      border-color: rgba(146, 64, 14, 0.3);
+    }
 
     .theme-info {
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 3px;
     }
+
     .theme-name {
-      font-size: 0.98rem;
+      font-size: 15px;
       font-weight: 600;
       color: var(--text-main);
     }
+
     .theme-desc {
-      font-size: 0.8rem;
+      font-size: 13px;
       color: var(--text-sub);
     }
 
     .theme-check {
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      background: var(--accent-blue);
-      color: #ffffff;
-      display: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 9999px !important;
+      display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
+      color: transparent;
+      transition: color 0.15s ease;
     }
+
     .theme-check svg {
-      width: 14px;
-      height: 14px;
-      stroke: currentColor;
-      stroke-width: 2.5;
+      width: 18px;
+      height: 18px;
       fill: none;
+      stroke: var(--accent-blue);
+      stroke-width: 2.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
+
     .theme-item.active .theme-check {
-      display: flex;
+      color: var(--accent-blue);
     }
 
     .row-divider {
       height: 1px;
       background: var(--border-divider);
-      margin: 0;
+      margin: 0 16px;
     }
 
-    /* Toast */
     .toast {
       position: fixed;
-      bottom: max(20px, env(safe-area-inset-bottom, 20px));
+      top: 24px;
       left: 50%;
       transform: translateX(-50%);
-      padding: 10px 18px;
-      border-radius: 9999px;
-      font-size: 0.88rem;
-      font-weight: 500;
+      background: rgba(18, 18, 22, 0.94);
       color: #ffffff;
-      background: rgba(24, 24, 27, 0.95);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      padding: 10px 22px;
+      border-radius: 9999px !important;
+      font-size: 13.5px;
+      font-weight: 500;
       z-index: 1000;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
       display: none;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      white-space: nowrap;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
     }
-    .toast.success { border-color: #10b981; }
-  
-    /* Universal Ultra-Rounded Pill Buttons & Inputs (No Square Corners Anywhere) */
-    button, .btn, .btn-primary, .btn-secondary, .page-back-btn, .option-card, .btn-test-sound, .auth-btn, .download-btn, .plan-cta-btn, .plan-toggle-btn {
-      border-radius: 9999px !important;
-      transform: none !important;
-      transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
-    }
-    button:hover, .btn:hover, .btn-primary:hover, .btn-secondary:hover, .page-back-btn:hover, .option-card:hover, .btn-test-sound:hover, .auth-btn:hover, .download-btn:hover {
-      transform: none !important; /* ZERO vertical hover lift! */
-      box-shadow: 0 6px 20px -2px rgba(0, 0, 0, 0.2), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.45) !important;
-    }
-    button:active, .btn:active, .btn-primary:active, .btn-secondary:active, .page-back-btn:active, .option-card:active, .btn-test-sound:active, .auth-btn:active, .download-btn:active {
-      transform: scale(0.96) !important;
-    }
-    input, .auth-input, .custom-dialog-input {
-      border-radius: 9999px !important;
-    }
-    .card, .auth-card, .plan-card, .profile-card, .settings-group, .settings-card, .help-card, .modal-sheet, .custom-dialog-box {
-      border-radius: 28px !important;
-    }
-
   </style>
-<script>
-  (function() {
-    if (window.location.pathname.endsWith('.html')) {
-      var clean = window.location.pathname.replace(/\.html$/, '');
-      if (clean === '/index') clean = '/';
-      window.history.replaceState(null, '', clean + window.location.search + window.location.hash);
-    }
-  })();
-</script>
+
+  <script>
+    (function() {
+      if (window.location.pathname.endsWith('.html')) {
+        var clean = window.location.pathname.replace(/\.html$/, '');
+        if (clean === '/index') clean = '/';
+        window.history.replaceState(null, '', clean + window.location.search + window.location.hash);
+      }
+    })();
+  </script>
 </head>
 <body>
   <div id="toastEl" class="toast"></div>
@@ -348,41 +320,13 @@
 
   <main class="content-container">
     <div class="themes-group">
-      <!-- System Default -->
-      <div class="theme-item" data-theme-id="system">
-        <div class="theme-lead">
-          <div class="theme-swatch system"></div>
-          <div class="theme-info">
-            <span class="theme-name" id="nameSystem">সিস্টেম থিম (ডিভাইস অনুযায়ী)</span>
-            <span class="theme-desc" id="descSystem">মোবাইল বা ডিভাইসের সেটিংস অনুযায়ী স্বয়ংক্রিয়ভাবে পরিবর্তিত হবে</span>
-          </div>
-        </div>
-        <div class="theme-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-      </div>
-
-      <div class="row-divider"></div>
-
-      <!-- Dark -->
-      <div class="theme-item" data-theme-id="dark">
-        <div class="theme-lead">
-          <div class="theme-swatch dark"></div>
-          <div class="theme-info">
-            <span class="theme-name" id="nameDark">Dark (Standard)</span>
-            <span class="theme-desc" id="descDark">Balanced charcoal night mode</span>
-          </div>
-        </div>
-        <div class="theme-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-      </div>
-
-      <div class="row-divider"></div>
-
-      <!-- OLED Black -->
+      <!-- OLED Dark Mode -->
       <div class="theme-item" data-theme-id="oled">
         <div class="theme-lead">
           <div class="theme-swatch oled"></div>
           <div class="theme-info">
-            <span class="theme-name" id="nameOled">OLED Black</span>
-            <span class="theme-desc" id="descOled">Pure AMOLED black for high battery efficiency</span>
+            <span class="theme-name" id="nameOled">Dark (OLED)</span>
+            <span class="theme-desc" id="descOled">Pure AMOLED black for deep contrast & battery saving</span>
           </div>
         </div>
         <div class="theme-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
@@ -390,41 +334,27 @@
 
       <div class="row-divider"></div>
 
-      <!-- Sapphire -->
-      <div class="theme-item" data-theme-id="sapphire">
-        <div class="theme-lead">
-          <div class="theme-swatch sapphire"></div>
-          <div class="theme-info">
-            <span class="theme-name" id="nameSapphire">Sapphire</span>
-            <span class="theme-desc" id="descSapphire">Deep cosmic navy with vibrant accents</span>
-          </div>
-        </div>
-        <div class="theme-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-      </div>
-
-      <div class="row-divider"></div>
-
-      <!-- Eye Care -->
-      <div class="theme-item" data-theme-id="eyecare">
-        <div class="theme-lead">
-          <div class="theme-swatch eyecare"></div>
-          <div class="theme-info">
-            <span class="theme-name" id="nameEyecare">Eye Care</span>
-            <span class="theme-desc" id="descEyecare">Warm paper sepia tones for zero eye fatigue</span>
-          </div>
-        </div>
-        <div class="theme-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-      </div>
-
-      <div class="row-divider"></div>
-
-      <!-- Light -->
+      <!-- Light Mode -->
       <div class="theme-item" data-theme-id="light">
         <div class="theme-lead">
           <div class="theme-swatch light"></div>
           <div class="theme-info">
             <span class="theme-name" id="nameLight">Light</span>
-            <span class="theme-desc" id="descLight">Crisp, clean minimalist daytime mode</span>
+            <span class="theme-desc" id="descLight">Crisp, clean minimalist daytime appearance</span>
+          </div>
+        </div>
+        <div class="theme-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+      </div>
+
+      <div class="row-divider"></div>
+
+      <!-- Eye Care Mode -->
+      <div class="theme-item" data-theme-id="eyecare">
+        <div class="theme-lead">
+          <div class="theme-swatch eyecare"></div>
+          <div class="theme-info">
+            <span class="theme-name" id="nameEyecare">Eye Care</span>
+            <span class="theme-desc" id="descEyecare">Warm paper sepia tones for zero eye strain</span>
           </div>
         </div>
         <div class="theme-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
@@ -434,51 +364,45 @@
 
   <script>
     let currentLanguage = localStorage.getItem("alokpoth_lang") || "en";
-    let activeTheme = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "system";
+    let rawSaved = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "oled";
+    // Normalize to only 3 supported modes: oled, light, eyecare
+    let activeTheme = (rawSaved === "light" || rawSaved === "eyecare") ? rawSaved : "oled";
     
     function applyEffectiveTheme(themeId) {
-      if (themeId === "system") {
-        const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light");
-      } else {
-        document.documentElement.setAttribute("data-theme", themeId);
+      document.documentElement.setAttribute("data-theme-mode", themeId);
+      document.documentElement.setAttribute("data-theme", themeId);
+      
+      const meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) {
+        if (themeId === "oled") meta.content = "#000000";
+        else if (themeId === "light") meta.content = "#ffffff";
+        else if (themeId === "eyecare") meta.content = "#f5eedc";
       }
     }
+
     applyEffectiveTheme(activeTheme);
 
     const I18N = {
       bn: {
         back: "সেটিংস",
-        pageTitle: "কালার থিম",
-        nameSystem: "সিস্টেম থিম (ডিভাইস অনুযায়ী)",
-        descSystem: "মোবাইল বা ডিভাইসের সেটিংস অনুযায়ী স্বয়ংক্রিয়ভাবে পরিবর্তিত হবে",
-        nameDark: "ডার্ক (স্ট্যান্ডার্ড)",
-        descDark: "সুষম চারকোল ডার্ক মোড",
-        nameOled: "OLED ব্ল্যাক",
+        pageTitle: "চেহারা (থিম)",
+        nameOled: "ডার্ক (ওলেড)",
         descOled: "পিওর অ্যামোলেড কালো (সর্বোচ্চ ব্যাটারি সেভিং)",
-        nameSapphire: "স্যাফায়ার",
-        descSapphire: "ডিপ কসমিক নেভি ব্লু ও মডার্ন অ্যাকসেন্ট",
-        nameEyecare: "আই কেয়ার",
-        descEyecare: "ওয়ার্ম সেপিয়া টোন (চোখের ক্লান্তিহীন পড়া)",
         nameLight: "লাইট",
         descLight: "পরিচ্ছন্ন ও উজ্জ্বল ডে-লাইট মোড",
+        nameEyecare: "আই কেয়ার",
+        descEyecare: "ওয়ার্ম সেপিয়া টোন (চোখের ক্লান্তিহীন পড়া)",
         applied: "থিম সক্রিয় করা হয়েছে"
       },
       en: {
         back: "Settings",
         pageTitle: "Color Theme",
-        nameSystem: "System Default (Auto)",
-        descSystem: "Follows your phone or computer appearance automatically",
-        nameDark: "Dark (Standard)",
-        descDark: "Balanced charcoal night mode",
-        nameOled: "OLED Black",
-        descOled: "Pure AMOLED black for high battery efficiency",
-        nameSapphire: "Sapphire",
-        descSapphire: "Deep cosmic navy with vibrant accents",
-        nameEyecare: "Eye Care",
-        descEyecare: "Warm paper sepia tones for zero eye fatigue",
+        nameOled: "Dark (OLED)",
+        descOled: "Pure AMOLED black for deep contrast & battery saving",
         nameLight: "Light",
-        descLight: "Crisp, clean minimalist daytime mode",
+        descLight: "Crisp, clean minimalist daytime appearance",
+        nameEyecare: "Eye Care",
+        descEyecare: "Warm paper sepia tones for zero eye strain",
         applied: "Theme applied successfully"
       }
     };
@@ -487,7 +411,6 @@
       const el = document.getElementById("toastEl");
       if (!el) return;
       el.textContent = msg;
-      el.className = "toast success";
       el.style.display = "block";
       setTimeout(() => { el.style.display = "none"; }, 2500);
     }
@@ -499,18 +422,12 @@
       document.getElementById("langBtnText").textContent = isEn ? "বাং" : "EN";
       document.getElementById("backText").textContent = d.back;
       document.getElementById("pageTitle").textContent = d.pageTitle;
-      if (document.getElementById("nameSystem")) document.getElementById("nameSystem").textContent = d.nameSystem;
-      if (document.getElementById("descSystem")) document.getElementById("descSystem").textContent = d.descSystem;
-      document.getElementById("nameDark").textContent = d.nameDark;
-      document.getElementById("descDark").textContent = d.descDark;
       document.getElementById("nameOled").textContent = d.nameOled;
       document.getElementById("descOled").textContent = d.descOled;
-      document.getElementById("nameSapphire").textContent = d.nameSapphire;
-      document.getElementById("descSapphire").textContent = d.descSapphire;
-      document.getElementById("nameEyecare").textContent = d.nameEyecare;
-      document.getElementById("descEyecare").textContent = d.descEyecare;
       document.getElementById("nameLight").textContent = d.nameLight;
       document.getElementById("descLight").textContent = d.descLight;
+      document.getElementById("nameEyecare").textContent = d.nameEyecare;
+      document.getElementById("descEyecare").textContent = d.descEyecare;
       document.title = `${d.pageTitle} — Alora`;
     }
 
@@ -535,15 +452,6 @@
       });
     });
 
-    if (window.matchMedia) {
-      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-        if (activeTheme === "system") {
-          applyEffectiveTheme("system");
-        }
-      });
-    }
-
-    // Back button navigation
     document.getElementById("backBtn")?.addEventListener("click", (e) => {
       if (window.history.length > 1 && document.referrer && document.referrer.includes(window.location.host)) {
         e.preventDefault();
@@ -551,7 +459,6 @@
       }
     });
 
-    // Toggle Language
     document.getElementById("langToggleBtn")?.addEventListener("click", () => {
       currentLanguage = (currentLanguage === "en" ? "bn" : "en");
       try { localStorage.setItem("alokpoth_lang", currentLanguage); } catch {}
@@ -563,4 +470,3 @@
   </script>
 </body>
 </html>
-
