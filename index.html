@@ -4575,15 +4575,13 @@
        - Matrix EncryptedText AI Answer Streaming
        ========================================================================== */
 
-    /* 1. UNIVERSAL ULTRA-ROUNDED PILL SYSTEM FOR ALL BUTTONS ACROSS ALL PAGES */
-    button,
+    /* 1. UNIVERSAL ULTRA-ROUNDED PILL SYSTEM FOR STANDALONE BUTTONS */
     .btn,
     .icon-btn,
     .icon-circle-btn,
     .model-selector-btn,
     .drawer-new-chat-btn,
     .drawer-empty-new-chat-btn,
-    .drawer-session-item,
     .custom-dialog-btn,
     .scroll-bottom-fab,
     .action-icon-btn,
@@ -4591,7 +4589,6 @@
     #quickNewChatNavBtn,
     .nav-credit-badge,
     .page-back-btn,
-    .brand-menu-item,
     .btn-test-sound,
     .btn-primary,
     .btn-secondary,
@@ -4600,7 +4597,10 @@
     .account-limits-toggle-btn,
     .quick-prompt-chip,
     .hero-app-banner,
-    .search-pill-clear-btn {
+    .search-pill-clear-btn,
+    .native-tool-btn,
+    .native-mic-btn,
+    #sendBtn {
       border-radius: 9999px !important;
       position: relative;
       backdrop-filter: blur(28px) saturate(190%) contrast(104%);
@@ -4617,7 +4617,6 @@
       transform: none !important; /* STRICTLY NO vertical lift on normal state */
     }
 
-    :root[data-theme="light"] button,
     :root[data-theme="light"] .btn,
     :root[data-theme="light"] .icon-btn,
     :root[data-theme="light"] .icon-circle-btn,
@@ -5045,64 +5044,90 @@
     .glisse-menu-popover {
       position: fixed;
       z-index: 999999;
-      opacity: 0;
-      transform: scale(0.96);
-      transform-origin: top center;
-      transition: opacity 0.15s cubic-bezier(0.16, 1, 0.3, 1), transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
-      pointer-events: none;
-      background: rgba(18, 18, 22, 0.88);
+      background: rgba(18, 18, 22, 0.9);
       -webkit-backdrop-filter: blur(28px) saturate(190%) contrast(105%);
       backdrop-filter: blur(28px) saturate(190%) contrast(105%);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      box-shadow: 0 18px 42px -6px rgba(0, 0, 0, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.18);
-      border-radius: 18px !important;
-      padding: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.12) !important;
+      box-shadow: 0 18px 48px -6px rgba(0, 0, 0, 0.65), inset 0 1px 1px rgba(255, 255, 255, 0.18) !important;
+      border-radius: 16px !important;
+      padding: 5px !important;
       box-sizing: border-box;
       max-width: calc(100vw - 24px);
+      min-width: 205px;
+      opacity: 0;
+      pointer-events: none;
+      transform-origin: top center;
     }
 
     :root[data-theme="light"] .glisse-menu-popover {
-      background: rgba(255, 255, 255, 0.92);
-      border-color: rgba(0, 0, 0, 0.08);
-      box-shadow: 0 14px 36px -4px rgba(0, 0, 0, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.85);
+      background: rgba(255, 255, 255, 0.94);
+      border-color: rgba(0, 0, 0, 0.09) !important;
+      box-shadow: 0 16px 38px -4px rgba(0, 0, 0, 0.14), inset 0 1px 1px rgba(255, 255, 255, 0.9) !important;
     }
 
     :root[data-theme="eyecare"] .glisse-menu-popover {
-      background: rgba(246, 241, 231, 0.95);
-      border-color: rgba(146, 64, 14, 0.16);
-      box-shadow: 0 14px 36px -4px rgba(74, 59, 44, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.6);
+      background: rgba(246, 241, 231, 0.96);
+      border-color: rgba(146, 64, 14, 0.16) !important;
+      box-shadow: 0 16px 38px -4px rgba(74, 59, 44, 0.16), inset 0 1px 1px rgba(255, 255, 255, 0.7) !important;
+    }
+
+    /* 3-DOTS BLOSSOM SPRING OPENING ANIMATION */
+    @keyframes glisseThreeDotsExpandIn {
+      0% {
+        opacity: 0;
+        transform: scale(0.68) translateY(-6px);
+        filter: blur(6px);
+      }
+      65% {
+        transform: scale(1.02) translateY(1px);
+        filter: blur(0px);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+        filter: blur(0px);
+      }
     }
 
     .glisse-menu-popover.glisse-menu-open {
-      opacity: 1;
-      transform: scale(1);
-      pointer-events: auto;
+      opacity: 1 !important;
+      pointer-events: auto !important;
+      animation: glisseThreeDotsExpandIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
-    .glisse-menu-item {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 9px 14px;
-      border-radius: 12px !important;
-      border: none;
-      background: transparent;
-      color: var(--text-main);
-      font-family: inherit;
-      font-size: 13.5px;
-      font-weight: 500;
-      text-align: left;
-      cursor: pointer;
-      transition: background 0.12s ease, color 0.12s ease;
-      user-select: none;
-      -webkit-user-select: none;
+    /* GLISSE MENU ITEM - ZERO BORDER, FLAT SLEEK ROW */
+    .glisse-menu-item,
+    button.glisse-menu-item {
+      width: 100% !important;
+      height: 38px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      gap: 10px !important;
+      padding: 0 12px !important;
+      border-radius: 10px !important;
+      border: none !important;
+      outline: none !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      color: var(--text-main) !important;
+      font-family: inherit !important;
+      font-size: 13.5px !important;
+      font-weight: 500 !important;
+      text-align: left !important;
+      cursor: pointer !important;
+      transition: background 0.12s ease, color 0.12s ease !important;
+      user-select: none !important;
+      -webkit-user-select: none !important;
       transform: none !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
     }
 
     .glisse-menu-item:hover {
       background: rgba(255, 255, 255, 0.08) !important;
+      border: none !important;
+      box-shadow: none !important;
       transform: none !important;
     }
 
@@ -5114,10 +5139,14 @@
       background: rgba(74, 59, 44, 0.08) !important;
     }
 
+    .glisse-menu-item:active {
+      transform: scale(0.98) !important;
+    }
+
     .glisse-menu-item-left {
       display: inline-flex;
       align-items: center;
-      gap: 10px;
+      gap: 9px;
       min-width: 0;
       flex: 1;
     }
@@ -5134,14 +5163,16 @@
     }
 
     .glisse-menu-item-icon svg {
-      width: 16px;
-      height: 16px;
+      width: 15px;
+      height: 15px;
     }
 
     .glisse-menu-item-label {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      font-size: 13.5px;
+      color: var(--text-main);
     }
 
     .glisse-menu-item-right {
@@ -5158,6 +5189,8 @@
       border-radius: 9999px !important;
       background: rgba(255, 255, 255, 0.1);
       color: var(--text-sub);
+      border: none !important;
+      box-shadow: none !important;
     }
 
     :root[data-theme="light"] .glisse-menu-item-badge {
@@ -5174,7 +5207,7 @@
 
     .glisse-menu-separator {
       height: 1px;
-      margin: 5px 6px;
+      margin: 4px 6px;
       background: rgba(255, 255, 255, 0.08);
     }
 
@@ -5193,6 +5226,98 @@
     .glisse-menu-item.destructive:hover {
       background: rgba(255, 69, 58, 0.12) !important;
       color: #ff5b50 !important;
+    }
+
+    /* THREE-DOTS TRIGGER ANIMATION */
+    .three-dots-trigger-icon {
+      display: inline-flex;
+      align-items: center;
+      gap: 3.5px;
+      pointer-events: none;
+    }
+
+    .three-dots-trigger-icon .dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50% !important;
+      background: currentColor;
+      opacity: 0.75;
+      display: inline-block;
+      transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease, background 0.2s ease;
+    }
+
+    .three-dots-trigger-icon.active .dot:nth-child(1) {
+      transform: scale(1.4);
+      opacity: 1;
+      background: var(--accent-color, #3b82f6);
+    }
+
+    .three-dots-trigger-icon.active .dot:nth-child(2) {
+      transform: scale(1.4);
+      opacity: 1;
+      background: var(--accent-color, #3b82f6);
+      transition-delay: 0.04s;
+    }
+
+    .three-dots-trigger-icon.active .dot:nth-child(3) {
+      transform: scale(1.4);
+      opacity: 1;
+      background: var(--accent-color, #3b82f6);
+      transition-delay: 0.08s;
+    }
+
+    /* HEADER LIQUID GLASS SHEEN ANIMATION */
+    .navbar {
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(28px) saturate(190%) contrast(105%);
+      -webkit-backdrop-filter: blur(28px) saturate(190%) contrast(105%);
+      background: rgba(10, 10, 12, 0.85);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    :root[data-theme="light"] .navbar {
+      background: rgba(255, 255, 255, 0.88);
+      border-bottom-color: rgba(0, 0, 0, 0.06);
+    }
+
+    :root[data-theme="eyecare"] .navbar {
+      background: rgba(246, 241, 231, 0.9);
+      border-bottom-color: rgba(146, 64, 14, 0.12);
+    }
+
+    .navbar::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: -50%;
+      width: 200%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent 0%, rgba(59, 130, 246, 0.5) 50%, transparent 100%);
+      animation: headerGlassSheen 7s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+
+    @keyframes headerGlassSheen {
+      0% { transform: translateX(-35%); opacity: 0.2; }
+      100% { transform: translateX(35%); opacity: 0.8; }
+    }
+
+    /* FOOTER COMPOSER AMBIENT GLOW ANIMATION */
+    .input-card {
+      position: relative;
+      border-radius: 32px !important;
+      transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .input-card:focus-within {
+      border-color: rgba(59, 130, 246, 0.45) !important;
+      animation: composerGlowPulse 4s ease-in-out infinite alternate;
+    }
+
+    @keyframes composerGlowPulse {
+      0% { box-shadow: 0 14px 40px -4px rgba(0,0,0,0.6), 0 0 16px -2px rgba(59, 130, 246, 0.18), inset 0 1px 1px rgba(255,255,255,0.22); }
+      100% { box-shadow: 0 14px 40px -4px rgba(0,0,0,0.6), 0 0 28px -1px rgba(59, 130, 246, 0.32), inset 0 1px 1px rgba(255,255,255,0.32); }
     }
 
     /* Pinned chat item styling */
@@ -5365,13 +5490,13 @@
     </div>
     <div class="nav-center">
       <button class="model-selector-btn" id="modelTrigger" type="button" aria-label="Select Model" title="Select Model">
-        <span class="three-dots-cluster" aria-hidden="true" title="Model Selector">
-          <span class="dot dot-sm"></span>
-          <span class="dot dot-md"></span>
-          <span class="dot dot-lg"></span>
+        <span class="three-dots-trigger-icon" aria-hidden="true">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
         </span>
         <span id="modelTriggerLabel" class="trigger-label">Alora</span>
-        <svg class="chevron" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        <svg class="chevron" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
       </button>
     </div>
     <div class="navbar-right" style="display: flex; align-items: center; gap: 8px;">
@@ -6194,49 +6319,18 @@
       
       <!-- Left Action Tools: Attach (+), Camera (📷) -->
       <div class="composer-tools composer-tools-left">
-        <div class="attach-menu-wrap" id="attachMenuWrap">
-          <button type="button" class="native-tool-btn attach-btn" id="attachBtn" aria-label="যুক্ত করুন" title="ছবি বা ফাইল যুক্ত করুন">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          </button>
-          <div class="attach-menu" id="attachMenu">
-            <button type="button" class="attach-menu-item" id="attachImageOption">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
-              <span data-i18n="attachImageText">Attach Image</span>
-            </button>
-            <button type="button" class="attach-menu-item" id="attachFileOption">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
-              <span data-i18n="attachFileText">Attach File (PDF/TXT/Code)</span>
-            </button>
-            
-            <div class="attach-menu-divider"></div>
-            
-            <!-- Web Search inside Menu -->
-            <button type="button" class="attach-menu-item" id="attachWebSearchOption">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-              <span id="webSearchText" style="color: var(--text-sub);">Web Search: Off</span>
-            </button>
-
-            <!-- Image Generation inside Menu -->
-            <button type="button" class="attach-menu-item" id="attachImageGenOption">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
-              <span id="imageGenText" style="color: var(--text-sub);">Image Gen: Off</span>
-              <span id="imageGenQuotaBadge" style="margin-left: auto; font-size: 0.72rem; padding: 2px 7px; border-radius: 9999px; background: rgba(236,72,153,0.12); color: #ec4899; font-weight: 600; border: 1px solid rgba(236,72,153,0.25);"></span>
-            </button>
-
-            
-            <!-- Thinking Mode inside Menu -->
-            <button type="button" class="attach-menu-item" id="attachThinkingOption">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
-              <span id="thinkingText" style="color: var(--text-sub);">Thinking: OFF</span>
-            </button>
-          </div>
-        </div>
-
-        <button type="button" class="native-tool-btn" id="cameraBtn" aria-label="ছবি তুলুন বা নির্বাচন করুন" title="ক্যামেরা বা ছবি যোগ করুন">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+        <div class="composer-tools composer-tools-left">
+        <button type="button" class="native-tool-btn attach-btn" id="attachBtn" aria-label="Tools" title="Tools & Attachments">
+          <span class="three-dots-trigger-icon" aria-hidden="true">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </span>
         </button>
-
-              </div>
+        <button type="button" class="native-tool-btn" id="cameraBtn" aria-label="Take or select photo" title="Camera or Image">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+        </button>
+      </div>
 
       <textarea 
         class="chat-textarea" 
@@ -8866,15 +8960,29 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
           label: m.name,
           badge: m.premium ? "Pro" : (m.efficient ? "Fast" : "Free"),
           active: isCurrent,
-          icon: isCurrent 
-            ? `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
-            : `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/></svg>`,
           onSelect: () => {
             selectModelById(m.id);
             if (typeof triggerHaptic === "function") triggerHaptic("light");
           }
         };
       });
+
+      items.push("separator");
+      items.push({
+        label: isEn ? "All Models & Settings..." : "সব মডেল ও সেটিংস...",
+        icon: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>`,
+        onSelect: () => {
+          openModal();
+        }
+      });
+
+      GlisseMenu.show({
+        trigger: modelTrigger,
+        ariaLabel: isEn ? "Select AI Model" : "মডেল নির্বাচন করুন",
+        align: "center",
+        items: items
+      });
+    });
 
       items.push("separator");
       items.push({
@@ -8906,6 +9014,7 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
        ========================================================================== */
     window.GlisseMenu = {
       activeMenu: null,
+      activeTrigger: null,
       cleanup: null,
 
       show({ trigger, items, ariaLabel = "Options", align = "end" }) {
@@ -8915,6 +9024,13 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
         menuEl.className = "glisse-menu-popover";
         menuEl.setAttribute("role", "menu");
         menuEl.setAttribute("aria-label", ariaLabel);
+
+        // Animate 3-dots trigger icon if present
+        if (trigger) {
+          const dotsIcon = trigger.querySelector(".three-dots-trigger-icon");
+          if (dotsIcon) dotsIcon.classList.add("active");
+          this.activeTrigger = trigger;
+        }
 
         items.forEach((item) => {
           if (item === "separator" || (item && item.type === "separator")) {
@@ -8986,14 +9102,16 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
         menuEl.style.minWidth = `${Math.max(menuWidth, rect.width)}px`;
 
         let top = rect.bottom + 6;
-        let left = (align === "end") ? (rect.right - menuWidth) : rect.left;
+        let left = (align === "end") 
+          ? (rect.right - menuWidth) 
+          : (align === "center" ? (rect.left + rect.width / 2 - menuWidth / 2) : rect.left);
 
         if (left + menuWidth > window.innerWidth - 12) {
           left = window.innerWidth - menuWidth - 12;
         }
         if (left < 12) left = 12;
 
-        const estimatedHeight = items.length * 42;
+        const estimatedHeight = items.length * 40;
         if (top + estimatedHeight > window.innerHeight - 12) {
           top = Math.max(12, rect.top - estimatedHeight - 6);
         }
@@ -9029,6 +9147,11 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
         if (this.cleanup) {
           this.cleanup();
           this.cleanup = null;
+        }
+        if (this.activeTrigger) {
+          const dotsIcon = this.activeTrigger.querySelector(".three-dots-trigger-icon");
+          if (dotsIcon) dotsIcon.classList.remove("active");
+          this.activeTrigger = null;
         }
         if (this.activeMenu) {
           this.activeMenu.classList.remove("glisse-menu-open");
@@ -11661,89 +11784,81 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
     if (attachBtn) {
       attachBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-        updateAttachImageQuotaBadge();
-        if (attachMenu) attachMenu.classList.toggle("open");
-      });
-    }
-    if (attachImageOption) attachImageOption.addEventListener("click", () => { closeAttachMenu(); if (imageInput) imageInput.click(); });
-    if (attachFileOption) attachFileOption.addEventListener("click", () => { closeAttachMenu(); if (docInput) docInput.click(); });
-
-    if (attachWebSearchOption) {
-      attachWebSearchOption.addEventListener("click", () => {
-        isWebSearchEnabled = !isWebSearchEnabled;
         const isEn = (typeof currentLanguage !== "undefined" && currentLanguage === "en");
-        if (isWebSearchEnabled) {
-          isImageGenEnabled = false; 
-          if (imageGenText) imageGenText.textContent = isEn ? "Image Gen: Off" : "ছবি তৈরি: বন্ধ"; 
-          if (attachImageGenOption) {
-            attachImageGenOption.style.color = "var(--text-main)"; 
-            const s = attachImageGenOption.querySelector("span"); if (s) s.style.color = "var(--text-sub)"; 
-            const svg = attachImageGenOption.querySelector('svg'); if (svg) svg.style.stroke = "var(--text-sub)";
-          }
-        }
-        if (webSearchText) webSearchText.textContent = isWebSearchEnabled ? (isEn ? "Web Search: On" : "ওয়েব সার্চ: চালু") : (isEn ? "Web Search: Off" : "ওয়েব সার্চ: বন্ধ");
-        attachWebSearchOption.style.color = isWebSearchEnabled ? "var(--accent-color)" : "var(--text-main)";
-        if (webSearchText) webSearchText.style.color = isWebSearchEnabled ? "var(--accent-color)" : "var(--text-sub)";
-        const svg = attachWebSearchOption.querySelector('svg'); if (svg) svg.style.stroke = isWebSearchEnabled ? "var(--accent-color)" : "var(--text-sub)";
-        updateAttachBtnActiveState(); closeAttachMenu();
+
+        GlisseMenu.show({
+          trigger: attachBtn,
+          ariaLabel: isEn ? "Tools & Attachments" : "টুলস ও সংযুক্তি",
+          align: "start",
+          items: [
+            {
+              label: isEn ? "Image Generation" : "ছবি তৈরি",
+              badge: `${imageGenQuota || 10}/10`,
+              active: Boolean(isImageGenEnabled),
+              icon: `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>`,
+              onSelect: () => {
+                isImageGenEnabled = !isImageGenEnabled;
+                if (isImageGenEnabled) isWebSearchEnabled = false;
+                if (typeof updateAttachBtnActiveState === "function") updateAttachBtnActiveState();
+                if (typeof showToast === "function") {
+                  showToast(isImageGenEnabled ? (isEn ? "Image Generation active" : "ছবি তৈরি মোড সক্রিয়") : (isEn ? "Image Generation off" : "ছবি তৈরি মোড বন্ধ"), "info");
+                }
+              }
+            },
+            {
+              label: isEn ? "Web Search" : "ওয়েব সার্চ",
+              active: Boolean(isWebSearchEnabled),
+              icon: `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`,
+              onSelect: () => {
+                isWebSearchEnabled = !isWebSearchEnabled;
+                if (isWebSearchEnabled) isImageGenEnabled = false;
+                if (typeof updateAttachBtnActiveState === "function") updateAttachBtnActiveState();
+                if (typeof showToast === "function") {
+                  showToast(isWebSearchEnabled ? (isEn ? "Web Search active" : "ওয়েব সার্চ সক্রিয়") : (isEn ? "Web Search off" : "ওয়েব সার্চ বন্ধ"), "info");
+                }
+              }
+            },
+            {
+              label: isEn ? "Thinking Mode" : "থিংকিং মোড",
+              active: Boolean(isThinkingEnabled),
+              icon: `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>`,
+              onSelect: () => {
+                isThinkingEnabled = !isThinkingEnabled;
+                try { localStorage.setItem("alokpoth_thinking_enabled", isThinkingEnabled ? "true" : "false"); } catch(e) {}
+                if (typeof showToast === "function") {
+                  showToast(isThinkingEnabled ? (isEn ? "Thinking Mode active" : "থিংকিং মোড সক্রিয়") : (isEn ? "Thinking Mode off" : "থিংকিং মোড বন্ধ"), "info");
+                }
+              }
+            },
+            "separator",
+            {
+              label: isEn ? "Upload Image" : "ছবি আপলোড",
+              icon: `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>`,
+              onSelect: () => {
+                if (imageInput) imageInput.click();
+              }
+            },
+            {
+              label: isEn ? "Upload Document" : "ডকুমেন্ট আপলোড",
+              icon: `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>`,
+              onSelect: () => {
+                if (docInput) docInput.click();
+              }
+            }
+          ]
+        });
       });
     }
 
-    if (attachImageGenOption) {
-      attachImageGenOption.addEventListener("click", () => {
-        isImageGenEnabled = !isImageGenEnabled;
-        const isEn = (typeof currentLanguage !== "undefined" && currentLanguage === "en");
-        if (isImageGenEnabled) {
-          isWebSearchEnabled = false; 
-          if (webSearchText) webSearchText.textContent = isEn ? "Web Search: Off" : "ওয়েব সার্চ: বন্ধ"; 
-          if (attachWebSearchOption) {
-            attachWebSearchOption.style.color = "var(--text-main)"; 
-            const s = attachWebSearchOption.querySelector("span"); if (s) s.style.color = "var(--text-sub)"; 
-            const svg = attachWebSearchOption.querySelector('svg'); if (svg) svg.style.stroke = "var(--text-sub)";
-          }
-        }
-        if (imageGenText) imageGenText.textContent = isImageGenEnabled ? (isEn ? "Image Gen: On" : "ছবি তৈরি: চালু") : (isEn ? "Image Gen: Off" : "ছবি তৈরি: বন্ধ");
-        attachImageGenOption.style.color = isImageGenEnabled ? "var(--accent-color)" : "var(--text-main)";
-        if (imageGenText) imageGenText.style.color = isImageGenEnabled ? "var(--accent-color)" : "var(--text-sub)";
-        const svg = attachImageGenOption.querySelector('svg'); if (svg) svg.style.stroke = isImageGenEnabled ? "var(--accent-color)" : "var(--text-sub)";
-        updateAttachBtnActiveState(); closeAttachMenu();
-      });
+    function updateAttachBtnActiveState() {
+      if (!attachBtn) return;
+      const isAnyActive = isWebSearchEnabled || isImageGenEnabled || isThinkingEnabled;
+      attachBtn.classList.toggle("tools-active", isAnyActive);
     }
 
-    const attachThinkingOption = document.getElementById("attachThinkingOption");
-    const thinkingText = document.getElementById("thinkingText");
-
-    function updateThinkingUI() {
-      const isEn = (typeof currentLanguage !== "undefined" && currentLanguage === "en");
-      if (thinkingText) {
-        thinkingText.textContent = isThinkingEnabled ? (isEn ? "Thinking: ON" : "চিন্তাভাবনা: চালু") : (isEn ? "Thinking: OFF" : "চিন্তাভাবনা: বন্ধ");
-        thinkingText.style.color = isThinkingEnabled ? "var(--accent-color)" : "var(--text-sub)";
-      }
-      if (attachThinkingOption) {
-        attachThinkingOption.style.color = isThinkingEnabled ? "var(--accent-color)" : "var(--text-main)";
-        const svg = attachThinkingOption.querySelector('svg');
-        if (svg) svg.style.stroke = isThinkingEnabled ? "var(--accent-color)" : "var(--text-sub)";
-      }
+    function closeAttachMenu() {
+      if (window.GlisseMenu && window.GlisseMenu.close) window.GlisseMenu.close();
     }
-    updateThinkingUI();
-
-    if (attachThinkingOption) {
-      attachThinkingOption.addEventListener("click", () => {
-        isThinkingEnabled = !isThinkingEnabled;
-        try { localStorage.setItem("alokpoth_thinking_enabled", isThinkingEnabled ? "true" : "false"); } catch(e) {}
-        updateThinkingUI();
-        const isEn = (typeof currentLanguage !== "undefined" && currentLanguage === "en");
-        showToast(
-          isThinkingEnabled 
-            ? (isEn ? "Thinking mode enabled" : "চিন্তাভাবনা মোড চালু হয়েছে") 
-            : (isEn ? "Thinking mode disabled" : "চিন্তাভাবনা মোড বন্ধ করা হয়েছে"),
-          "success"
-        );
-        closeAttachMenu();
-      });
-    }
-
-    document.addEventListener("click", (e) => { if (!attachMenuWrap.contains(e.target)) closeAttachMenu(); });
 
     function fileToBase64(file) {
       return new Promise((resolve, reject) => {
