@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="bn" data-theme="oled">
+<html lang="en" data-theme="oled">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
@@ -389,7 +389,7 @@
   </main>
 
   <script>
-    let currentLanguage = localStorage.getItem("alokpoth_lang") || "bn";
+    let currentLanguage = localStorage.getItem("alokpoth_lang") || "en";
     const rawSavedTheme = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "system";
     const isDarkHelp = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
     const savedTheme = (rawSavedTheme === "system") ? (isDarkHelp ? "dark" : "light") : rawSavedTheme;

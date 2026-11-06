@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="bn" data-theme="dark">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
@@ -301,11 +301,11 @@
     @keyframes cardFadeUp {
       from {
         opacity: 0;
-        transform: translateY(20px);
+        transform: none !important;
       }
       to {
         opacity: 1;
-        transform: translateY(0);
+        transform: none !important;
       }
     }
 
@@ -453,12 +453,12 @@
 
     .submit-btn:hover {
       background: #f4f4f5;
-      transform: translateY(-1px);
+      transform: none !important;
       box-shadow: 0 6px 20px rgba(255, 255, 255, 0.22);
     }
 
     .submit-btn:active {
-      transform: translateY(0);
+      transform: none !important;
     }
 
     .submit-btn:disabled {
@@ -480,8 +480,8 @@
     }
 
     @keyframes alertSlide {
-      from { opacity: 0; transform: translateY(-8px); }
-      to { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; transform: none !important; }
+      to { opacity: 1; transform: none !important; }
     }
 
     .alert-msg.error {
@@ -618,7 +618,7 @@
         border-color 0.2s ease !important;
     }
     .btn:hover, button:hover, .btn-primary:hover, .page-back-btn:hover, .option-card:hover, .btn-test-sound:hover {
-      transform: translateY(-1.5px) scale(1.02) !important;
+      transform: none !important;
       box-shadow: 
         0 8px 24px -3px rgba(0, 0, 0, 0.24),
         0 2px 6px rgba(0, 0, 0, 0.12),
@@ -629,6 +629,27 @@
     .btn:active, button:active, .btn-primary:active, .page-back-btn:active, .option-card:active, .btn-test-sound:active {
       transform: scale(0.96) !important;
       transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    }
+
+  
+    /* Universal Ultra-Rounded Pill Buttons & Inputs (No Square Corners Anywhere) */
+    button, .btn, .btn-primary, .btn-secondary, .page-back-btn, .option-card, .btn-test-sound, .auth-btn, .download-btn, .plan-cta-btn, .plan-toggle-btn {
+      border-radius: 9999px !important;
+      transform: none !important;
+      transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    }
+    button:hover, .btn:hover, .btn-primary:hover, .btn-secondary:hover, .page-back-btn:hover, .option-card:hover, .btn-test-sound:hover, .auth-btn:hover, .download-btn:hover {
+      transform: none !important; /* ZERO vertical hover lift! */
+      box-shadow: 0 6px 20px -2px rgba(0, 0, 0, 0.2), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.45) !important;
+    }
+    button:active, .btn:active, .btn-primary:active, .btn-secondary:active, .page-back-btn:active, .option-card:active, .btn-test-sound:active, .auth-btn:active, .download-btn:active {
+      transform: scale(0.96) !important;
+    }
+    input, .auth-input, .custom-dialog-input {
+      border-radius: 9999px !important;
+    }
+    .card, .auth-card, .plan-card, .profile-card, .settings-group, .settings-card, .help-card, .modal-sheet, .custom-dialog-box {
+      border-radius: 28px !important;
     }
 
   </style>

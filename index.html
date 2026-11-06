@@ -4575,16 +4575,25 @@
       100% { opacity: 1; transform: translateY(0); }
     }
 
-    /* ==========================================================================
-       1. GLISSE APPLE LIQUID GLASS DESIGN SYSTEM (glisse.kelvinzhang.com)
-       Ultra-luxurious frosted glass refraction, specular rim lighting, and spring physics
+        /* ==========================================================================
+       ALORA ULTRA-ROUNDED LIQUID DESIGN SYSTEM & ANIMATED 3-DOTS ENGINE
+       - Fully rounded capsules and squircles (ZERO square corners anywhere)
+       - ZERO upward hover lifting / jumping (translateY = OFF everywhere)
+       - Iconic expanding 3-dots Model Selector
+       - Luxury frosted glass with specular highlight and tactile spring active press
+       - Full support for all 6 themes (system, dark, oled, sapphire, eyecare, light)
+       - Matrix EncryptedText AI Answer Streaming
        ========================================================================== */
-    .glisse-glass-btn,
-    button.icon-btn,
+
+    /* 1. UNIVERSAL ULTRA-ROUNDED PILL SYSTEM FOR ALL BUTTONS ACROSS ALL PAGES */
+    button,
+    .btn,
     .icon-btn,
+    .icon-circle-btn,
     .model-selector-btn,
     .drawer-new-chat-btn,
     .drawer-empty-new-chat-btn,
+    .drawer-session-item,
     .custom-dialog-btn,
     .scroll-bottom-fab,
     .action-icon-btn,
@@ -4593,32 +4602,39 @@
     .nav-credit-badge,
     .page-back-btn,
     .brand-menu-item,
-    .btn-test-sound {
+    .btn-test-sound,
+    .btn-primary,
+    .btn-secondary,
+    .code-action-btn,
+    .code-download-btn,
+    .account-limits-toggle-btn,
+    .quick-prompt-chip,
+    .hero-app-banner,
+    .search-pill-clear-btn {
+      border-radius: 9999px !important;
       position: relative;
-      background: var(--sheen-base, rgba(255, 255, 255, 0.07)) !important;
-      backdrop-filter: blur(28px) saturate(190%) contrast(104%) !important;
-      -webkit-backdrop-filter: blur(28px) saturate(190%) contrast(104%) !important;
+      backdrop-filter: blur(28px) saturate(190%) contrast(104%);
+      -webkit-backdrop-filter: blur(28px) saturate(190%) contrast(104%);
       border: 1px solid rgba(255, 255, 255, 0.16) !important;
       box-shadow: 
-        0 4px 16px -2px rgba(0, 0, 0, 0.18),
-        0 1px 3px rgba(0, 0, 0, 0.1),
+        0 4px 14px -2px rgba(0, 0, 0, 0.16),
+        0 1px 3px rgba(0, 0, 0, 0.08),
         inset 0 1px 1px 0 rgba(255, 255, 255, 0.35),
-        inset 0 -1px 1px 0 rgba(0, 0, 0, 0.14) !important;
-      transition: 
-        transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1),
-        box-shadow 0.24s ease,
-        background 0.2s ease,
-        border-color 0.2s ease !important;
+        inset 0 -1px 1px 0 rgba(0, 0, 0, 0.12) !important;
+      transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
+      transform: none !important; /* STRICTLY NO vertical lift on normal state */
     }
 
-    :root[data-theme="light"] .glisse-glass-btn,
-    :root[data-theme="light"] button.icon-btn,
+    :root[data-theme="light"] button,
+    :root[data-theme="light"] .btn,
     :root[data-theme="light"] .icon-btn,
+    :root[data-theme="light"] .icon-circle-btn,
     :root[data-theme="light"] .model-selector-btn,
     :root[data-theme="light"] .drawer-new-chat-btn,
     :root[data-theme="light"] .drawer-empty-new-chat-btn,
+    :root[data-theme="light"] .drawer-session-item,
     :root[data-theme="light"] .custom-dialog-btn,
     :root[data-theme="light"] .scroll-bottom-fab,
     :root[data-theme="light"] .action-icon-btn,
@@ -4626,23 +4642,25 @@
     :root[data-theme="light"] #quickNewChatNavBtn,
     :root[data-theme="light"] .nav-credit-badge,
     :root[data-theme="light"] .page-back-btn,
-    :root[data-theme="light"] .brand-menu-item {
-      background: rgba(255, 255, 255, 0.65) !important;
-      border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    :root[data-theme="light"] .brand-menu-item,
+    :root[data-theme="light"] .btn-test-sound {
+      border: 1px solid rgba(0, 0, 0, 0.09) !important;
       box-shadow: 
-        0 4px 16px -2px rgba(0, 0, 0, 0.08),
+        0 4px 14px -2px rgba(0, 0, 0, 0.07),
         0 1px 3px rgba(0, 0, 0, 0.04),
-        inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.9),
+        inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.95),
         inset 0 -1px 1px 0 rgba(0, 0, 0, 0.05) !important;
     }
 
-    /* Glisse Button Hover Physics */
-    .glisse-glass-btn:hover,
-    button.icon-btn:hover,
+    /* ZERO UPWARD HOVER JUMPING / VERTICAL DISPLACEMENT (translateY OFF) */
+    button:hover,
+    .btn:hover,
     .icon-btn:hover,
+    .icon-circle-btn:hover,
     .model-selector-btn:hover,
     .drawer-new-chat-btn:hover,
     .drawer-empty-new-chat-btn:hover,
+    .drawer-session-item:hover,
     .custom-dialog-btn:hover,
     .scroll-bottom-fab:hover,
     .action-icon-btn:hover,
@@ -4650,23 +4668,28 @@
     #quickNewChatNavBtn:hover,
     .nav-credit-badge:hover,
     .page-back-btn:hover,
-    .brand-menu-item:hover {
-      transform: translateY(-1.5px) scale(1.02) !important;
+    .brand-menu-item:hover,
+    .btn-test-sound:hover,
+    .btn-primary:hover,
+    .option-card:hover,
+    #sendBtn:hover {
+      transform: none !important; /* NO translateY upward jumping! */
       box-shadow: 
-        0 8px 24px -3px rgba(0, 0, 0, 0.24),
-        0 2px 6px rgba(0, 0, 0, 0.12),
-        inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.55),
-        inset 0 -1px 1px 0 rgba(0, 0, 0, 0.14) !important;
-      border-color: rgba(255, 255, 255, 0.3) !important;
+        0 6px 20px -2px rgba(0, 0, 0, 0.22),
+        0 2px 6px rgba(0, 0, 0, 0.1),
+        inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.5) !important;
+      border-color: rgba(255, 255, 255, 0.28) !important;
     }
 
-    /* Glisse Button Press / Active Spring Squash */
-    .glisse-glass-btn:active,
-    button.icon-btn:active,
+    /* TACTILE SPRING PRESS SQUASH ON ACTIVE (PHYSICAL CLICK FEEL) */
+    button:active,
+    .btn:active,
     .icon-btn:active,
+    .icon-circle-btn:active,
     .model-selector-btn:active,
     .drawer-new-chat-btn:active,
     .drawer-empty-new-chat-btn:active,
+    .drawer-session-item:active,
     .custom-dialog-btn:active,
     .scroll-bottom-fab:active,
     .action-icon-btn:active,
@@ -4674,36 +4697,229 @@
     #quickNewChatNavBtn:active,
     .nav-credit-badge:active,
     .page-back-btn:active,
-    .brand-menu-item:active {
+    .brand-menu-item:active,
+    .btn-test-sound:active,
+    .btn-primary:active,
+    .option-card:active,
+    #sendBtn:active {
       transform: scale(0.96) !important;
-      box-shadow: 
-        0 2px 6px -1px rgba(0, 0, 0, 0.2),
-        inset 0 1px 0.5px 0 rgba(255, 255, 255, 0.2) !important;
-      transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+      box-shadow: 0 2px 6px -1px rgba(0, 0, 0, 0.2), inset 0 1px 0.5px 0 rgba(255, 255, 255, 0.2) !important;
+      transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
     }
 
-    /* Glisse Liquid Send Button */
+    /* 2. CIRCULAR & PILL BUTTONS */
+    .icon-circle-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50% !important;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      flex-shrink: 0;
+    }
+
+    /* Glowing Circular Send Button */
     #sendBtn {
+      border-radius: 50% !important;
+      width: 40px;
+      height: 40px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       backdrop-filter: blur(28px) saturate(190%) contrast(105%) !important;
       -webkit-backdrop-filter: blur(28px) saturate(190%) contrast(105%) !important;
       background: linear-gradient(135deg, rgba(59, 130, 246, 0.95), rgba(37, 99, 235, 0.98)) !important;
       border: 1px solid rgba(255, 255, 255, 0.3) !important;
-      box-shadow: 
-        0 4px 18px -2px rgba(59, 130, 246, 0.45),
-        inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.55) !important;
-      transition: transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease !important;
+      box-shadow: 0 4px 18px -2px rgba(59, 130, 246, 0.45), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.55) !important;
+      transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease !important;
+      transform: none !important;
     }
     #sendBtn:hover:not(:disabled) {
-      transform: translateY(-1.5px) scale(1.04) !important;
-      box-shadow: 
-        0 8px 24px -2px rgba(59, 130, 246, 0.6),
-        inset 0 1px 2px 0 rgba(255, 255, 255, 0.7) !important;
+      transform: none !important;
+      box-shadow: 0 6px 22px -1px rgba(59, 130, 246, 0.6), inset 0 1px 2px 0 rgba(255, 255, 255, 0.7) !important;
     }
     #sendBtn:active:not(:disabled) {
-      transform: scale(0.94) !important;
+      transform: scale(0.93) !important;
     }
 
-    /* Glisse Floating Liquid Glass Popups & Modals (glisse.kelvinzhang.com) */
+    /* Circular Mic and Attach Buttons */
+    #micBtn,
+    #attachBtn {
+      border-radius: 50% !important;
+      width: 38px;
+      height: 38px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* 3. ALORA MODEL SELECTOR WITH ANIMATED THREE DOTS ("ছোট থেকে বড় হয়ে আসে") */
+    .model-selector-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 7px 18px;
+      border-radius: 9999px !important;
+      background: var(--sheen-base, rgba(255, 255, 255, 0.08)) !important;
+      backdrop-filter: blur(28px) saturate(180%);
+      -webkit-backdrop-filter: blur(28px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.16) !important;
+      color: var(--text-main);
+      font-size: 0.95rem;
+      font-weight: 600;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.25) !important;
+    }
+    .three-dots-cluster {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .three-dots-cluster .dot {
+      border-radius: 50% !important;
+      background: var(--accent-color, #3b82f6);
+      display: inline-block;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease, box-shadow 0.3s ease;
+    }
+    /* Sizing from small to large */
+    .three-dots-cluster .dot.dot-sm {
+      width: 4px;
+      height: 4px;
+      opacity: 0.55;
+      animation: threeDotsGrowRipple 1.6s ease-in-out infinite 0s;
+    }
+    .three-dots-cluster .dot.dot-md {
+      width: 6.5px;
+      height: 6.5px;
+      opacity: 0.8;
+      animation: threeDotsGrowRipple 1.6s ease-in-out infinite 0.25s;
+    }
+    .three-dots-cluster .dot.dot-lg {
+      width: 9px;
+      height: 9px;
+      opacity: 1;
+      animation: threeDotsGrowRipple 1.6s ease-in-out infinite 0.5s;
+    }
+    @keyframes threeDotsGrowRipple {
+      0%, 100% {
+        transform: scale(0.75);
+        opacity: 0.5;
+      }
+      50% {
+        transform: scale(1.35);
+        opacity: 1;
+        box-shadow: 0 0 8px var(--accent-color, #3b82f6);
+      }
+    }
+    /* When user hovers over model selector, the dots expand smoothly from small to large! */
+    .model-selector-btn:hover .three-dots-cluster .dot.dot-sm {
+      transform: scale(1.25);
+      opacity: 0.9;
+    }
+    .model-selector-btn:hover .three-dots-cluster .dot.dot-md {
+      transform: scale(1.45);
+      opacity: 1;
+    }
+    .model-selector-btn:hover .three-dots-cluster .dot.dot-lg {
+      transform: scale(1.65);
+      opacity: 1;
+      box-shadow: 0 0 12px var(--accent-color, #3b82f6);
+    }
+
+    /* 4. SLEEK ULTRA-ROUNDED CAPSULE SEARCH BAR (border-radius: 9999px) */
+    .drawer-search-container {
+      padding: 6px 16px 12px;
+      display: flex;
+      align-items: center;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .search-pill-box {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 100%;
+      height: 42px;
+      background: var(--bg-input, #1c1c20);
+      border-radius: 9999px !important;
+      padding: 0 12px 0 42px;
+      border: 1px solid var(--border-color, rgba(255, 255, 255, 0.12));
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      box-sizing: border-box;
+    }
+    .search-pill-icon-bubble {
+      position: absolute;
+      left: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 30px;
+      height: 30px;
+      border-radius: 50% !important;
+      background: var(--accent-color, #3b82f6);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+    }
+    .search-pill-input {
+      width: 100%;
+      height: 100%;
+      background: transparent !important;
+      border: none !important;
+      outline: none !important;
+      color: var(--text-main, #fff) !important;
+      font-size: 0.9rem !important;
+      font-family: inherit !important;
+      border-radius: 9999px !important;
+      padding: 0 6px !important;
+    }
+    .search-pill-clear-btn {
+      width: 22px;
+      height: 22px;
+      border-radius: 50% !important;
+      background: rgba(128, 128, 128, 0.25);
+      color: var(--text-sub, #a1a1aa);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      flex-shrink: 0;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+    .search-pill-clear-btn:hover {
+      background: rgba(128, 128, 128, 0.45);
+      color: var(--text-main, #fff);
+      transform: none !important;
+    }
+    .search-pill-box:focus-within {
+      border-color: var(--accent-color, #3b82f6);
+      box-shadow: 0 4px 16px rgba(59, 130, 246, 0.25), inset 0 1px 1.5px rgba(255, 255, 255, 0.2);
+    }
+
+    /* 5. ALL INPUTS, CARDS, MODALS, POPUPS ULTRA-ROUNDED */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="search"],
+    .drawer-search-input,
+    .custom-dialog-input,
+    .auth-input,
+    .account-name-input {
+      border-radius: 9999px !important;
+    }
+
+    .input-card,
+    #composerCard {
+      border-radius: 34px !important;
+    }
+
     .modal-sheet,
     .brand-menu-dropdown,
     .custom-dialog-box,
@@ -4713,15 +4929,13 @@
       backdrop-filter: blur(40px) saturate(200%) contrast(106%) !important;
       -webkit-backdrop-filter: blur(40px) saturate(200%) contrast(106%) !important;
       border: 1px solid rgba(255, 255, 255, 0.16) !important;
-      border-radius: 28px !important;
+      border-radius: 36px !important;
       box-shadow: 
         0 32px 80px -16px rgba(0, 0, 0, 0.65),
         0 16px 36px -8px rgba(0, 0, 0, 0.35),
         inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.32) !important;
       transform: scale(0.95) translateY(12px);
-      transition: 
-        transform 0.32s cubic-bezier(0.16, 1, 0.3, 1),
-        opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+      transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
     }
 
     :root[data-theme="light"] .modal-sheet,
@@ -4729,7 +4943,7 @@
     :root[data-theme="light"] .custom-dialog-box,
     :root[data-theme="light"] .custom-ui-toast,
     :root[data-theme="light"] .chat-history-modal-content {
-      background: rgba(255, 255, 255, 0.84) !important;
+      background: rgba(255, 255, 255, 0.88) !important;
       border: 1px solid rgba(0, 0, 0, 0.08) !important;
       box-shadow: 
         0 32px 80px -16px rgba(0, 0, 0, 0.18),
@@ -4743,105 +4957,33 @@
       transform: scale(1) translateY(0) !important;
     }
 
-    /* ==========================================================================
-       2. GOOEY INPUT SEARCH BAR (21st.dev / Aceternity UI GooeyInput)
-       Fluid SVG filter, liquid morphing bubble & expanding pill with spring physics
-       ========================================================================== */
-    .gooey-search-wrapper {
-      position: relative;
-      padding: 6px 16px 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      box-sizing: border-box;
+    /* Message bubbles */
+    .message-row.user .user-bubble {
+      border-radius: 26px 26px 8px 26px !important;
     }
-    .gooey-filter-layer {
-      position: relative;
-      width: 100%;
-      filter: url(#gooey-search-filter);
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-    }
-    .gooey-input-base {
-      position: relative;
-      display: flex;
-      align-items: center;
-      width: 100%;
-      height: 44px;
-      background: var(--bg-input, #1c1c20);
-      border-radius: 9999px;
-      padding: 0 14px 0 42px;
-      transition: width 0.38s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, border-color 0.25s ease;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.15);
-      border: 1px solid var(--border-color, rgba(255, 255, 255, 0.12));
-      box-sizing: border-box;
-    }
-    .gooey-bubble {
-      position: absolute;
-      left: 7px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      background: var(--accent-color, #3b82f6);
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      pointer-events: none;
-      transition: transform 0.38s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease, box-shadow 0.2s ease;
-      box-shadow: 0 2px 10px rgba(59, 130, 246, 0.45);
-      z-index: 2;
-    }
-    .gooey-real-input {
-      width: 100%;
-      height: 100%;
-      background: transparent !important;
-      border: none !important;
-      outline: none !important;
-      color: var(--text-main, #fff) !important;
-      font-size: 0.9rem !important;
-      font-family: inherit !important;
-      padding: 0 6px !important;
-      box-shadow: none !important;
-    }
-    .gooey-clear-btn {
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      background: rgba(128, 128, 128, 0.25);
-      color: var(--text-sub, #a1a1aa);
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0;
-      flex-shrink: 0;
-      margin-left: 6px;
-      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.15s ease, color 0.15s ease;
-    }
-    .gooey-clear-btn:hover {
-      background: rgba(128, 128, 128, 0.45);
-      color: var(--text-main, #fff);
-      transform: scale(1.1);
-    }
-    .gooey-input-base:focus-within {
-      border-color: var(--accent-color, #3b82f6);
-      box-shadow: 0 6px 22px rgba(59, 130, 246, 0.28), inset 0 1px 1.5px rgba(255, 255, 255, 0.25);
-    }
-    .gooey-input-base:focus-within .gooey-bubble {
-      transform: translateY(-50%) scale(1.1) rotate(90deg);
-      box-shadow: 0 4px 14px rgba(59, 130, 246, 0.6);
+    .message-row.ai .ai-bubble,
+    .content-block {
+      border-radius: 26px 26px 26px 8px !important;
     }
 
-    /* ==========================================================================
-       3. ENCRYPTED TEXT (MATRIX SCRAMBLE AI ANSWER STREAMING DECRYPTION)
-       Tokens stream in scrambled cipher glyphs and decrypt progressively
-       ========================================================================== */
+    /* Sidebar Drawer */
+    .sidebar-drawer {
+      border-radius: 0 36px 36px 0 !important;
+      overflow: hidden !important;
+    }
+
+    /* Cards & Groups */
+    .settings-group,
+    .settings-row,
+    .option-card,
+    .model-card,
+    .account-quota-card,
+    .account-limits-card,
+    .thought-block {
+      border-radius: 26px !important;
+    }
+
+    /* 6. MATRIX ENCRYPTED TEXT STREAMING */
     .encrypted-text-stream {
       display: inline;
       vertical-align: baseline;
@@ -4935,11 +5077,11 @@
         <span style="font-size: 0.65rem; color: var(--text-dim, #8e8e93); font-weight: 600; letter-spacing: 0.4px; margin-top: 1px;">An Alokpath Product</span>
       </div>
       <div style="display: flex; align-items: center; gap: 8px;">
-        <button type="button" id="drawerSearchToggleBtn" aria-label="Search chats" style="background: transparent; border: none; color: var(--text-sub); width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <button type="button" id="drawerSearchToggleBtn" class="icon-circle-btn" aria-label="Search chats" title="Search chats">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
         </button>
-        <button type="button" id="drawerCloseBtn" aria-label="Close" style="background: transparent; border: none; color: var(--text-sub); width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        <button type="button" id="drawerCloseBtn" class="icon-circle-btn" aria-label="Close" title="Close">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
     </div>
@@ -4955,29 +5097,16 @@
       </button>
     </div>
 
-    <!-- Gooey Input SVG Filter -->
-    <svg class="gooey-svg-filter" style="position: absolute; width: 0; height: 0; pointer-events: none; overflow: hidden;" aria-hidden="true">
-      <defs>
-        <filter id="gooey-search-filter">
-          <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur" />
-          <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="gooey" />
-          <feComposite in="SourceGraphic" in2="gooey" operator="atop" />
-        </filter>
-      </defs>
-    </svg>
-
-    <!-- Gooey Search Bar Component (21st.dev / Aceternity UI GooeyInput) -->
-    <div class="gooey-search-wrapper" id="drawerSearchBoxWrap">
-      <div class="gooey-filter-layer">
-        <div class="gooey-input-base" id="gooeyInputBase">
-          <div class="gooey-bubble" id="gooeySearchBubble" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-          </div>
-          <input type="text" class="drawer-search-input gooey-real-input" id="drawerSearchInput" placeholder="Search chats..." autocomplete="off" spellcheck="false" aria-label="Search chats">
-          <button type="button" class="gooey-clear-btn" id="gooeyClearBtn" aria-label="Clear search" style="display: none;">
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
-        </div>
+        <!-- Clean Ultra-Rounded Capsule Search Bar (border-radius: 9999px) -->
+    <div class="drawer-search-container" id="drawerSearchBoxWrap">
+      <div class="search-pill-box">
+        <span class="search-pill-icon-bubble" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        </span>
+        <input type="text" class="drawer-search-input search-pill-input" id="drawerSearchInput" placeholder="Search chats..." autocomplete="off" spellcheck="false" aria-label="Search chats">
+        <button type="button" class="search-pill-clear-btn" id="gooeyClearBtn" aria-label="Clear search" style="display: none;">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
       </div>
     </div>
 
@@ -5046,9 +5175,14 @@
       </button>
     </div>
     <div class="nav-center">
-      <button class="model-selector-btn" id="modelTrigger" type="button" aria-label="মডেল নির্বাচন করুন">
+      <button class="model-selector-btn" id="modelTrigger" type="button" aria-label="Select Model" title="Select Model">
+        <span class="three-dots-cluster" aria-hidden="true" title="Model Selector">
+          <span class="dot dot-sm"></span>
+          <span class="dot dot-md"></span>
+          <span class="dot dot-lg"></span>
+        </span>
         <span id="modelTriggerLabel" class="trigger-label">Alora</span>
-        <svg class="chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        <svg class="chevron" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
       </button>
     </div>
     <div class="navbar-right" style="display: flex; align-items: center; gap: 8px;">
@@ -5978,7 +6112,11 @@
     }
 
     // Global App Language (Initialized early)
-    let currentLanguage = localStorage.getItem("alokpoth_lang") || "en";
+    let savedLang = localStorage.getItem("alokpoth_lang");
+    let currentLanguage = (savedLang === "bn") ? "bn" : "en";
+    if (!savedLang) {
+      try { localStorage.setItem("alokpoth_lang", "en"); } catch(e) {}
+    }
 
     // --- Auth Enforcement on App Open (Requires Login / Signup) ---
     (function enforceAuthOnLaunch() {
