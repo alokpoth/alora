@@ -711,10 +711,10 @@
     </a>
     <div class="top-bar-center" id="loginPageHeaderTitle">Alora</div>
     <div class="top-actions">
-      <button type="button" class="lang-toggle-btn" id="langToggleBtn" title="ভাষা পরিবর্তন / Switch Language">
+      <button type="button" class="lang-toggle-btn" id="langToggleBtn" title="Switch Language / ভাষা পরিবর্তন">
         <span id="langBtnText">EN</span>
       </button>
-      <button type="button" class="theme-toggle-btn" id="themeToggleBtn" style="display:none;" title="থিম পরিবর্তন"></button>
+      <button type="button" class="theme-toggle-btn" id="themeToggleBtn" style="display:none;" title="Change Theme"></button>
     </div>
   </header>
 
@@ -724,63 +724,63 @@
         <div class="auth-badge-icon" style="background: transparent; box-shadow: none;">
           <img src="app_logo.png" alt="Alora" style="width: 54px; height: 54px; border-radius: 16px; object-fit: cover; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);">
         </div>
-        <h1 class="auth-title" id="cardTitle">স্বাগতম!</h1>
-        <p class="auth-subtitle" id="cardSubtitle">Alora-তে প্রবেশ করতে লগইন করুন</p>
+        <h1 class="auth-title" id="cardTitle">Welcome Back!</h1>
+        <p class="auth-subtitle" id="cardSubtitle">Sign in to continue to Alora</p>
       </div>
 
       <!-- If already logged in, show this container -->
       <div class="logged-in-box" id="loggedInBox">
-        <div class="user-avatar-lg" id="loggedAvatar">অ</div>
-        <div class="logged-name" id="loggedName">ব্যবহারকারীর নাম</div>
+        <div class="user-avatar-lg" id="loggedAvatar">A</div>
+        <div class="logged-name" id="loggedName">User</div>
         <div class="logged-email" id="loggedEmail">user@example.com</div>
         <div class="action-links">
-          <a href="/" class="submit-btn" id="goToChatBtn" style="text-decoration:none;">চ্যাটে যান</a>
-          <a href="account" class="btn-secondary" id="viewAccountBtn">অ্যাকাউন্ট ও প্ল্যান দেখুন</a>
-          <button type="button" class="btn-danger-outline" id="logoutBtn">লগআউট করুন</button>
+          <a href="/" class="submit-btn" id="goToChatBtn" style="text-decoration:none;">Go to Chat</a>
+          <a href="account" class="btn-secondary" id="viewAccountBtn">View Account &amp; Plans</a>
+          <button type="button" class="btn-danger-outline" id="logoutBtn">Log Out</button>
         </div>
       </div>
 
       <!-- Auth Form Container -->
       <div id="authFormContainer">
         <div class="auth-tabs">
-          <button type="button" class="auth-tab-btn active" id="tabLoginBtn">লগইন</button>
-          <button type="button" class="auth-tab-btn" id="tabRegisterBtn">নতুন অ্যাকাউন্ট</button>
+          <button type="button" class="auth-tab-btn active" id="tabLoginBtn">Log In</button>
+          <button type="button" class="auth-tab-btn" id="tabRegisterBtn">Create Account</button>
         </div>
 
         <div class="alert-msg" id="alertBox"></div>
 
         <form id="authForm">
           <div class="form-group" id="nameGroup" style="display:none;">
-            <label class="form-label" id="nameLabel" for="userNameInput">আপনার পূর্ণ নাম</label>
+            <label class="form-label" id="nameLabel" for="userNameInput">Your Full Name</label>
             <div class="input-wrap">
-              <input type="text" class="form-input" id="userNameInput" placeholder="যেমন: রিফাত হোসেন" autocomplete="name">
+              <input type="text" class="form-input" id="userNameInput" placeholder="e.g. John Doe" autocomplete="name">
             </div>
           </div>
 
           <div class="form-group">
-            <label class="form-label" id="emailLabel" for="userEmailInput">ইমেইল ঠিকানা</label>
+            <label class="form-label" id="emailLabel" for="userEmailInput">Email Address</label>
             <div class="input-wrap">
               <input type="email" class="form-input" id="userEmailInput" placeholder="name@example.com" required autocomplete="email">
             </div>
           </div>
 
           <div class="form-group">
-            <label class="form-label" id="passLabel" for="userPassInput">পাসওয়ার্ড</label>
+            <label class="form-label" id="passLabel" for="userPassInput">Password</label>
             <div class="input-wrap">
-              <input type="password" class="form-input" id="userPassInput" placeholder="কমপক্ষে ৬ অক্ষরের পাসওয়ার্ড" required autocomplete="current-password">
-              <button type="button" class="password-toggle" id="passToggleBtn" aria-label="পাসওয়ার্ড দেখুন">
+              <input type="password" class="form-input" id="userPassInput" placeholder="At least 6 characters" required autocomplete="current-password">
+              <button type="button" class="password-toggle" id="passToggleBtn" aria-label="Show password">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
               </button>
             </div>
           </div>
 
           <button type="submit" class="submit-btn" id="submitAuthBtn">
-            <span id="submitBtnText">লগইন করুন</span>
+            <span id="submitBtnText">Log In</span>
           </button>
         </form>
 
         <div class="auth-footer-note">
-          <span id="forgotPassText">পাসওয়ার্ড ভুলে গেছেন? এডমিনের সাথে যোগাযোগ করুন।</span>
+          <span id="forgotPassText">Forgot password? Contact the administrator.</span>
         </div>
 
         <div class="auth-meta-branding" style="margin-top: 26px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;">

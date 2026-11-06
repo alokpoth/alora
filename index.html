@@ -5498,7 +5498,7 @@
       <div style="font-size: 0.82rem; color: var(--text-sub); margin-bottom: 16px;" data-i18n="drawerNoChatsSub">Your conversations with Alora will appear here.</div>
       <button class="drawer-empty-new-chat-btn" id="drawerEmptyNewChatBtn" type="button" style="display: inline-flex; align-items: center; gap: 8px; background: var(--accent-color, #3b82f6); color: #fff; border: none; border-radius: 9999px; padding: 9px 18px; font-size: 0.85rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(59,130,246,0.3);">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        <span data-i18n="newChat">নতুন চ্যাট শুরু করুন</span>
+        <span data-i18n="drawerEmptyNewChatBtn">New Chat</span>
       </button>
     </div>
 
@@ -5584,13 +5584,13 @@
             <svg class="icon-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
             <svg class="icon-oled" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20Z" fill="currentColor"/></svg>
             <svg class="icon-eyecare" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-            <span class="theme-label-text">সিস্টেম থিম</span>
+            <span class="theme-label-text" data-i18n="systemTheme">System Theme</span>
           </span>
         </button>
         <button class="brand-menu-item sheen-surface" id="accountMenuBtn" type="button">
           <span class="brand-menu-item-left">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            <span>একাউন্ট</span>
+            <span data-i18n="account">Account</span>
           </span>
         </button>
         <button class="brand-menu-item sheen-surface" id="brandMenuLimitsBtn" type="button">
@@ -5602,20 +5602,20 @@
         <button class="brand-menu-item sheen-surface" id="brandMenuAuthBtn" type="button" style="color: var(--accent-color);">
           <span class="brand-menu-item-left">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent-color);"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-            <span>লগইন / রেজিস্টার</span>
+            <span data-i18n="authLoginRegister">Sign In / Register</span>
           </span>
         </button>
         <button class="brand-menu-item sheen-surface" id="brandMenuDownloadAppBtn" type="button" style="display: none; color: #3b82f6;">
           <span class="brand-menu-item-left">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            <span>অ্যাপ ডাউনলোড করুন</span>
+            <span data-i18n="downloadApp">Download App</span>
           </span>
           <span style="font-size: 11px; padding: 2px 7px; border-radius: 6px; background: #3b82f6; color: #fff; font-weight: 600;">APK</span>
         </button>
         <button class="brand-menu-item sheen-surface" id="brandMenuLogoutBtn" type="button" style="color: #ef4444;">
           <span class="brand-menu-item-left">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #ef4444;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-            <span>লগআউট</span>
+            <span data-i18n="logout">Log Out</span>
           </span>
         </button>
       </div>
@@ -5626,43 +5626,43 @@
   <div class="modal-overlay page-modal" id="appDownloadModalOverlay" style="display: none;">
     <div class="modal-sheet">
       <div class="page-header-bar">
-        <button class="page-back-btn" id="appDownloadModalClose" type="button" aria-label="ফিরে যান">
+        <button class="page-back-btn" id="appDownloadModalClose" type="button" aria-label="Back">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-          <span>ফিরে যান</span>
+          <span data-i18n="backBtn">Back</span>
         </button>
-        <span class="page-nav-title">অ্যান্ড্রয়েড অ্যাপ</span>
+        <span class="page-nav-title" data-i18n="androidAppTitle">Android App</span>
         <div class="page-header-spacer"></div>
       </div>
       <div class="app-download-page-content">
         <div style="text-align: center; padding: 6px 4px 14px;">
           <img src="app_logo.png" alt="Alora App Logo" style="width: 68px; height: 68px; border-radius: 20px; margin: 0 auto 12px; display: block; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);">
           <div style="font-size: 22px; font-weight: 800; color: var(--text-main); margin-bottom: 6px;">Alora Mobile (Android &amp; iOS)</div>
-          <div style="font-size: 13px; color: var(--text-sub);">নতুন থিঙ্কিং মোড, হাই-স্পিড নেটিভ ইঞ্জিন • আল্ট্রা অপটিমাইজড ও ল্যাগ-ফ্রি (v1.2.0)</div>
+          <div style="font-size: 13px; color: var(--text-sub);" data-i18n="appDownloadSub">Deep Thinking Mode, high-speed native engine • Ultra-optimized and lag-free (v1.2.0)</div>
         </div>
 
         <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 14px; font-size: 14px; line-height: 1.6;">
           <div style="display: flex; align-items: flex-start; gap: 12px;">
             <span style="font-size: 18px;">🧠</span>
-            <span><strong>ডিপ থিঙ্কিং ইঞ্জিন:</strong> যুক্ত হলো অন/অফ থিঙ্কিং মোড ও দ্রুত অ্যানালাইসিস ক্ষমতা।</span>
+            <span><strong data-i18n="appFeat1Title">Deep Thinking Engine:</strong> <span data-i18n="appFeat1Desc">Integrated on/off thinking mode with lightning-fast reasoning.</span></span>
           </div>
           <div style="display: flex; align-items: flex-start; gap: 12px;">
             <span style="font-size: 18px;">⚡</span>
-            <span><strong>অফলাইনেও কার্যকর:</strong> নেট না থাকলেও সরাসরি অ্যাপ ওপেন ও পূর্ববর্তী চ্যাট দেখা যাবে।</span>
+            <span><strong data-i18n="appFeat2Title">Works Offline:</strong> <span data-i18n="appFeat2Desc">Open the app and browse past chat conversations even without internet.</span></span>
           </div>
           <div style="display: flex; align-items: flex-start; gap: 12px;">
             <span style="font-size: 18px;">🔒</span>
-            <span><strong>নিরাপদ ও হালকা:</strong> কোনো বাড়তি পারমিশন ছাড়া সরাসরি লগইন ও চ্যাট সুবিধা।</span>
+            <span><strong data-i18n="appFeat3Title">Safe & Lightweight:</strong> <span data-i18n="appFeat3Desc">Seamless login and fast chatting without unnecessary permissions.</span></span>
           </div>
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 18px;">
           <a href="Alora.apk" download="Alora.apk" id="modalApkDownloadBtn" class="sheen-surface" style="display: flex; align-items: center; justify-content: center; gap: 10px; padding: 15px; background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff; border-radius: 14px; text-decoration: none; font-weight: 700; font-size: 15px; box-shadow: 0 4px 18px rgba(37,99,235,0.4); transition: transform 0.15s ease;">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            <span>সরাসরি APK ডাউনলোড করুন (v1.2.0)</span>
+            <span data-i18n="appDirectApkBtn">Download APK Directly (v1.2.0)</span>
           </a>
           <a href="download" class="sheen-surface" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 13px; background: rgba(255,255,255,0.06); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 14px; text-decoration: none; font-weight: 600; font-size: 14px; transition: background 0.15s ease;">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-            <span>অ্যাপ ডাউনলোড পেজ দেখুন (Android, iOS &amp; PC) &rarr;</span>
+            <span data-i18n="appViewAllBtn">View All Downloads (Android, iOS &amp; PC) &rarr;</span>
           </a>
         </div>
       </div>
@@ -5673,7 +5673,7 @@
   <div class="modal-overlay" id="modelModalOverlay">
     <div class="modal-sheet">
       <div class="modal-header">
-        <span>মডেল বেছে নিন</span>
+        <span data-i18n="selectModelModalTitle">Select AI Model</span>
         <button class="modal-close" id="modelModalClose" type="button" aria-label="Close">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
@@ -5690,7 +5690,7 @@
       <!-- SUBPAGE 0: Main Settings View -->
       <div class="settings-subview active" id="settingsMainView">
         <div class="page-header-bar">
-          <button class="page-back-btn" id="accountModalClose" type="button" aria-label="ফিরে যান">
+          <button class="page-back-btn" id="accountModalClose" type="button" aria-label="Back">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
             <span data-i18n="backBtn">Back</span>
           </button>
@@ -5745,7 +5745,7 @@
                 <span data-i18n="language">Language</span>
               </div>
               <div class="settings-row-right">
-                <span id="setMenuLangName">বাংলা</span>
+                <span id="setMenuLangName">English</span>
                 <svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
               </div>
             </button>
@@ -5755,7 +5755,7 @@
                 <span data-i18n="theme">Appearance (Theme)</span>
               </div>
               <div class="settings-row-right">
-                <span id="setMenuThemeName">ডার্ক</span>
+                <span id="setMenuThemeName">Dark</span>
                 <svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
               </div>
             </button>
@@ -5786,7 +5786,7 @@
             <button class="settings-row" type="button" id="setMenuLogout" style="justify-content: flex-start; color: #ef4444;" onclick="handleSettingsAuthAction()">
               <div class="settings-row-left" style="color: #ef4444;">
                 <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                <span id="setMenuLogoutLabel">লগ আউট / লগইন</span>
+                <span id="setMenuLogoutLabel" data-i18n="logoutLogin">Log Out / Log In</span>
               </div>
             </button>
           </div>
@@ -5816,13 +5816,13 @@
             <div style="display: flex; align-items: center; gap: 14px;">
               <div id="subAccountAvatar" style="width: 52px; height: 52px; border-radius: 50%; background: var(--accent-color); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 700; overflow: hidden; flex-shrink: 0;">A</div>
               <div style="display: flex; flex-direction: column; gap: 4px;">
-                <span id="subAccountDisplayName" style="font-size: 1.1rem; font-weight: 700; color: var(--text-main);">অতিথি</span>
-                <span id="subAccountEmailDisplay" style="font-size: 0.85rem; color: var(--text-sub);">লগইন করা নেই</span>
+                <span id="subAccountDisplayName" style="font-size: 1.1rem; font-weight: 700; color: var(--text-main);">Guest</span>
+                <span id="subAccountEmailDisplay" style="font-size: 0.85rem; color: var(--text-sub);">Not logged in</span>
               </div>
             </div>
             <div class="settings-field">
               <label class="settings-field-label" data-i18n="nameLabel">Your Name</label>
-              <input type="text" class="settings-field-input" id="subAccountNameInput" placeholder="আপনার নাম লিখুন..." maxlength="50" autocomplete="name">
+              <input type="text" class="settings-field-input" id="subAccountNameInput" placeholder="Your name..." maxlength="50" autocomplete="name">
             </div>
             <button type="button" class="settings-btn-primary" id="subAccountSaveBtn">
               <span data-i18n="saveName">Save Changes</span>
@@ -5833,16 +5833,16 @@
           <div class="settings-card" id="subPasswordCard">
             <div style="font-size: 1rem; font-weight: 600; color: var(--text-main);" data-i18n="changePassTitle">Change Password</div>
             <div class="settings-field">
-              <label class="settings-field-label">বর্তমান পাসওয়ার্ড</label>
-              <input type="password" class="settings-field-input" id="subAccountOldPass" placeholder="বর্তমান পাসওয়ার্ড লিখুন" autocomplete="current-password">
+              <label class="settings-field-label" data-i18n="passCurrentLabel">Current Password</label>
+              <input type="password" class="settings-field-input" id="subAccountOldPass" placeholder="Enter current password" autocomplete="current-password">
             </div>
             <div class="settings-field">
-              <label class="settings-field-label">নতুন পাসওয়ার্ড</label>
-              <input type="password" class="settings-field-input" id="subAccountNewPass" placeholder="নতুন পাসওয়ার্ড (ন্যূনতম ৬ অক্ষর)" autocomplete="new-password">
+              <label class="settings-field-label" data-i18n="passNewLabel">New Password</label>
+              <input type="password" class="settings-field-input" id="subAccountNewPass" placeholder="New password (min 6 chars)" autocomplete="new-password">
             </div>
             <div class="settings-field">
-              <label class="settings-field-label">নতুন পাসওয়ার্ড নিশ্চিত করুন</label>
-              <input type="password" class="settings-field-input" id="subAccountConfirmPass" placeholder="পুনরায় নতুন পাসওয়ার্ড লিখুন" autocomplete="new-password">
+              <label class="settings-field-label" data-i18n="passConfirmLabel">Confirm New Password</label>
+              <input type="password" class="settings-field-input" id="subAccountConfirmPass" placeholder="Confirm new password" autocomplete="new-password">
             </div>
             <div id="subAccountPassMsg" style="font-size: 0.85rem; min-height: 18px;"></div>
             <button type="button" class="settings-btn-primary" id="subAccountPassSubmitBtn">
@@ -5853,7 +5853,7 @@
           <div class="settings-card" id="subLogoutCard" style="margin-top: 14px;">
             <button type="button" class="settings-btn-primary" id="accountLogoutBtn" style="background: rgba(239, 68, 68, 0.12); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.25); display: flex; align-items: center; justify-content: center; gap: 8px;">
               <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-              <span>লগআউট করুন</span>
+              <span data-i18n="logout">Log Out</span>
             </button>
           </div>
         </div>
@@ -5873,8 +5873,8 @@
           <div class="settings-card">
             <div style="font-size: 1rem; font-weight: 600; color: var(--text-main);" data-i18n="redeemPromoTitle">Use Promo Code</div>
             <div class="settings-field">
-              <label class="settings-field-label">ভাউচার বা রিডিম কোড</label>
-              <input type="text" class="settings-field-input" id="subRedeemInput" placeholder="যেমন: ALO-PRO-XXXXXX বা কোড" maxlength="50" style="text-transform: uppercase; font-weight: 600; letter-spacing: 1px;" autocomplete="off" spellcheck="false">
+              <label class="settings-field-label" data-i18n="redeemCodeLabel">Voucher or Promo Code</label>
+              <input type="text" class="settings-field-input" id="subRedeemInput" placeholder="e.g. ALO-PRO-XXXXXX" maxlength="50" style="text-transform: uppercase; font-weight: 600; letter-spacing: 1px;" autocomplete="off" spellcheck="false">
             </div>
             <div id="subRedeemMsg" style="font-size: 0.85rem; min-height: 18px;"></div>
             <button type="button" class="settings-btn-primary" id="subRedeemSubmitBtn">
@@ -5963,12 +5963,12 @@
             </div>
           </div>
           <div class="settings-card">
-            <div style="font-size: 0.95rem; font-weight: 600; color: var(--text-main);">নতুন কী এসেছে (v1.2.0):</div>
+            <div style="font-size: 0.95rem; font-weight: 600; color: var(--text-main);" data-i18n="whatsNewTitle">What's New (v1.2.0):</div>
             <ul style="margin: 0; padding-left: 20px; font-size: 0.85rem; color: var(--text-sub); line-height: 1.6;">
-              <li>🧠 থিঙ্কিং অন/অফ (Deep Thinking Mode) অপশন ও ইন্টিগ্রেশন</li>
-              <li>⚡ দ্রুততম ইন্টারঅ্যাকশন ও স্ক্রিন টাচ পারফরম্যান্স অপটিমাইজেশন</li>
-              <li>🏢 Alokpoth ও Zihan Fakir-এর অফিসিয়াল আইডেন্টিটি ইন্টিগ্রেশন</li>
-              <li>📱 নতুন Alora v1.2.0 স্ট্যাবল ও আল্ট্রা-স্মুথ অ্যান্ড্রয়েড রিলিজ</li>
+              <li>🧠 Deep Thinking on/off option & native model integration</li>
+              <li>⚡ Ultra-fast interaction & touch performance optimization</li>
+              <li>🏢 Official Alokpath identity & clean aesthetics</li>
+              <li>📱 Stable, lag-free Android release (v1.2.0)</li>
             </ul>
           </div>
         </div>
@@ -5987,7 +5987,7 @@
         <div class="settings-subview-content">
           <div class="settings-card">
             <div style="font-size: 1rem; font-weight: 600; color: var(--text-main);" data-i18n="feedbackLabel">Your Feedback or Suggestion</div>
-            <textarea class="settings-field-input" id="subFeedbackInput" rows="4" placeholder="আপনার মূল্যবান পরামর্শ বা সমস্যা লিখুন..." data-i18n-placeholder="feedbackPlaceholder" style="resize: vertical;"></textarea>
+            <textarea class="settings-field-input" id="subFeedbackInput" rows="4" placeholder="Write your valuable feedback or issue here..." data-i18n-placeholder="feedbackPlaceholder" style="resize: vertical;"></textarea>
             <button type="button" class="settings-btn-primary" id="subFeedbackSubmitBtn">
               <span data-i18n="feedbackSubmit">Submit Feedback</span>
             </button>
@@ -6016,7 +6016,7 @@
           
           <div class="account-plan-info" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px; padding: 0 4px;">
              <div>
-                <span id="accountPlanDisplay" class="account-plan-badge plan-Free">Free (ফ্রি)</span>
+                <span id="accountPlanDisplay" class="account-plan-badge plan-Free">Free</span>
                 <span id="accountPlanLimitText" class="account-plan-limit-badge" style="margin-left: 8px;"></span>
              </div>
              <div id="accountPlanExpiryDisplay" class="account-plan-expiry-text" style="font-size: 0.75rem; color: var(--text-sub);"></div>
@@ -6086,28 +6086,28 @@
                 <div class="account-limit-icon">💬</div>
                 <div class="account-limit-detail">
                   <span class="account-limit-label" data-i18n="quotaMessages">Messages</span>
-                  <span class="account-limit-val" id="limitValMessages">১০ বার্তা</span>
+                  <span class="account-limit-val" id="limitValMessages">10 msgs</span>
                 </div>
               </div>
               <div class="account-limit-item">
                 <div class="account-limit-icon">🎨</div>
                 <div class="account-limit-detail">
                   <span class="account-limit-label" data-i18n="quotaImages">Images</span>
-                  <span class="account-limit-val" id="limitValImages">৩ ছবি</span>
+                  <span class="account-limit-val" id="limitValImages">3 images</span>
                 </div>
               </div>
               <div class="account-limit-item">
                 <div class="account-limit-icon">🧠</div>
                 <div class="account-limit-detail">
                   <span class="account-limit-label" data-i18n="quotaModels">Models</span>
-                  <span class="account-limit-val" id="limitValModels">ফ্রি মডেলসমূহ</span>
+                  <span class="account-limit-val" id="limitValModels">Free models</span>
                 </div>
               </div>
               <div class="account-limit-item">
                 <div class="account-limit-icon">⚡</div>
                 <div class="account-limit-detail">
                   <span class="account-limit-label" data-i18n="quotaSpeed">Speed</span>
-                  <span class="account-limit-val" id="limitValSpeed">সাধারণ স্পিড</span>
+                  <span class="account-limit-val" id="limitValSpeed">Standard speed</span>
                 </div>
               </div>
             </div>
@@ -6118,10 +6118,10 @@
                   <span class="plan-compare-name">Free</span>
                 </div>
                 <ul class="plan-compare-features">
-                  <li>১০ বার্তা / ৩ ঘণ্টা</li>
-                  <li>৩ ছবি / ৩ ঘণ্টা</li>
-                  <li>ফ্রি মডেলসমূহ</li>
-                  <li>সাধারণ স্পিড</li>
+                  <li>10 messages / 3 hours</li>
+                  <li>3 images / 3 hours</li>
+                  <li>Free models</li>
+                  <li>Standard speed</li>
                 </ul>
               </div>
               <div class="plan-compare-card" id="compareCardPro">
@@ -6129,10 +6129,10 @@
                   <span class="plan-compare-name">Pro</span>
                 </div>
                 <ul class="plan-compare-features">
-                  <li>৩০ বার্তা / ৩ ঘণ্টা</li>
-                  <li>২০ ছবি / ৩ ঘণ্টা</li>
-                  <li>প্রো মডেলসমূহ</li>
-                  <li>টার্বো স্পিড</li>
+                  <li>30 messages / 3 hours</li>
+                  <li>20 images / 3 hours</li>
+                  <li>Pro models</li>
+                  <li>Turbo speed</li>
                 </ul>
               </div>
               <div class="plan-compare-card" id="compareCardMax">
@@ -6140,10 +6140,10 @@
                   <span class="plan-compare-name" style="color:var(--accent-color);">Max</span>
                 </div>
                 <ul class="plan-compare-features">
-                  <li>৫০ বার্তা / ১ ঘণ্টা</li>
-                  <li>১০০ ছবি / ১ ঘণ্টা</li>
-                  <li>ফ্ল্যাগশিপ মডেল</li>
-                  <li>আল্ট্রা স্পিড</li>
+                  <li>50 messages / 1 hour</li>
+                  <li>100 images / 1 hour</li>
+                  <li>Flagship models</li>
+                  <li>Ultra speed</li>
                 </ul>
               </div>
             </div>
@@ -6163,11 +6163,11 @@
   <div class="modal-overlay page-modal" id="chatHistoryModalOverlay">
     <div class="modal-sheet">
       <div class="page-header-bar">
-        <button class="page-back-btn" id="chatHistoryModalClose" type="button" aria-label="ফিরে যান">
+        <button class="page-back-btn" id="chatHistoryModalClose" type="button" aria-label="Back">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-          <span>ফিরে যান</span>
+          <span data-i18n="backBtn">Back</span>
         </button>
-        <span class="page-nav-title">চ্যাট হিস্ট্রি</span>
+        <span class="page-nav-title" data-i18n="historyTitle">Chat History</span>
         <div class="page-header-spacer"></div>
       </div>
       <div class="chat-history-list" id="chatHistoryList"></div>
@@ -6178,27 +6178,27 @@
   <div class="modal-overlay page-modal" id="libraryModalOverlay">
     <div class="modal-sheet">
       <div class="page-header-bar">
-        <button class="page-back-btn" id="libraryModalClose" type="button" aria-label="ফিরে যান">
+        <button class="page-back-btn" id="libraryModalClose" type="button" aria-label="Back">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-          <span>ফিরে যান</span>
+          <span data-i18n="backBtn">Back</span>
         </button>
         <div class="page-nav-title" style="display: flex; align-items: center; gap: 8px;">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
           <span>My Library</span>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
-          <span id="libraryImageCount" style="font-size: 0.8rem; font-weight: 600; color: var(--text-sub); background: var(--sheen-base-hover, rgba(128,128,128,0.12)); padding: 4px 10px; border-radius: 12px; border: 1px solid var(--border-color);">0 টি ছবি</span>
+          <span id="libraryImageCount" style="font-size: 0.8rem; font-weight: 600; color: var(--text-sub); background: var(--sheen-base-hover, rgba(128,128,128,0.12)); padding: 4px 10px; border-radius: 12px; border: 1px solid var(--border-color);">0 Images</span>
         </div>
       </div>
       <div class="library-container" id="libraryContainer">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
           <div>
-            <div style="font-size: 1.15rem; font-weight: 700; color: var(--text-main);">AI জেনারেটেড ছবি</div>
-            <div style="font-size: 0.82rem; color: var(--text-sub); margin-top: 2px;">চ্যাটে তৈরি করা সকল ছবি এখানে সংরক্ষিত থাকে</div>
+            <div style="font-size: 1.15rem; font-weight: 700; color: var(--text-main);" data-i18n="aiGeneratedImages">AI Generated Images</div>
+            <div style="font-size: 0.82rem; color: var(--text-sub); margin-top: 2px;" data-i18n="aiGeneratedImagesSub">All images created in chat are saved here</div>
           </div>
           <div style="position: relative; max-width: 280px; width: 100%;">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-sub); pointer-events: none;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-            <input type="text" id="librarySearchInput" placeholder="ছবি বা প্রম্পট খুঁজুন..." style="width: 100%; padding: 8px 12px 8px 36px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-main); font-size: 0.85rem; outline: none; box-sizing: border-box;">
+            <input type="text" id="librarySearchInput" placeholder="Search images or prompts..." data-i18n-placeholder="librarySearchPlaceholder" style="width: 100%; padding: 8px 12px 8px 36px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-main); font-size: 0.85rem; outline: none; box-sizing: border-box;">
           </div>
         </div>
 
@@ -6208,11 +6208,11 @@
           <div style="width: 72px; height: 72px; border-radius: 50%; background: var(--sheen-base-hover, rgba(128,128,128,0.1)); display: flex; align-items: center; justify-content: center; margin-bottom: 18px; color: var(--accent-primary);">
             <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
           </div>
-          <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px;">এখনও কোনো ছবি তৈরি করা হয়নি</div>
-          <div style="font-size: 0.88rem; color: var(--text-sub); max-width: 380px; line-height: 1.5; margin-bottom: 22px;">চ্যাটে AI-কে ছবি তৈরি করতে বলুন (যেমন: <i>একটি সুন্দর পাহাড়ি সূর্যাস্তের ছবি আঁকো</i>), আপনার তৈরি সব ছবি স্বয়ংক্রিয়ভাবে এখানে সংরক্ষিত থাকবে।</div>
+          <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px;" data-i18n="noImagesYet">No images generated yet</div>
+          <div style="font-size: 0.88rem; color: var(--text-sub); max-width: 380px; line-height: 1.5; margin-bottom: 22px;" data-i18n="noImagesYetSub">Ask AI to generate images in chat, and all your creations will appear here.</div>
           <button type="button" class="btn btn-primary" id="libraryCreateImageBtn" style="padding: 10px 22px; border-radius: 12px; background: var(--accent-primary); color: #fff; border: none; font-size: 0.92rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            <span>ছবি তৈরি করুন</span>
+            <span data-i18n="createImageBtn">Create Image</span>
           </button>
         </div>
       </div>
@@ -6234,11 +6234,11 @@
         <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
           <button type="button" id="libraryViewerDownloadBtn" title="Download" style="background: var(--accent-primary); border: none; color: #fff; padding: 8px 14px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            <span>ডাউনলোড</span>
+            <span>Download</span>
           </button>
           <button type="button" id="libraryViewerChatBtn" title="Open Chat" style="background: rgba(255,255,255,0.14); border: none; color: #fff; padding: 8px 12px; border-radius: 10px; font-size: 0.85rem; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            <span>চ্যাট</span>
+            <span>Chat</span>
           </button>
         </div>
       </div>
@@ -6249,34 +6249,34 @@
   <div class="modal-overlay page-modal" id="authModalOverlay">
     <div class="modal-sheet auth-sheet">
       <div class="page-header-bar">
-        <button class="page-back-btn" id="authModalClose" type="button" aria-label="ফিরে যান">
+        <button class="page-back-btn" id="authModalClose" type="button" aria-label="Back">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-          <span>ফিরে যান</span>
+          <span data-i18n="backBtn">Back</span>
         </button>
-        <span class="page-nav-title" id="authModalTitle">লগইন করুন</span>
+        <span class="page-nav-title" id="authModalTitle" data-i18n="authModalTitle">Sign In</span>
         <div class="page-header-spacer"></div>
       </div>
       <div class="auth-panel">
         <div class="auth-tabs">
-          <button type="button" class="auth-tab-btn active" id="authTabLogin">লগইন</button>
-          <button type="button" class="auth-tab-btn" id="authTabRegister">নতুন অ্যাকাউন্ট</button>
+          <button type="button" class="auth-tab-btn active" id="authTabLogin" data-i18n="authTabLogin">Sign In</button>
+          <button type="button" class="auth-tab-btn" id="authTabRegister" data-i18n="authTabRegister">Create Account</button>
         </div>
         
         <form id="authForm" class="auth-form">
           <div class="auth-field" id="authNameField" style="display: none;">
-            <label for="authNameInput">আপনার পুরো নাম</label>
-            <input type="text" id="authNameInput" placeholder="যেমন: রাহাত আহমেদ" maxlength="50" autocomplete="name">
+            <label for="authNameInput" data-i18n="authNameLabel">Full Name</label>
+            <input type="text" id="authNameInput" placeholder="e.g. John Doe" data-i18n-placeholder="authNamePlaceholder" maxlength="50" autocomplete="name">
           </div>
           <div class="auth-field">
-            <label for="authEmailInput">ইমেইল ঠিকানা</label>
+            <label for="authEmailInput" data-i18n="authEmailLabel">Email Address</label>
             <input type="email" id="authEmailInput" placeholder="example@mail.com" required autocomplete="email">
           </div>
           <div class="auth-field">
-            <label for="authPasswordInput">পাসওয়ার্ড</label>
-            <input type="password" id="authPasswordInput" placeholder="কমপক্ষে ৬ অক্ষরের পাসওয়ার্ড" required autocomplete="current-password">
+            <label for="authPasswordInput" data-i18n="authPasswordLabel">Password</label>
+            <input type="password" id="authPasswordInput" placeholder="At least 6 characters" data-i18n-placeholder="authPasswordPlaceholder" required autocomplete="current-password">
           </div>
           <div class="auth-error-msg" id="authErrorMsg" style="display: none;"></div>
-          <button type="submit" class="auth-submit-btn" id="authSubmitBtn">লগইন করুন</button>
+          <button type="submit" class="auth-submit-btn" id="authSubmitBtn" data-i18n="authSubmitBtnLogin">Sign In</button>
         </form>
       </div>
     </div>
@@ -6288,8 +6288,8 @@
       <div class="custom-dialog-text" id="customDialogText"></div>
       <input type="text" id="customDialogInput" class="custom-dialog-input" style="display:none;" autocomplete="off">
       <div class="custom-dialog-actions">
-        <button class="custom-dialog-btn cancel" id="customDialogCancelBtn" style="display:none;">বাতিল</button>
-        <button class="custom-dialog-btn ok" id="customDialogOkBtn">ঠিক আছে</button>
+        <button class="custom-dialog-btn cancel" id="customDialogCancelBtn" style="display:none;" data-i18n="dialogCancelBtn">Cancel</button>
+        <button class="custom-dialog-btn ok" id="customDialogOkBtn" data-i18n="dialogOkBtn">OK</button>
       </div>
     </div>
   </div>
@@ -10354,6 +10354,9 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
     window.selectAppLanguage = selectAppLanguage;
 
     function applyI18n() {
+      const isEn = (currentLanguage === 'en');
+      const dict = I18N[currentLanguage] || I18N.bn;
+
       const drawerWrap = document.getElementById("drawerUserCardWrap");
       if (drawerWrap) drawerWrap.setAttribute("aria-label", isEn ? "Settings & Account" : "সেটিংস ও একাউন্ট");
       const sideDrawer = document.getElementById("sidebarDrawer");
@@ -10365,9 +10368,6 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
         scrollBtn.title = isEn ? "Scroll to bottom" : "নিচে স্ক্রোল করুন";
         scrollBtn.setAttribute("aria-label", isEn ? "Scroll to bottom" : "নিচে স্ক্রোল করুন");
       }
-  
-      const isEn = (currentLanguage === 'en');
-      const dict = I18N[currentLanguage] || I18N.bn;
 
       // 1. Data-i18n elements
       document.querySelectorAll("[data-i18n]").forEach(el => {
@@ -11820,7 +11820,13 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
           items: [
             {
               label: isEn ? "Image Generation" : "ছবি তৈরি",
-              badge: `${imageGenQuota || 10}/10`,
+              badge: (() => {
+                try {
+                  const { limit } = (typeof getImagePlanLimit === 'function') ? getImagePlanLimit() : { limit: 3 };
+                  const usage = (typeof getImageWindowUsage === 'function') ? getImageWindowUsage() : { count: 0 };
+                  return Math.max(0, limit - (usage.count || 0)) + '/' + limit;
+                } catch(e) { return '3/3'; }
+              })(),
               active: Boolean(isImageGenEnabled),
               icon: `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>`,
               onSelect: () => {
