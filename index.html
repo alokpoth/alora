@@ -279,13 +279,15 @@
 
     /* Clean Native Mobile Navbar (Screenshot 1 & 2) */
     .navbar {
-      height: 54px;
+      height: calc(54px + env(safe-area-inset-top, 0px)) !important;
+      padding-top: env(safe-area-inset-top, 0px) !important;
+      padding-left: max(16px, env(safe-area-inset-left, 16px)) !important;
+      padding-right: max(16px, env(safe-area-inset-right, 16px)) !important;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 16px;
       background: var(--bg-main, #000000);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
       flex-shrink: 0;
       z-index: 10;
       position: relative;
@@ -1725,7 +1727,10 @@
     }
 
     .input-wrapper {
-      padding: 0 16px 20px;
+      padding-top: 0 !important;
+      padding-left: max(16px, env(safe-area-inset-left, 16px)) !important;
+      padding-right: max(16px, env(safe-area-inset-right, 16px)) !important;
+      padding-bottom: max(16px, env(safe-area-inset-bottom, 16px)) !important;
       background: linear-gradient(0deg, var(--bg-main) 70%, transparent 100%);
       flex-shrink: 0;
       z-index: 10;
@@ -1912,11 +1917,8 @@
       width: 200%;
       height: 2.5px;
       background: linear-gradient(90deg, transparent, #ec4899, #8b5cf6, #3b82f6, transparent);
-      animation: imageCardGlow 2s linear infinite;
+      
     }
-    @keyframes imageCardGlow {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(50%); }
     }
     .chat-image-generating-top {
       display: flex;
@@ -4340,11 +4342,8 @@
     }
     .drag-drop-icon {
       font-size: 40px;
-      animation: bounceFloat 1.2s infinite alternate;
+      
     }
-    @keyframes bounceFloat {
-      0% { transform: translateY(0); }
-      100% { transform: translateY(-8px); }
     }
 
     /* ===== In-Bubble Bengali Error Card ===== */
@@ -4986,7 +4985,7 @@
       text-shadow: 0 0 10px rgba(59, 130, 246, 0.65);
       display: inline;
       user-select: none;
-      animation: matrixPulse 0.6s ease-in-out infinite alternate;
+      
     }
     .revealed-char-matrix {
       color: inherit;
@@ -4996,9 +4995,6 @@
       opacity: 1;
       transition: color 0.18s ease;
     }
-    @keyframes matrixPulse {
-      0% { opacity: 0.72; filter: drop-shadow(0 0 2px rgba(59, 130, 246, 0.4)); }
-      100% { opacity: 1; filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.85)); }
     }
 
   
@@ -5286,22 +5282,7 @@
       border-bottom-color: rgba(146, 64, 14, 0.12);
     }
 
-    .navbar::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: -50%;
-      width: 200%;
-      height: 1px;
-      background: linear-gradient(90deg, transparent 0%, rgba(59, 130, 246, 0.5) 50%, transparent 100%);
-      animation: headerGlassSheen 7s ease-in-out infinite alternate;
-      pointer-events: none;
-    }
 
-    @keyframes headerGlassSheen {
-      0% { transform: translateX(-35%); opacity: 0.2; }
-      100% { transform: translateX(35%); opacity: 0.8; }
-    }
 
     /* FOOTER COMPOSER AMBIENT GLOW ANIMATION */
     .input-card {
@@ -5310,15 +5291,7 @@
       transition: border-color 0.25s ease, box-shadow 0.25s ease;
     }
 
-    .input-card:focus-within {
-      border-color: rgba(59, 130, 246, 0.45) !important;
-      animation: composerGlowPulse 4s ease-in-out infinite alternate;
-    }
-
-    @keyframes composerGlowPulse {
-      0% { box-shadow: 0 14px 40px -4px rgba(0,0,0,0.6), 0 0 16px -2px rgba(59, 130, 246, 0.18), inset 0 1px 1px rgba(255,255,255,0.22); }
-      100% { box-shadow: 0 14px 40px -4px rgba(0,0,0,0.6), 0 0 28px -1px rgba(59, 130, 246, 0.32), inset 0 1px 1px rgba(255,255,255,0.32); }
-    }
+    .input-card:focus-within { border-color: rgba(59, 130, 246, 0.5) !important; box-shadow: 0 8px 30px rgba(0,0,0,0.4) !important; }
 
     /* Pinned chat item styling */
     .drawer-session-item.is-pinned {
@@ -5452,7 +5425,7 @@
 
   <!-- Sliding Sidebar Navigation Drawer & Backdrop -->
   <div class="drawer-backdrop" id="drawerBackdrop"></div>
-  <aside class="sidebar-drawer" id="sidebarDrawer" aria-label="প্রধান মেনু" style="display: flex; flex-direction: column;">
+  <aside class="sidebar-drawer" id="sidebarDrawer" aria-label="Main Menu" style="display: flex; flex-direction: column;">
     <div class="drawer-top-bar" style="display: flex; align-items: center; justify-content: space-between; padding: 16px 18px 12px;">
       <div style="display: flex; flex-direction: column; justify-content: center;">
         <img class="theme-wordmark" src="logo_wordmark_white.png" alt="Alora" style="height: 24px; width: auto; object-fit: contain;" onerror="if(!this.src.includes('/logo/'))this.src='logo/logo_wordmark_white.png';">
@@ -5530,7 +5503,7 @@
     </div>
 
     <!-- Bottom User Row (Screenshot 3) -->
-    <div class="drawer-footer" style="padding: 14px 18px; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; cursor: pointer; background: var(--bg-main);" id="drawerUserCardWrap" role="button" tabindex="0" aria-label="সেটিংস ও একাউন্ট" onclick="handleDrawerUserCardClick(event)">
+    <div class="drawer-footer" style="padding: 14px 18px; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; cursor: pointer; background: var(--bg-main);" id="drawerUserCardWrap" role="button" tabindex="0" aria-label="Settings & Account" onclick="handleDrawerUserCardClick(event)">
       <div style="display: flex; align-items: center; gap: 12px; width: 100%; pointer-events: none;">
         <div class="drawer-avatar" id="drawerAvatar" style="width: 36px; height: 36px; border-radius: 50%; font-size: 1rem; background: var(--sheen-base-hover, rgba(128,128,128,0.15)); color: var(--text-main); display: flex; align-items: center; justify-content: center; font-weight: 600; flex-shrink: 0; border: 1px solid var(--border-color); overflow: hidden;">Z</div>
         <div style="display: flex; flex-direction: column; overflow: hidden; flex: 1;">
@@ -5544,7 +5517,7 @@
 
   <nav class="navbar" id="mainNavbar">
     <div class="nav-left">
-      <button class="icon-btn" id="brandMenuBtn" type="button" aria-label="মেনু" style="background: transparent; border: none; color: var(--text-main); padding: 8px;">
+      <button class="icon-btn" id="brandMenuBtn" type="button" aria-label="Main Menu" style="background: transparent; border: none; color: var(--text-main); padding: 8px;">
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="17" x2="21" y2="17"/></svg>
       </button>
     </div>
@@ -5560,10 +5533,10 @@
       </button>
     </div>
     <div class="navbar-right" style="display: flex; align-items: center; gap: 8px;">
-      <div class="nav-credit-badge" id="navCreditBadge" role="button" tabindex="0" title="ব্যবহারের কোটা ও ক্রেডিট" style="cursor: pointer;">
+      <div class="nav-credit-badge" id="navCreditBadge" role="button" tabindex="0" title="Usage quota & credits" style="cursor: pointer;">
         <span id="navCreditCount">...</span>
       </div>
-      <button class="icon-btn" id="quickNewChatNavBtn" type="button" aria-label="নতুন চ্যাট" title="নতুন চ্যাট শুরু করুন" style="background: transparent; border: none; color: var(--text-main); padding: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
+      <button class="icon-btn" id="quickNewChatNavBtn" type="button" aria-label="New Chat" title="Start new chat" style="background: transparent; border: none; color: var(--text-main); padding: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
           <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
@@ -5841,7 +5814,7 @@
         <div class="settings-subview-content">
           <div class="settings-card">
             <div style="display: flex; align-items: center; gap: 14px;">
-              <div id="subAccountAvatar" style="width: 52px; height: 52px; border-radius: 50%; background: var(--accent-color); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 700; overflow: hidden; flex-shrink: 0;">অ</div>
+              <div id="subAccountAvatar" style="width: 52px; height: 52px; border-radius: 50%; background: var(--accent-color); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 700; overflow: hidden; flex-shrink: 0;">A</div>
               <div style="display: flex; flex-direction: column; gap: 4px;">
                 <span id="subAccountDisplayName" style="font-size: 1.1rem; font-weight: 700; color: var(--text-main);">অতিথি</span>
                 <span id="subAccountEmailDisplay" style="font-size: 0.85rem; color: var(--text-sub);">লগইন করা নেই</span>
@@ -6344,13 +6317,13 @@
         <div class="empty-state-alokpath-tag" style="font-size: 0.78rem; color: var(--text-dim, #8e8e93); margin-top: 6px; letter-spacing: 0.5px; font-weight: 500; display: flex; align-items: center; gap: 6px;">
           <span>An Alokpath Product</span>
           <span>•</span>
-          <span>আলোকপথ</span>
+          <span>Alokpath</span>
         </div>
       </div>
     </div>
   </div>
 
-  <button id="scrollToBottomBtn" class="scroll-bottom-fab" aria-label="নিচে স্ক্রোল করুন" type="button" title="নিচে স্ক্রোল করুন">
+  <button id="scrollToBottomBtn" class="scroll-bottom-fab" aria-label="Scroll to bottom" type="button" title="Scroll to bottom">
     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
   </button>
 
@@ -6363,13 +6336,13 @@
       <div class="image-mode-indicator-content">
         <span style="font-size: 1.05rem; line-height: 1;">🎨</span>
         <div class="image-mode-indicator-text">
-          <strong>ছবি তৈরি মোড সক্রিয়:</strong>
-          <span id="imageModePromptPreview">AI ছবি তৈরি করা হবে</span>
+          <strong>Image Mode Active:</strong>
+          <span id="imageModePromptPreview">AI image will be generated</span>
         </div>
       </div>
-      <button type="button" class="image-mode-cancel-btn" id="imageModeCancelBtn" title="ছবি বাতিল করে সাধারণ টেক্সট হিসেবে পাঠান">
+      <button type="button" class="image-mode-cancel-btn" id="imageModeCancelBtn" title="Cancel image mode and send as text">
         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        <span>সাধারণ টেক্সট পাঠান</span>
+        <span>Send as text</span>
       </button>
     </div>
 
@@ -6379,7 +6352,6 @@
       
       <!-- Left Action Tools: Attach (+), Camera (📷) -->
       <div class="composer-tools composer-tools-left">
-        <div class="composer-tools composer-tools-left">
         <button type="button" class="native-tool-btn attach-btn" id="attachBtn" aria-label="Tools" title="Tools & Attachments">
           <span class="three-dots-trigger-icon" aria-hidden="true">
             <span class="dot"></span>
@@ -6409,7 +6381,7 @@
           </svg>
         </button>
 
-        <button type="submit" class="action-btn" id="sendBtn" aria-label="Send" title="পাঠান">
+        <button type="submit" class="action-btn" id="sendBtn" aria-label="Send" title="Send">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg>
         </button>
       </div>
@@ -10384,6 +10356,18 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
     window.selectAppLanguage = selectAppLanguage;
 
     function applyI18n() {
+      const drawerWrap = document.getElementById("drawerUserCardWrap");
+      if (drawerWrap) drawerWrap.setAttribute("aria-label", isEn ? "Settings & Account" : "সেটিংস ও একাউন্ট");
+      const sideDrawer = document.getElementById("sidebarDrawer");
+      if (sideDrawer) sideDrawer.setAttribute("aria-label", isEn ? "Main Menu" : "প্রধান মেনু");
+      const dAvatar = document.getElementById("drawerAvatar");
+      if (dAvatar && !localStorage.getItem("alokpoth_token")) dAvatar.textContent = isEn ? "A" : "অ";
+      const scrollBtn = document.getElementById("scrollToBottomBtn");
+      if (scrollBtn) {
+        scrollBtn.title = isEn ? "Scroll to bottom" : "নিচে স্ক্রোল করুন";
+        scrollBtn.setAttribute("aria-label", isEn ? "Scroll to bottom" : "নিচে স্ক্রোল করুন");
+      }
+  
       const isEn = (currentLanguage === 'en');
       const dict = I18N[currentLanguage] || I18N.bn;
 
