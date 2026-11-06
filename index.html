@@ -5494,8 +5494,8 @@
     </div>
     
     <div id="drawerEmptyState" style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; padding: 32px 24px; text-align: center;">
-      <div style="font-size: 1.05rem; font-weight: 600; color: var(--text-main); margin-bottom: 6px;" data-i18n="drawerNoChatsTitle">কোনো চ্যাট নেই</div>
-      <div style="font-size: 0.82rem; color: var(--text-sub); margin-bottom: 16px;" data-i18n="drawerNoChatsSub">আপনার Alora-এর সাথে চ্যাট এখানে প্রদর্শিত হবে।</div>
+      <div style="font-size: 1.05rem; font-weight: 600; color: var(--text-main); margin-bottom: 6px;" data-i18n="drawerNoChatsTitle">No chats yet</div>
+      <div style="font-size: 0.82rem; color: var(--text-sub); margin-bottom: 16px;" data-i18n="drawerNoChatsSub">Your conversations with Alora will appear here.</div>
       <button class="drawer-empty-new-chat-btn" id="drawerEmptyNewChatBtn" type="button" style="display: inline-flex; align-items: center; gap: 8px; background: var(--accent-color, #3b82f6); color: #fff; border: none; border-radius: 9999px; padding: 9px 18px; font-size: 0.85rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(59,130,246,0.3);">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         <span data-i18n="newChat">নতুন চ্যাট শুরু করুন</span>
@@ -5596,7 +5596,7 @@
         <button class="brand-menu-item sheen-surface" id="brandMenuLimitsBtn" type="button">
           <span class="brand-menu-item-left">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
-            <span data-i18n="usageLimits">ব্যবহারের সীমা ও কোটা</span>
+            <span data-i18n="usageLimits">Usage Limits</span>
           </span>
         </button>
         <button class="brand-menu-item sheen-surface" id="brandMenuAuthBtn" type="button" style="color: var(--accent-color);">
@@ -5692,26 +5692,26 @@
         <div class="page-header-bar">
           <button class="page-back-btn" id="accountModalClose" type="button" aria-label="ফিরে যান">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-            <span data-i18n="backBtn">ফিরে যান</span>
+            <span data-i18n="backBtn">Back</span>
           </button>
-          <span class="page-nav-title" data-i18n="settingsTitle">একাউন্ট ও সেটিংস</span>
+          <span class="page-nav-title" data-i18n="settingsTitle">Account & Settings</span>
           <div class="page-header-spacer"></div>
         </div>
 
         <div class="account-panel">
-          <div class="settings-group-label" data-i18n="profile">প্রোফাইল</div>
+          <div class="settings-group-label" data-i18n="profile">Profile</div>
           <div class="settings-group">
             <button class="settings-row" type="button" id="setMenuProfile" onclick="showSettingsView('settingsAccountView')">
               <div class="settings-row-left">
                 <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                <span data-i18n="accountSettings">অ্যাকাউন্ট সেটিংস</span>
+                <span data-i18n="accountSettings">Account Settings</span>
               </div>
               <div class="settings-row-right"><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></div>
             </button>
             <button class="settings-row" type="button" id="setMenuPlan" onclick="window.location.href='plans'">
               <div class="settings-row-left">
                 <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                <span data-i18n="planAndUpgrade">প্ল্যান ও আপগ্রেড</span>
+                <span data-i18n="planAndUpgrade">Plans & Upgrade</span>
               </div>
               <div class="settings-row-right">
                 <span id="setMenuPlanName">Free</span>
@@ -5721,7 +5721,7 @@
             <button class="settings-row" type="button" id="setMenuLimits" onclick="showSettingsView('settingsLimitsView')">
               <div class="settings-row-left">
                 <svg viewBox="0 0 24 24"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>
-                <span data-i18n="usageLimits">ব্যবহারের সীমা</span>
+                <span data-i18n="usageLimits">Usage Limits</span>
               </div>
               <div class="settings-row-right">
                 <span id="setMenuLimitBadge" style="font-size: 0.75rem; color: var(--accent-color); font-weight: 600;"></span>
@@ -5731,18 +5731,18 @@
             <button class="settings-row" type="button" id="setMenuRedeem" onclick="showSettingsView('settingsRedeemView')">
               <div class="settings-row-left">
                 <svg viewBox="0 0 24 24"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></svg>
-                <span data-i18n="redeemCode">রিডিম কোড</span>
+                <span data-i18n="redeemCode">Redeem Code</span>
               </div>
               <div class="settings-row-right"><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></div>
             </button>
           </div>
 
-          <div class="settings-group-label" style="margin-top: 10px;" data-i18n="app">অ্যাপ</div>
+          <div class="settings-group-label" style="margin-top: 10px;" data-i18n="app">App</div>
           <div class="settings-group">
             <button class="settings-row" type="button" id="setMenuLanguage" onclick="showSettingsView('settingsLanguageView')">
               <div class="settings-row-left">
                 <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-                <span data-i18n="language">ভাষা</span>
+                <span data-i18n="language">Language</span>
               </div>
               <div class="settings-row-right">
                 <span id="setMenuLangName">বাংলা</span>
@@ -5752,7 +5752,7 @@
             <button class="settings-row" type="button" id="setMenuTheme" onclick="showSettingsView('settingsThemeView')">
               <div class="settings-row-left">
                 <svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-                <span data-i18n="theme">চেহারা (থিম)</span>
+                <span data-i18n="theme">Appearance (Theme)</span>
               </div>
               <div class="settings-row-right">
                 <span id="setMenuThemeName">ডার্ক</span>
@@ -5761,12 +5761,12 @@
             </button>
           </div>
 
-          <div class="settings-group-label" style="margin-top: 10px;" data-i18n="about">সম্পর্কে</div>
+          <div class="settings-group-label" style="margin-top: 10px;" data-i18n="about">About</div>
           <div class="settings-group">
             <button class="settings-row" type="button" id="setMenuUpdates" onclick="showSettingsView('settingsUpdatesView')">
               <div class="settings-row-left">
                 <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
-                <span data-i18n="checkUpdates">আপডেটের জন্য চেক করুন</span>
+                <span data-i18n="checkUpdates">Check for Updates</span>
               </div>
               <div class="settings-row-right">
                 <span>v1.0.9</span>
@@ -5776,7 +5776,7 @@
             <button class="settings-row" type="button" id="setMenuFeedback" onclick="showSettingsView('settingsFeedbackView')">
               <div class="settings-row-left">
                 <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                <span data-i18n="helpFeedback">সাহায্য ও প্রতিক্রিয়া</span>
+                <span data-i18n="helpFeedback">Help & Feedback</span>
               </div>
               <div class="settings-row-right"><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></div>
             </button>
@@ -5806,9 +5806,9 @@
         <div class="page-header-bar">
           <button class="page-back-btn" type="button" onclick="showSettingsView('settingsMainView')">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-            <span data-i18n="backToSettings">সেটিংস</span>
+            <span data-i18n="backToSettings">Settings</span>
           </button>
-          <span class="page-nav-title" data-i18n="accountSettings">অ্যাকাউন্ট সেটিংস</span>
+          <span class="page-nav-title" data-i18n="accountSettings">Account Settings</span>
           <div class="page-header-spacer"></div>
         </div>
         <div class="settings-subview-content">
@@ -5821,17 +5821,17 @@
               </div>
             </div>
             <div class="settings-field">
-              <label class="settings-field-label" data-i18n="nameLabel">আপনার নাম</label>
+              <label class="settings-field-label" data-i18n="nameLabel">Your Name</label>
               <input type="text" class="settings-field-input" id="subAccountNameInput" placeholder="আপনার নাম লিখুন..." maxlength="50" autocomplete="name">
             </div>
             <button type="button" class="settings-btn-primary" id="subAccountSaveBtn">
-              <span data-i18n="saveName">নাম পরিবর্তন সংরক্ষণ করুন</span>
+              <span data-i18n="saveName">Save Changes</span>
             </button>
           </div>
 
           <!-- Password Change Card (Logged in users only) -->
           <div class="settings-card" id="subPasswordCard">
-            <div style="font-size: 1rem; font-weight: 600; color: var(--text-main);" data-i18n="changePassTitle">পাসওয়ার্ড পরিবর্তন</div>
+            <div style="font-size: 1rem; font-weight: 600; color: var(--text-main);" data-i18n="changePassTitle">Change Password</div>
             <div class="settings-field">
               <label class="settings-field-label">বর্তমান পাসওয়ার্ড</label>
               <input type="password" class="settings-field-input" id="subAccountOldPass" placeholder="বর্তমান পাসওয়ার্ড লিখুন" autocomplete="current-password">
@@ -5846,7 +5846,7 @@
             </div>
             <div id="subAccountPassMsg" style="font-size: 0.85rem; min-height: 18px;"></div>
             <button type="button" class="settings-btn-primary" id="subAccountPassSubmitBtn">
-              <span data-i18n="savePassBtn">পাসওয়ার্ড আপডেট করুন</span>
+              <span data-i18n="savePassBtn">Update Password</span>
             </button>
           </div>
 
@@ -5864,26 +5864,24 @@
         <div class="page-header-bar">
           <button class="page-back-btn" type="button" onclick="showSettingsView('settingsMainView')">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-            <span data-i18n="backToSettings">সেটিংস</span>
+            <span data-i18n="backToSettings">Settings</span>
           </button>
-          <span class="page-nav-title" data-i18n="redeemCode">রিডিম কোড</span>
+          <span class="page-nav-title" data-i18n="redeemCode">Redeem Code</span>
           <div class="page-header-spacer"></div>
         </div>
         <div class="settings-subview-content">
           <div class="settings-card">
-            <div style="font-size: 1rem; font-weight: 600; color: var(--text-main);" data-i18n="redeemPromoTitle">প্রোমো কোড ব্যবহার করুন</div>
+            <div style="font-size: 1rem; font-weight: 600; color: var(--text-main);" data-i18n="redeemPromoTitle">Use Promo Code</div>
             <div class="settings-field">
               <label class="settings-field-label">ভাউচার বা রিডিম কোড</label>
               <input type="text" class="settings-field-input" id="subRedeemInput" placeholder="যেমন: ALO-PRO-XXXXXX বা কোড" maxlength="50" style="text-transform: uppercase; font-weight: 600; letter-spacing: 1px;" autocomplete="off" spellcheck="false">
             </div>
             <div id="subRedeemMsg" style="font-size: 0.85rem; min-height: 18px;"></div>
             <button type="button" class="settings-btn-primary" id="subRedeemSubmitBtn">
-              <span data-i18n="redeemBtn">কোড রিডিম করুন</span>
+              <span data-i18n="redeemBtn">Claim Code</span>
             </button>
           </div>
-          <div style="font-size: 0.85rem; color: var(--text-sub); line-height: 1.5; padding: 0 4px;" data-i18n="redeemHint">
-            যেকোনো প্রোমো কোড বা ভাউচার কোড ব্যবহার করে আপনার একাউন্ট প্রো বা ম্যাক্স প্ল্যানে তাৎক্ষণিক আপগ্রেড করতে পারবেন।
-          </div>
+          <div style="font-size: 0.85rem; color: var(--text-sub); line-height: 1.5; padding: 0 4px;" data-i18n="redeemHint">Upgrade your account instantly with any voucher or promo code.</div>
         </div>
       </div>
 
@@ -5892,9 +5890,9 @@
         <div class="page-header-bar">
           <button class="page-back-btn" type="button" onclick="showSettingsView('settingsMainView')">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-            <span data-i18n="backToSettings">সেটিংস</span>
+            <span data-i18n="backToSettings">Settings</span>
           </button>
-          <span class="page-nav-title" data-i18n="language">ভাষা / Language</span>
+          <span class="page-nav-title" data-i18n="language">Language</span>
           <div class="page-header-spacer"></div>
         </div>
         <div class="settings-subview-content">
@@ -5918,13 +5916,13 @@
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
             <span data-i18n="backToSettings">Settings</span>
           </button>
-          <span class="page-nav-title" data-i18n="theme">Color Theme</span>
+          <span class="page-nav-title" data-i18n="theme">Appearance (Theme)</span>
           <div class="page-header-spacer"></div>
         </div>
         <div class="settings-subview-content">
           <div class="settings-group">
             <button class="settings-select-item" id="themeOptOled" type="button" onclick="selectAppTheme('oled')">
-              <span data-i18n="themeOled">Dark (OLED)</span>
+              <span data-i18n="themeOled">OLED (Pure Black)</span>
               <svg class="settings-check" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg>
             </button>
             <button class="settings-select-item" id="themeOptLight" type="button" onclick="selectAppTheme('light')">
@@ -5932,7 +5930,7 @@
               <svg class="settings-check" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg>
             </button>
             <button class="settings-select-item" id="themeOptEyecare" type="button" onclick="selectAppTheme('eyecare')">
-              <span data-i18n="themeEyecare">Eye Care</span>
+              <span data-i18n="themeEyecare">Eye Care (Sepia)</span>
               <svg class="settings-check" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg>
             </button>
           </div>
@@ -5944,9 +5942,9 @@
         <div class="page-header-bar">
           <button class="page-back-btn" type="button" onclick="showSettingsView('settingsMainView')">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-            <span data-i18n="backToSettings">সেটিংস</span>
+            <span data-i18n="backToSettings">Settings</span>
           </button>
-          <span class="page-nav-title" data-i18n="checkUpdates">আপডেটের জন্য চেক করুন</span>
+          <span class="page-nav-title" data-i18n="checkUpdates">Check for Updates</span>
           <div class="page-header-spacer"></div>
         </div>
         <div class="settings-subview-content">
@@ -5956,11 +5954,11 @@
             </div>
             <div style="font-size: 1.25rem; font-weight: 700; color: var(--text-main);">Alora</div>
             <div class="settings-version-tag">Version 1.2.0 (Latest)</div>
-            <div style="font-size: 0.9rem; color: var(--text-sub); margin-top: 4px;" data-i18n="versionStatus">আপনি সর্বশেষ সংস্করণ ব্যবহার করছেন।</div>
+            <div style="font-size: 0.9rem; color: var(--text-sub); margin-top: 4px;" data-i18n="versionStatus">You are on the latest version.</div>
             <div style="width: 100%; margin-top: 12px;">
               <a href="Alora.apk" download="Alora.apk" class="settings-btn-primary" style="text-decoration: none;">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                <span data-i18n="downloadApk">নতুন APK ডাউনলোড করুন</span>
+                <span data-i18n="downloadApk">Download Android APK</span>
               </a>
             </div>
           </div>
@@ -5981,24 +5979,24 @@
         <div class="page-header-bar">
           <button class="page-back-btn" type="button" onclick="showSettingsView('settingsMainView')">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-            <span data-i18n="backToSettings">সেটিংস</span>
+            <span data-i18n="backToSettings">Settings</span>
           </button>
-          <span class="page-nav-title" data-i18n="helpFeedback">সাহায্য ও প্রতিক্রিয়া</span>
+          <span class="page-nav-title" data-i18n="helpFeedback">Help & Feedback</span>
           <div class="page-header-spacer"></div>
         </div>
         <div class="settings-subview-content">
           <div class="settings-card">
-            <div style="font-size: 1rem; font-weight: 600; color: var(--text-main);" data-i18n="feedbackLabel">আপনার মতামত বা প্রতিক্রিয়া</div>
+            <div style="font-size: 1rem; font-weight: 600; color: var(--text-main);" data-i18n="feedbackLabel">Your Feedback or Suggestion</div>
             <textarea class="settings-field-input" id="subFeedbackInput" rows="4" placeholder="আপনার মূল্যবান পরামর্শ বা সমস্যা লিখুন..." data-i18n-placeholder="feedbackPlaceholder" style="resize: vertical;"></textarea>
             <button type="button" class="settings-btn-primary" id="subFeedbackSubmitBtn">
-              <span data-i18n="feedbackSubmit">প্রতিক্রিয়া পাঠান</span>
+              <span data-i18n="feedbackSubmit">Submit Feedback</span>
             </button>
           </div>
           <div class="settings-card">
-            <div style="font-size: 0.95rem; font-weight: 600; color: var(--text-main);" data-i18n="feedbackDirectContact">সরাসরি যোগাযোগ:</div>
+            <div style="font-size: 0.95rem; font-weight: 600; color: var(--text-main);" data-i18n="feedbackDirectContact">Direct Contact:</div>
             <div style="font-size: 0.88rem; color: var(--text-sub); display: flex; flex-direction: column; gap: 8px;">
-              <div>📧 <span data-i18n="feedbackEmailLabel">ইমেইল:</span> <a href="mailto:x@zihan.uk" style="color: var(--accent-color); text-decoration: none;">x@zihan.uk</a></div>
-              <div>🌐 <span data-i18n="feedbackWebsiteLabel">ওয়েবসাইট:</span> <a href="https://alora.zihan.xyz" target="_blank" rel="noopener noreferrer" style="color: var(--accent-color); text-decoration: none;">alora.zihan.xyz</a></div>
+              <div>📧 <span data-i18n="feedbackEmailLabel">Email:</span> <a href="mailto:x@zihan.uk" style="color: var(--accent-color); text-decoration: none;">x@zihan.uk</a></div>
+              <div>🌐 <span data-i18n="feedbackWebsiteLabel">Website:</span> <a href="https://alora.zihan.xyz" target="_blank" rel="noopener noreferrer" style="color: var(--accent-color); text-decoration: none;">alora.zihan.xyz</a></div>
             </div>
           </div>
         </div>
@@ -6009,9 +6007,9 @@
         <div class="page-header-bar">
           <button class="page-back-btn" type="button" onclick="showSettingsView('settingsMainView')">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-            <span data-i18n="backToSettings">সেটিংস</span>
+            <span data-i18n="backToSettings">Settings</span>
           </button>
-          <span class="page-nav-title" data-i18n="usageLimitsTitle">ব্যবহারের সীমা ও কোটা</span>
+          <span class="page-nav-title" data-i18n="usageLimitsTitle">Usage Limits & Quota</span>
           <div class="page-header-spacer"></div>
         </div>
         <div class="settings-subview-content">
@@ -6030,7 +6028,7 @@
             <div class="account-quota-header">
               <div class="account-quota-title-wrap">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                <span data-i18n="quotaTitle">মেসেজ কোটা</span>
+                <span data-i18n="quotaTitle">Message Quota</span>
               </div>
               <div class="account-quota-count" id="quotaCountDisplay">
                 <strong id="quotaRemainingDigits">10</strong> / <span id="quotaTotalDigits">10</span>
@@ -6042,7 +6040,7 @@
             <div class="account-quota-footer">
               <div class="quota-timer-wrap">
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                <span data-i18n="quotaReset">রিসেট:</span> <span class="quota-timer-value" id="quotaLiveCountdown">--:--:--</span>
+                <span data-i18n="quotaReset">Reset</span> <span class="quota-timer-value" id="quotaLiveCountdown">--:--:--</span>
               </div>
               <div class="quota-window-subtext" id="quotaWindowSubtext"></div>
             </div>
@@ -6053,7 +6051,7 @@
             <div class="account-quota-header">
               <div class="account-quota-title-wrap">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color: #ec4899;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                <span data-i18n="imageQuotaTitle">ছবি তৈরির কোটা</span>
+                <span data-i18n="imageQuotaTitle">Image Quota</span>
               </div>
               <div class="account-quota-count" id="imageQuotaCountDisplay">
                 <strong id="imageQuotaRemainingDigits">3</strong> / <span id="imageQuotaTotalDigits">3</span>
@@ -6065,7 +6063,7 @@
             <div class="account-quota-footer">
               <div class="quota-timer-wrap">
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                <span data-i18n="quotaReset">রিসেট:</span> <span class="quota-timer-value" id="imageQuotaLiveCountdown">--:--:--</span>
+                <span data-i18n="quotaReset">Reset</span> <span class="quota-timer-value" id="imageQuotaLiveCountdown">--:--:--</span>
               </div>
               <div class="quota-window-subtext" id="imageQuotaWindowSubtext"></div>
             </div>
@@ -6075,10 +6073,10 @@
             <div class="account-limits-top">
               <div class="account-limits-title">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
-                <span data-i18n="allPlansTitle">সব প্ল্যানের তুলনা</span>
+                <span data-i18n="allPlansTitle">Compare All Plans</span>
               </div>
               <button class="account-limits-toggle-btn" id="accountLimitsToggleBtn" type="button" aria-expanded="false">
-                <span id="accountLimitsToggleText" data-i18n="showAllPlans">সব প্ল্যান দেখুন</span>
+                <span id="accountLimitsToggleText" data-i18n="showAllPlans">Show All Plans</span>
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
               </button>
             </div>
@@ -6087,28 +6085,28 @@
               <div class="account-limit-item">
                 <div class="account-limit-icon">💬</div>
                 <div class="account-limit-detail">
-                  <span class="account-limit-label" data-i18n="quotaMessages">বার্তা</span>
+                  <span class="account-limit-label" data-i18n="quotaMessages">Messages</span>
                   <span class="account-limit-val" id="limitValMessages">১০ বার্তা</span>
                 </div>
               </div>
               <div class="account-limit-item">
                 <div class="account-limit-icon">🎨</div>
                 <div class="account-limit-detail">
-                  <span class="account-limit-label" data-i18n="quotaImages">ছবি তৈরি</span>
+                  <span class="account-limit-label" data-i18n="quotaImages">Images</span>
                   <span class="account-limit-val" id="limitValImages">৩ ছবি</span>
                 </div>
               </div>
               <div class="account-limit-item">
                 <div class="account-limit-icon">🧠</div>
                 <div class="account-limit-detail">
-                  <span class="account-limit-label" data-i18n="quotaModels">মডেল</span>
+                  <span class="account-limit-label" data-i18n="quotaModels">Models</span>
                   <span class="account-limit-val" id="limitValModels">ফ্রি মডেলসমূহ</span>
                 </div>
               </div>
               <div class="account-limit-item">
                 <div class="account-limit-icon">⚡</div>
                 <div class="account-limit-detail">
-                  <span class="account-limit-label" data-i18n="quotaSpeed">স্পিড</span>
+                  <span class="account-limit-label" data-i18n="quotaSpeed">Speed</span>
                   <span class="account-limit-val" id="limitValSpeed">সাধারণ স্পিড</span>
                 </div>
               </div>
@@ -6153,7 +6151,7 @@
           
           <button class="settings-btn-primary" type="button" onclick="window.location.href='plans'" style="margin-top: 16px;">
              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-             <span data-i18n="planAndUpgrade">প্ল্যান ও আপগ্রেড</span>
+             <span data-i18n="planAndUpgrade">Plans & Upgrade</span>
           </button>
         </div>
       </div>
@@ -6307,7 +6305,7 @@
         <svg viewBox="0 0 24 24" style="width:40px;height:40px;fill:none;stroke:currentColor;stroke-width:1.8;" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/><polyline points="12 11 12 16 12 11"/><polyline points="9 13 12 10 15 13"/></svg>
       </div>
       <div style="font-weight:600; font-size:1.1rem;" data-i18n="dropOverlayTitle">Drop files or images here</div>
-      <div style="color:var(--text-sub); font-size:0.85rem;" data-i18n="dropOverlaySub">Images, PDFs, or text files will attach directly</div>
+      <div style="color:var(--text-sub); font-size:0.85rem;" data-i18n="dropOverlaySub">Images, PDFs, and code files will be attached instantly</div>
     </div>
     
     <div class="chat-inner" id="chatStream">
