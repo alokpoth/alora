@@ -4574,6 +4574,302 @@
       0% { opacity: 0; transform: translateY(8px); }
       100% { opacity: 1; transform: translateY(0); }
     }
+
+    /* ==========================================================================
+       1. GLISSE APPLE LIQUID GLASS DESIGN SYSTEM (glisse.kelvinzhang.com)
+       Ultra-luxurious frosted glass refraction, specular rim lighting, and spring physics
+       ========================================================================== */
+    .glisse-glass-btn,
+    button.icon-btn,
+    .icon-btn,
+    .model-selector-btn,
+    .drawer-new-chat-btn,
+    .drawer-empty-new-chat-btn,
+    .custom-dialog-btn,
+    .scroll-bottom-fab,
+    .action-icon-btn,
+    #brandMenuBtn,
+    #quickNewChatNavBtn,
+    .nav-credit-badge,
+    .page-back-btn,
+    .brand-menu-item,
+    .btn-test-sound {
+      position: relative;
+      background: var(--sheen-base, rgba(255, 255, 255, 0.07)) !important;
+      backdrop-filter: blur(28px) saturate(190%) contrast(104%) !important;
+      -webkit-backdrop-filter: blur(28px) saturate(190%) contrast(104%) !important;
+      border: 1px solid rgba(255, 255, 255, 0.16) !important;
+      box-shadow: 
+        0 4px 16px -2px rgba(0, 0, 0, 0.18),
+        0 1px 3px rgba(0, 0, 0, 0.1),
+        inset 0 1px 1px 0 rgba(255, 255, 255, 0.35),
+        inset 0 -1px 1px 0 rgba(0, 0, 0, 0.14) !important;
+      transition: 
+        transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1),
+        box-shadow 0.24s ease,
+        background 0.2s ease,
+        border-color 0.2s ease !important;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :root[data-theme="light"] .glisse-glass-btn,
+    :root[data-theme="light"] button.icon-btn,
+    :root[data-theme="light"] .icon-btn,
+    :root[data-theme="light"] .model-selector-btn,
+    :root[data-theme="light"] .drawer-new-chat-btn,
+    :root[data-theme="light"] .drawer-empty-new-chat-btn,
+    :root[data-theme="light"] .custom-dialog-btn,
+    :root[data-theme="light"] .scroll-bottom-fab,
+    :root[data-theme="light"] .action-icon-btn,
+    :root[data-theme="light"] #brandMenuBtn,
+    :root[data-theme="light"] #quickNewChatNavBtn,
+    :root[data-theme="light"] .nav-credit-badge,
+    :root[data-theme="light"] .page-back-btn,
+    :root[data-theme="light"] .brand-menu-item {
+      background: rgba(255, 255, 255, 0.65) !important;
+      border: 1px solid rgba(0, 0, 0, 0.08) !important;
+      box-shadow: 
+        0 4px 16px -2px rgba(0, 0, 0, 0.08),
+        0 1px 3px rgba(0, 0, 0, 0.04),
+        inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.9),
+        inset 0 -1px 1px 0 rgba(0, 0, 0, 0.05) !important;
+    }
+
+    /* Glisse Button Hover Physics */
+    .glisse-glass-btn:hover,
+    button.icon-btn:hover,
+    .icon-btn:hover,
+    .model-selector-btn:hover,
+    .drawer-new-chat-btn:hover,
+    .drawer-empty-new-chat-btn:hover,
+    .custom-dialog-btn:hover,
+    .scroll-bottom-fab:hover,
+    .action-icon-btn:hover,
+    #brandMenuBtn:hover,
+    #quickNewChatNavBtn:hover,
+    .nav-credit-badge:hover,
+    .page-back-btn:hover,
+    .brand-menu-item:hover {
+      transform: translateY(-1.5px) scale(1.02) !important;
+      box-shadow: 
+        0 8px 24px -3px rgba(0, 0, 0, 0.24),
+        0 2px 6px rgba(0, 0, 0, 0.12),
+        inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.55),
+        inset 0 -1px 1px 0 rgba(0, 0, 0, 0.14) !important;
+      border-color: rgba(255, 255, 255, 0.3) !important;
+    }
+
+    /* Glisse Button Press / Active Spring Squash */
+    .glisse-glass-btn:active,
+    button.icon-btn:active,
+    .icon-btn:active,
+    .model-selector-btn:active,
+    .drawer-new-chat-btn:active,
+    .drawer-empty-new-chat-btn:active,
+    .custom-dialog-btn:active,
+    .scroll-bottom-fab:active,
+    .action-icon-btn:active,
+    #brandMenuBtn:active,
+    #quickNewChatNavBtn:active,
+    .nav-credit-badge:active,
+    .page-back-btn:active,
+    .brand-menu-item:active {
+      transform: scale(0.96) !important;
+      box-shadow: 
+        0 2px 6px -1px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0.5px 0 rgba(255, 255, 255, 0.2) !important;
+      transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    }
+
+    /* Glisse Liquid Send Button */
+    #sendBtn {
+      backdrop-filter: blur(28px) saturate(190%) contrast(105%) !important;
+      -webkit-backdrop-filter: blur(28px) saturate(190%) contrast(105%) !important;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.95), rgba(37, 99, 235, 0.98)) !important;
+      border: 1px solid rgba(255, 255, 255, 0.3) !important;
+      box-shadow: 
+        0 4px 18px -2px rgba(59, 130, 246, 0.45),
+        inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.55) !important;
+      transition: transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease !important;
+    }
+    #sendBtn:hover:not(:disabled) {
+      transform: translateY(-1.5px) scale(1.04) !important;
+      box-shadow: 
+        0 8px 24px -2px rgba(59, 130, 246, 0.6),
+        inset 0 1px 2px 0 rgba(255, 255, 255, 0.7) !important;
+    }
+    #sendBtn:active:not(:disabled) {
+      transform: scale(0.94) !important;
+    }
+
+    /* Glisse Floating Liquid Glass Popups & Modals (glisse.kelvinzhang.com) */
+    .modal-sheet,
+    .brand-menu-dropdown,
+    .custom-dialog-box,
+    .custom-ui-toast,
+    .chat-history-modal-content {
+      background: rgba(18, 18, 24, 0.78) !important;
+      backdrop-filter: blur(40px) saturate(200%) contrast(106%) !important;
+      -webkit-backdrop-filter: blur(40px) saturate(200%) contrast(106%) !important;
+      border: 1px solid rgba(255, 255, 255, 0.16) !important;
+      border-radius: 28px !important;
+      box-shadow: 
+        0 32px 80px -16px rgba(0, 0, 0, 0.65),
+        0 16px 36px -8px rgba(0, 0, 0, 0.35),
+        inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.32) !important;
+      transform: scale(0.95) translateY(12px);
+      transition: 
+        transform 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+        opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+
+    :root[data-theme="light"] .modal-sheet,
+    :root[data-theme="light"] .brand-menu-dropdown,
+    :root[data-theme="light"] .custom-dialog-box,
+    :root[data-theme="light"] .custom-ui-toast,
+    :root[data-theme="light"] .chat-history-modal-content {
+      background: rgba(255, 255, 255, 0.84) !important;
+      border: 1px solid rgba(0, 0, 0, 0.08) !important;
+      box-shadow: 
+        0 32px 80px -16px rgba(0, 0, 0, 0.18),
+        0 16px 36px -8px rgba(0, 0, 0, 0.1),
+        inset 0 1px 2px 0 rgba(255, 255, 255, 0.95) !important;
+    }
+
+    .modal-overlay.open .modal-sheet,
+    .modal-overlay.open .custom-dialog-box,
+    #brandMenuOverlay.open .brand-menu-dropdown {
+      transform: scale(1) translateY(0) !important;
+    }
+
+    /* ==========================================================================
+       2. GOOEY INPUT SEARCH BAR (21st.dev / Aceternity UI GooeyInput)
+       Fluid SVG filter, liquid morphing bubble & expanding pill with spring physics
+       ========================================================================== */
+    .gooey-search-wrapper {
+      position: relative;
+      padding: 6px 16px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .gooey-filter-layer {
+      position: relative;
+      width: 100%;
+      filter: url(#gooey-search-filter);
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+    }
+    .gooey-input-base {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 100%;
+      height: 44px;
+      background: var(--bg-input, #1c1c20);
+      border-radius: 9999px;
+      padding: 0 14px 0 42px;
+      transition: width 0.38s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+      border: 1px solid var(--border-color, rgba(255, 255, 255, 0.12));
+      box-sizing: border-box;
+    }
+    .gooey-bubble {
+      position: absolute;
+      left: 7px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--accent-color, #3b82f6);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      transition: transform 0.38s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 2px 10px rgba(59, 130, 246, 0.45);
+      z-index: 2;
+    }
+    .gooey-real-input {
+      width: 100%;
+      height: 100%;
+      background: transparent !important;
+      border: none !important;
+      outline: none !important;
+      color: var(--text-main, #fff) !important;
+      font-size: 0.9rem !important;
+      font-family: inherit !important;
+      padding: 0 6px !important;
+      box-shadow: none !important;
+    }
+    .gooey-clear-btn {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: rgba(128, 128, 128, 0.25);
+      color: var(--text-sub, #a1a1aa);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      flex-shrink: 0;
+      margin-left: 6px;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.15s ease, color 0.15s ease;
+    }
+    .gooey-clear-btn:hover {
+      background: rgba(128, 128, 128, 0.45);
+      color: var(--text-main, #fff);
+      transform: scale(1.1);
+    }
+    .gooey-input-base:focus-within {
+      border-color: var(--accent-color, #3b82f6);
+      box-shadow: 0 6px 22px rgba(59, 130, 246, 0.28), inset 0 1px 1.5px rgba(255, 255, 255, 0.25);
+    }
+    .gooey-input-base:focus-within .gooey-bubble {
+      transform: translateY(-50%) scale(1.1) rotate(90deg);
+      box-shadow: 0 4px 14px rgba(59, 130, 246, 0.6);
+    }
+
+    /* ==========================================================================
+       3. ENCRYPTED TEXT (MATRIX SCRAMBLE AI ANSWER STREAMING DECRYPTION)
+       Tokens stream in scrambled cipher glyphs and decrypt progressively
+       ========================================================================== */
+    .encrypted-text-stream {
+      display: inline;
+      vertical-align: baseline;
+    }
+    .encrypted-char-matrix {
+      color: var(--accent-color, #3b82f6);
+      font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      opacity: 0.9;
+      text-shadow: 0 0 10px rgba(59, 130, 246, 0.65);
+      display: inline;
+      user-select: none;
+      animation: matrixPulse 0.6s ease-in-out infinite alternate;
+    }
+    .revealed-char-matrix {
+      color: inherit;
+      font-family: inherit;
+      font-weight: inherit;
+      display: inline;
+      opacity: 1;
+      transition: color 0.18s ease;
+    }
+    @keyframes matrixPulse {
+      0% { opacity: 0.72; filter: drop-shadow(0 0 2px rgba(59, 130, 246, 0.4)); }
+      100% { opacity: 1; filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.85)); }
+    }
+
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
@@ -4659,10 +4955,29 @@
       </button>
     </div>
 
-    <div style="padding: 0 16px 8px; display: none;" id="drawerSearchBoxWrap">
-      <div class="drawer-search-wrap" style="margin: 0; position: relative; width: 100%; padding: 0;">
-        <svg viewBox="0 0 24 24" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; fill: none; stroke: var(--text-sub); stroke-width: 2; pointer-events: none; z-index: 2;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-        <input type="text" class="drawer-search-input" id="drawerSearchInput" placeholder="চ্যাট খুঁজুন..." style="background: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-main); width: 100%;">
+    <!-- Gooey Input SVG Filter -->
+    <svg class="gooey-svg-filter" style="position: absolute; width: 0; height: 0; pointer-events: none; overflow: hidden;" aria-hidden="true">
+      <defs>
+        <filter id="gooey-search-filter">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur" />
+          <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="gooey" />
+          <feComposite in="SourceGraphic" in2="gooey" operator="atop" />
+        </filter>
+      </defs>
+    </svg>
+
+    <!-- Gooey Search Bar Component (21st.dev / Aceternity UI GooeyInput) -->
+    <div class="gooey-search-wrapper" id="drawerSearchBoxWrap">
+      <div class="gooey-filter-layer">
+        <div class="gooey-input-base" id="gooeyInputBase">
+          <div class="gooey-bubble" id="gooeySearchBubble" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          </div>
+          <input type="text" class="drawer-search-input gooey-real-input" id="drawerSearchInput" placeholder="Search chats..." autocomplete="off" spellcheck="false" aria-label="Search chats">
+          <button type="button" class="gooey-clear-btn" id="gooeyClearBtn" aria-label="Clear search" style="display: none;">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -6031,6 +6346,102 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
         });
       } catch(e) { console.error('[Alokpoth]', e); }
     }
+
+        // ===== Matrix Encrypted Text Engine (EncryptedText / 21st.dev) =====
+    const MATRIX_CHARSET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-={}[];:,.<>/?";
+
+    function renderStreamingEncryptedContent(content, isFinal = false) {
+      if (isFinal || !content) {
+        return safeMarkdown(content, isFinal);
+      }
+      // If actively inside an unclosed code block (odd number of backticks), preserve syntax
+      const backtickMatches = content.match(/```/g);
+      const inCodeBlock = backtickMatches && (backtickMatches.length % 2 !== 0);
+      if (inCodeBlock) {
+        return safeMarkdown(content, false) + `<span class="streaming-cursor"></span>`;
+      }
+
+      // Plaintext streaming frontier: scramble trailing ~8-14 characters
+      const scrambleLen = Math.min(14, Math.max(3, Math.floor(content.length * 0.35)));
+      const stableText = content.slice(0, -scrambleLen);
+      const trailingText = content.slice(-scrambleLen);
+
+      let scrambled = "";
+      for (let i = 0; i < trailingText.length; i++) {
+        const ch = trailingText[i];
+        if (/\s/.test(ch)) {
+          scrambled += ch;
+        } else {
+          scrambled += MATRIX_CHARSET[Math.floor(Math.random() * MATRIX_CHARSET.length)];
+        }
+      }
+
+      const stableHtml = safeMarkdown(stableText, false);
+      const encryptedSpan = `<span class="encrypted-text-stream" title="Decrypting..."><span class="encrypted-char-matrix">${escapeHtml(scrambled)}</span></span><span class="streaming-cursor"></span>`;
+
+      if (stableHtml.endsWith("</p>")) {
+        return stableHtml.slice(0, -4) + " " + encryptedSpan + "</p>";
+      }
+      return stableHtml + encryptedSpan;
+    }
+
+    // Standalone EncryptedText Component API (Inspired by 21st.dev / Aceternity UI)
+    function EncryptedText(element, targetText, options = {}) {
+      if (!element) return;
+      const {
+        revealDelayMs = 50,
+        flipDelayMs = 45,
+        charset = MATRIX_CHARSET,
+        encryptedClassName = "encrypted-char-matrix",
+        revealedClassName = "revealed-char-matrix",
+        onComplete = null
+      } = options;
+
+      let currentIndex = 0;
+      let flipInterval = null;
+      let revealInterval = null;
+
+      const chars = Array.from(targetText);
+      const displayChars = chars.map((ch, idx) => ({
+        original: ch,
+        isRevealed: /\s/.test(ch),
+        current: /\s/.test(ch) ? ch : charset[Math.floor(Math.random() * charset.length)]
+      }));
+
+      function render() {
+        element.innerHTML = displayChars.map(c => {
+          if (c.isRevealed) {
+            return `<span class="${revealedClassName}">${escapeHtml(c.original)}</span>`;
+          }
+          return `<span class="${encryptedClassName}">${escapeHtml(c.current)}</span>`;
+        }).join("");
+      }
+
+      flipInterval = setInterval(() => {
+        for (let i = currentIndex; i < displayChars.length; i++) {
+          if (!displayChars[i].isRevealed && !/\s/.test(displayChars[i].original)) {
+            displayChars[i].current = charset[Math.floor(Math.random() * charset.length)];
+          }
+        }
+        render();
+      }, flipDelayMs);
+
+      revealInterval = setInterval(() => {
+        if (currentIndex < displayChars.length) {
+          displayChars[currentIndex].isRevealed = true;
+          displayChars[currentIndex].current = displayChars[currentIndex].original;
+          currentIndex++;
+          render();
+        } else {
+          clearInterval(revealInterval);
+          clearInterval(flipInterval);
+          if (typeof onComplete === "function") onComplete();
+        }
+      }, revealDelayMs);
+
+      render();
+    }
+    window.EncryptedText = EncryptedText;
 
     function safeMarkdown(md, isFinal = false) {
       try {
@@ -13198,7 +13609,7 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
              </details>`;
            }
            if (finalContent) {
-             html += `<div class="content-block">${safeMarkdown(finalContent, isFinal)}</div>`;
+             html += `<div class="content-block">${renderStreamingEncryptedContent(finalContent, isFinal)}</div>`;
            } else if (!apiFinished) {
              html += `<span class="streaming-cursor"></span>`;
            } else if (apiFinished && !finalContent && finalReasoning) {
@@ -13559,6 +13970,49 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
     initComposerQuickBar();
     initVoiceInput();
     initNativeChatGPTControls();
+    initGooeySearchBar();
+
+    // ===== Gooey Search Bar Interactive Controller =====
+    function initGooeySearchBar() {
+      const drawerSearchInput = document.getElementById("drawerSearchInput");
+      const gooeyInputBase = document.getElementById("gooeyInputBase");
+      const gooeyClearBtn = document.getElementById("gooeyClearBtn");
+      const drawerSearchToggleBtn = document.getElementById("drawerSearchToggleBtn");
+      const drawerSearchBoxWrap = document.getElementById("drawerSearchBoxWrap");
+
+      if (drawerSearchInput) {
+        drawerSearchInput.addEventListener("input", (e) => {
+          const val = e.target.value;
+          if (gooeyClearBtn) {
+            gooeyClearBtn.style.display = val.trim().length > 0 ? "flex" : "none";
+          }
+          if (typeof renderDrawerHistoryList === "function") {
+            renderDrawerHistoryList(val);
+          }
+        });
+
+        if (gooeyClearBtn) {
+          gooeyClearBtn.addEventListener("click", () => {
+            triggerHaptic("light");
+            drawerSearchInput.value = "";
+            gooeyClearBtn.style.display = "none";
+            drawerSearchInput.focus();
+            if (typeof renderDrawerHistoryList === "function") {
+              renderDrawerHistoryList("");
+            }
+          });
+        }
+      }
+
+      if (drawerSearchToggleBtn && drawerSearchInput) {
+        drawerSearchToggleBtn.addEventListener("click", () => {
+          triggerHaptic("light");
+          if (drawerSearchBoxWrap) drawerSearchBoxWrap.style.display = "flex";
+          drawerSearchInput.focus();
+        });
+      }
+    }
+
     updateNavbarCreditBadge();
 
     syncModelStatuses();
