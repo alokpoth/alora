@@ -216,6 +216,8 @@ app.use('/logo', express.static(path.join(ROOT_DIR, 'logo')));
 const STATIC_ASSETS = [
   'favicon.ico', 'favicon.svg', 'favicon.png', 'favicon-32x32.png', 'favicon-16x16.png',
   'apple-touch-icon.png', 'app_logo.png', 'app logo.png',
+  'alokpath_icon_dark.png', 'alokpath_icon_light.png',
+  'alokpath_logo.svg', 'alokpath_logo_dark.png', 'alokpath_logo_light.png',
   'logo_icon_white.png', 'logo_icon_black.png',
   'logo_wordmark_white.png', 'logo_wordmark_black.png',
   'app_logo_transparent.png', 'app_logo_transparent_black.png',
