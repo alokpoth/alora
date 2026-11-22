@@ -9,6 +9,10 @@ const { getModelConfig, getUserUsageDetails, getUserImageUsageDetails } = requir
 const { getCachedPlan, setCachedPlan, getCachedModel, setCachedModel, invalidateCachedUser } = require('../config/dbCache');
 
 const guestMessageTracker = new Map();
+// Clear any test counts for localhost
+guestMessageTracker.delete('127_0_0_1');
+guestMessageTracker.delete('localhost');
+guestMessageTracker.delete('_1');
 
 const checkRateLimit = async (req, res, next) => {
   try {
