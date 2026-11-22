@@ -741,7 +741,7 @@
 
     const token = localStorage.getItem("alokpoth_token");
     if (!token) {
-      window.location.href = "login";
+      window.location.href = "/";
     }
 
     let currentLanguage = localStorage.getItem("alokpoth_lang") || "en";
@@ -1011,7 +1011,7 @@
         if (res.status === 401) {
           localStorage.removeItem("alokpoth_token");
           localStorage.removeItem("alokpoth_user");
-          window.location.href = "login";
+          window.location.href = "/";
           return;
         }
         const data = await res.json();

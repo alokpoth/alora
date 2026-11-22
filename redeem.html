@@ -544,7 +544,7 @@
 
     const token = localStorage.getItem("alokpoth_token");
     if (!token) {
-      window.location.href = "login";
+      window.location.href = "/";
     }
 
     let currentLanguage = localStorage.getItem("alokpoth_lang") || "en";
@@ -728,7 +728,7 @@
         if (res.status === 401) {
           localStorage.removeItem("alokpoth_token");
           showToast(currentLanguage === "en" ? "Session expired. Please log in again." : "লগইন সেশন শেষ হয়ে গেছে। অনুগ্রহ করে আবার লগইন করুন।", "error");
-          setTimeout(() => { window.location.href = "login.html?redirect=redeem.html"; }, 1500);
+          setTimeout(() => { window.location.href = "/"; }, 1500);
           return;
         }
         const data = await res.json();

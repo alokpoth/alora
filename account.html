@@ -1404,7 +1404,7 @@
         try { window.AloAI.logout(); return; } catch(e) { console.error('[Alokpoth]', e); }
       }
       showToast(d.logoutSuccess, "success");
-      setTimeout(() => { window.location.href = "login"; }, 400);
+      setTimeout(() => { window.location.href = "/"; }, 400);
     };
 
     document.getElementById("logoutBtn")?.addEventListener("click", handleLogout);
@@ -1457,7 +1457,7 @@
 
     const token = localStorage.getItem("alokpoth_token");
     if (!token) {
-      window.location.href = "login";
+      window.location.href = "/";
     }
 
     let dynamicPlanLimits = {

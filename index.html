@@ -1249,6 +1249,127 @@
       opacity: 0.9;
     }
 
+    /* Upgrade Plan Dialog (ChatGPT 1:1) */
+    .chatgpt-upgrade-dialog {
+      width: 100%;
+      max-width: 780px;
+      background: var(--modal-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-dropdown);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+    }
+    .upgrade-plans-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 640px) {
+      .upgrade-plans-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .upgrade-plan-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 22px 20px;
+      background: var(--composer-bg);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 14px;
+    }
+    .upgrade-plan-card.featured {
+      border-color: var(--brand-accent);
+      background: rgba(16, 163, 127, 0.05);
+    }
+    .upgrade-plan-badge {
+      align-self: flex-start;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--brand-accent);
+      background: rgba(16, 163, 127, 0.15);
+      padding: 3px 8px;
+      border-radius: var(--radius-full);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .upgrade-plan-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .upgrade-plan-price {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text-sub);
+    }
+    .upgrade-plan-features {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 0.88rem;
+      color: var(--text-main);
+      margin: 8px 0;
+    }
+    .upgrade-plan-features li {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      line-height: 1.4;
+    }
+    .upgrade-plan-features svg {
+      flex-shrink: 0;
+      margin-top: 3px;
+      color: var(--brand-accent);
+    }
+    .redeem-code-box {
+      margin-top: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .redeem-input-row {
+      display: flex;
+      gap: 8px;
+    }
+    .redeem-code-input {
+      flex: 1;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      background: var(--canvas-bg);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .redeem-code-input:focus {
+      border-color: var(--brand-accent);
+    }
+    .redeem-claim-btn {
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      background: var(--brand-accent);
+      color: #ffffff;
+      font-weight: 600;
+      font-size: 0.88rem;
+      white-space: nowrap;
+      cursor: pointer;
+      border: none;
+      transition: opacity var(--transition-fast);
+    }
+    .redeem-claim-btn:hover {
+      opacity: 0.9;
+    }
+
     /* Toast Pill */
     .toast-box {
       position: fixed;
@@ -1369,6 +1490,12 @@
             <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
           </svg>
           <span>Settings</span>
+        </button>
+        <button type="button" class="user-popover-item" id="popoverUpgradeBtn">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+          <span>Upgrade plan</span>
         </button>
         <a href="download" class="user-popover-item">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
@@ -1513,7 +1640,7 @@
               class="composer-textarea" 
               id="messageInput" 
               rows="1" 
-              placeholder="Message Alora..."></textarea>
+              placeholder="Message ChatGPT..."></textarea>
 
             <div class="composer-btn-group">
               <button type="button" class="composer-tool-btn" id="micBtn" title="Voice typing">
@@ -1560,7 +1687,7 @@
         </div>
 
         <div class="composer-legal-note" id="legalDisclaimer">
-          Alora can make mistakes. Check important info. • আলোকপথ
+          ChatGPT can make mistakes. Check important info. • আলোকপথ
         </div>
       </div>
 
@@ -1690,6 +1817,91 @@
       <div style="text-align:center; font-size:0.84rem; color:var(--text-sub);">
         <span id="authSwitchPrompt">Don't have an account?</span>
         <button type="button" id="authSwitchModeBtn" style="color:var(--brand-accent); font-weight:600; text-decoration:underline; margin-left:4px;">Sign up</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL 3: IN-PAGE UPGRADE YOUR PLAN MODAL (CHATGPT 1:1)
+       ====================================================================== -->
+  <div class="chatgpt-dialog-backdrop" id="upgradeDialogBackdrop">
+    <div class="chatgpt-upgrade-dialog">
+      <div class="settings-dialog-header">
+        <div>
+          <h2 class="settings-dialog-title">Upgrade your plan</h2>
+          <p style="font-size:0.84rem; color:var(--text-sub); margin-top:2px;">Experience frontier AI reasoning, higher limits, and priority speed.</p>
+        </div>
+        <button type="button" class="sidebar-icon-btn" id="closeUpgradeDialogBtn">&times;</button>
+      </div>
+
+      <div class="upgrade-plans-grid">
+        <!-- Free Plan Card -->
+        <div class="upgrade-plan-card">
+          <div>
+            <div class="upgrade-plan-title">Free</div>
+            <div class="upgrade-plan-price">$0 USD / month</div>
+            <p style="font-size:0.84rem; color:var(--text-sub); margin-top:4px;">For everyday tasks and general assistance.</p>
+          </div>
+
+          <ul class="upgrade-plan-features">
+            <li>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>Access to Alo Go (GPT-4o mini class)</span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>Standard response speed</span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>2 free trial messages without login</span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>Chat history saved locally</span>
+            </li>
+          </ul>
+
+          <button type="button" class="theme-opt-chip" style="width:100%; padding:11px; text-align:center; cursor:default; opacity:0.8;" id="upgradeFreeBtn">Your current plan</button>
+        </div>
+
+        <!-- Plus / Pro Plan Card -->
+        <div class="upgrade-plan-card featured">
+          <div>
+            <div class="upgrade-plan-badge">Popular</div>
+            <div class="upgrade-plan-title">Plus / Pro</div>
+            <div class="upgrade-plan-price">Frontier Intelligence</div>
+            <p style="font-size:0.84rem; color:var(--text-sub); margin-top:4px;">Expand your access to our most capable frontier models.</p>
+          </div>
+
+          <ul class="upgrade-plan-features">
+            <li>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>Access to Alo Pro, Alo Elite, Alo Max (GPT-4o & Sonnet class)</span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>Up to 5x higher message limit</span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>Live Web Search & DALL·E Image Generation</span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>Faster response speeds and deep reasoning</span>
+            </li>
+          </ul>
+
+          <div class="redeem-code-box">
+            <div style="font-size:0.82rem; font-weight:600; color:var(--text-main);">Redeem Access Code:</div>
+            <div class="redeem-input-row">
+              <input type="text" class="redeem-code-input" id="modalRedeemInput" placeholder="ENTER CODE">
+              <button type="button" class="redeem-claim-btn" id="modalRedeemClaimBtn">Claim</button>
+            </div>
+            <div id="modalRedeemFeedback" style="font-size:0.8rem; display:none; margin-top:4px;"></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1882,6 +2094,89 @@
     function closeAuthDialog() {
       const backdrop = document.getElementById("authDialogBackdrop");
       if (backdrop) backdrop.classList.remove("open");
+    }
+
+    function openUpgradeDialog() {
+      const backdrop = document.getElementById("upgradeDialogBackdrop");
+      if (backdrop) backdrop.classList.add("open");
+    }
+
+    function closeUpgradeDialog() {
+      const backdrop = document.getElementById("upgradeDialogBackdrop");
+      if (backdrop) backdrop.classList.remove("open");
+      const fb = document.getElementById("modalRedeemFeedback");
+      if (fb) fb.style.display = "none";
+    }
+
+    async function handleClaimRedeemCode() {
+      const token = getAuthToken();
+      if (!token) {
+        closeUpgradeDialog();
+        openAuthDialog("login");
+        showToast("Please log in or sign up first to claim your redeem code.");
+        return;
+      }
+
+      const input = document.getElementById("modalRedeemInput");
+      const btn = document.getElementById("modalRedeemClaimBtn");
+      const fb = document.getElementById("modalRedeemFeedback");
+      const code = input ? input.value.trim().toUpperCase() : "";
+
+      if (!code) {
+        if (fb) {
+          fb.textContent = "Please enter a valid redeem code.";
+          fb.style.color = "var(--danger)";
+          fb.style.display = "block";
+        }
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Claiming...";
+      if (fb) fb.style.display = "none";
+
+      try {
+        const res = await fetch(`${API_BASE}/redeem/claim`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({ code })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          throw new Error(data.error || "Failed to redeem code. Please verify your code.");
+        }
+
+        const newPlan = data.plan_name || (data.subscription && data.subscription.plan_name) || "Pro";
+        localStorage.setItem(KEYS.PLAN, newPlan);
+        let user = {};
+        try { user = JSON.parse(localStorage.getItem(KEYS.USER) || "{}"); } catch(e){}
+        if (!user.subscription) user.subscription = {};
+        user.subscription.plan_name = newPlan;
+        localStorage.setItem(KEYS.USER, JSON.stringify(user));
+
+        syncUserUI();
+        if (fb) {
+          fb.textContent = "Congratulations! Plan upgraded successfully.";
+          fb.style.color = "var(--brand-accent)";
+          fb.style.display = "block";
+        }
+        showToast(`Upgraded to ${newPlan} plan!`);
+        soundEngine.receive();
+        setTimeout(() => closeUpgradeDialog(), 1800);
+      } catch (err) {
+        if (fb) {
+          fb.textContent = err.message;
+          fb.style.color = "var(--danger)";
+          fb.style.display = "block";
+        }
+        soundEngine.error();
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Claim";
+      }
     }
 
     async function handleAuthFormSubmit(e) {
@@ -2620,10 +2915,13 @@
       }
       if (upgradePlanRow) {
         upgradePlanRow.addEventListener("click", () => {
-          settingsDialog.classList.add("open");
-          document.querySelector('.settings-tab-btn[data-tab="account"]')?.click();
+          openUpgradeDialog();
         });
       }
+      document.getElementById("popoverUpgradeBtn")?.addEventListener("click", () => {
+        userPopover.classList.remove("open");
+        openUpgradeDialog();
+      });
       if (closeSettingsBtn) {
         closeSettingsBtn.addEventListener("click", () => settingsDialog.classList.remove("open"));
       }
@@ -2703,7 +3001,30 @@
         }
       });
       document.getElementById("settingsUpgradeBtn")?.addEventListener("click", () => {
-        window.location.href = "plans";
+        settingsDialog.classList.remove("open");
+        openUpgradeDialog();
+      });
+
+      // Upgrade Dialog Listeners
+      document.getElementById("closeUpgradeDialogBtn")?.addEventListener("click", closeUpgradeDialog);
+      document.getElementById("upgradeDialogBackdrop")?.addEventListener("click", (e) => {
+        if (e.target.id === "upgradeDialogBackdrop") closeUpgradeDialog();
+      });
+      document.getElementById("upgradeFreeBtn")?.addEventListener("click", closeUpgradeDialog);
+      document.getElementById("modalRedeemClaimBtn")?.addEventListener("click", handleClaimRedeemCode);
+      document.getElementById("modalRedeemInput")?.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          handleClaimRedeemCode();
+        }
+      });
+
+      // Backdrop Clicks for dialogs
+      document.getElementById("settingsDialogBackdrop")?.addEventListener("click", (e) => {
+        if (e.target.id === "settingsDialogBackdrop") settingsDialog.classList.remove("open");
+      });
+      document.getElementById("authDialogBackdrop")?.addEventListener("click", (e) => {
+        if (e.target.id === "authDialogBackdrop") closeAuthDialog();
       });
 
       // Auth Dialog Close & Submit
