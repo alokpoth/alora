@@ -21,11 +21,11 @@
       --text-secondary: #b4b4b4;
       --text-muted: #8e8e8e;
       --border: rgba(255, 255, 255, 0.15);
-      --border-focus: #10a37f;
+      --border-focus: #ffffff;
       --input-bg: #2f2f2f;
-      --btn-primary: #10a37f;
-      --btn-primary-hover: #0e8c6d;
-      --btn-text: #ffffff;
+      --btn-primary: #ffffff;
+      --btn-primary-hover: #ececec;
+      --btn-text: #000000;
       --social-btn-bg: transparent;
       --social-btn-hover: #2f2f2f;
       --danger: #ef4444;
@@ -41,10 +41,10 @@
       --text-secondary: #6e7681;
       --text-muted: #8c959f;
       --border: #d0d7de;
-      --border-focus: #10a37f;
+      --border-focus: #000000;
       --input-bg: #ffffff;
-      --btn-primary: #10a37f;
-      --btn-primary-hover: #0e8c6d;
+      --btn-primary: #000000;
+      --btn-primary-hover: #222222;
       --btn-text: #ffffff;
       --social-btn-bg: #ffffff;
       --social-btn-hover: #f6f8fa;
@@ -85,10 +85,10 @@
       cursor: pointer;
     }
     .brand-logo-img {
-      width: 44px;
-      height: 44px;
+      width: 52px;
+      height: 52px;
       border-radius: 50%;
-      object-fit: cover;
+      object-fit: contain;
       display: block;
     }
 
@@ -129,7 +129,7 @@
     }
     .input-field:focus {
       border-color: var(--border-focus);
-      box-shadow: 0 0 0 3px rgba(16, 163, 127, 0.2);
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.15);
     }
     .input-field::placeholder {
       color: var(--text-muted);
@@ -199,13 +199,13 @@
       margin-top: 14px;
     }
     .auth-toggle-link {
-      color: var(--border-focus);
+      color: var(--text-primary);
       font-weight: 600;
-      text-decoration: none;
+      text-decoration: underline;
       cursor: pointer;
     }
     .auth-toggle-link:hover {
-      text-decoration: underline;
+      opacity: 0.8;
     }
 
     .divider-row {
@@ -273,7 +273,7 @@
 
   <div class="auth-container">
     <a href="/" class="brand-logo-wrap" title="Go to ChatGPT">
-      <img src="/alokpath_icon_dark.png" alt="ChatGPT" class="brand-logo-img">
+      <img src="/logo_icon_white.png" alt="Alokpath" class="brand-logo-img">
     </a>
 
     <h1 class="auth-title" id="authHeading">Welcome back</h1>

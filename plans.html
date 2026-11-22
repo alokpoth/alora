@@ -1706,7 +1706,7 @@
       // Badges
       if (isUserAdmin) {
         if (badgeSlotMax) {
-          badgeSlotMax.innerHTML = '<div class="active-plan-badge-top admin">👑 ' + (isEn ? "Admin Unlimited" : "অ্যাডমিন (আনলিমিটেড)") + '</div>';
+          badgeSlotMax.innerHTML = '<div class="active-plan-badge-top admin">' + (isEn ? "Admin Unlimited" : "অ্যাডমিন (আনলিমিটেড)") + '</div>';
         }
       } else if (userCurrentPlan === "Max") {
         if (badgeSlotMax) {
@@ -1751,7 +1751,7 @@
       // Max Button
       if (btnMax) {
         if (isUserAdmin) {
-          btnMax.textContent = isEn ? "👑 Admin Active (Unlimited)" : "👑 অ্যাডমিন সক্রিয় (আনলিমিটেড)";
+          btnMax.textContent = isEn ? "Admin Active (Unlimited)" : "অ্যাডমিন সক্রিয় (আনলিমিটেড)";
           btnMax.className = "btn-plan active-admin-btn";
           btnMax.onclick = () => { window.location.href = "subscription"; };
         } else if (userCurrentPlan === "Max") {
