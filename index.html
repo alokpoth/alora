@@ -521,6 +521,13 @@
       gap: 6px;
     }
 
+    /* Hide header sidebar toggle on desktop when sidebar is open */
+    @media (min-width: 769px) {
+      .chatgpt-sidebar:not(.collapsed) + .chatgpt-main #headerSidebarToggleBtn {
+        display: none !important;
+      }
+    }
+
     /* ChatGPT Model Selector Dropdown Trigger */
     .model-selector-btn {
       display: flex;
@@ -587,6 +594,12 @@
       scroll-behavior: smooth;
     }
 
+    /* When in empty state, center the welcome screen and composer vertically */
+    .chatgpt-main.empty-state .chatgpt-scroll-area {
+      justify-content: center;
+      padding: 24px 16px 50px;
+    }
+
     .chatgpt-feed {
       width: 100%;
       max-width: var(--composer-width);
@@ -595,34 +608,48 @@
       gap: 24px;
     }
 
-    /* Empty Welcome Screen (ChatGPT Exact) */
+    /* Empty Welcome Screen (ChatGPT Exact 1:1) */
     .chatgpt-welcome-screen {
-      margin: auto 0;
+      width: 100%;
+      max-width: var(--composer-width);
       display: flex;
       flex-direction: column;
       align-items: center;
       text-align: center;
-      padding: 30px 16px;
+      margin: 0 auto;
+      padding: 10px 16px;
+    }
+    .welcome-hero-top {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 24px;
     }
     .chatgpt-brand-emblem {
-      width: 52px;
-      height: 52px;
+      width: 48px;
+      height: 48px;
       border-radius: var(--radius-full);
-      margin-bottom: 24px;
+      margin-bottom: 20px;
       object-fit: cover;
     }
     .chatgpt-welcome-title {
       font-size: 1.85rem;
       font-weight: 600;
       letter-spacing: -0.025em;
-      margin-bottom: 30px;
       color: var(--text-main);
+    }
+
+    .composer-center-slot {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
     }
 
     .prompt-suggestions-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 10px;
       justify-content: center;
       max-width: 680px;
     }
@@ -630,7 +657,7 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 8px 14px;
+      padding: 8px 16px;
       border-radius: var(--radius-full);
       background: var(--composer-bg);
       border: 1px solid var(--border);
@@ -643,6 +670,15 @@
       border-color: rgba(255, 255, 255, 0.25);
       background: var(--card-bg);
       transform: translateY(-1px);
+    }
+
+    .chatgpt-main.empty-state .composer-wrapper {
+      background: transparent;
+      padding: 10px 16px 14px;
+      pointer-events: none;
+    }
+    .chatgpt-main.empty-state .composer-wrapper .composer-legal-note {
+      pointer-events: auto;
     }
 
     /* Message Rows */
@@ -1554,36 +1590,44 @@
           </div>
         </div>
 
-        <!-- Model Selection Dropdown -->
+        <!-- Model Selection Dropdown (1:1 ChatGPT Authentic) -->
         <div class="model-dropdown-menu" id="modelDropdownMenu">
-          <div class="model-option-item selected" data-model="openrouter/free">
-            <div>
-              <div class="model-opt-title">Alo Go (GPT-4o mini class)</div>
-              <div class="model-opt-desc">Fast & everyday general intelligence</div>
+          <div class="model-option-item selected" data-model="openrouter/free" data-label="ChatGPT">
+            <div style="flex:1;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="model-opt-title">ChatGPT</span>
+                <span class="model-opt-badge" style="background:rgba(255,255,255,0.1); color:var(--text-main); font-size:0.7rem; padding:2px 8px; border-radius:9999px;">Free</span>
+              </div>
+              <div class="model-opt-desc">Great for everyday tasks and fast answers</div>
             </div>
+            <div class="model-opt-check">✓</div>
           </div>
-          <div class="model-option-item" data-model="gemini-3.5-flash-lite">
-            <div>
-              <div class="model-opt-title">Alo Flash (Ultra Fast)</div>
-              <div class="model-opt-desc">Instant responses and coding tasks</div>
+
+          <div class="model-option-item" data-model="openai/gpt-oss-120b" data-label="ChatGPT Plus">
+            <div style="flex:1;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="model-opt-title">ChatGPT Plus</span>
+                <span class="model-opt-badge" style="background:#10a37f; color:#ffffff; font-size:0.7rem; padding:2px 8px; border-radius:9999px;">Pro</span>
+              </div>
+              <div class="model-opt-desc">Our smartest model & deeper reasoning</div>
             </div>
+            <div class="model-opt-check" style="display:none;">✓</div>
           </div>
-          <div class="model-option-item" data-model="openai/gpt-oss-120b">
-            <div>
-              <div class="model-opt-title">Alo Pro (Pro Model)</div>
-              <div class="model-opt-desc">Advanced reasoning and math</div>
+
+          <div class="model-dropdown-divider" style="height:1px; background:var(--border-subtle); margin:6px 0;"></div>
+
+          <div class="model-option-item" id="tempChatToggleItem">
+            <div style="flex:1; display:flex; align-items:center; gap:10px;">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-muted);">
+                <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+              <div>
+                <div class="model-opt-title">Temporary chat</div>
+                <div class="model-opt-desc">Won't appear in history or use memories</div>
+              </div>
             </div>
-          </div>
-          <div class="model-option-item" data-model="claude-sonnet-4-6">
-            <div>
-              <div class="model-opt-title">Alo Elite (Sonnet Class)</div>
-              <div class="model-opt-desc">Nuanced writing & deep problem solving</div>
-            </div>
-          </div>
-          <div class="model-option-item" data-model="gpt-5.6">
-            <div>
-              <div class="model-opt-title">Alo Max (Flagship 5.6)</div>
-              <div class="model-opt-desc">Maximum intelligence for complex tasks</div>
+            <div class="temp-toggle-indicator" id="tempToggleIndicator" style="width:36px; height:20px; background:rgba(255,255,255,0.15); border-radius:9999px; position:relative; transition:background 0.2s;">
+              <div id="tempToggleCircle" style="width:16px; height:16px; border-radius:50%; background:#fff; position:absolute; top:2px; left:2px; transition:transform 0.2s;"></div>
             </div>
           </div>
         </div>
@@ -1595,10 +1639,15 @@
           
           <!-- ChatGPT Authentic Welcome / Empty State -->
           <div class="chatgpt-welcome-screen" id="welcomeScreen">
-            <img src="/alokpath_icon_dark.png" alt="ChatGPT" class="chatgpt-brand-emblem" id="brandEmblemImg">
-            <h1 class="chatgpt-welcome-title" id="welcomeHeadline">What can I help with?</h1>
+            <div class="welcome-hero-top">
+              <img src="/alokpath_icon_dark.png" alt="ChatGPT" class="chatgpt-brand-emblem" id="brandEmblemImg">
+              <h1 class="chatgpt-welcome-title" id="welcomeHeadline">What can I help with?</h1>
+            </div>
 
-            <div class="prompt-suggestions-row">
+            <!-- Central Composer Slot for Empty State -->
+            <div class="composer-center-slot" id="composerSlotCenter"></div>
+
+            <div class="prompt-suggestions-row" id="promptSuggestionsRow">
               <button type="button" class="prompt-chip-btn" data-text="Create an illustration of a futuristic city with flying cars at sunset">
                 🎨 Create image
               </button>
@@ -1618,77 +1667,79 @@
       </div>
 
       <!-- ChatGPT Floating Composer Deck -->
-      <div class="composer-wrapper">
-        <div class="chatgpt-composer-pill" id="composerPill">
+      <div class="composer-wrapper" id="composerWrapper">
+        <div id="composerSlotBottom" style="width:100%; display:flex; justify-content:center;">
+          <div class="chatgpt-composer-pill" id="composerPill">
 
-          <!-- Active Chips Bar -->
-          <div class="composer-chip-row" id="composerChipRow" style="display:none;">
-            <div class="mode-chip" id="webSearchChip" style="display:none;">
-              <span>🌐 Web Search</span>
-              <span class="mode-chip-close" id="closeWebSearchChip">&times;</span>
+            <!-- Active Chips Bar -->
+            <div class="composer-chip-row" id="composerChipRow" style="display:none;">
+              <div class="mode-chip" id="webSearchChip" style="display:none;">
+                <span>🌐 Web Search</span>
+                <span class="mode-chip-close" id="closeWebSearchChip">&times;</span>
+              </div>
+              <div class="mode-chip" id="imageGenChip" style="display:none;">
+                <span>🎨 Image Gen</span>
+                <span class="mode-chip-close" id="closeImageGenChip">&times;</span>
+              </div>
             </div>
-            <div class="mode-chip" id="imageGenChip" style="display:none;">
-              <span>🎨 Image Gen</span>
-              <span class="mode-chip-close" id="closeImageGenChip">&times;</span>
-            </div>
-          </div>
 
-          <!-- Input Row -->
-          <div class="composer-input-row">
-            <button type="button" class="composer-tool-btn" id="attachBtn" title="Attach photos or files">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path d="M12 5v14M5 12h14"/>
-              </svg>
-            </button>
-
-            <textarea 
-              class="composer-textarea" 
-              id="messageInput" 
-              rows="1" 
-              placeholder="Message ChatGPT..."></textarea>
-
-            <div class="composer-btn-group">
-              <button type="button" class="composer-tool-btn" id="micBtn" title="Voice typing">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
-                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                  <line x1="12" x2="12" y1="19" y2="22"/>
+            <!-- Input Row -->
+            <div class="composer-input-row">
+              <button type="button" class="composer-tool-btn" id="attachBtn" title="Attach photos or files">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M12 5v14M5 12h14"/>
                 </svg>
               </button>
 
-              <button type="button" class="chatgpt-send-btn" id="sendBtn" title="Send message">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>
+              <textarea 
+                class="composer-textarea" 
+                id="messageInput" 
+                rows="1" 
+                placeholder="Message ChatGPT..."></textarea>
+
+              <div class="composer-btn-group">
+                <button type="button" class="composer-tool-btn" id="micBtn" title="Voice typing">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                    <line x1="12" x2="12" y1="19" y2="22"/>
+                  </svg>
+                </button>
+
+                <button type="button" class="chatgpt-send-btn" id="sendBtn" title="Send message">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Attach Popup Menu (ChatGPT Exact) -->
+            <div class="chatgpt-attach-menu" id="attachMenu">
+              <button type="button" class="attach-item-btn" id="attachFileOpt">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
                 </svg>
+                <span>Upload files & photos</span>
+              </button>
+              <button type="button" class="attach-item-btn" id="attachWebSearchOpt">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                </svg>
+                <span>Search the web</span>
+              </button>
+              <button type="button" class="attach-item-btn" id="attachImageGenOpt">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72Z"/>
+                </svg>
+                <span>Create image</span>
               </button>
             </div>
+
+            <!-- Hidden File Inputs -->
+            <input type="file" id="fileUploadInput" multiple style="display:none;" accept="*/*">
+
           </div>
-
-          <!-- Attach Popup Menu (ChatGPT Exact) -->
-          <div class="chatgpt-attach-menu" id="attachMenu">
-            <button type="button" class="attach-item-btn" id="attachFileOpt">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
-              </svg>
-              <span>Upload files & photos</span>
-            </button>
-            <button type="button" class="attach-item-btn" id="attachWebSearchOpt">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-              </svg>
-              <span>Search the web</span>
-            </button>
-            <button type="button" class="attach-item-btn" id="attachImageGenOpt">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72Z"/>
-              </svg>
-              <span>Create image</span>
-            </button>
-          </div>
-
-          <!-- Hidden File Inputs -->
-          <input type="file" id="fileUploadInput" multiple style="display:none;" accept="*/*">
-
         </div>
 
         <div class="composer-legal-note" id="legalDisclaimer">
@@ -2065,10 +2116,11 @@
       }
     }
 
-    function openAuthDialog(mode = "login") {
+    function openAuthDialog(mode = "login", customSubText = null) {
       authMode = mode;
       const backdrop = document.getElementById("authDialogBackdrop");
       const title = document.getElementById("authTitleText");
+      const subText = document.getElementById("authSubText");
       const nameInput = document.getElementById("authNameInput");
       const submitBtn = document.getElementById("authSubmitBtn");
       const promptText = document.getElementById("authSwitchPrompt");
@@ -2079,6 +2131,7 @@
 
       if (mode === "signup") {
         title.textContent = "Create an account";
+        if (subText) subText.textContent = customSubText || "Sign up to continue chatting with ChatGPT.";
         nameInput.style.display = "block";
         nameInput.required = true;
         submitBtn.textContent = "Sign up";
@@ -2086,6 +2139,7 @@
         switchBtn.textContent = "Log in";
       } else {
         title.textContent = "Welcome back";
+        if (subText) subText.textContent = customSubText || "Log in with your account to continue chatting.";
         nameInput.style.display = "none";
         nameInput.required = false;
         submitBtn.textContent = "Continue";
@@ -2297,6 +2351,34 @@
       else renderHistoryList();
     }
 
+    let isTemporaryChat = false;
+
+    function updateComposerPosition() {
+      const feedRows = document.querySelectorAll(".chatgpt-row");
+      const hasMessages = (messagesHistory && messagesHistory.length > 0) || feedRows.length > 0;
+      const main = document.querySelector(".chatgpt-main");
+      const welcome = document.getElementById("welcomeScreen");
+      const centerSlot = document.getElementById("composerSlotCenter");
+      const bottomSlot = document.getElementById("composerSlotBottom");
+      const composer = document.getElementById("composerPill");
+
+      if (!main || !composer) return;
+
+      if (hasMessages) {
+        main.classList.remove("empty-state");
+        if (welcome) welcome.style.display = "none";
+        if (bottomSlot && !bottomSlot.contains(composer)) {
+          bottomSlot.appendChild(composer);
+        }
+      } else {
+        main.classList.add("empty-state");
+        if (welcome) welcome.style.display = "flex";
+        if (centerSlot && !centerSlot.contains(composer)) {
+          centerSlot.appendChild(composer);
+        }
+      }
+    }
+
     function loadChatSession(id) {
       const sessions = loadSessions();
       const sess = sessions.find(s => s.id === id);
@@ -2317,6 +2399,7 @@
         }
       });
 
+      updateComposerPosition();
       renderHistoryList();
       scrollToBottom();
       if (window.innerWidth <= 768) closeSidebar();
@@ -2330,16 +2413,21 @@
       if (feed && welcome) {
         feed.innerHTML = "";
         feed.appendChild(welcome);
-        welcome.style.display = "flex";
       }
+      updateComposerPosition();
       const input = document.getElementById("messageInput");
-      if (input) input.value = "";
+      if (input) {
+        input.value = "";
+        input.style.height = "auto";
+        input.focus();
+      }
       updateSendButtonState();
       renderHistoryList();
       if (window.innerWidth <= 768) closeSidebar();
     }
 
     function persistSession() {
+      if (isTemporaryChat) return; // Do not persist temporary chats
       if (!messagesHistory || messagesHistory.length < 2) return;
       const sessions = loadSessions();
       const now = Date.now();
@@ -2510,6 +2598,22 @@
       return html;
     }
 
+    function renderAssistantBubble(text, isStreaming = false) {
+      const { content, toolbar } = createAssistantRow();
+      content.innerHTML = formatAssistantContent(text, isStreaming);
+      enhanceCodeBlocks(content);
+      toolbar.style.display = "flex";
+      toolbar.querySelector(".copy-btn")?.addEventListener("click", () => {
+        const { cleanText } = extractThoughts(text);
+        navigator.clipboard.writeText(cleanText || text);
+        showToast("Copied to clipboard");
+      });
+      toolbar.querySelector(".tts-btn")?.addEventListener("click", () => {
+        const { cleanText } = extractThoughts(text);
+        readAloud(cleanText || text);
+      });
+    }
+
     // Chat Send & Streaming Engine
     async function sendMessage() {
       if (isGenerating) {
@@ -2523,12 +2627,12 @@
 
       const token = getAuthToken();
 
-      // Check Guest Limit: 2 messages without login
+      // Check Guest Limit: strictly 2 messages allowed without login
       if (!token) {
         const guestCount = getGuestCount();
         if (guestCount >= 2) {
-          openAuthDialog("signup");
-          showToast("Please sign up or log in to continue chatting.");
+          openAuthDialog("signup", "You've reached the free guest limit of 2 messages. Please create a free account or log in to continue chatting with ChatGPT.");
+          showToast("Guest limit reached (2/2). Please sign in to continue.");
           return;
         }
       }
@@ -2547,21 +2651,24 @@
         updateChipsUI();
       }
 
-      // Render user bubble
+      // Render user bubble and immediately dock composer
+      let fullPrompt = text;
+      if (webContext) fullPrompt += `\n\n[Live Search Context]:\n${webContext}`;
+      messagesHistory.push({ role: "user", content: fullPrompt });
+
       renderUserBubble(text);
+      updateComposerPosition();
       input.value = "";
       input.style.height = "auto";
       updateSendButtonState();
       soundEngine.send();
 
       if (!token) {
-        incrementGuestCount();
+        const c = incrementGuestCount();
+        if (c === 2) {
+          showToast("You've used your 2 free guest messages! Sign in to continue unlimited chatting.");
+        }
       }
-
-      let fullPrompt = text;
-      if (webContext) fullPrompt += `\n\n[Live Search Context]:\n${webContext}`;
-
-      messagesHistory.push({ role: "user", content: fullPrompt });
 
       const { content, toolbar, row } = createAssistantRow();
       isGenerating = true;
@@ -2588,9 +2695,10 @@
 
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}));
-          if (res.status === 401 && errData.code === "GUEST_LIMIT_REACHED") {
-            content.innerHTML = `<span style="color:var(--danger);">${errData.error}</span>`;
-            openAuthDialog("signup");
+          if (res.status === 401 && (errData.code === "GUEST_LIMIT_REACHED" || (errData.error && errData.error.includes("বার্তা শেষ")))) {
+            if (row) row.remove();
+            openAuthDialog("signup", "আপনার ২টি ফ্রি বার্তা শেষ হয়েছে। চ্যাট চালিয়ে যেতে অনুগ্রহ করে সাইন-আপ বা লগইন করুন।");
+            showToast("২টি ফ্রি বার্তা শেষ হয়েছে। অনুগ্রহ করে লগইন বা সাইন-আপ করুন।");
             return;
           }
           throw new Error(errData.error || `Server error (${res.status})`);
@@ -2856,6 +2964,7 @@
       syncUserUI();
       renderHistoryList();
       initVoice();
+      updateComposerPosition();
 
       // Sidebar Toggles
       document.getElementById("sidebarCollapseBtn")?.addEventListener("click", toggleSidebar);
@@ -2877,17 +2986,46 @@
         document.addEventListener("click", (e) => {
           if (!modelMenu.contains(e.target)) modelMenu.classList.remove("open");
         });
-        document.querySelectorAll(".model-option-item").forEach(item => {
+        document.querySelectorAll(".model-option-item[data-model]").forEach(item => {
           item.addEventListener("click", () => {
             selectedModel = item.getAttribute("data-model");
             localStorage.setItem(KEYS.SELECTED_MODEL, selectedModel);
-            document.querySelectorAll(".model-option-item").forEach(i => i.classList.remove("selected"));
+            document.querySelectorAll(".model-option-item[data-model]").forEach(i => {
+              i.classList.remove("selected");
+              const chk = i.querySelector(".model-opt-check");
+              if (chk) chk.style.display = "none";
+            });
             item.classList.add("selected");
-            const title = item.querySelector(".model-opt-title")?.textContent || "ChatGPT";
-            document.getElementById("headerModelLabel").textContent = title.split(" ")[0];
+            const activeChk = item.querySelector(".model-opt-check");
+            if (activeChk) activeChk.style.display = "block";
+
+            const label = item.getAttribute("data-label") || "ChatGPT";
+            document.getElementById("headerModelLabel").textContent = isTemporaryChat ? `${label} (Temp)` : label;
             modelMenu.classList.remove("open");
-            showToast(`${title} selected`);
+            showToast(`${label} selected`);
           });
+        });
+
+        // Temporary Chat Toggle
+        document.getElementById("tempChatToggleItem")?.addEventListener("click", (e) => {
+          e.stopPropagation();
+          isTemporaryChat = !isTemporaryChat;
+          const ind = document.getElementById("tempToggleIndicator");
+          const circle = document.getElementById("tempToggleCircle");
+          const headerLabel = document.getElementById("headerModelLabel");
+          const baseLabel = selectedModel === "openai/gpt-oss-120b" ? "ChatGPT Plus" : "ChatGPT";
+
+          if (isTemporaryChat) {
+            if (ind) ind.style.background = "#10a37f";
+            if (circle) circle.style.transform = "translateX(16px)";
+            if (headerLabel) headerLabel.textContent = `${baseLabel} (Temp)`;
+            showToast("Temporary chat enabled. Messages won't be saved.");
+          } else {
+            if (ind) ind.style.background = "rgba(255,255,255,0.15)";
+            if (circle) circle.style.transform = "translateX(0)";
+            if (headerLabel) headerLabel.textContent = baseLabel;
+            showToast("Temporary chat disabled.");
+          }
         });
       }
 
