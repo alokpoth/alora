@@ -17,69 +17,87 @@
   <style>
     :root {
       --bg-base: #000000;
-      --bg-card: #18181b;
+      --bg-card: #121214;
+      --bg-card-elevated: #18181b;
       --bg-card-hover: #222226;
       --border-card: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.16);
       --border-divider: rgba(255, 255, 255, 0.06);
       --text-main: #ffffff;
-      --text-sub: #71717a;
-      --text-dim: #a1a1aa;
+      --text-sub: #a1a1aa;
+      --text-dim: #71717a;
       --accent-blue: #3b82f6;
       --accent-blue-hover: #2563eb;
       --accent-danger: #ef4444;
+      --danger-bg: rgba(239, 68, 68, 0.1);
+      --success-green: #10b981;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
       --font-main: 'Plus Jakarta Sans', 'Hind Siliguri', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
 
     [data-theme="dark"] {
       --bg-base: #09090b;
-      --bg-card: #18181b;
-      --bg-card-hover: #222226;
+      --bg-card: #141416;
+      --bg-card-elevated: #1a1a1e;
+      --bg-card-hover: #242428;
       --border-card: rgba(255, 255, 255, 0.08);
-      --border-divider: rgba(255, 255, 255, 0.06);
-      --text-main: #ffffff;
-      --text-sub: #71717a;
+      --border-strong: rgba(255, 255, 255, 0.18);
     }
 
     [data-theme="oled"] {
       --bg-base: #000000;
-      --bg-card: #111113;
-      --bg-card-hover: #1c1c1f;
-      --border-card: rgba(255, 255, 255, 0.12);
-      --border-divider: rgba(255, 255, 255, 0.06);
-      --text-main: #ffffff;
-      --text-sub: #71717a;
+      --bg-card: #0a0a0c;
+      --bg-card-elevated: #121215;
+      --bg-card-hover: #1c1c20;
+      --border-card: rgba(255, 255, 255, 0.1);
+      --border-strong: rgba(255, 255, 255, 0.2);
     }
 
     [data-theme="sapphire"] {
-      --bg-base: #070d19;
-      --bg-card: #0f1c32;
-      --bg-card-hover: #152744;
-      --border-card: rgba(56, 189, 248, 0.15);
+      --bg-base: #050811;
+      --bg-card: #0c1426;
+      --bg-card-elevated: #101c34;
+      --bg-card-hover: #162748;
+      --border-card: rgba(56, 189, 248, 0.14);
+      --border-strong: rgba(56, 189, 248, 0.28);
       --border-divider: rgba(56, 189, 248, 0.08);
       --text-main: #f8fafc;
       --text-sub: #94a3b8;
-    }
-
-    [data-theme="eyecare"] {
-      --bg-base: #f5eedc;
-      --bg-card: #eadeca;
-      --bg-card-hover: #dfcfb8;
-      --border-card: rgba(146, 64, 14, 0.15);
-      --border-divider: rgba(146, 64, 14, 0.08);
-      --text-main: #4a3b2c;
-      --text-sub: #7a6b5c;
-      --text-dim: #9e8e7e;
+      --accent-blue: #38bdf8;
+      --accent-blue-hover: #0284c7;
     }
 
     [data-theme="light"] {
       --bg-base: #f4f4f5;
       --bg-card: #ffffff;
-      --bg-card-hover: #f8fafc;
+      --bg-card-elevated: #f8fafc;
+      --bg-card-hover: #f1f5f9;
       --border-card: rgba(0, 0, 0, 0.08);
+      --border-strong: rgba(0, 0, 0, 0.16);
       --border-divider: rgba(0, 0, 0, 0.05);
       --text-main: #09090b;
-      --text-sub: #71717a;
-      --text-dim: #52525b;
+      --text-sub: #52525b;
+      --text-dim: #71717a;
+      --accent-blue: #2563eb;
+      --accent-blue-hover: #1d4ed8;
+      --danger-bg: rgba(239, 68, 68, 0.08);
+    }
+
+    [data-theme="eyecare"] {
+      --bg-base: #f5eedc;
+      --bg-card: #fbf7ef;
+      --bg-card-elevated: #eadeca;
+      --bg-card-hover: #dfcfb8;
+      --border-card: rgba(146, 64, 14, 0.14);
+      --border-strong: rgba(146, 64, 14, 0.26);
+      --border-divider: rgba(146, 64, 14, 0.08);
+      --text-main: #4a3b2c;
+      --text-sub: #7a6b5c;
+      --text-dim: #9e8e7e;
+      --accent-blue: #92400e;
+      --accent-blue-hover: #78350f;
     }
 
     *, *::before, *::after {
@@ -88,11 +106,7 @@
       padding: 0;
       -webkit-tap-highlight-color: transparent !important;
       -webkit-font-smoothing: antialiased;
-    }
-
-    a {
-      text-decoration: none !important;
-      color: inherit;
+      -moz-osx-font-smoothing: grayscale;
     }
 
     body {
@@ -120,8 +134,6 @@
       justify-content: space-between;
       height: calc(56px + env(safe-area-inset-top, 0px));
       padding: env(safe-area-inset-top, 0px) 16px 0 16px;
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
     }
 
     .settings-back-link {
@@ -130,20 +142,26 @@
       gap: 6px;
       color: var(--text-main);
       text-decoration: none;
-      font-size: 1rem;
+      font-size: 0.95rem;
       font-weight: 600;
       cursor: pointer;
-      padding: 6px 8px;
-      border-radius: 8px;
-      transition: opacity 0.15s;
+      padding: 6px 12px;
+      border-radius: var(--radius-md);
+      background: var(--bg-card-elevated);
+      border: 1px solid var(--border-card);
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .settings-back-link:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-strong);
     }
     .settings-back-link:active {
-      opacity: 0.7;
+      transform: scale(0.98);
     }
     .settings-back-link svg {
-      width: 20px;
-      height: 20px;
-      stroke-width: 2.4;
+      width: 18px;
+      height: 18px;
+      stroke-width: 2.2;
       stroke: currentColor;
       fill: none;
       stroke-linecap: round;
@@ -163,18 +181,22 @@
     }
 
     .lang-pill-btn {
-      background: var(--bg-card-hover, rgba(128, 128, 128, 0.08));
+      background: var(--bg-card-elevated);
       border: 1px solid var(--border-card);
       color: var(--text-main);
       font-size: 0.8rem;
-      font-weight: 600;
-      padding: 5px 10px;
-      border-radius: 9999px;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: var(--radius-md);
       cursor: pointer;
-      transition: background 0.15s;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .lang-pill-btn:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--accent-blue);
     }
     .lang-pill-btn:active {
-      opacity: 0.8;
+      transform: scale(0.96);
     }
 
     /* Main Container */
@@ -185,17 +207,45 @@
       padding: 20px 16px 40px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 18px;
     }
 
     .settings-card {
       background: var(--bg-card);
       border: 1px solid var(--border-card);
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+    }
+    [data-theme="light"] .settings-card {
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
     }
 
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title svg {
+      width: 18px;
+      height: 18px;
+      color: var(--accent-blue);
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+    }
+    .card-sub {
+      font-size: 0.84rem;
+      color: var(--text-sub);
+      line-height: 1.45;
+      margin-bottom: 16px;
+    }
+
+    /* Profile Header Section */
     .avatar-section {
       display: flex;
       flex-direction: column;
@@ -206,18 +256,18 @@
     }
 
     .profile-avatar-giant {
-      width: 88px;
-      height: 88px;
+      width: 92px;
+      height: 92px;
       border-radius: 50%;
       background: linear-gradient(135deg, #2563eb, #38bdf8);
       color: #ffffff;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 2.2rem;
+      font-size: 2.4rem;
       font-weight: 800;
-      box-shadow: 0 8px 24px rgba(37, 99, 235, 0.25);
-      border: 2px solid var(--border-card);
+      box-shadow: 0 8px 24px rgba(37, 99, 235, 0.3);
+      border: 2px solid var(--border-strong);
       overflow: hidden;
       flex-shrink: 0;
       position: relative;
@@ -231,7 +281,7 @@
     }
 
     .profile-name-text {
-      font-size: 1.25rem;
+      font-size: 1.3rem;
       font-weight: 700;
       color: var(--text-main);
     }
@@ -250,45 +300,71 @@
     }
 
     .badge-pill {
-      font-size: 0.78rem;
-      padding: 3px 10px;
-      border-radius: 9999px;
-      font-weight: 600;
+      font-size: 0.76rem;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-weight: 700;
       background: rgba(59, 130, 246, 0.15);
       color: #60a5fa;
       border: 1px solid rgba(59, 130, 246, 0.3);
+      letter-spacing: 0.02em;
     }
     .badge-pill.plan {
-      background: var(--bg-card-hover, rgba(128, 128, 128, 0.08));
+      background: var(--bg-card-elevated);
       color: var(--text-sub);
       border: 1px solid var(--border-card);
     }
 
-    /* Avatar Picker Card */
-    .avatar-picker-card {
+    /* Custom Avatar Upload Button */
+    .avatar-upload-row {
       display: flex;
-      flex-direction: column;
-      gap: 14px;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      padding: 12px;
+      background: var(--bg-card-elevated);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-md);
     }
-    .picker-header {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
+    .upload-avatar-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--accent-blue);
+      color: #ffffff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s;
     }
-    .picker-title {
-      font-size: 1rem;
-      font-weight: 700;
-      color: var(--text-main);
+    .upload-avatar-btn:hover {
+      background: var(--accent-blue-hover);
     }
-    .picker-sub {
-      font-size: 0.82rem;
-      color: var(--text-sub);
-      line-height: 1.4;
+    .upload-avatar-btn:active {
+      transform: scale(0.97);
     }
+    .upload-avatar-btn svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+    }
+    .upload-hint-text {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      line-height: 1.35;
+    }
+
+    /* Avatar Grid */
     .avatar-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+      gap: 10px;
       padding-top: 4px;
     }
     .avatar-option {
@@ -297,7 +373,7 @@
       width: 100%;
       border-radius: 50%;
       border: 2px solid var(--border-card);
-      background: var(--bg-card-hover, rgba(128, 128, 128, 0.08));
+      background: var(--bg-card-elevated);
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -309,12 +385,12 @@
     }
     .avatar-option:hover {
       transform: scale(1.08);
-      border-color: rgba(59, 130, 246, 0.5);
+      border-color: rgba(59, 130, 246, 0.6);
     }
     .avatar-option.selected {
       border-color: var(--accent-blue);
       box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35);
-      transform: scale(1.05);
+      transform: scale(1.04);
     }
     .avatar-option img {
       width: 100%;
@@ -326,7 +402,7 @@
     }
     .avatar-option.default-initial {
       font-weight: 800;
-      font-size: 1.2rem;
+      font-size: 1.15rem;
       color: #ffffff;
       background: linear-gradient(135deg, #2563eb, #38bdf8);
       border-color: transparent;
@@ -351,47 +427,80 @@
       display: flex;
     }
 
+    /* Forms */
     .form-group {
       margin-bottom: 16px;
     }
-
     .form-label {
       display: block;
       font-size: 0.88rem;
       font-weight: 600;
       color: var(--text-sub);
-      margin-bottom: 8px;
+      margin-bottom: 7px;
+    }
+
+    .input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 100%;
     }
 
     .form-input {
       width: 100%;
       height: 48px;
       padding: 0 16px;
-      background: var(--bg-card-hover, rgba(128, 128, 128, 0.08));
+      background: var(--bg-card-elevated);
       border: 1px solid var(--border-card);
-      border-radius: 12px;
+      border-radius: var(--radius-md);
       color: var(--text-main);
-      font-size: 0.98rem;
+      font-size: 0.95rem;
       font-family: inherit;
       outline: none;
       transition: border-color 0.15s, box-shadow 0.15s;
     }
     .form-input::placeholder {
-      color: var(--text-sub);
+      color: var(--text-dim);
     }
     .form-input:focus {
       border-color: var(--accent-blue);
       box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
     }
+    .form-input.is-invalid {
+      border-color: var(--accent-danger) !important;
+      box-shadow: 0 0 0 3px var(--danger-bg) !important;
+    }
+    .input-wrap .form-input.has-toggle {
+      padding-right: 46px;
+    }
+
+    .pass-toggle-btn {
+      position: absolute;
+      right: 10px;
+      width: 32px;
+      height: 32px;
+      border: none;
+      background: transparent;
+      color: var(--text-dim);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      transition: color 0.15s;
+    }
+    .pass-toggle-btn:hover {
+      color: var(--text-main);
+    }
 
     .btn-submit {
       width: 100%;
-      height: 48px;
-      border-radius: 12px;
+      height: 46px;
+      border-radius: var(--radius-md);
       background: var(--accent-blue);
       color: #ffffff;
       border: none;
-      font-size: 1rem;
+      font-size: 0.98rem;
       font-weight: 600;
       font-family: inherit;
       cursor: pointer;
@@ -399,7 +508,7 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      transition: background 0.15s;
+      transition: background 0.15s, opacity 0.15s;
       margin-top: 10px;
     }
     .btn-submit:hover {
@@ -415,189 +524,78 @@
 
     .help-hint {
       font-size: 0.82rem;
-      color: var(--text-sub);
-      line-height: 1.5;
-      margin-top: 12px;
+      color: var(--text-dim);
+      line-height: 1.45;
+      margin-top: 10px;
     }
 
-    /* Light Mode Theme Refinements */
-    [data-theme="light"] .settings-card {
-      background: #ffffff !important;
-      border: 1px solid rgba(0, 0, 0, 0.08) !important;
-      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03) !important;
-    }
-    [data-theme="light"] .profile-name-text {
-      color: #09090b !important;
-    }
-    [data-theme="light"] .form-input {
-      background: #f4f4f5 !important;
-      border: 1px solid rgba(0, 0, 0, 0.12) !important;
-      color: #09090b !important;
-    }
-    [data-theme="light"] .form-input:focus {
-      background: #ffffff !important;
-      border-color: #2563eb !important;
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
-    }
-    [data-theme="light"] .avatar-option {
-      background: #f4f4f5 !important;
-      border-color: rgba(0, 0, 0, 0.1) !important;
-    }
-    [data-theme="light"] .avatar-option.selected {
-      border-color: #2563eb !important;
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25) !important;
-    }
-    [data-theme="light"] .avatar-option-badge {
-      border-color: #ffffff !important;
-    }
-    [data-theme="light"] .badge-pill.plan {
-      background: #f4f4f5 !important;
-      color: #71717a !important;
-      border: 1px solid rgba(0, 0, 0, 0.08) !important;
-    }
-    [data-theme="light"] .badge-pill {
-      background: rgba(37, 99, 235, 0.1) !important;
-      color: #2563eb !important;
-      border: 1px solid rgba(37, 99, 235, 0.2) !important;
-    }
-    [data-theme="light"] .lang-pill-btn {
-      background: #f4f4f5 !important;
-      border-color: rgba(0, 0, 0, 0.1) !important;
-      color: #09090b !important;
-    }
-
-    /* Eyecare Mode Theme Refinements */
-    [data-theme="eyecare"] .settings-card {
-      background: #fbf7ef !important;
-      border: 1px solid rgba(146, 64, 14, 0.15) !important;
-      box-shadow: 0 4px 20px -2px rgba(74, 59, 44, 0.06) !important;
-    }
-    [data-theme="eyecare"] .profile-name-text {
-      color: #4a3b2c !important;
-    }
-    [data-theme="eyecare"] .form-input {
-      background: #f5eedc !important;
-      border: 1px solid rgba(146, 64, 14, 0.2) !important;
-      color: #4a3b2c !important;
-    }
-    [data-theme="eyecare"] .form-input:focus {
-      background: #ffffff !important;
-      border-color: #92400e !important;
-      box-shadow: 0 0 0 3px rgba(146, 64, 14, 0.18) !important;
-    }
-    [data-theme="eyecare"] .avatar-option {
-      background: #f5eedc !important;
-      border-color: rgba(146, 64, 14, 0.2) !important;
-    }
-    [data-theme="eyecare"] .avatar-option.selected {
-      border-color: #92400e !important;
-      box-shadow: 0 0 0 3px rgba(146, 64, 14, 0.25) !important;
-    }
-    [data-theme="eyecare"] .avatar-option-badge {
-      background: #92400e !important;
-      border-color: #fbf7ef !important;
-    }
-    [data-theme="eyecare"] .btn-submit {
-      background: #92400e !important;
-    }
-
-    /* Toast */
+    /* Toast Notification */
     .toast {
       position: fixed;
       bottom: max(20px, env(safe-area-inset-bottom, 20px));
       left: 50%;
       transform: translateX(-50%);
       padding: 10px 18px;
-      border-radius: 9999px;
+      border-radius: var(--radius-md);
       font-size: 0.88rem;
-      font-weight: 500;
+      font-weight: 600;
       color: #ffffff;
-      background: rgba(24, 24, 27, 0.95);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      background: rgba(20, 20, 24, 0.96);
+      border: 1px solid var(--border-strong);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
       z-index: 1000;
       display: none;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
       white-space: nowrap;
+      animation: toastIn 0.2s ease;
     }
-    .toast.success { border-color: #10b981; }
-    .toast.error { border-color: #ef4444; }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translate(-50%, 8px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
+    .toast.success { border-color: var(--success-green); color: #6ee7b7; }
+    .toast.error { border-color: var(--accent-danger); color: #fca5a5; }
+    .toast.info { border-color: var(--accent-blue); color: #93c5fd; }
   
-    /* Universal Ultra-Rounded Pill Buttons & Inputs (No Square Corners Anywhere) */
-    button, .btn, .btn-primary, .btn-secondary, .page-back-btn, .option-card, .btn-test-sound, .auth-btn, .download-btn, .plan-cta-btn, .plan-toggle-btn {
-      border-radius: 9999px !important;
+    /* Clean Modern Controls (Vercel/Linear Design System) */
+    button, .btn, .btn-primary, .btn-secondary, .page-back-btn, .option-card, .btn-test-sound, .auth-btn, .download-btn, .plan-cta-btn, .plan-toggle-btn, .pill-btn, .tab-btn, .cta-btn, .submit-btn, .back-btn, .settings-back-link {
+      border-radius: 9px !important;
       transform: none !important;
-      transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+      transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease !important;
     }
     button:hover, .btn:hover, .btn-primary:hover, .btn-secondary:hover, .page-back-btn:hover, .option-card:hover, .btn-test-sound:hover, .auth-btn:hover, .download-btn:hover {
-      transform: none !important; /* ZERO vertical hover lift! */
-      box-shadow: 0 6px 20px -2px rgba(0, 0, 0, 0.2), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.45) !important;
+      transform: none !important;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18) !important;
     }
     button:active, .btn:active, .btn-primary:active, .btn-secondary:active, .page-back-btn:active, .option-card:active, .btn-test-sound:active, .auth-btn:active, .download-btn:active {
-      transform: scale(0.96) !important;
+      transform: scale(0.975) !important;
     }
-    input, .auth-input, .custom-dialog-input {
-      border-radius: 9999px !important;
+    input, .auth-input, .custom-dialog-input, .search-input {
+      border-radius: 10px !important;
     }
-    .card, .auth-card, .plan-card, .profile-card, .settings-group, .settings-card, .help-card, .modal-sheet, .custom-dialog-box {
-      border-radius: 28px !important;
+    .card, .auth-card, .plan-card, .profile-card, .settings-group, .settings-card, .help-card, .modal-sheet, .custom-dialog-box, .content-card, .feature-card, .modal-box, .glass-panel, .info-box, .account-card {
+      border-radius: 14px !important;
     }
-
-  
-    /* ==========================================================================
-       GLISSE DESIGN SYSTEM (Liquid Glass & Ultra-Rounded Overrides)
-       - Strict zero hover vertical displacement (transform: translateY OFF)
-       - Ultra-rounded pills (border-radius: 9999px) on all buttons & inputs
-       - Rounded squircles (border-radius: 20px) on panels, cards, sheets
-       - Exactly 3 theme modes: OLED (Dark), Light, Eye Care
-       ========================================================================== */
-    *:hover {
-      transform: none !important;
-    }
-    button:active, a:active, .btn:active, .icon-btn:active, .action-btn:active {
-      transform: scale(0.97) !important;
-      transition: transform 0.08s ease !important;
-    }
-    button, .btn, .btn-primary, .btn-secondary, .icon-btn, .action-btn,
-    .settings-back-link, .lang-pill-btn, .back-btn, input, .search-input,
-    .pill-btn, .tab-btn, .cta-btn, .plan-cta-btn, .download-btn, .submit-btn,
-    .badge, .status-pill, .role-pill, .filter-chip, .page-back-link {
-      border-radius: 9999px !important;
-    }
-    .card, .content-card, .plan-card, .feature-card, .settings-group,
-    .modal-sheet, .modal-box, .glass-panel, .info-box, .account-card {
-      border-radius: 20px !important;
+    .badge, .status-pill, .role-pill, .filter-chip {
+      border-radius: 6px !important;
     }
 
 </style>
-<script>
-  (function() {
-    try {
-      var saved = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "system";
-      if (saved === "system") {
-        var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        saved = isDark ? "dark" : "light";
+
+  <script>
+    (function() {
+      try {
+        var saved = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "oled";
+        if (saved !== "light" && saved !== "eyecare" && saved !== "sapphire") saved = "oled";
+        document.documentElement.setAttribute("data-theme-mode", saved);
+        document.documentElement.setAttribute("data-theme", saved);
+      } catch(e) {}
+      if (window.location.pathname.endsWith('.html')) {
+        var clean = window.location.pathname.replace(/\.html$/, '');
+        if (clean === '/index') clean = '/';
+        window.history.replaceState(null, '', clean + window.location.search + window.location.hash);
       }
-      document.documentElement.setAttribute("data-theme", saved);
-    } catch(e) {}
-    if (window.location.pathname.endsWith('.html')) {
-      var clean = window.location.pathname.replace(/\.html$/, '');
-      if (clean === '/index') clean = '/';
-      window.history.replaceState(null, '', clean + window.location.search + window.location.hash);
-    }
-  })();
-</script>
-<script>
-  (function() {
-    try {
-      var saved = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "oled";
-      if (saved !== "light" && saved !== "eyecare") saved = "oled";
-      document.documentElement.setAttribute("data-theme-mode", saved);
-      document.documentElement.setAttribute("data-theme", saved);
-    } catch(e) {}
-  })();
-</script>
+    })();
+  </script>
 </head>
 <body>
   <div id="toastEl" class="toast"></div>
@@ -619,7 +617,7 @@
   <main class="content-container">
     <!-- Avatar & Overview Card -->
     <div class="settings-card avatar-section">
-      <div class="profile-avatar-giant" id="avatarLetter">Z</div>
+      <div class="profile-avatar-giant" id="avatarLetter">U</div>
       <div class="profile-name-text" id="profileDisplayName">User</div>
       <div class="user-email-text" id="profileEmailDisplay">user@example.com</div>
       <div class="badges-row">
@@ -628,29 +626,94 @@
       </div>
     </div>
 
-    <!-- Avatar Selection Card -->
+    <!-- Avatar Selection & Upload Card -->
     <div class="settings-card avatar-picker-card">
-      <div class="picker-header">
-        <div class="picker-title" id="avatarPickerTitle">Choose Avatar</div>
-        <div class="picker-sub" id="avatarPickerSub">Select a minimal avatar or use your name initial</div>
+      <div class="card-title">
+        <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        <span id="avatarPickerTitle">Profile Avatar</span>
       </div>
+      <div class="card-sub" id="avatarPickerSub">Upload a custom profile photo or choose from minimal avatars</div>
+
+      <!-- Upload Custom Photo Option -->
+      <div class="avatar-upload-row">
+        <input type="file" id="avatarFileInput" accept="image/png, image/jpeg, image/webp" style="display:none;">
+        <button type="button" class="upload-avatar-btn" id="uploadAvatarBtn">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <span id="uploadPhotoText">Upload Photo</span>
+        </button>
+        <div class="upload-hint-text" id="uploadHintText">Supports PNG, JPG, WebP. Automatically optimized.</div>
+      </div>
+
       <div class="avatar-grid" id="avatarGrid"></div>
     </div>
 
     <!-- Edit Profile Form Card -->
     <div class="settings-card">
-      <form id="profileUpdateForm">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span id="profileDetailsTitle">Account Details</span>
+      </div>
+      <form id="profileUpdateForm" novalidate>
         <div class="form-group">
           <label class="form-label" id="editNameLabel" for="editNameInput">Full Name</label>
           <input type="text" class="form-input" id="editNameInput" placeholder="Enter your full name" maxlength="50" required autocomplete="name">
+        </div>
+        <div class="form-group">
+          <label class="form-label" id="editEmailLabel" for="editEmailInput">Email Address</label>
+          <input type="email" class="form-input" id="editEmailInput" placeholder="name@example.com" required autocomplete="email">
         </div>
         <button type="submit" class="btn-submit" id="saveNameBtn">
           <span id="saveBtnText">Save Changes</span>
         </button>
       </form>
       <p class="help-hint" id="profileHintText">
-        Your name will be visible across chats, shared sessions, and account summaries in Alora.
+        Your name and email are synchronized across chats, shared sessions, and account summaries in Alora.
       </p>
+    </div>
+
+    <!-- Change Password Card -->
+    <div class="settings-card">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <span id="passwordSectionTitle">Change Password</span>
+      </div>
+      <div class="card-sub" id="passwordSectionSub">Ensure your account is protected with a strong password</div>
+
+      <form id="passwordUpdateForm" novalidate>
+        <div class="form-group">
+          <label class="form-label" id="curPassLabel" for="curPassInput">Current Password</label>
+          <div class="input-wrap">
+            <input type="password" class="form-input has-toggle" id="curPassInput" placeholder="Your current password" required autocomplete="current-password">
+            <button type="button" class="pass-toggle-btn" data-target="curPassInput" aria-label="Toggle password visibility">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" id="newPassLabel" for="newPassInput">New Password</label>
+          <div class="input-wrap">
+            <input type="password" class="form-input has-toggle" id="newPassInput" placeholder="At least 6 characters" required autocomplete="new-password">
+            <button type="button" class="pass-toggle-btn" data-target="newPassInput" aria-label="Toggle password visibility">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" id="cnfPassLabel" for="cnfPassInput">Confirm New Password</label>
+          <div class="input-wrap">
+            <input type="password" class="form-input has-toggle" id="cnfPassInput" placeholder="Re-enter new password" required autocomplete="new-password">
+            <button type="button" class="pass-toggle-btn" data-target="cnfPassInput" aria-label="Toggle password visibility">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit" id="updatePassBtn">
+          <span id="updatePassBtnText">Update Password</span>
+        </button>
+      </form>
     </div>
   </main>
 
@@ -658,7 +721,7 @@
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const BACKEND_URL = (isLocal && window.location.port === '5000') 
       ? window.location.origin 
-      : (isLocal ? 'http://localhost:5000' : (window.location.origin.includes('vercel.app') ? window.location.origin : 'https://alora-backend-emw3.onrender.com'));
+      : (window.location.origin.includes('vercel.app') ? window.location.origin : 'https://alora-backend-emw3.onrender.com');
     const API_BASE = BACKEND_URL + "/api";
 
     const token = localStorage.getItem("alokpoth_token");
@@ -667,10 +730,6 @@
     }
 
     let currentLanguage = localStorage.getItem("alokpoth_lang") || "en";
-    const rawSavedTheme = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "system";
-    const isDarkProfile = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const savedTheme = (rawSavedTheme === "system") ? (isDarkProfile ? "dark" : "light") : rawSavedTheme;
-    document.documentElement.setAttribute("data-theme", savedTheme);
 
     const MINIMAL_AVATARS = [
       { id: "default", path: "default", name: "Letter Initial", isInitial: true },
@@ -687,42 +746,85 @@
       { id: "avatar_11.svg", path: "avatars/avatar_11.svg", name: "Neon Bolt" },
       { id: "avatar_12.svg", path: "avatars/avatar_12.svg", name: "Night Moon" }
     ];
+
     let selectedAvatar = "default";
 
     const I18N = {
       bn: {
         back: "সেটিংস",
         pageTitle: "প্রোফাইল পরিবর্তন",
-        avatarTitle: "অবতার নির্বাচন করুন",
-        avatarSub: "একটি মিনিমাল অবতার বা নামের প্রথম অক্ষর বেছে নিন",
+        avatarTitle: "প্রোফাইল অবতার",
+        avatarSub: "কাস্টম ছবি আপলোড করুন অথবা মিনিমাল অবতার নির্বাচন করুন",
+        uploadPhoto: "ছবি আপলোড",
+        uploadHint: "PNG, JPG, WebP সমর্থিত। স্বয়ংক্রিয়ভাবে অপ্টিমাইজড।",
+        customAvatar: "কাস্টম ছবি",
         initialOption: "অক্ষর",
+        accountDetails: "অ্যাকাউন্টের তথ্য",
         editNameLabel: "পূর্ণ নাম",
-        placeholder: "আপনার পূর্ণ নাম লিখুন",
+        placeholderName: "আপনার পূর্ণ নাম লিখুন",
+        editEmailLabel: "ইমেইল ঠিকানা",
+        placeholderEmail: "name@example.com",
         saveBtn: "সংরক্ষণ করুন",
         saving: "সংরক্ষণ হচ্ছে...",
-        hint: "আপনার নামটি Alora-এর চ্যাট, শেয়ার্ড সেশন ও অ্যাকাউন্টের তথ্যে প্রদর্শিত হবে।",
+        hint: "আপনার নাম ও ইমেইল Alora-এর চ্যাট, শেয়ার্ড সেশন ও অ্যাকাউন্টের তথ্যে প্রদর্শিত হবে।",
         success: "প্রোফাইল সফলভাবে আপডেট হয়েছে!",
         emptyErr: "নাম ফাঁকা রাখা যাবে না",
+        emailErr: "অনুগ্রহ করে একটি সঠিক ইমেইল ঠিকানা দিন",
         serverErr: "সার্ভারের সাথে যোগাযোগ করা যায়নি",
         member: "সদস্য",
-        admin: "Admin"
+        admin: "Admin",
+        passTitle: "পাসওয়ার্ড পরিবর্তন",
+        passSub: "শক্তিশালী পাসওয়ার্ড দিয়ে আপনার অ্যাকাউন্ট সুরক্ষিত রাখুন",
+        curPassLabel: "বর্তমান পাসওয়ার্ড",
+        curPassPlaceholder: "আপনার বর্তমান পাসওয়ার্ড",
+        newPassLabel: "নতুন পাসওয়ার্ড",
+        newPassPlaceholder: "কমপক্ষে ৬ অক্ষরের নতুন পাসওয়ার্ড",
+        cnfPassLabel: "নতুন পাসওয়ার্ড নিশ্চিত করুন",
+        cnfPassPlaceholder: "পুনরায় নতুন পাসওয়ার্ড লিখুন",
+        updatePassBtn: "পাসওয়ার্ড আপডেট করুন",
+        updatingPass: "আপডেট হচ্ছে...",
+        passEmpty: "সবগুলো ঘর পূরণ করুন",
+        passMismatch: "নতুন পাসওয়ার্ড দুটি মিলছে না",
+        passShort: "নতুন পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে",
+        passSuccess: "পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে!"
       },
       en: {
         back: "Settings",
         pageTitle: "Edit Profile",
-        avatarTitle: "Choose Avatar",
-        avatarSub: "Select a minimal avatar or use your initial letter",
+        avatarTitle: "Profile Avatar",
+        avatarSub: "Upload a custom profile photo or choose from minimal avatars",
+        uploadPhoto: "Upload Photo",
+        uploadHint: "Supports PNG, JPG, WebP. Automatically optimized.",
+        customAvatar: "Custom Photo",
         initialOption: "Initial",
+        accountDetails: "Account Details",
         editNameLabel: "Full Name",
-        placeholder: "Enter your full name",
+        placeholderName: "Enter your full name",
+        editEmailLabel: "Email Address",
+        placeholderEmail: "name@example.com",
         saveBtn: "Save Changes",
         saving: "Saving...",
-        hint: "Your name will be visible across chats, shared sessions, and account summaries in Alora.",
+        hint: "Your name and email are synchronized across chats, shared sessions, and account summaries in Alora.",
         success: "Profile updated successfully!",
         emptyErr: "Name cannot be empty",
+        emailErr: "Please enter a valid email address",
         serverErr: "Could not connect to server",
         member: "Member",
-        admin: "Admin"
+        admin: "Admin",
+        passTitle: "Change Password",
+        passSub: "Ensure your account is protected with a strong password",
+        curPassLabel: "Current Password",
+        curPassPlaceholder: "Your current password",
+        newPassLabel: "New Password",
+        newPassPlaceholder: "At least 6 characters",
+        cnfPassLabel: "Confirm New Password",
+        cnfPassPlaceholder: "Re-enter new password",
+        updatePassBtn: "Update Password",
+        updatingPass: "Updating...",
+        passEmpty: "Please fill out all password fields",
+        passMismatch: "New passwords do not match",
+        passShort: "New password must be at least 6 characters",
+        passSuccess: "Password changed successfully!"
       }
     };
 
@@ -732,7 +834,7 @@
       el.textContent = msg;
       el.className = `toast ${type}`;
       el.style.display = "block";
-      setTimeout(() => { el.style.display = "none"; }, 3000);
+      setTimeout(() => { el.style.display = "none"; }, 3200);
     }
 
     function updateAvatarDisplay(avatarPath, name) {
@@ -753,6 +855,28 @@
       const grid = document.getElementById("avatarGrid");
       if (!grid) return;
       grid.innerHTML = "";
+
+      // If user has a custom uploaded avatar (data:image/ or external) not in preset list, add it as first custom tile
+      if (selectedAvatar && selectedAvatar !== "default" && !MINIMAL_AVATARS.some(a => a.path === selectedAvatar)) {
+        const customBtn = document.createElement("button");
+        customBtn.type = "button";
+        customBtn.className = "avatar-option selected";
+        customBtn.dataset.avatar = selectedAvatar;
+        customBtn.title = "Custom Photo";
+        customBtn.innerHTML = `<img src="${selectedAvatar}" alt="Custom Avatar">
+          <span class="avatar-option-badge">
+            <svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </span>`;
+        customBtn.addEventListener("click", () => {
+          document.querySelectorAll(".avatar-option").forEach(b => b.classList.remove("selected"));
+          customBtn.classList.add("selected");
+          const nameInput = document.getElementById("editNameInput");
+          const curName = (nameInput && nameInput.value.trim()) || "U";
+          updateAvatarDisplay(selectedAvatar, curName);
+        });
+        grid.appendChild(customBtn);
+      }
+
       MINIMAL_AVATARS.forEach(item => {
         const btn = document.createElement("button");
         btn.type = "button";
@@ -777,11 +901,66 @@
           document.querySelectorAll(".avatar-option").forEach(b => b.classList.remove("selected"));
           btn.classList.add("selected");
           const nameInput = document.getElementById("editNameInput");
-          const curName = (nameInput && nameInput.value.trim()) || document.getElementById("profileDisplayName")?.textContent || "U";
+          const curName = (nameInput && nameInput.value.trim()) || "U";
           updateAvatarDisplay(selectedAvatar, curName);
         });
 
         grid.appendChild(btn);
+      });
+    }
+
+    // Client-side image compression for custom avatar upload
+    const avatarFileInput = document.getElementById("avatarFileInput");
+    const uploadAvatarBtn = document.getElementById("uploadAvatarBtn");
+
+    if (uploadAvatarBtn && avatarFileInput) {
+      uploadAvatarBtn.addEventListener("click", () => avatarFileInput.click());
+
+      avatarFileInput.addEventListener("change", (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+            const maxDim = 128;
+            let w = img.width;
+            let h = img.height;
+
+            if (w > h) {
+              if (w > maxDim) {
+                h = Math.round((h * maxDim) / w);
+                w = maxDim;
+              }
+            } else {
+              if (h > maxDim) {
+                w = Math.round((w * maxDim) / h);
+                h = maxDim;
+              }
+            }
+
+            canvas.width = w;
+            canvas.height = h;
+            ctx.drawImage(img, 0, 0, w, h);
+
+            // Compress to webp or jpeg < 45KB
+            let dataUrl = canvas.toDataURL("image/webp", 0.82);
+            if (!dataUrl.startsWith("data:image/webp")) {
+              dataUrl = canvas.toDataURL("image/jpeg", 0.82);
+            }
+
+            selectedAvatar = dataUrl;
+            const curName = document.getElementById("editNameInput")?.value || "U";
+            updateAvatarDisplay(selectedAvatar, curName);
+            renderAvatarGrid((curName || "U").charAt(0).toUpperCase());
+            showToast(currentLanguage === "en" ? "Photo ready. Click 'Save Changes' to update profile." : "ছবি প্রস্তুত। প্রোফাইল সংরক্ষণে 'সংরক্ষণ করুন'-এ ক্লিক করুন।", "info");
+          };
+          img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
       });
     }
 
@@ -792,15 +971,41 @@
       document.getElementById("langBtnText").textContent = isEn ? "বাং" : "EN";
       document.getElementById("backText").textContent = d.back;
       document.getElementById("pageTitle").textContent = d.pageTitle;
+      document.title = `${d.pageTitle} — Alora`;
+
       const avatarTitleEl = document.getElementById("avatarPickerTitle");
       if (avatarTitleEl) avatarTitleEl.textContent = d.avatarTitle;
       const avatarSubEl = document.getElementById("avatarPickerSub");
       if (avatarSubEl) avatarSubEl.textContent = d.avatarSub;
+
+      const uploadPhotoText = document.getElementById("uploadPhotoText");
+      if (uploadPhotoText) uploadPhotoText.textContent = d.uploadPhoto;
+      const uploadHintText = document.getElementById("uploadHintText");
+      if (uploadHintText) uploadHintText.textContent = d.uploadHint;
+
+      const profileDetailsTitle = document.getElementById("profileDetailsTitle");
+      if (profileDetailsTitle) profileDetailsTitle.textContent = d.accountDetails;
+
       document.getElementById("editNameLabel").textContent = d.editNameLabel;
-      document.getElementById("editNameInput").placeholder = d.placeholder;
+      document.getElementById("editNameInput").placeholder = d.placeholderName;
+      document.getElementById("editEmailLabel").textContent = d.editEmailLabel;
+      document.getElementById("editEmailInput").placeholder = d.placeholderEmail;
       document.getElementById("saveBtnText").textContent = d.saveBtn;
       document.getElementById("profileHintText").textContent = d.hint;
-      document.title = `${d.pageTitle} — Alora`;
+
+      // Password labels
+      const passTitleEl = document.getElementById("passwordSectionTitle");
+      if (passTitleEl) passTitleEl.textContent = d.passTitle;
+      const passSubEl = document.getElementById("passwordSectionSub");
+      if (passSubEl) passSubEl.textContent = d.passSub;
+
+      document.getElementById("curPassLabel").textContent = d.curPassLabel;
+      document.getElementById("curPassInput").placeholder = d.curPassPlaceholder;
+      document.getElementById("newPassLabel").textContent = d.newPassLabel;
+      document.getElementById("newPassInput").placeholder = d.newPassPlaceholder;
+      document.getElementById("cnfPassLabel").textContent = d.cnfPassLabel;
+      document.getElementById("cnfPassInput").placeholder = d.cnfPassPlaceholder;
+      document.getElementById("updatePassBtnText").textContent = d.updatePassBtn;
     }
 
     function renderUserData(forceInputUpdate = false) {
@@ -823,6 +1028,11 @@
         const editInput = document.getElementById("editNameInput");
         if (editInput && (!editInput.value || forceInputUpdate)) {
           editInput.value = user.name || "";
+        }
+
+        const editEmailInput = document.getElementById("editEmailInput");
+        if (editEmailInput && (!editEmailInput.value || forceInputUpdate)) {
+          editEmailInput.value = user.email || "";
         }
 
         const adminEmails = ["zihanfakir@gmail.com", "x@zihan.uk"];
@@ -868,20 +1078,25 @@
       }
     }
 
-    // Back button smart navigation
-    document.getElementById("backBtn")?.addEventListener("click", (e) => {
-      if (window.history.length > 1 && document.referrer && document.referrer.includes(window.location.host)) {
-        e.preventDefault();
-        window.history.back();
-      }
-    });
-
     // Toggle Language
     document.getElementById("langToggleBtn")?.addEventListener("click", () => {
       currentLanguage = (currentLanguage === "en" ? "bn" : "en");
       try { localStorage.setItem("alokpoth_lang", currentLanguage); } catch {}
       applyI18n();
       renderUserData();
+    });
+
+    // Password Eye Toggles
+    document.querySelectorAll(".pass-toggle-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const targetId = btn.getAttribute("data-target");
+        const inp = document.getElementById(targetId);
+        if (inp) {
+          const isPass = inp.type === "password";
+          inp.type = isPass ? "text" : "password";
+          btn.style.color = isPass ? "var(--accent-blue)" : "var(--text-dim)";
+        }
+      });
     });
 
     // Live update initial on name input
@@ -895,13 +1110,30 @@
       }
     });
 
-    // Save profile form
+    // Save profile form (Name, Avatar, Email)
     document.getElementById("profileUpdateForm")?.addEventListener("submit", async (e) => {
       e.preventDefault();
       const d = I18N[currentLanguage] || I18N.en;
-      const newName = document.getElementById("editNameInput").value.trim();
+      const nameInput = document.getElementById("editNameInput");
+      const emailInput = document.getElementById("editEmailInput");
+      nameInput.classList.remove("is-invalid");
+      emailInput.classList.remove("is-invalid");
+
+      const newName = nameInput.value.trim();
+      const newEmail = emailInput.value.trim().toLowerCase();
+
       if (!newName) {
+        nameInput.classList.add("is-invalid");
         showToast(d.emptyErr, "error");
+        nameInput.focus();
+        return;
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!newEmail || !emailRegex.test(newEmail)) {
+        emailInput.classList.add("is-invalid");
+        showToast(d.emailErr, "error");
+        emailInput.focus();
         return;
       }
 
@@ -917,7 +1149,7 @@
             "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`
           },
-          body: JSON.stringify({ name: newName, avatar: selectedAvatar })
+          body: JSON.stringify({ name: newName, email: newEmail, avatar: selectedAvatar })
         });
         const data = await res.json();
         if (res.ok && data.success) {
@@ -927,6 +1159,7 @@
             try { u = JSON.parse(userStr); } catch {}
           }
           u.name = newName;
+          u.email = newEmail;
           u.avatar = selectedAvatar;
           if (data.user) {
             u = { ...u, ...data.user };
@@ -947,10 +1180,74 @@
       }
     });
 
+    // Password Update Form
+    document.getElementById("passwordUpdateForm")?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const d = I18N[currentLanguage] || I18N.en;
+
+      const curPassInp = document.getElementById("curPassInput");
+      const newPassInp = document.getElementById("newPassInput");
+      const cnfPassInp = document.getElementById("cnfPassInput");
+
+      [curPassInp, newPassInp, cnfPassInp].forEach(i => i.classList.remove("is-invalid"));
+
+      const current_password = curPassInp.value;
+      const new_password = newPassInp.value;
+      const confirm_password = cnfPassInp.value;
+
+      if (!current_password) {
+        curPassInp.classList.add("is-invalid");
+        showToast(d.passEmpty, "error");
+        curPassInp.focus();
+        return;
+      }
+      if (!new_password || new_password.length < 6) {
+        newPassInp.classList.add("is-invalid");
+        showToast(d.passShort, "error");
+        newPassInp.focus();
+        return;
+      }
+      if (new_password !== confirm_password) {
+        cnfPassInp.classList.add("is-invalid");
+        showToast(d.passMismatch, "error");
+        cnfPassInp.focus();
+        return;
+      }
+
+      const updateBtn = document.getElementById("updatePassBtn");
+      const updateBtnText = document.getElementById("updatePassBtnText");
+      updateBtn.disabled = true;
+      updateBtnText.textContent = d.updatingPass;
+
+      try {
+        const res = await fetch(`${API_BASE}/auth/change-password`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({ current_password, new_password, confirm_password })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          curPassInp.value = "";
+          newPassInp.value = "";
+          cnfPassInp.value = "";
+          showToast(data.message || d.passSuccess, "success");
+        } else {
+          showToast(data.error || "Password update failed", "error");
+        }
+      } catch {
+        showToast(d.serverErr, "error");
+      } finally {
+        updateBtn.disabled = false;
+        updateBtnText.textContent = d.updatePassBtn;
+      }
+    });
+
     applyI18n();
     renderUserData();
     syncUserDataFromServer();
   </script>
 </body>
 </html>
-

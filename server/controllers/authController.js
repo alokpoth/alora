@@ -514,9 +514,10 @@ const getMe = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {
-    const { name, avatar } = req.body;
+    const { name, avatar, email } = req.body;
     if (name !== undefined && typeof name !== 'string') return res.status(400).json({ success: false, error: 'অবৈধ নাম' });
     if (avatar !== undefined && typeof avatar !== 'string') return res.status(400).json({ success: false, error: 'অবৈধ প্রোফাইল ছবি' });
+    if (email !== undefined && typeof email !== 'string') return res.status(400).json({ success: false, error: 'অবৈধ ইমেইল ঠিকানা' });
     if (avatar && avatar.length > 50000) return res.status(400).json({ success: false, error: 'ছবির সাইজ অতিরিক্ত বড় (সর্বোচ্চ 50KB)' });
     const isAvatarPreset = avatar && (avatar.startsWith('avatars/') || avatar.startsWith('/avatars/') || /^avatar_\d+\.svg$/.test(avatar));
     if (avatar && avatar !== 'default' && !isAvatarPreset && !avatar.startsWith('data:image/') && !avatar.startsWith('http://') && !avatar.startsWith('https://')) {
@@ -528,6 +529,15 @@ const updateProfile = async (req, res) => {
     const cleanName = name !== undefined ? name.trim().slice(0, 50) : undefined;
     if (cleanName !== undefined && cleanName.length < 2) {
       return res.status(400).json({ success: false, error: 'নাম কমপক্ষে ২ অক্ষরের হতে হবে' });
+    }
+
+    let cleanEmail;
+    if (email !== undefined) {
+      cleanEmail = email.toLowerCase().trim();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(cleanEmail)) {
+        return res.status(400).json({ success: false, error: 'অনুগ্রহ করে একটি সঠিক ইমেইল ঠিকানা দিন' });
+      }
     }
 
     const targetUserId = req.user._id || req.user.id;
@@ -542,6 +552,13 @@ const updateProfile = async (req, res) => {
         user = await User.findOne({ email: req.user.email.toLowerCase().trim() });
       }
       if (user) {
+        if (cleanEmail && cleanEmail !== user.email) {
+          const duplicateUser = await User.findOne({ email: cleanEmail });
+          if (duplicateUser && String(duplicateUser._id) !== String(user._id)) {
+            return res.status(400).json({ success: false, error: 'এই ইমেইল দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট তৈরি আছে' });
+          }
+          user.email = cleanEmail;
+        }
         if (cleanName) user.name = cleanName;
         if (avatar !== undefined) user.avatar = avatar;
         await user.save();
@@ -555,6 +572,7 @@ const updateProfile = async (req, res) => {
           if (pUser) {
             if (cleanName) pUser.name = cleanName;
             if (avatar !== undefined) pUser.avatar = avatar;
+            if (cleanEmail) pUser.email = cleanEmail;
             await savePersistedUsers(users);
           }
           if (memoryStore.users) {
@@ -562,6 +580,7 @@ const updateProfile = async (req, res) => {
             if (mUser) {
               if (cleanName) mUser.name = cleanName;
               if (avatar !== undefined) mUser.avatar = avatar;
+              if (cleanEmail) mUser.email = cleanEmail;
             }
           }
           debouncedSave();
@@ -574,21 +593,30 @@ const updateProfile = async (req, res) => {
       let users = await getPersistedUsers();
       users = [...users];
       const uIdx = users.findIndex(u => String(u._id || u.id) === String(targetUserId));
+      if (cleanEmail) {
+        const dup = users.find(u => u.email && u.email.toLowerCase().trim() === cleanEmail && String(u._id || u.id) !== String(targetUserId));
+        if (dup) {
+          return res.status(400).json({ success: false, error: 'এই ইমেইল দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট তৈরি আছে' });
+        }
+      }
       if (uIdx !== -1) {
         if (cleanName) users[uIdx].name = cleanName;
         if (avatar !== undefined) users[uIdx].avatar = avatar;
+        if (cleanEmail) users[uIdx].email = cleanEmail;
         user = users[uIdx];
         await savePersistedUsers(users);
       } else {
         user = (memoryStore.users && memoryStore.users.find(u => String(u._id || u.id) === String(targetUserId))) || req.user;
         if (cleanName) user.name = cleanName;
         if (avatar !== undefined) user.avatar = avatar;
+        if (cleanEmail) user.email = cleanEmail;
       }
       if (memoryStore.users) {
         const mUser = memoryStore.users.find(u => String(u._id || u.id) === String(targetUserId));
         if (mUser) {
           if (cleanName) mUser.name = cleanName;
           if (avatar !== undefined) mUser.avatar = avatar;
+          if (cleanEmail) mUser.email = cleanEmail;
         }
       }
       debouncedSave();
@@ -719,6 +747,44 @@ const changePassword = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, loginUser, getMe, updateProfile, changePassword };
+const forgotPassword = async (req, res) => {
+  try {
+    const rawEmail = (req.body && (req.body.email || req.body.username)) || '';
+    if (!rawEmail || typeof rawEmail !== 'string') {
+      return res.status(400).json({ success: false, error: 'একটি বৈধ ইমেইল ঠিকানা প্রদান করুন' });
+    }
+    const cleanEmail = rawEmail.toLowerCase().trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanEmail)) {
+      return res.status(400).json({ success: false, error: 'অনুগ্রহ করে একটি সঠিক ইমেইল ঠিকানা দিন' });
+    }
+
+    return res.json({
+      success: true,
+      message: 'পাসওয়ার্ড রিসেটের অনুরোধ গ্রহণ করা হয়েছে। নির্দেশনার জন্য আপনার ইমেইল চেক করুন অথবা সহায়তার জন্য অ্যাডমিনের সাথে যোগাযোগ করুন: x@zihan.uk'
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+const googleAuth = async (req, res) => {
+  try {
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    if (clientId) {
+      const redirectUri = `${req.protocol}://${req.get('host')}/api/auth/google/callback`;
+      const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=openid%20profile%20email`;
+      return res.json({ success: true, url });
+    }
+    return res.status(501).json({
+      success: false,
+      error: 'Google OAuth configuration is currently pending on the server. Please log in with your email and password or continue as Guest.'
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+module.exports = { registerUser, loginUser, getMe, updateProfile, changePassword, forgotPassword, googleAuth };
 
 

@@ -9,6 +9,8 @@ const AiModelSchema = new mongoose.Schema({
   api_key: { type: String, default: '' },
   premium: { type: Boolean, default: false },
   efficient: { type: Boolean, default: false },
+  is_active: { type: Boolean, default: true },
+  context_window: { type: Number, default: 8192 },
   order: { type: Number, default: 0 },
   // Tier 1: Primary API
   api_model_1: { type: String, default: '' },

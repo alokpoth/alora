@@ -75,24 +75,19 @@
     }
 
     *, *::before, *::after {
-      -webkit-user-select: none !important;
-      -moz-user-select: none !important;
-      -ms-user-select: none !important;
-      user-select: none !important;
-      -webkit-touch-callout: none !important;
-      -webkit-tap-highlight-color: transparent !important;
+      -webkit-tap-highlight-color: transparent;
     }
 
     ::selection {
-      background: transparent !important;
+      background: rgba(59, 130, 246, 0.35) !important;
       color: inherit !important;
     }
     ::-moz-selection {
-      background: transparent !important;
+      background: rgba(59, 130, 246, 0.35) !important;
       color: inherit !important;
     }
 
-    input, textarea, [contenteditable="true"] {
+    .user-bubble, .bot-bubble, .message-content, code, pre, .prose, input, textarea, [contenteditable="true"] {
       -webkit-user-select: text !important;
       -moz-user-select: text !important;
       -ms-user-select: text !important;
@@ -100,7 +95,7 @@
       -webkit-touch-callout: default !important;
     }
     input::selection, textarea::selection {
-      background: rgba(255, 255, 255, 0.25) !important;
+      background: rgba(59, 130, 246, 0.35) !important;
       color: inherit !important;
     }
 
@@ -4564,261 +4559,334 @@
       100% { opacity: 1; transform: translateY(0); }
     }
 
-        /* ==========================================================================
-       ALORA ULTRA-ROUNDED LIQUID DESIGN SYSTEM & ANIMATED 3-DOTS ENGINE
-       - Fully rounded capsules and squircles (ZERO square corners anywhere)
-       - ZERO upward hover lifting / jumping (translateY = OFF everywhere)
-       - Iconic expanding 3-dots Model Selector
-       - Luxury frosted glass with specular highlight and tactile spring active press
-       - Full support for all 6 themes (system, dark, oled, sapphire, eyecare, light)
-       - Matrix EncryptedText AI Answer Streaming
+            /* ==========================================================================
+       MODERN PROFESSIONAL DESIGN SYSTEM (ChatGPT, Claude & Linear Standards)
+       - Clean, disciplined border-radii (8px - 16px) with zero distorted 9999px hot-dog pills
+       - Dedicated 50% circular shape ONLY for icon-only action buttons (Send, Mic, Attach)
+       - Crisp, high-contrast borders and pure translucent/solid surfaces (NO oily liquid glare)
+       - Zero vertical hover jumping (translateY = OFF); subtle tactile micro-press
+       - 100% support for all 5 themes: Dark (Obsidian), OLED, Light, Sapphire, Eye Care
+       - Full backward-compatibility with GlisseMenu, Model Selector 3-Dots & Matrix Streaming
        ========================================================================== */
 
-    /* 1. UNIVERSAL ULTRA-ROUNDED PILL SYSTEM FOR STANDALONE BUTTONS */
+    /* 1. BUTTONS & INTERACTIVE CONTROLS */
     .btn,
-    .icon-btn,
-    .icon-circle-btn,
-    .model-selector-btn,
+    .btn-primary,
+    .btn-secondary,
     .drawer-new-chat-btn,
     .drawer-empty-new-chat-btn,
     .custom-dialog-btn,
-    .scroll-bottom-fab,
-    .action-icon-btn,
-    #brandMenuBtn,
-    #quickNewChatNavBtn,
-    .nav-credit-badge,
     .page-back-btn,
     .btn-test-sound,
-    .btn-primary,
-    .btn-secondary,
     .code-action-btn,
     .code-download-btn,
     .account-limits-toggle-btn,
     .quick-prompt-chip,
     .hero-app-banner,
-    .search-pill-clear-btn,
-    .native-tool-btn,
-    .native-mic-btn,
-    #sendBtn {
-      border-radius: 9999px !important;
+    .lang-pill-btn,
+    .native-tool-btn {
+      border-radius: 9px !important;
       position: relative;
-      backdrop-filter: blur(28px) saturate(190%) contrast(104%);
-      -webkit-backdrop-filter: blur(28px) saturate(190%) contrast(104%);
-      border: 1px solid rgba(255, 255, 255, 0.16) !important;
-      box-shadow: 
-        0 4px 14px -2px rgba(0, 0, 0, 0.16),
-        0 1px 3px rgba(0, 0, 0, 0.08),
-        inset 0 1px 1px 0 rgba(255, 255, 255, 0.35),
-        inset 0 -1px 1px 0 rgba(0, 0, 0, 0.12) !important;
-      transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+      border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1)) !important;
+      background: var(--bg-input, #151518);
+      color: var(--text-main, #ffffff);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+      transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease !important;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
-      transform: none !important; /* STRICTLY NO vertical lift on normal state */
+      transform: none !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+
+    .btn:hover,
+    .btn-primary:hover,
+    .btn-secondary:hover,
+    .drawer-new-chat-btn:hover,
+    .drawer-empty-new-chat-btn:hover,
+    .custom-dialog-btn:hover,
+    .page-back-btn:hover,
+    .btn-test-sound:hover,
+    .code-action-btn:hover,
+    .code-download-btn:hover,
+    .account-limits-toggle-btn:hover,
+    .quick-prompt-chip:hover,
+    .hero-app-banner:hover,
+    .lang-pill-btn:hover,
+    .native-tool-btn:hover {
+      background: rgba(255, 255, 255, 0.08) !important;
+      border-color: rgba(255, 255, 255, 0.2) !important;
+      transform: none !important;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18) !important;
     }
 
     :root[data-theme="light"] .btn,
-    :root[data-theme="light"] .icon-btn,
-    :root[data-theme="light"] .icon-circle-btn,
-    :root[data-theme="light"] .model-selector-btn,
+    :root[data-theme="light"] .btn-primary,
+    :root[data-theme="light"] .btn-secondary,
     :root[data-theme="light"] .drawer-new-chat-btn,
     :root[data-theme="light"] .drawer-empty-new-chat-btn,
-    :root[data-theme="light"] .drawer-session-item,
     :root[data-theme="light"] .custom-dialog-btn,
-    :root[data-theme="light"] .scroll-bottom-fab,
-    :root[data-theme="light"] .action-icon-btn,
-    :root[data-theme="light"] #brandMenuBtn,
-    :root[data-theme="light"] #quickNewChatNavBtn,
-    :root[data-theme="light"] .nav-credit-badge,
     :root[data-theme="light"] .page-back-btn,
-    :root[data-theme="light"] .brand-menu-item,
-    :root[data-theme="light"] .btn-test-sound {
-      border: 1px solid rgba(0, 0, 0, 0.09) !important;
-      box-shadow: 
-        0 4px 14px -2px rgba(0, 0, 0, 0.07),
-        0 1px 3px rgba(0, 0, 0, 0.04),
-        inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.95),
-        inset 0 -1px 1px 0 rgba(0, 0, 0, 0.05) !important;
+    :root[data-theme="light"] .btn-test-sound,
+    :root[data-theme="light"] .quick-prompt-chip,
+    :root[data-theme="light"] .native-tool-btn {
+      background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.1) !important;
+      color: #111827;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     }
 
-    /* ZERO UPWARD HOVER JUMPING / VERTICAL DISPLACEMENT (translateY OFF) */
-    button:hover,
-    .btn:hover,
-    .icon-btn:hover,
-    .icon-circle-btn:hover,
-    .model-selector-btn:hover,
-    .drawer-new-chat-btn:hover,
-    .drawer-empty-new-chat-btn:hover,
-    .drawer-session-item:hover,
-    .custom-dialog-btn:hover,
-    .scroll-bottom-fab:hover,
-    .action-icon-btn:hover,
-    #brandMenuBtn:hover,
-    #quickNewChatNavBtn:hover,
-    .nav-credit-badge:hover,
-    .page-back-btn:hover,
-    .brand-menu-item:hover,
-    .btn-test-sound:hover,
-    .btn-primary:hover,
-    .option-card:hover,
-    #sendBtn:hover {
-      transform: none !important; /* NO translateY upward jumping! */
-      box-shadow: 
-        0 6px 20px -2px rgba(0, 0, 0, 0.22),
-        0 2px 6px rgba(0, 0, 0, 0.1),
-        inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.5) !important;
-      border-color: rgba(255, 255, 255, 0.28) !important;
+    :root[data-theme="light"] .btn:hover,
+    :root[data-theme="light"] .drawer-new-chat-btn:hover,
+    :root[data-theme="light"] .drawer-empty-new-chat-btn:hover,
+    :root[data-theme="light"] .custom-dialog-btn:hover,
+    :root[data-theme="light"] .page-back-btn:hover,
+    :root[data-theme="light"] .quick-prompt-chip:hover {
+      background: rgba(0, 0, 0, 0.04) !important;
+      border-color: rgba(0, 0, 0, 0.18) !important;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08) !important;
     }
 
-    /* TACTILE SPRING PRESS SQUASH ON ACTIVE (PHYSICAL CLICK FEEL) */
+    :root[data-theme="eyecare"] .btn,
+    :root[data-theme="eyecare"] .drawer-new-chat-btn,
+    :root[data-theme="eyecare"] .custom-dialog-btn,
+    :root[data-theme="eyecare"] .page-back-btn {
+      background: #fbf7ef;
+      border: 1px solid rgba(146, 64, 14, 0.18) !important;
+      color: #4a3b2c;
+      box-shadow: 0 1px 2px rgba(74, 59, 44, 0.06);
+    }
+
+    /* Tactile Micro-Press on Click */
     button:active,
+    a:active,
     .btn:active,
+    .btn-primary:active,
+    .btn-secondary:active,
     .icon-btn:active,
     .icon-circle-btn:active,
     .model-selector-btn:active,
     .drawer-new-chat-btn:active,
-    .drawer-empty-new-chat-btn:active,
-    .drawer-session-item:active,
     .custom-dialog-btn:active,
-    .scroll-bottom-fab:active,
-    .action-icon-btn:active,
-    #brandMenuBtn:active,
-    #quickNewChatNavBtn:active,
-    .nav-credit-badge:active,
     .page-back-btn:active,
-    .brand-menu-item:active,
-    .btn-test-sound:active,
-    .btn-primary:active,
-    .option-card:active,
-    #sendBtn:active {
-      transform: scale(0.96) !important;
-      box-shadow: 0 2px 6px -1px rgba(0, 0, 0, 0.2), inset 0 1px 0.5px 0 rgba(255, 255, 255, 0.2) !important;
-      transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    .glisse-menu-item:active {
+      transform: scale(0.975) !important;
+      transition: transform 0.08s ease !important;
     }
 
-    /* 2. CIRCULAR & PILL BUTTONS */
-    .icon-circle-btn {
-      width: 38px;
-      height: 38px;
+    /* 2. DEDICATED CIRCULAR ICON-ONLY BUTTONS (50% Radius strictly for icons) */
+    .icon-circle-btn,
+    .action-icon-btn,
+    .scroll-bottom-fab,
+    .modal-close,
+    #micBtn,
+    #attachBtn,
+    .search-pill-clear-btn {
       border-radius: 50% !important;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       padding: 0;
       flex-shrink: 0;
+      transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease !important;
+      transform: none !important;
+      border: 1px solid transparent !important;
     }
 
-    /* Glowing Circular Send Button */
-    #sendBtn {
-      border-radius: 50% !important;
-      width: 40px;
-      height: 40px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      backdrop-filter: blur(28px) saturate(190%) contrast(105%) !important;
-      -webkit-backdrop-filter: blur(28px) saturate(190%) contrast(105%) !important;
-      background: linear-gradient(135deg, rgba(59, 130, 246, 0.95), rgba(37, 99, 235, 0.98)) !important;
-      border: 1px solid rgba(255, 255, 255, 0.3) !important;
-      box-shadow: 0 4px 18px -2px rgba(59, 130, 246, 0.45), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.55) !important;
-      transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease !important;
-      transform: none !important;
+    .icon-circle-btn {
+      width: 36px;
+      height: 36px;
+      background: transparent;
+      color: var(--text-sub);
     }
-    #sendBtn:hover:not(:disabled) {
-      transform: none !important;
-      box-shadow: 0 6px 22px -1px rgba(59, 130, 246, 0.6), inset 0 1px 2px 0 rgba(255, 255, 255, 0.7) !important;
+    .icon-circle-btn:hover {
+      background: rgba(255, 255, 255, 0.08) !important;
+      color: var(--text-main);
     }
-    #sendBtn:active:not(:disabled) {
-      transform: scale(0.93) !important;
+    :root[data-theme="light"] .icon-circle-btn:hover {
+      background: rgba(0, 0, 0, 0.06) !important;
+      color: #111827;
     }
 
-    /* Circular Mic and Attach Buttons */
     #micBtn,
     #attachBtn {
+      width: 36px;
+      height: 36px;
+      background: transparent !important;
+      color: var(--text-sub) !important;
+      border: none !important;
+      box-shadow: none !important;
+    }
+    #micBtn:hover,
+    #attachBtn:hover {
+      background: rgba(255, 255, 255, 0.08) !important;
+      color: var(--text-main) !important;
+    }
+    :root[data-theme="light"] #micBtn:hover,
+    :root[data-theme="light"] #attachBtn:hover {
+      background: rgba(0, 0, 0, 0.06) !important;
+      color: #111827 !important;
+    }
+
+    /* ChatGPT-Style Modern Solid Circular Send Button */
+    #sendBtn {
       border-radius: 50% !important;
-      width: 38px;
-      height: 38px;
+      width: 36px;
+      height: 36px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      background: #ffffff !important;
+      color: #000000 !important;
+      border: 1px solid rgba(255, 255, 255, 0.2) !important;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
+      transition: background-color 0.15s ease, opacity 0.15s ease, transform 0.1s ease !important;
+      transform: none !important;
       flex-shrink: 0;
+      padding: 0;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+    #sendBtn:hover:not(:disabled) {
+      background: #f0f0f0 !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+      transform: none !important;
+    }
+    #sendBtn:active:not(:disabled) {
+      transform: scale(0.94) !important;
+    }
+    #sendBtn:disabled {
+      background: #27272a !important;
+      color: #71717a !important;
+      border-color: transparent !important;
+      box-shadow: none !important;
+      cursor: not-allowed;
+      opacity: 0.6;
     }
 
-    /* 3. ALORA MODEL SELECTOR WITH ANIMATED THREE DOTS ("ছোট থেকে বড় হয়ে আসে") */
+    :root[data-theme="light"] #sendBtn {
+      background: #111827 !important;
+      color: #ffffff !important;
+      border: 1px solid rgba(0, 0, 0, 0.1) !important;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12) !important;
+    }
+    :root[data-theme="light"] #sendBtn:hover:not(:disabled) {
+      background: #1f2937 !important;
+    }
+    :root[data-theme="light"] #sendBtn:disabled {
+      background: #e5e7eb !important;
+      color: #9ca3af !important;
+    }
+
+    :root[data-theme="eyecare"] #sendBtn {
+      background: #92400e !important;
+      color: #ffffff !important;
+      border: 1px solid rgba(146, 64, 14, 0.25) !important;
+    }
+    :root[data-theme="eyecare"] #sendBtn:hover:not(:disabled) {
+      background: #78350f !important;
+    }
+
+    /* 3. ALORA MODEL SELECTOR & ANIMATED 3-DOTS ENGINE */
     .model-selector-btn {
       display: inline-flex;
       align-items: center;
-      gap: 9px;
-      padding: 7px 18px;
-      border-radius: 9999px !important;
-      background: var(--sheen-base, rgba(255, 255, 255, 0.08)) !important;
-      backdrop-filter: blur(28px) saturate(180%);
-      -webkit-backdrop-filter: blur(28px) saturate(180%);
-      border: 1px solid rgba(255, 255, 255, 0.16) !important;
-      color: var(--text-main);
+      gap: 8px;
+      padding: 6px 14px !important;
+      border-radius: 8px !important;
+      background: transparent !important;
+      border: 1px solid transparent !important;
+      color: var(--text-main, #ffffff);
       font-size: 0.95rem;
       font-weight: 600;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.25) !important;
+      box-shadow: none !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      transition: background-color 0.15s ease, border-color 0.15s ease !important;
     }
+    .model-selector-btn:hover {
+      background: rgba(255, 255, 255, 0.08) !important;
+      border-color: rgba(255, 255, 255, 0.1) !important;
+    }
+    :root[data-theme="light"] .model-selector-btn:hover {
+      background: rgba(0, 0, 0, 0.05) !important;
+      border-color: rgba(0, 0, 0, 0.08) !important;
+    }
+    :root[data-theme="eyecare"] .model-selector-btn:hover {
+      background: rgba(146, 64, 14, 0.08) !important;
+      border-color: rgba(146, 64, 14, 0.14) !important;
+    }
+
     .three-dots-cluster {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
+      gap: 3.5px;
       flex-shrink: 0;
     }
     .three-dots-cluster .dot {
       border-radius: 50% !important;
       background: var(--accent-color, #3b82f6);
       display: inline-block;
-      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease, box-shadow 0.3s ease;
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
     }
-    /* Sizing from small to large */
     .three-dots-cluster .dot.dot-sm {
       width: 4px;
       height: 4px;
-      opacity: 0.55;
-      animation: threeDotsGrowRipple 1.6s ease-in-out infinite 0s;
+      opacity: 0.6;
+      animation: threeDotsGrowRipple 1.8s ease-in-out infinite 0s;
     }
     .three-dots-cluster .dot.dot-md {
-      width: 6.5px;
-      height: 6.5px;
-      opacity: 0.8;
-      animation: threeDotsGrowRipple 1.6s ease-in-out infinite 0.25s;
+      width: 6px;
+      height: 6px;
+      opacity: 0.85;
+      animation: threeDotsGrowRipple 1.8s ease-in-out infinite 0.25s;
     }
     .three-dots-cluster .dot.dot-lg {
-      width: 9px;
-      height: 9px;
+      width: 8px;
+      height: 8px;
       opacity: 1;
-      animation: threeDotsGrowRipple 1.6s ease-in-out infinite 0.5s;
+      animation: threeDotsGrowRipple 1.8s ease-in-out infinite 0.5s;
     }
     @keyframes threeDotsGrowRipple {
       0%, 100% {
-        transform: scale(0.75);
-        opacity: 0.5;
+        transform: scale(0.85);
+        opacity: 0.6;
       }
       50% {
-        transform: scale(1.35);
+        transform: scale(1.2);
         opacity: 1;
-        box-shadow: 0 0 8px var(--accent-color, #3b82f6);
       }
     }
-    /* When user hovers over model selector, the dots expand smoothly from small to large! */
-    .model-selector-btn:hover .three-dots-cluster .dot.dot-sm {
-      transform: scale(1.25);
-      opacity: 0.9;
+
+    /* 4. CRISP INPUTS, SEARCH BAR & CHAT COMPOSER */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="search"],
+    .drawer-search-input,
+    .custom-dialog-input,
+    .auth-input,
+    .account-name-input {
+      border-radius: 10px !important;
+      border: 1px solid var(--border-color, rgba(255, 255, 255, 0.12)) !important;
+      background: var(--bg-input, #151518);
+      color: var(--text-main, #ffffff);
+      padding: 9px 12px;
+      outline: none !important;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
-    .model-selector-btn:hover .three-dots-cluster .dot.dot-md {
-      transform: scale(1.45);
-      opacity: 1;
-    }
-    .model-selector-btn:hover .three-dots-cluster .dot.dot-lg {
-      transform: scale(1.65);
-      opacity: 1;
-      box-shadow: 0 0 12px var(--accent-color, #3b82f6);
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="password"]:focus,
+    input[type="search"]:focus,
+    .custom-dialog-input:focus,
+    .auth-input:focus {
+      border-color: var(--accent-color, #3b82f6) !important;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25) !important;
     }
 
-    /* 4. SLEEK ULTRA-ROUNDED CAPSULE SEARCH BAR (border-radius: 9999px) */
     .drawer-search-container {
-      padding: 6px 16px 12px;
+      padding: 6px 14px 10px;
       display: flex;
       align-items: center;
       width: 100%;
@@ -4829,30 +4897,29 @@
       display: flex;
       align-items: center;
       width: 100%;
-      height: 42px;
-      background: var(--bg-input, #1c1c20);
-      border-radius: 9999px !important;
-      padding: 0 12px 0 42px;
-      border: 1px solid var(--border-color, rgba(255, 255, 255, 0.12));
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.1);
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      height: 38px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px !important;
+      padding: 0 10px 0 36px;
+      border: 1px solid var(--border-color, rgba(255, 255, 255, 0.09));
+      box-shadow: none;
+      transition: border-color 0.15s ease, background-color 0.15s ease;
       box-sizing: border-box;
     }
     .search-pill-icon-bubble {
       position: absolute;
-      left: 6px;
+      left: 10px;
       top: 50%;
       transform: translateY(-50%);
-      width: 30px;
-      height: 30px;
-      border-radius: 50% !important;
-      background: var(--accent-color, #3b82f6);
-      color: #fff;
+      width: 18px;
+      height: 18px;
+      color: var(--text-sub, #9ca3af);
       display: flex;
       align-items: center;
       justify-content: center;
       pointer-events: none;
-      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+      background: transparent !important;
+      box-shadow: none !important;
     }
     .search-pill-input {
       width: 100%;
@@ -4860,107 +4927,98 @@
       background: transparent !important;
       border: none !important;
       outline: none !important;
-      color: var(--text-main, #fff) !important;
-      font-size: 0.9rem !important;
+      color: var(--text-main, #ffffff) !important;
+      font-size: 0.88rem !important;
       font-family: inherit !important;
-      border-radius: 9999px !important;
-      padding: 0 6px !important;
-    }
-    .search-pill-clear-btn {
-      width: 22px;
-      height: 22px;
-      border-radius: 50% !important;
-      background: rgba(128, 128, 128, 0.25);
-      color: var(--text-sub, #a1a1aa);
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0;
-      flex-shrink: 0;
-      transition: background 0.15s ease, color 0.15s ease;
-    }
-    .search-pill-clear-btn:hover {
-      background: rgba(128, 128, 128, 0.45);
-      color: var(--text-main, #fff);
-      transform: none !important;
+      border-radius: 0 !important;
+      padding: 0 !important;
+      box-shadow: none !important;
     }
     .search-pill-box:focus-within {
-      border-color: var(--accent-color, #3b82f6);
-      box-shadow: 0 4px 16px rgba(59, 130, 246, 0.25), inset 0 1px 1.5px rgba(255, 255, 255, 0.2);
+      border-color: var(--accent-color, #3b82f6) !important;
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+    }
+    :root[data-theme="light"] .search-pill-box {
+      background: rgba(0, 0, 0, 0.035);
+      border-color: rgba(0, 0, 0, 0.08);
+    }
+    :root[data-theme="light"] .search-pill-box:focus-within {
+      background: #ffffff;
+      border-color: #2563eb !important;
     }
 
-    /* 5. ALL INPUTS, CARDS, MODALS, POPUPS ULTRA-ROUNDED */
-    input[type="text"],
-    input[type="email"],
-    input[type="password"],
-    input[type="search"],
-    .drawer-search-input,
-    .custom-dialog-input,
-    .auth-input,
-    .account-name-input {
-      border-radius: 9999px !important;
-    }
-
+    /* ChatGPT & Claude Style Chat Composer Card */
     .input-card,
     #composerCard {
-      border-radius: 34px !important;
+      border-radius: 16px !important;
+      background-color: var(--bg-input, #151518) !important;
+      border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1)) !important;
+      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.3) !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+    }
+    .input-card:focus-within,
+    #composerCard:focus-within {
+      border-color: rgba(59, 130, 246, 0.5) !important;
+      box-shadow: 0 6px 24px -2px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(59, 130, 246, 0.3) !important;
+    }
+    :root[data-theme="light"] .input-card,
+    :root[data-theme="light"] #composerCard {
+      background-color: #ffffff !important;
+      border: 1px solid rgba(0, 0, 0, 0.12) !important;
+      box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.06) !important;
+    }
+    :root[data-theme="light"] .input-card:focus-within,
+    :root[data-theme="light"] #composerCard:focus-within {
+      border-color: #2563eb !important;
+      box-shadow: 0 6px 20px -2px rgba(37, 99, 235, 0.14), 0 0 0 1px #2563eb !important;
+    }
+    :root[data-theme="eyecare"] .input-card,
+    :root[data-theme="eyecare"] #composerCard {
+      background-color: #fbf7ef !important;
+      border-color: rgba(146, 64, 14, 0.18) !important;
+      box-shadow: 0 4px 16px -2px rgba(74, 59, 44, 0.08) !important;
     }
 
+    /* 5. MODALS, SHEETS, DIALOGS & SIDEBAR */
     .modal-sheet,
     .brand-menu-dropdown,
     .custom-dialog-box,
     .custom-ui-toast,
     .chat-history-modal-content {
-      background: rgba(18, 18, 24, 0.78) !important;
-      backdrop-filter: blur(40px) saturate(200%) contrast(106%) !important;
-      -webkit-backdrop-filter: blur(40px) saturate(200%) contrast(106%) !important;
-      border: 1px solid rgba(255, 255, 255, 0.16) !important;
-      border-radius: 36px !important;
-      box-shadow: 
-        0 32px 80px -16px rgba(0, 0, 0, 0.65),
-        0 16px 36px -8px rgba(0, 0, 0, 0.35),
-        inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.32) !important;
-      transform: scale(0.95) translateY(12px);
-      transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+      border-radius: 16px !important;
+      background: var(--bg-input, #151518) !important;
+      border: 1px solid var(--border-color, rgba(255, 255, 255, 0.12)) !important;
+      box-shadow: 0 20px 48px -10px rgba(0, 0, 0, 0.6), 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
     }
-
     :root[data-theme="light"] .modal-sheet,
     :root[data-theme="light"] .brand-menu-dropdown,
     :root[data-theme="light"] .custom-dialog-box,
     :root[data-theme="light"] .custom-ui-toast,
     :root[data-theme="light"] .chat-history-modal-content {
-      background: rgba(255, 255, 255, 0.88) !important;
-      border: 1px solid rgba(0, 0, 0, 0.08) !important;
-      box-shadow: 
-        0 32px 80px -16px rgba(0, 0, 0, 0.18),
-        0 16px 36px -8px rgba(0, 0, 0, 0.1),
-        inset 0 1px 2px 0 rgba(255, 255, 255, 0.95) !important;
+      background: #ffffff !important;
+      border: 1px solid rgba(0, 0, 0, 0.1) !important;
+      box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+    }
+    :root[data-theme="eyecare"] .modal-sheet,
+    :root[data-theme="eyecare"] .custom-dialog-box {
+      background: #fbf7ef !important;
+      border: 1px solid rgba(146, 64, 14, 0.18) !important;
+      box-shadow: 0 16px 36px -8px rgba(74, 59, 44, 0.14) !important;
     }
 
-    .modal-overlay.open .modal-sheet,
-    .modal-overlay.open .custom-dialog-box,
-    #brandMenuOverlay.open .brand-menu-dropdown {
-      transform: scale(1) translateY(0) !important;
-    }
-
-    /* Message bubbles */
-    .message-row.user .user-bubble {
-      border-radius: 26px 26px 8px 26px !important;
-    }
-    .message-row.ai .ai-bubble,
-    .content-block {
-      border-radius: 26px 26px 26px 8px !important;
-    }
-
-    /* Sidebar Drawer */
+    /* Clean Sidebar Drawer without Curved Bulge */
     .sidebar-drawer {
-      border-radius: 0 36px 36px 0 !important;
-      overflow: hidden !important;
+      border-radius: 0 !important;
+      border-right: 1px solid var(--border-color, rgba(255, 255, 255, 0.08)) !important;
+      background: var(--bg-main, #000000) !important;
     }
 
-    /* Cards & Groups */
+    /* Cards, Groups & Options */
     .settings-group,
     .settings-row,
     .option-card,
@@ -4968,10 +5026,276 @@
     .account-quota-card,
     .account-limits-card,
     .thought-block {
-      border-radius: 26px !important;
+      border-radius: 12px !important;
+    }
+    .settings-row {
+      border-radius: 8px !important;
+      transition: background-color 0.12s ease;
+    }
+    .settings-row:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+    :root[data-theme="light"] .settings-row:hover {
+      background: rgba(0, 0, 0, 0.03);
     }
 
-    /* 6. MATRIX ENCRYPTED TEXT STREAMING */
+    /* Refined Message Bubbles */
+    .message-row.user .user-bubble {
+      border-radius: 14px 14px 4px 14px !important;
+    }
+    .message-row.ai .ai-bubble,
+    .content-block {
+      border-radius: 14px 14px 14px 4px !important;
+    }
+
+    /* 6. MODERN POPUP & CONTEXT MENU (GlisseMenu Engine Compatible) */
+    .glisse-menu-popover {
+      position: fixed;
+      z-index: 999999;
+      background: #18181b !important;
+      border: 1px solid rgba(255, 255, 255, 0.12) !important;
+      box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.55), 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+      border-radius: 10px !important;
+      padding: 4px !important;
+      box-sizing: border-box;
+      max-width: calc(100vw - 24px);
+      max-height: min(480px, calc(100vh - 32px)) !important;
+      overflow-y: auto !important;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      min-width: 200px;
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.97) translateY(-4px);
+      transition: opacity 0.14s ease, transform 0.14s ease !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+    .glisse-menu-popover.glisse-menu-open {
+      opacity: 1 !important;
+      pointer-events: auto !important;
+      transform: scale(1) translateY(0) !important;
+    }
+
+    :root[data-theme="light"] .glisse-menu-popover {
+      background: #ffffff !important;
+      border-color: rgba(0, 0, 0, 0.1) !important;
+      box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.04) !important;
+    }
+    :root[data-theme="eyecare"] .glisse-menu-popover {
+      background: #fbf7ef !important;
+      border-color: rgba(146, 64, 14, 0.18) !important;
+      box-shadow: 0 12px 28px -4px rgba(74, 59, 44, 0.14) !important;
+    }
+    :root[data-theme="sapphire"] .glisse-menu-popover {
+      background: #0b1324 !important;
+      border-color: rgba(56, 189, 248, 0.22) !important;
+      box-shadow: 0 12px 32px -4px rgba(5, 8, 17, 0.7), 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+    }
+    :root[data-theme="sapphire"] .glisse-menu-item:hover,
+    :root[data-theme="sapphire"] button.glisse-menu-item:hover,
+    :root[data-theme="sapphire"] .glisse-menu-popover button:hover {
+      background: rgba(56, 189, 248, 0.1) !important;
+    }
+    :root[data-theme="sapphire"] .glisse-menu-separator {
+      background: rgba(56, 189, 248, 0.15) !important;
+    }
+    :root[data-theme="sapphire"] .glisse-menu-item-badge {
+      background: rgba(56, 189, 248, 0.15) !important;
+      color: #38bdf8 !important;
+    }
+    :root[data-theme="sapphire"] #sendBtn {
+      background: #38bdf8 !important;
+      color: #050811 !important;
+      border: 1px solid rgba(56, 189, 248, 0.4) !important;
+    }
+    :root[data-theme="sapphire"] #sendBtn:hover:not(:disabled) {
+      background: #0284c7 !important;
+    }
+    :root[data-theme="sapphire"] .model-selector-btn:hover {
+      background: rgba(56, 189, 248, 0.1) !important;
+      border-color: rgba(56, 189, 248, 0.2) !important;
+    }
+
+    /* Glisse Menu Item - Clean Flat Row */
+    .glisse-menu-item,
+    button.glisse-menu-item,
+    .glisse-menu-popover button {
+      width: 100% !important;
+      height: 34px !important;
+      min-height: 34px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      gap: 10px !important;
+      padding: 0 10px !important;
+      border-radius: 6px !important;
+      border: none !important;
+      outline: none !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      color: var(--text-main, #ffffff) !important;
+      font-family: inherit !important;
+      font-size: 13.5px !important;
+      font-weight: 500 !important;
+      text-align: left !important;
+      cursor: pointer !important;
+      transition: background-color 0.1s ease, color 0.1s ease !important;
+      user-select: none !important;
+      transform: none !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+    .glisse-menu-item:hover,
+    button.glisse-menu-item:hover,
+    .glisse-menu-popover button:hover {
+      background: rgba(255, 255, 255, 0.08) !important;
+      border: none !important;
+      box-shadow: none !important;
+      transform: none !important;
+    }
+    :root[data-theme="light"] .glisse-menu-item:hover,
+    :root[data-theme="light"] button.glisse-menu-item:hover,
+    :root[data-theme="light"] .glisse-menu-popover button:hover {
+      background: rgba(0, 0, 0, 0.05) !important;
+    }
+    :root[data-theme="eyecare"] .glisse-menu-item:hover,
+    :root[data-theme="eyecare"] button.glisse-menu-item:hover {
+      background: rgba(146, 64, 14, 0.08) !important;
+    }
+
+    .glisse-menu-item-left {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      min-width: 0;
+      flex: 1;
+    }
+    .glisse-menu-item-icon {
+      width: 16px;
+      height: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: currentColor;
+      opacity: 0.85;
+    }
+    .glisse-menu-item-icon svg {
+      width: 15px;
+      height: 15px;
+    }
+    .glisse-menu-item-label {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 13.5px;
+      color: var(--text-main);
+    }
+    .glisse-menu-item-right {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .glisse-menu-item-badge {
+      font-size: 10.5px;
+      font-weight: 600;
+      padding: 1px 6px;
+      border-radius: 4px !important;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-sub);
+      border: none !important;
+      box-shadow: none !important;
+    }
+    :root[data-theme="light"] .glisse-menu-item-badge {
+      background: rgba(0, 0, 0, 0.06);
+    }
+    .glisse-menu-item-check {
+      width: 14px;
+      height: 14px;
+      stroke: var(--accent-color, #3b82f6);
+      stroke-width: 2.4;
+      fill: none;
+    }
+    .glisse-menu-separator {
+      height: 1px;
+      margin: 4px 6px;
+      background: rgba(255, 255, 255, 0.08) !important;
+      border: none !important;
+    }
+    :root[data-theme="light"] .glisse-menu-separator {
+      background: rgba(0, 0, 0, 0.06) !important;
+    }
+    :root[data-theme="eyecare"] .glisse-menu-separator {
+      background: rgba(146, 64, 14, 0.1) !important;
+    }
+    .glisse-menu-item.destructive {
+      color: #ef4444 !important;
+    }
+    .glisse-menu-item.destructive:hover {
+      background: rgba(239, 68, 68, 0.12) !important;
+      color: #f87171 !important;
+    }
+
+    /* Three-Dots Menu Trigger Animation */
+    .three-dots-trigger-icon {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      pointer-events: none;
+    }
+    .three-dots-trigger-icon .dot {
+      width: 3.5px;
+      height: 3.5px;
+      border-radius: 50% !important;
+      background: currentColor;
+      opacity: 0.7;
+      display: inline-block;
+      transition: transform 0.15s ease, opacity 0.15s ease, background-color 0.15s ease;
+    }
+    .three-dots-trigger-icon.active .dot:nth-child(1) {
+      transform: scale(1.3);
+      opacity: 1;
+      background: var(--accent-color, #3b82f6);
+    }
+    .three-dots-trigger-icon.active .dot:nth-child(2) {
+      transform: scale(1.3);
+      opacity: 1;
+      background: var(--accent-color, #3b82f6);
+      transition-delay: 0.03s;
+    }
+    .three-dots-trigger-icon.active .dot:nth-child(3) {
+      transform: scale(1.3);
+      opacity: 1;
+      background: var(--accent-color, #3b82f6);
+      transition-delay: 0.06s;
+    }
+
+    /* 7. CLEAN FROSTED NAVBAR (Crisp & Subtle) */
+    .navbar {
+      position: relative;
+      background: var(--bg-main, #000000);
+      border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+    :root[data-theme="light"] .navbar {
+      background: #ffffff;
+      border-bottom-color: rgba(0, 0, 0, 0.08);
+    }
+    :root[data-theme="eyecare"] .navbar {
+      background: #f5eedc;
+      border-bottom-color: rgba(146, 64, 14, 0.12);
+    }
+
+    /* Pinned chat indicator */
+    .drawer-session-item.is-pinned {
+      background: rgba(59, 130, 246, 0.08);
+      border-left: 2px solid var(--accent-color, #3b82f6);
+    }
+
+    /* 8. MATRIX ENCRYPTED TEXT STREAMING (Preserved for AI Answer Generation) */
     .encrypted-text-stream {
       display: inline;
       vertical-align: baseline;
@@ -4982,10 +5306,8 @@
       font-weight: 700;
       letter-spacing: 0.04em;
       opacity: 0.9;
-      text-shadow: 0 0 10px rgba(59, 130, 246, 0.65);
       display: inline;
       user-select: none;
-      
     }
     .revealed-char-matrix {
       color: inherit;
@@ -4993,380 +5315,9 @@
       font-weight: inherit;
       display: inline;
       opacity: 1;
-      transition: color 0.18s ease;
-    }
-    }
-
-  
-    /* ==========================================================================
-       GLISSE DESIGN SYSTEM (Kelvin Zhang Inspired Liquid Glass & Ultra-Rounded)
-       - Strict zero hover vertical displacement (transform: translateY OFF)
-       - Ultra-rounded pills (border-radius: 9999px) on all buttons & inputs
-       - Rounded squircles (border-radius: 20px) on panels, drawers, cards
-       - Floating Glisse Liquid Glass <Menu> dropdown component
-       - Exactly 3 themes: OLED (Dark), Light, Eye Care
-       ========================================================================== */
-
-    /* STRICT ZERO HOVER DISPLACEMENT */
-    button:hover, a:hover, input:hover, .btn:hover, .icon-btn:hover, .action-btn:hover,
-    .model-selector-btn:hover, .drawer-session-item:hover, .drawer-session-action-btn:hover,
-    .sheen-surface:hover, .empty-state-logo:hover, .brand-menu-item:hover {
-      transform: none !important;
+      transition: color 0.15s ease;
     }
 
-    /* TACTILE ACTIVE MICRO-PRESS (SPRING PHYSICS) */
-    button:active, a:active, .btn:active, .icon-btn:active, .action-btn:active,
-    .model-selector-btn:active, .drawer-session-action-btn:active, .glisse-menu-item:active {
-      transform: scale(0.97) !important;
-      transition: transform 0.08s ease !important;
-    }
-
-    /* UNIVERSAL ULTRA-ROUNDED PILLS FOR ALL BUTTONS & INPUTS */
-    button:not(.glisse-menu-item), .btn, .icon-btn, .action-btn, .model-selector-btn, .native-tool-btn,
-    .native-mic-btn, .drawer-new-chat-btn, .drawer-session-action-btn, .custom-dialog-btn,
-    .lang-pill-btn, .page-back-btn, .search-pill-clear-btn, #sendBtn, #quickNewChatNavBtn,
-    .drawer-search-wrap, .drawer-search-input, .search-pill-input, .brand-menu-item,
-    .nav-credit-badge, .badge, .status-pill, .settings-select-item, .settings-row {
-      border-radius: 9999px !important;
-    }
-
-    /* UNIVERSAL SQUIRCLE ROUNDING FOR CARDS & DIALOGS */
-    .modal-sheet, .custom-dialog-box, .drawer-content, .card, .user-bubble, .bot-bubble,
-    .settings-group, .account-card, .model-card, .sheen-surface {
-      border-radius: 20px !important;
-    }
-
-    /* GLISSE FLOATING LIQUID GLASS MENU */
-    .glisse-menu-popover {
-      position: fixed;
-      z-index: 999999;
-      background: rgba(18, 18, 22, 0.9);
-      -webkit-backdrop-filter: blur(28px) saturate(190%) contrast(105%);
-      backdrop-filter: blur(28px) saturate(190%) contrast(105%);
-      border: 1px solid rgba(255, 255, 255, 0.12) !important;
-      box-shadow: 0 18px 48px -6px rgba(0, 0, 0, 0.65), inset 0 1px 1px rgba(255, 255, 255, 0.18) !important;
-      border-radius: 16px !important;
-      padding: 5px !important;
-      box-sizing: border-box;
-      max-width: calc(100vw - 24px);
-      min-width: 205px;
-      opacity: 0;
-      pointer-events: none;
-      transform-origin: top center;
-    }
-
-    :root[data-theme="light"] .glisse-menu-popover {
-      background: rgba(255, 255, 255, 0.94);
-      border-color: rgba(0, 0, 0, 0.09) !important;
-      box-shadow: 0 16px 38px -4px rgba(0, 0, 0, 0.14), inset 0 1px 1px rgba(255, 255, 255, 0.9) !important;
-    }
-
-    :root[data-theme="eyecare"] .glisse-menu-popover {
-      background: rgba(246, 241, 231, 0.96);
-      border-color: rgba(146, 64, 14, 0.16) !important;
-      box-shadow: 0 16px 38px -4px rgba(74, 59, 44, 0.16), inset 0 1px 1px rgba(255, 255, 255, 0.7) !important;
-    }
-
-    /* 3-DOTS BLOSSOM SPRING OPENING ANIMATION */
-    @keyframes glisseThreeDotsExpandIn {
-      0% {
-        opacity: 0;
-        transform: scale(0.68) translateY(-6px);
-        filter: blur(6px);
-      }
-      65% {
-        transform: scale(1.02) translateY(1px);
-        filter: blur(0px);
-      }
-      100% {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-        filter: blur(0px);
-      }
-    }
-
-    .glisse-menu-popover.glisse-menu-open {
-      opacity: 1 !important;
-      pointer-events: auto !important;
-      animation: glisseThreeDotsExpandIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-
-    /* GLISSE MENU ITEM - ZERO BORDER, FLAT SLEEK ROW */
-    .glisse-menu-item,
-    button.glisse-menu-item {
-      width: 100% !important;
-      height: 38px !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: space-between !important;
-      gap: 10px !important;
-      padding: 0 12px !important;
-      border-radius: 10px !important;
-      border: none !important;
-      outline: none !important;
-      background: transparent !important;
-      box-shadow: none !important;
-      color: var(--text-main) !important;
-      font-family: inherit !important;
-      font-size: 13.5px !important;
-      font-weight: 500 !important;
-      text-align: left !important;
-      cursor: pointer !important;
-      transition: background 0.12s ease, color 0.12s ease !important;
-      user-select: none !important;
-      -webkit-user-select: none !important;
-      transform: none !important;
-      backdrop-filter: none !important;
-      -webkit-backdrop-filter: none !important;
-    }
-
-    .glisse-menu-item:hover {
-      background: rgba(255, 255, 255, 0.08) !important;
-      border: none !important;
-      box-shadow: none !important;
-      transform: none !important;
-    }
-
-    :root[data-theme="light"] .glisse-menu-item:hover {
-      background: rgba(0, 0, 0, 0.05) !important;
-    }
-
-    :root[data-theme="eyecare"] .glisse-menu-item:hover {
-      background: rgba(74, 59, 44, 0.08) !important;
-    }
-
-    .glisse-menu-item:active {
-      transform: scale(0.98) !important;
-    }
-
-    .glisse-menu-item-left {
-      display: inline-flex;
-      align-items: center;
-      gap: 9px;
-      min-width: 0;
-      flex: 1;
-    }
-
-    .glisse-menu-item-icon {
-      width: 18px;
-      height: 18px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      color: currentColor;
-      opacity: 0.85;
-    }
-
-    .glisse-menu-item-icon svg {
-      width: 15px;
-      height: 15px;
-    }
-
-    .glisse-menu-item-label {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      font-size: 13.5px;
-      color: var(--text-main);
-    }
-
-    .glisse-menu-item-right {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      flex-shrink: 0;
-    }
-
-    .glisse-menu-item-badge {
-      font-size: 10.5px;
-      font-weight: 600;
-      padding: 2px 7px;
-      border-radius: 9999px !important;
-      background: rgba(255, 255, 255, 0.1);
-      color: var(--text-sub);
-      border: none !important;
-      box-shadow: none !important;
-    }
-
-    :root[data-theme="light"] .glisse-menu-item-badge {
-      background: rgba(0, 0, 0, 0.06);
-    }
-
-    .glisse-menu-item-check {
-      width: 15px;
-      height: 15px;
-      stroke: var(--accent-color, #3b82f6);
-      stroke-width: 2.4;
-      fill: none;
-    }
-
-    .glisse-menu-separator {
-      height: 1px;
-      margin: 4px 6px;
-      background: rgba(255, 255, 255, 0.08);
-    }
-
-    :root[data-theme="light"] .glisse-menu-separator {
-      background: rgba(0, 0, 0, 0.06);
-    }
-
-    :root[data-theme="eyecare"] .glisse-menu-separator {
-      background: rgba(146, 64, 14, 0.1);
-    }
-
-    .glisse-menu-item.destructive {
-      color: #ff453a !important;
-    }
-
-    .glisse-menu-item.destructive:hover {
-      background: rgba(255, 69, 58, 0.12) !important;
-      color: #ff5b50 !important;
-    }
-
-    /* THREE-DOTS TRIGGER ANIMATION */
-    .three-dots-trigger-icon {
-      display: inline-flex;
-      align-items: center;
-      gap: 3.5px;
-      pointer-events: none;
-    }
-
-    .three-dots-trigger-icon .dot {
-      width: 4px;
-      height: 4px;
-      border-radius: 50% !important;
-      background: currentColor;
-      opacity: 0.75;
-      display: inline-block;
-      transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease, background 0.2s ease;
-    }
-
-    .three-dots-trigger-icon.active .dot:nth-child(1) {
-      transform: scale(1.4);
-      opacity: 1;
-      background: var(--accent-color, #3b82f6);
-    }
-
-    .three-dots-trigger-icon.active .dot:nth-child(2) {
-      transform: scale(1.4);
-      opacity: 1;
-      background: var(--accent-color, #3b82f6);
-      transition-delay: 0.04s;
-    }
-
-    .three-dots-trigger-icon.active .dot:nth-child(3) {
-      transform: scale(1.4);
-      opacity: 1;
-      background: var(--accent-color, #3b82f6);
-      transition-delay: 0.08s;
-    }
-
-    /* HEADER LIQUID GLASS SHEEN ANIMATION */
-    .navbar {
-      position: relative;
-      overflow: hidden;
-      backdrop-filter: blur(28px) saturate(190%) contrast(105%);
-      -webkit-backdrop-filter: blur(28px) saturate(190%) contrast(105%);
-      background: rgba(10, 10, 12, 0.85);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-    :root[data-theme="light"] .navbar {
-      background: rgba(255, 255, 255, 0.88);
-      border-bottom-color: rgba(0, 0, 0, 0.06);
-    }
-
-    :root[data-theme="eyecare"] .navbar {
-      background: rgba(246, 241, 231, 0.9);
-      border-bottom-color: rgba(146, 64, 14, 0.12);
-    }
-
-
-
-    /* FOOTER COMPOSER AMBIENT GLOW ANIMATION */
-    .input-card {
-      position: relative;
-      border-radius: 32px !important;
-      transition: border-color 0.25s ease, box-shadow 0.25s ease;
-    }
-
-    .input-card:focus-within { border-color: rgba(59, 130, 246, 0.5) !important; box-shadow: 0 8px 30px rgba(0,0,0,0.4) !important; }
-
-    /* Pinned chat item styling */
-    .drawer-session-item.is-pinned {
-      background: rgba(59, 130, 246, 0.06);
-      border-left: 2px solid var(--accent-color, #3b82f6);
-    }
-
-
-    /* ==========================================================================
-       ABSOLUTE GLISSE OVERRIDE (KELVIN ZHANG COMPLIANCE)
-       - Strictly zero border, zero outline, zero pill capsule on all menu items
-       - Flat sleek rows with seamless background hover
-       - 0.5px subtle separator line
-       ========================================================================== */
-    .glisse-menu-popover,
-    .glisse-menu-popover * {
-      box-sizing: border-box !important;
-    }
-
-    .glisse-menu-popover button,
-    .glisse-menu-popover .glisse-menu-item,
-    button.glisse-menu-item {
-      border: 0 !important;
-      border-width: 0 !important;
-      border-style: none !important;
-      outline: none !important;
-      box-shadow: none !important;
-      border-radius: 12px !important;
-      background: transparent !important;
-      height: 38px !important;
-      min-height: 38px !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: space-between !important;
-      padding: 0 12px !important;
-      font-size: 14px !important;
-      color: var(--text-main) !important;
-    }
-
-    .glisse-menu-popover button:hover,
-    .glisse-menu-popover .glisse-menu-item:hover,
-    button.glisse-menu-item:hover {
-      border: 0 !important;
-      border-width: 0 !important;
-      box-shadow: none !important;
-      background: rgba(255, 255, 255, 0.08) !important;
-    }
-
-    :root[data-theme="light"] .glisse-menu-popover button,
-    :root[data-theme="light"] .glisse-menu-popover .glisse-menu-item,
-    :root[data-theme="light"] button.glisse-menu-item {
-      border: 0 !important;
-      box-shadow: none !important;
-    }
-
-    :root[data-theme="light"] .glisse-menu-popover button:hover,
-    :root[data-theme="light"] .glisse-menu-popover .glisse-menu-item:hover,
-    :root[data-theme="light"] button.glisse-menu-item:hover {
-      border: 0 !important;
-      box-shadow: none !important;
-      background: rgba(60, 60, 67, 0.08) !important;
-    }
-
-    .glisse-menu-separator {
-      height: 0.5px !important;
-      min-height: 0.5px !important;
-      margin: 6px 10px !important;
-      background: rgba(255, 255, 255, 0.14) !important;
-      border: none !important;
-    }
-
-    :root[data-theme="light"] .glisse-menu-separator {
-      background: rgba(60, 60, 67, 0.12) !important;
-    }
-  
 </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
@@ -8526,13 +8477,10 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
           try { localStorage.setItem("alokpoth_cached_models", JSON.stringify(data.models)); } catch(e) { console.error('[Alokpoth]', e); }
 
           if (data.models.length === 0) {
-            MODELS = [];
-            selectedModelId = null;
-            try { localStorage.removeItem("alokpoth_selected_model"); } catch(e) {}
-            if (modelTriggerLabel) {
-              const isEn = (typeof currentLanguage !== "undefined" && currentLanguage === "en");
-              modelTriggerLabel.textContent = isEn ? "No Model" : "কোনো মডেল নেই";
+            if (!MODELS || MODELS.length === 0) {
+              MODELS = [...DEFAULT_FALLBACK_MODELS];
             }
+            ensureAccessibleModelSelected();
             renderModelList();
             updateSelectedModelUI();
             updateTriggerStatusDot();
@@ -8562,15 +8510,6 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
 
           const userPlan = (typeof getResolvedUserPlan === "function" ? getResolvedUserPlan() : (currentPlan || "Free"));
           const isUserAdmin = (typeof checkIsUserAdmin === "function") ? checkIsUserAdmin() : false;
-          const isModelAccessible = (m) => {
-            if (!m) return false;
-            if (isUserAdmin || userPlan === "Max") return true;
-            const isMax = Boolean(m.efficient) || m.id === "gpt-5.6";
-            const isPro = Boolean(m.premium) && !isMax;
-            if (userPlan === "Free") return !isMax && !isPro;
-            if (userPlan === "Pro") return !isMax;
-            return true;
-          };
 
           const savedModel = localStorage.getItem("alokpoth_selected_model");
           const targetSaved = MODELS.find(m => m.id === savedModel);
@@ -9033,6 +8972,7 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
 
       show({ trigger, items, ariaLabel = "Options", align = "end" }) {
         this.close();
+        if (!trigger || !Array.isArray(items)) return;
 
         const menuEl = document.createElement("div");
         menuEl.className = "glisse-menu-popover";
@@ -9126,7 +9066,7 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
         }
         if (left < 12) left = 12;
 
-        const estimatedHeight = items.length * 40;
+        const estimatedHeight = Math.min(items.length * 40, Math.min(480, window.innerHeight - 32));
         if (top + estimatedHeight > window.innerHeight - 12) {
           top = Math.max(12, rect.top - estimatedHeight - 6);
         }
@@ -10020,6 +9960,47 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
 
     const I18N = {
       bn: {
+        // Added complete keys for data-i18n completeness
+        systemTheme: "সিস্টেম থিম",
+        account: "অ্যাকাউন্ট",
+        authLoginRegister: "লগইন / রেজিস্টার",
+        downloadApp: "অ্যাপ ডাউনলোড",
+        logout: "লগআউট",
+        androidAppTitle: "অ্যান্ড্রয়েড অ্যাপ",
+        appDownloadSub: "ফোনে দ্রুত ও সহজে Alora AI ব্যবহার করুন",
+        appFeat1Title: "সীমাহীন দ্রুত গতি",
+        appFeat1Desc: "সরাসরি ফোন থেকে আল্ট্রা-ফাস্ট রেসপন্স পান",
+        appFeat2Title: "ভয়েস কমান্ড ও অডিও",
+        appFeat2Desc: "মুখে কথা বলে প্রশ্ন করুন এবং উত্তর শুনুন",
+        appFeat3Title: "অফলাইন হিস্টোরি",
+        appFeat3Desc: "যেকোনো সময় পূর্বের চ্যাট সেশন ব্রাউজ করুন",
+        appDirectApkBtn: "সরাসরি APK ডাউনলোড",
+        appViewAllBtn: "সব প্ল্যাটফর্ম দেখুন",
+        selectModelModalTitle: "মডেল নির্বাচন করুন",
+        passCurrentLabel: "বর্তমান পাসওয়ার্ড",
+        passNewLabel: "নতুন পাসওয়ার্ড",
+        passConfirmLabel: "পাসওয়ার্ড নিশ্চিত করুন",
+        redeemCodeLabel: "রিডিম কোড দিন",
+        whatsNewTitle: "নতুন কী আছে",
+        historyTitle: "চ্যাট হিস্টোরি",
+        aiGeneratedImages: "AI জেনারেটেড ছবি",
+        aiGeneratedImagesSub: "আপনার তৈরি করা ছবিগুলো এখানে সংরক্ষিত থাকে",
+        noImagesYet: "এখনো কোনো ছবি তৈরি করা হয়নি",
+        noImagesYetSub: "ছবি তৈরির জন্য চ্যাটে 'Generate an image of...' লিখুন",
+        createImageBtn: "নতুন ছবি তৈরি করুন",
+        authModalTitle: "অ্যাকাউন্টে সাইন ইন",
+        authTabLogin: "লগইন",
+        authTabRegister: "রেজিস্টার",
+        authNameLabel: "আপনার পূর্ণ নাম",
+        authEmailLabel: "ইমেইল ঠিকানা",
+        authPasswordLabel: "পাসওয়ার্ড",
+        authSubmitBtnLogin: "লগইন করুন",
+        dialogCancelBtn: "বাতিল",
+        dialogOkBtn: "নিশ্চিত করুন",
+        offlineNotice: "ইন্টারনেট সংযোগ নেই। অফলাইন মোডে আছেন।",
+        librarySearchPlaceholder: "চ্যাট খুঁজুন...",
+        authNamePlaceholder: "আপনার নাম লিখুন",
+        authPasswordPlaceholder: "পাসওয়ার্ড লিখুন",
         // App & Navigation
         appBrand: "Alora",
         appTagline: "বাংলা ও ইংরেজিতে স্মার্ট সহকারী",
@@ -10171,6 +10152,47 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
         currentPlanTag: "বর্তমান"
       },
       en: {
+        // Added complete keys for data-i18n completeness
+        systemTheme: "System Theme",
+        account: "Account",
+        authLoginRegister: "Sign In / Register",
+        downloadApp: "Download App",
+        logout: "Sign Out",
+        androidAppTitle: "Android Application",
+        appDownloadSub: "Fast, seamless Alora AI experience on your mobile phone",
+        appFeat1Title: "Ultra-Fast Streaming",
+        appFeat1Desc: "Instant real-time multi-model responses on mobile",
+        appFeat2Title: "Voice Interaction",
+        appFeat2Desc: "Hands-free voice recognition and natural speech",
+        appFeat3Title: "Offline History",
+        appFeat3Desc: "Access past chats and generated content anytime",
+        appDirectApkBtn: "Direct APK Download",
+        appViewAllBtn: "View All Platforms",
+        selectModelModalTitle: "Select AI Model",
+        passCurrentLabel: "Current Password",
+        passNewLabel: "New Password",
+        passConfirmLabel: "Confirm Password",
+        redeemCodeLabel: "Enter Redeem Voucher",
+        whatsNewTitle: "What's New",
+        historyTitle: "Chat History",
+        aiGeneratedImages: "AI Generated Images",
+        aiGeneratedImagesSub: "Visual creations saved to your account",
+        noImagesYet: "No images created yet",
+        noImagesYetSub: "Type 'Generate an image of...' in chat to begin",
+        createImageBtn: "Generate New Image",
+        authModalTitle: "Account Sign In",
+        authTabLogin: "Sign In",
+        authTabRegister: "Register",
+        authNameLabel: "Full Name",
+        authEmailLabel: "Email Address",
+        authPasswordLabel: "Password",
+        authSubmitBtnLogin: "Sign In",
+        dialogCancelBtn: "Cancel",
+        dialogOkBtn: "Confirm",
+        offlineNotice: "No internet connection. Running in offline mode.",
+        librarySearchPlaceholder: "Search chats...",
+        authNamePlaceholder: "Enter your full name",
+        authPasswordPlaceholder: "Enter your password",
         // App & Navigation
         appBrand: "Alora",
         appTagline: "Smart Bilingual AI Assistant",
@@ -11781,14 +11803,6 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
     const webSearchText = document.getElementById("webSearchText");
     const imageGenText = document.getElementById("imageGenText");
 
-    function updateAttachBtnActiveState() {
-      if (isWebSearchEnabled || isImageGenEnabled) {
-        attachBtn.classList.add("active-tool");
-      } else {
-        attachBtn.classList.remove("active-tool");
-      }
-    }
-
     function updateAttachImageQuotaBadge() {
       const badge = document.getElementById("imageGenQuotaBadge");
       if (!badge) return;
@@ -11800,13 +11814,11 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
           return;
         }
       } catch(e) { console.error('[Alokpoth]', e); }
-      const { limit } = getImagePlanLimit();
-      const usage = getImageWindowUsage();
+      const { limit } = (typeof getImagePlanLimit === 'function') ? getImagePlanLimit() : { limit: 3 };
+      const usage = (typeof getImageWindowUsage === 'function') ? getImageWindowUsage() : { count: 0 };
       const remaining = Math.max(0, limit - (usage.count || 0));
       badge.textContent = `${remaining}/${limit}`;
     }
-
-    function closeAttachMenu() { attachMenu.classList.remove("open"); }
     
     if (attachBtn) {
       attachBtn.addEventListener("click", (e) => {
@@ -13047,7 +13059,11 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
           const blob = new Blob([currentCode], { type: "text/plain;charset=utf-8" });
           const url = URL.createObjectURL(blob);
           const a = document.createElement("a");
-          document.body.appendChild(a); a.click(); a.remove();
+          a.href = url;
+          a.download = `code.${ext || 'txt'}`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
           setTimeout(() => URL.revokeObjectURL(url), 1500);
           showToast(isEnCode ? `code.${ext} downloaded successfully` : `code.${ext} ডাউনলোড হয়েছে`, "success");
         });

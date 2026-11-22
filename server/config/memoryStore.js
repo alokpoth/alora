@@ -1,3 +1,13 @@
+const DEFAULT_MEMORY_MODELS = [
+  { id: "openrouter/free", model_id: "openrouter/free", name: "Alo Go", provider: "Alora", type: "openrouter", premium: false, efficient: false, order: 1, api_model_1: "openrouter/free" },
+  { id: "gemini-3.5-flash-lite", model_id: "gemini-3.5-flash-lite", name: "Alo Flash", provider: "Alora", type: "gemini", premium: false, efficient: false, order: 2, api_model_1: "gemini-3.5-flash-lite" },
+  { id: "hy3", model_id: "hy3", name: "Alo HY3", provider: "Alora", type: "bai", premium: false, efficient: false, order: 3, api_model_1: "hy3" },
+  { id: "mimo-v2.5", model_id: "mimo-v2.5", name: "Alo Mimo", provider: "Alora", type: "bai", premium: false, efficient: false, order: 4, api_model_1: "mimo-v2.5" },
+  { id: "openai/gpt-oss-120b", model_id: "openai/gpt-oss-120b", name: "Alo Pro", provider: "Alora", type: "groq", premium: true, efficient: false, order: 5, api_model_1: "openai/gpt-oss-120b" },
+  { id: "nemotron-ultra-550b", model_id: "nemotron-ultra-550b", name: "Alo Ultra", provider: "Alora", type: "vyce", premium: true, efficient: false, order: 6, api_model_1: "nemotron-ultra-550b" },
+  { id: "claude-sonnet-4-6", model_id: "claude-sonnet-4-6", name: "Alo Elite", provider: "Alora", type: "vyce", premium: true, efficient: false, order: 7, api_model_1: "claude-sonnet-4-6" },
+  { id: "gpt-5.6", model_id: "gpt-5.6", name: "Alo Max", provider: "Alora", type: "vyce", premium: true, efficient: true, order: 8, api_model_1: "gpt-5.6" }
+];
 const bcrypt = require('bcryptjs');
 
 // In-Memory Database Fallback Store for when MongoDB is not running locally
@@ -11,7 +21,7 @@ const memoryStore = {
   redeemCodes: [],
   usageLogs: [],
   deletedModelIds: [],
-  models: [],
+  models: [...DEFAULT_MEMORY_MODELS],
   settings: {}
 };
 
@@ -64,7 +74,9 @@ const saveBackup = async () => {
 let saveTimer = null;
 const debouncedSave = () => {
   if (saveTimer) clearTimeout(saveTimer);
-  saveTimer = setTimeout(saveBackup, 1000);
+  saveTimer = setTimeout(() => {
+    saveBackup().catch(() => {});
+  }, 1000);
 };
 
 // Seed default zihanfakir@gmail.com admin if not present
@@ -92,6 +104,9 @@ const seedDefaultAdmin = async () => {
         });
       }
       if (Array.isArray(data.deletedModelIds)) memoryStore.deletedModelIds = data.deletedModelIds;
+      if (!Array.isArray(memoryStore.models) || memoryStore.models.length === 0) {
+        memoryStore.models = [...DEFAULT_MEMORY_MODELS];
+      }
       if (data.settings && typeof data.settings === 'object') memoryStore.settings = data.settings;
       console.log('[Memory DB] Restored data from local backup file.');
     } catch (e) {
@@ -129,11 +144,29 @@ const seedDefaultAdmin = async () => {
       admin.subscription = { plan_name: 'Max', starts_at: new Date(), expires_at: null, is_active: true };
     }
   }
-  saveBackup();
+  saveBackup().catch(() => {});
 };
-seedDefaultAdmin();
+seedDefaultAdmin().catch(err => {
+  console.error('[Memory DB Seed Error]:', err.message);
+});
+
+// Flush backup on graceful shutdown
+const flushOnExit = () => {
+  try {
+    const backupData = {
+      users: memoryStore.users || [],
+      plans: memoryStore.plans || [],
+      redeemCodes: memoryStore.redeemCodes || [],
+      usageLogs: (memoryStore.usageLogs || []).slice(-5000),
+      models: memoryStore.models || [],
+      deletedModelIds: memoryStore.deletedModelIds || [],
+      settings: memoryStore.settings || {}
+    };
+    fs.writeFileSync(BACKUP_FILE, JSON.stringify(backupData, null, 2), 'utf8');
+  } catch (e) {}
+};
+process.on('SIGINT', () => { flushOnExit(); });
+process.on('SIGTERM', () => { flushOnExit(); });
+process.on('beforeExit', () => { flushOnExit(); });
 
 module.exports = { memoryStore, debouncedSave, saveBackup };
-
-
-

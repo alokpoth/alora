@@ -65,7 +65,9 @@ const getAdminStats = async (req, res) => {
         used_redeem_codes: usedRedeemCodes,
         availableRedeemCodes: totalRedeemCodes - usedRedeemCodes,
         totalMessages,
-        total_messages: totalMessages
+        total_messages: totalMessages,
+        mongo_connected: true,
+        server_uptime: Math.floor(process.uptime())
       };
       return res.json({ success: true, stats });
     } else {
@@ -95,7 +97,9 @@ const getAdminStats = async (req, res) => {
         availableRedeemCodes: totalRedeemCodes - usedRedeemCodes,
         totalMessages,
         total_messages: totalMessages,
-        total_messages_capped: totalMessages >= 5000
+        total_messages_capped: totalMessages >= 5000,
+        mongo_connected: false,
+        server_uptime: Math.floor(process.uptime())
       };
       return res.json({ success: true, stats });
     }
@@ -249,6 +253,97 @@ const updateUserPlan = async (req, res) => {
         success: true,
         message: `${user.name}-এর প্ল্যান ${plan_name} করা হয়েছে (${days} দিন)।`,
         subscription: user.subscription
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+
+const updateUserRole = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { role } = req.body;
+    if (!role || !['user', 'admin'].includes(role)) {
+      return res.status(400).json({ success: false, error: 'রোল অবশ্যই user অথবা admin হতে হবে' });
+    }
+
+    const cleanTarget = String(userId).toLowerCase().trim();
+    if (isSuperAdminEmail(cleanTarget) && role !== 'admin') {
+      return res.status(400).json({ success: false, error: 'মূল সুপার অ্যাডমিন অ্যাকাউন্টের রোল পরিবর্তন করা সম্ভব নয়।' });
+    }
+
+    if (getIsMongoConnected()) {
+      const mongoose = require('mongoose');
+      const user = mongoose.Types.ObjectId.isValid(userId)
+        ? await User.findById(userId)
+        : await User.findOne({ email: cleanTarget });
+      if (!user) {
+        return res.status(404).json({ success: false, error: 'ইউজার পাওয়া যায়নি।' });
+      }
+
+      if (isSuperAdminEmail(user.email) && role !== 'admin') {
+        return res.status(400).json({ success: false, error: 'মূল সুপার অ্যাডমিন অ্যাকাউন্টের রোল পরিবর্তন করা সম্ভব নয়।' });
+      }
+
+      user.role = role;
+      await user.save();
+
+      try {
+        const { getPersistedUsers, savePersistedUsers } = require('../../utils/getModelConfig');
+        let users = await getPersistedUsers();
+        users = [...users];
+        const pUser = users.find(u => String(u._id) === String(user._id) || String(u.id) === String(user._id) || (u.email && u.email.toLowerCase().trim() === user.email.toLowerCase().trim()));
+        if (pUser) {
+          pUser.role = role;
+          await savePersistedUsers(users);
+        }
+        if (memoryStore.users) {
+          const mUser = memoryStore.users.find(u => String(u._id) === String(user._id) || String(u.id) === String(user._id) || (u.email && u.email.toLowerCase().trim() === user.email.toLowerCase().trim()));
+          if (mUser) mUser.role = role;
+        }
+        debouncedSave();
+      } catch (e) {}
+
+      invalidateCachedUser(userId);
+      if (user._id) invalidateCachedUser(String(user._id));
+      if (user.id) invalidateCachedUser(String(user.id));
+      if (user.email) invalidateCachedUser(user.email);
+      if (typeof invalidateUsersCache === 'function') invalidateUsersCache();
+
+      return res.json({
+        success: true,
+        message: `${user.name}-এর রোল '${role}' নির্ধারণ করা হয়েছে।`,
+        role: user.role
+      });
+    } else {
+      const { getPersistedUsers, savePersistedUsers } = require('../../utils/getModelConfig');
+      let users = await getPersistedUsers();
+      users = [...users];
+      const user = users.find(u => String(u._id) === String(userId) || String(u.id) === String(userId) || (u.email && u.email.toLowerCase().trim() === cleanTarget));
+      if (!user) {
+        return res.status(404).json({ success: false, error: 'ইউজার পাওয়া যায়নি।' });
+      }
+
+      if (isSuperAdminEmail(user.email) && role !== 'admin') {
+        return res.status(400).json({ success: false, error: 'মূল সুপার অ্যাডমিন অ্যাকাউন্টের রোল পরিবর্তন করা সম্ভব নয়।' });
+      }
+
+      user.role = role;
+      await savePersistedUsers(users);
+      debouncedSave();
+
+      invalidateCachedUser(userId);
+      if (user._id) invalidateCachedUser(String(user._id));
+      if (user.id) invalidateCachedUser(String(user.id));
+      if (user.email) invalidateCachedUser(user.email);
+      if (typeof invalidateUsersCache === 'function') invalidateUsersCache();
+
+      return res.json({
+        success: true,
+        message: `${user.name}-এর রোল '${role}' নির্ধারণ করা হয়েছে।`,
+        role: user.role
       });
     }
   } catch (error) {
@@ -948,6 +1043,8 @@ const getModels = async (req, res) => {
       m.fallback_key_2 = m.fallback_key_2 || '';
       m.fallback_model_2 = m.fallback_model_2 || m.api_model_3 || '';
       m.api_model_3 = m.api_model_3 || m.fallback_model_2 || '';
+      m.is_active = m.is_active !== undefined ? Boolean(m.is_active) : true;
+      m.context_window = m.context_window !== undefined && !isNaN(Number(m.context_window)) ? Number(m.context_window) : 8192;
     }
 
     const sorted = models.sort((a, b) => (a.order || 0) - (b.order || 0));
@@ -1014,8 +1111,10 @@ const updateModel = async (req, res) => {
     if (getIsMongoConnected()) {
       let mongoModel = await AiModel.findOne({ $or: [{ model_id: modelId }, { id: modelId }] });
       if (mongoModel) {
-        if (premium !== undefined) mongoModel.premium = Boolean(premium);
-        if (efficient !== undefined) mongoModel.efficient = Boolean(efficient);
+        if (effPremium !== undefined) mongoModel.premium = Boolean(effPremium);
+        if (effEfficient !== undefined) mongoModel.efficient = Boolean(effEfficient);
+        if (cleanIsActive !== undefined) mongoModel.is_active = cleanIsActive;
+        if (cleanContext !== undefined) mongoModel.context_window = cleanContext;
         if (name !== undefined) mongoModel.name = (typeof name === 'string' && name.trim()) ? name.trim().slice(0, 100) : (modelId || 'Alo AI');
         if (cleanBaseUrl !== undefined) mongoModel.base_url = cleanBaseUrl;
         if (cleanApiModel1 !== undefined) mongoModel.api_model_1 = cleanApiModel1;
@@ -1539,6 +1638,117 @@ const testImageGenSetting = async (req, res) => {
   }
 };
 
+
+const SUPPORTED_PROVIDERS = ['openai', 'gemini', 'anthropic', 'deepseek', 'groq', 'openrouter'];
+
+const getApiKeys = async (req, res) => {
+  try {
+    const { getApiKeyFromSupabase } = require('../../utils/getModelConfig');
+    const result = [];
+    for (const p of SUPPORTED_PROVIDERS) {
+      const envKeyName = `${p.toUpperCase()}_API_KEY`;
+      const envKey = process.env[envKeyName] || '';
+      let dbKey = '';
+      try {
+        dbKey = (await getApiKeyFromSupabase(`__${p}_key__`)) || '';
+      } catch (e) {}
+
+      const effectiveKey = dbKey || envKey || '';
+      const masked = effectiveKey 
+        ? (effectiveKey.length > 8 ? `${effectiveKey.slice(0, 4)}...${effectiveKey.slice(-4)}` : '••••••••')
+        : '';
+
+      result.push({
+        provider: p,
+        configured: Boolean(effectiveKey),
+        source: dbKey ? 'database' : (envKey ? 'env' : 'none'),
+        masked_key: masked
+      });
+    }
+    return res.json({ success: true, keys: result });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+const saveApiKey = async (req, res) => {
+  try {
+    const { provider, api_key } = req.body;
+    if (!provider || typeof provider !== 'string') {
+      return res.status(400).json({ success: false, error: 'সঠিক প্রোভাইডারের নাম প্রদান করুন' });
+    }
+    const cleanProvider = provider.toLowerCase().trim();
+    if (!SUPPORTED_PROVIDERS.includes(cleanProvider)) {
+      return res.status(400).json({ success: false, error: `অসমর্থিত প্রোভাইডার। সমর্থিত: ${SUPPORTED_PROVIDERS.join(', ')}` });
+    }
+    const cleanKey = typeof api_key === 'string' ? api_key.trim() : '';
+    await upsertApiKeyToSupabase(`__${cleanProvider}_key__`, cleanKey);
+    process.env[`${cleanProvider.toUpperCase()}_API_KEY`] = cleanKey;
+
+    return res.json({ 
+      success: true, 
+      message: `${cleanProvider.toUpperCase()} API Key সফলভাবে সংরক্ষণ করা হয়েছে`,
+      provider: cleanProvider,
+      configured: Boolean(cleanKey)
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+const deleteApiKey = async (req, res) => {
+  try {
+    let { provider } = req.params;
+    if (!provider) provider = req.body?.provider;
+    const cleanProvider = String(provider || '').toLowerCase().trim();
+    if (!SUPPORTED_PROVIDERS.includes(cleanProvider)) {
+      return res.status(400).json({ success: false, error: 'সঠিক প্রোভাইডারের নাম প্রদান করুন' });
+    }
+    if (supabase) {
+      await supabase.from('api_keys').delete().eq('model_id', `__${cleanProvider}_key__`).catch(() => {});
+    }
+    const { invalidateModelKeyCache } = require('../../utils/getModelConfig');
+    if (typeof invalidateModelKeyCache === 'function') {
+      invalidateModelKeyCache(`__${cleanProvider}_key__`);
+    }
+    delete process.env[`${cleanProvider.toUpperCase()}_API_KEY`];
+
+    return res.json({ success: true, message: `${cleanProvider.toUpperCase()} API Key মুছে ফেলা হয়েছে` });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+const getSystemLogs = async (req, res) => {
+  try {
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 50, 1), 200);
+    let logs = [];
+    if (getIsMongoConnected()) {
+      logs = await UsageLog.find()
+        .sort({ timestamp: -1, createdAt: -1 })
+        .limit(limit)
+        .lean();
+    } else {
+      logs = (memoryStore.usageLogs || []).slice(-limit).reverse();
+    }
+
+    return res.json({ 
+      success: true, 
+      count: logs.length, 
+      logs: logs.map(l => ({
+        id: l._id || l.id,
+        user_id: l.user_id,
+        model_id: l.model_id,
+        tokens: l.tokens || 0,
+        type: l.model_id === 'image-generation' ? 'image' : 'chat',
+        timestamp: l.timestamp || l.createdAt || new Date()
+      }))
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
 module.exports = { 
   getModels, 
   updateModel, 
@@ -1548,7 +1758,8 @@ module.exports = {
   getAdminStats,
   getUsers,
   deleteUser,
-  updateUserPlan,
+    updateUserPlan,
+  updateUserRole,
   toggleBlockUser,
   getPlans,
   updatePlanLimits,
@@ -1556,6 +1767,10 @@ module.exports = {
   getRedeemCodes,
   deleteRedeemCode,
   createCustomRedeemCode,
+  getApiKeys,
+  saveApiKey,
+  deleteApiKey,
+  getSystemLogs,
   getSettings,
   updateSettings,
   testWebSearchSetting,

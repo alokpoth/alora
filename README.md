@@ -35,7 +35,7 @@ Alora এখন অ্যান্ড্রয়েডে সরাসরি �
 ## Quick Start
 
 ```bash
-git clone https://github.com/ZihanFakir/alora.git
+git clone https://github.com/alokpoth/alora.git
 cd alora/server
 npm install
 node server.js
@@ -43,4 +43,12 @@ node server.js
 
 ## Live
 
-**[alora.zihan.xyz](https://alora.zihan.xyz)** | Made with ❤️ by [Zihan Fakir](https://github.com/ZihanFakir)
+**[alora.zihan.xyz](https://alora.zihan.xyz)** | An Alokpath Product (আলোকপথ) • Developed by Zihan Fakir
+
+## License
+
+This software is released under the **Alokpath Personal Non-Commercial Source-Available License**.
+- **Personal Use Only:** Free to view and run strictly for individual personal use.
+- **Commercial Use Strictly Prohibited:** Any commercial, SaaS, monetization, or redistribution use is forbidden.
+- **No Derivative Redistribution:** Modification for public redistribution or re-hosting is not permitted.
+See [LICENSE](LICENSE) for full legal terms.

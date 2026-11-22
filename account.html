@@ -633,50 +633,28 @@
       display: none !important;
     }
   
-    /* Universal Ultra-Rounded Pill Buttons & Inputs (No Square Corners Anywhere) */
-    button, .btn, .btn-primary, .btn-secondary, .page-back-btn, .option-card, .btn-test-sound, .auth-btn, .download-btn, .plan-cta-btn, .plan-toggle-btn {
-      border-radius: 9999px !important;
+    
+    /* Clean Modern Controls (Vercel/Linear Design System) */
+    button, .btn, .btn-primary, .btn-secondary, .page-back-btn, .option-card, .btn-test-sound, .auth-btn, .download-btn, .plan-cta-btn, .plan-toggle-btn, .pill-btn, .tab-btn, .cta-btn, .submit-btn, .back-btn, .settings-back-link {
+      border-radius: 9px !important;
       transform: none !important;
-      transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+      transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease !important;
     }
     button:hover, .btn:hover, .btn-primary:hover, .btn-secondary:hover, .page-back-btn:hover, .option-card:hover, .btn-test-sound:hover, .auth-btn:hover, .download-btn:hover {
-      transform: none !important; /* ZERO vertical hover lift! */
-      box-shadow: 0 6px 20px -2px rgba(0, 0, 0, 0.2), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.45) !important;
+      transform: none !important;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18) !important;
     }
     button:active, .btn:active, .btn-primary:active, .btn-secondary:active, .page-back-btn:active, .option-card:active, .btn-test-sound:active, .auth-btn:active, .download-btn:active {
-      transform: scale(0.96) !important;
+      transform: scale(0.975) !important;
     }
-    input, .auth-input, .custom-dialog-input {
-      border-radius: 9999px !important;
+    input, .auth-input, .custom-dialog-input, .search-input {
+      border-radius: 10px !important;
     }
-    .card, .auth-card, .plan-card, .profile-card, .settings-group, .settings-card, .help-card, .modal-sheet, .custom-dialog-box {
-      border-radius: 28px !important;
+    .card, .auth-card, .plan-card, .profile-card, .settings-group, .settings-card, .help-card, .modal-sheet, .custom-dialog-box, .content-card, .feature-card, .modal-box, .glass-panel, .info-box, .account-card {
+      border-radius: 14px !important;
     }
-
-  
-    /* ==========================================================================
-       GLISSE DESIGN SYSTEM (Liquid Glass & Ultra-Rounded Overrides)
-       - Strict zero hover vertical displacement (transform: translateY OFF)
-       - Ultra-rounded pills (border-radius: 9999px) on all buttons & inputs
-       - Rounded squircles (border-radius: 20px) on panels, cards, sheets
-       - Exactly 3 theme modes: OLED (Dark), Light, Eye Care
-       ========================================================================== */
-    *:hover {
-      transform: none !important;
-    }
-    button:active, a:active, .btn:active, .icon-btn:active, .action-btn:active {
-      transform: scale(0.97) !important;
-      transition: transform 0.08s ease !important;
-    }
-    button, .btn, .btn-primary, .btn-secondary, .icon-btn, .action-btn,
-    .settings-back-link, .lang-pill-btn, .back-btn, input, .search-input,
-    .pill-btn, .tab-btn, .cta-btn, .plan-cta-btn, .download-btn, .submit-btn,
-    .badge, .status-pill, .role-pill, .filter-chip, .page-back-link {
-      border-radius: 9999px !important;
-    }
-    .card, .content-card, .plan-card, .feature-card, .settings-group,
-    .modal-sheet, .modal-box, .glass-panel, .info-box, .account-card {
-      border-radius: 20px !important;
+    .badge, .status-pill, .role-pill, .filter-chip {
+      border-radius: 6px !important;
     }
 
 </style>
@@ -1876,8 +1854,10 @@
       } catch {
         showToast(d.serverErr, "error");
       } finally {
-        saveBtn.disabled = false;
-        saveBtn.textContent = d.saveNameBtn;
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.textContent = d.saveNameBtn;
+        }
       }
     });
 

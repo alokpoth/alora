@@ -10,6 +10,8 @@ router.put('/me', protect, authController.updateProfile);
 router.put('/profile', protect, authController.updateProfile);
 router.put('/change-password', protect, authController.changePassword);
 router.post('/change-password', protect, authController.changePassword);
+router.post('/forgot-password', authController.forgotPassword);
+router.get('/google', authController.googleAuth);
 
 module.exports = router;
 

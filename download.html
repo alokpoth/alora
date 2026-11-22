@@ -953,50 +953,28 @@
     :root[data-theme="light"] .alokpath-theme-logo-dark { display: none !important; }
     :root[data-theme="light"] .alokpath-theme-logo-light { display: inline-block !important; }
   
-    /* Universal Ultra-Rounded Pill Buttons & Inputs (No Square Corners Anywhere) */
-    button, .btn, .btn-primary, .btn-secondary, .page-back-btn, .option-card, .btn-test-sound, .auth-btn, .download-btn, .plan-cta-btn, .plan-toggle-btn {
-      border-radius: 9999px !important;
+    
+    /* Clean Modern Controls (Vercel/Linear Design System) */
+    button, .btn, .btn-primary, .btn-secondary, .page-back-btn, .option-card, .btn-test-sound, .auth-btn, .download-btn, .plan-cta-btn, .plan-toggle-btn, .pill-btn, .tab-btn, .cta-btn, .submit-btn, .back-btn, .settings-back-link {
+      border-radius: 9px !important;
       transform: none !important;
-      transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+      transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease !important;
     }
     button:hover, .btn:hover, .btn-primary:hover, .btn-secondary:hover, .page-back-btn:hover, .option-card:hover, .btn-test-sound:hover, .auth-btn:hover, .download-btn:hover {
-      transform: none !important; /* ZERO vertical hover lift! */
-      box-shadow: 0 6px 20px -2px rgba(0, 0, 0, 0.2), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.45) !important;
+      transform: none !important;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18) !important;
     }
     button:active, .btn:active, .btn-primary:active, .btn-secondary:active, .page-back-btn:active, .option-card:active, .btn-test-sound:active, .auth-btn:active, .download-btn:active {
-      transform: scale(0.96) !important;
+      transform: scale(0.975) !important;
     }
-    input, .auth-input, .custom-dialog-input {
-      border-radius: 9999px !important;
+    input, .auth-input, .custom-dialog-input, .search-input {
+      border-radius: 10px !important;
     }
-    .card, .auth-card, .plan-card, .profile-card, .settings-group, .settings-card, .help-card, .modal-sheet, .custom-dialog-box {
-      border-radius: 28px !important;
+    .card, .auth-card, .plan-card, .profile-card, .settings-group, .settings-card, .help-card, .modal-sheet, .custom-dialog-box, .content-card, .feature-card, .modal-box, .glass-panel, .info-box, .account-card {
+      border-radius: 14px !important;
     }
-
-  
-    /* ==========================================================================
-       GLISSE DESIGN SYSTEM (Liquid Glass & Ultra-Rounded Overrides)
-       - Strict zero hover vertical displacement (transform: translateY OFF)
-       - Ultra-rounded pills (border-radius: 9999px) on all buttons & inputs
-       - Rounded squircles (border-radius: 20px) on panels, cards, sheets
-       - Exactly 3 theme modes: OLED (Dark), Light, Eye Care
-       ========================================================================== */
-    *:hover {
-      transform: none !important;
-    }
-    button:active, a:active, .btn:active, .icon-btn:active, .action-btn:active {
-      transform: scale(0.97) !important;
-      transition: transform 0.08s ease !important;
-    }
-    button, .btn, .btn-primary, .btn-secondary, .icon-btn, .action-btn,
-    .settings-back-link, .lang-pill-btn, .back-btn, input, .search-input,
-    .pill-btn, .tab-btn, .cta-btn, .plan-cta-btn, .download-btn, .submit-btn,
-    .badge, .status-pill, .role-pill, .filter-chip, .page-back-link {
-      border-radius: 9999px !important;
-    }
-    .card, .content-card, .plan-card, .feature-card, .settings-group,
-    .modal-sheet, .modal-box, .glass-panel, .info-box, .account-card {
-      border-radius: 20px !important;
+    .badge, .status-pill, .role-pill, .filter-chip {
+      border-radius: 6px !important;
     }
 
 </style>
@@ -1105,18 +1083,18 @@
           <polyline points="7 10 12 15 17 10"/>
           <line x1="12" y1="15" x2="12" y2="3"/>
         </svg>
-        <span id="btnDownloadText">Download APK (9.5 MB)</span>
+        <span id="btnDownloadText">⚡ Fast Download (Alora.apk • 9.5 MB)</span>
       </a>
 
       <!-- Secondary Mirror & PWA Options -->
       <div style="display: flex; gap: 10px; margin-top: 10px;">
         <a href="AloAI.apk" download="AloAI.apk" class="btn-secondary" id="btnDownloadApkMirror" style="flex: 1; height: 44px; font-size: 0.86rem; text-decoration: none;">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          <span id="btnMirrorApkText">Mirror (AloAI.apk)</span>
+          <span id="btnMirrorApkText">📥 Direct Download (AloAI.apk)</span>
         </a>
         <button type="button" class="btn-secondary" id="btnAndroidPwa" style="flex: 1; height: 44px; font-size: 0.86rem; cursor: pointer;">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-          <span id="btnAndroidPwaText">Web App (PWA)</span>
+          <span id="btnAndroidPwaText">📱 Web App (PWA)</span>
         </button>
       </div>
 
@@ -1366,10 +1344,12 @@
         feat2: "Pure AMOLED dark mode for maximum battery savings",
         feat3: "Real-time Bengali & English Speech-to-Text & Native TTS",
         feat4: "Offline message caching & persistent seamless login",
-        btnDownload: "Download APK (9.5 MB)",
+        btnDownload: "⚡ Fast Download (Alora.apk • 9.5 MB)",
+        btnMirrorApk: "📥 Direct Download (AloAI.apk)",
+        btnPwa: "📱 Web App (PWA)",
         safeText: "Verified Safe • Malware Free • Play Protect Compliant",
         stepsHeading: "How to install on Android:",
-        step1: 'Click the <strong>Download APK</strong> button above.',
+        step1: 'Click the <strong>Fast Download</strong> button above.',
         step2: 'Tap the downloaded <strong>Alora.apk</strong> file in your notifications or Downloads folder.',
         step3: 'If asked by Android, allow <em>"Install unknown apps"</em> from your browser.',
         step4: 'Tap <strong>Install</strong> and enjoy lag-free Alora!',
@@ -1380,8 +1360,8 @@
         iosFeat2: "Dual Option: Direct Sideloadable .IPA & Instant Safari PWA",
         iosFeat3: "True Fullscreen with Notch & Dynamic Island Safe-Area adaptation",
         iosFeat4: "Zero lag, offline conversation storage & audio intelligence",
-        btnIpaDownload: "Download iOS App (.IPA)",
-        btnIpaSub: "Direct IPA (80 KB) • AltStore, Scarlet, Sideloadly",
+        btnIpaDownload: "⚡ Fast Download iOS App (.IPA)",
+        btnIpaSub: "Direct Download (80 KB) • AltStore, Scarlet, Sideloadly",
         safeTextIos: "Verified iOS Package • Clean Payload • No Jailbreak Required",
         iosStepsHeading: "Add to iPhone Home Screen:",
         iosStep1: "Open <strong>alora.zihan.xyz</strong> in Safari on your iPhone or iPad.",
@@ -1408,10 +1388,12 @@
         feat2: "পিউর AMOLED ডার্ক মোড - সর্বোচ্চ ব্যাটারি সাশ্রয়",
         feat3: "বাংলা ও ইংরেজি ভয়েস ইনপুট ও হাই-কোয়ালিটি স্পিচ",
         feat4: "অফলাইন মেসেজ ক্যাশিং ও স্থায়ী অটো-লগইন",
-        btnDownload: "APK ডাউনলোড করুন (৯.৫ MB)",
+        btnDownload: "⚡ ফার্স্ট ডাউনলোড (Alora.apk • ৯.৫ MB)",
+        btnMirrorApk: "📥 ডিরেক্ট ডাউনলোড (AloAI.apk)",
+        btnPwa: "📱 ওয়েব অ্যাপ (PWA)",
         safeText: "শতভাগ সুরক্ষিত • ম্যালওয়্যার মুক্ত • প্লে প্রটেক্ট ভেরিফাইড",
         stepsHeading: "অ্যান্ড্রয়েডে যেভাবে ইন্সটল করবেন:",
-        step1: 'উপরের <strong>APK ডাউনলোড করুন</strong> বাটনে ক্লিক করুন।',
+        step1: 'উপরের <strong>ফার্স্ট ডাউনলোড</strong> বাটনে ক্লিক করুন।',
         step2: 'ডাউনলোড শেষে নোটিফিকেশন বা ডাউনলোড ফোল্ডার থেকে <strong>Alora.apk</strong> ফাইলটি ওপেন করুন।',
         step3: 'যদি অ্যান্ড্রয়েড পারমিশন চায়, তবে ব্রাউজার সেটিংসে গিয়ে <em>"Allow from this source"</em> অন করুন।',
         step4: '<strong>Install</strong>-এ ট্যাপ করে অ্যাপটি চালু করুন!',
@@ -1422,8 +1404,8 @@
         iosFeat2: "দ্বৈত সুবিধা: সাইডলোডযোগ্য .IPA প্যাকেজ ও ইনস্ট্যান্ট Safari PWA",
         iosFeat3: "নচ এবং ডায়নামিক আইল্যান্ড সেফ-এরিয়ার সাথে ফুলস্ক্রিন ভিউ",
         iosFeat4: "সম্পূর্ণ ল্যাগ-মুক্ত, অফলাইন হিস্ট্রি স্টোরেজ ও ভয়েস এআই",
-        btnIpaDownload: "iOS অ্যাপ ডাউনলোড করুন (.IPA)",
-        btnIpaSub: "সরাসরি IPA (৮০ KB) • AltStore, Scarlet, Sideloadly",
+        btnIpaDownload: "⚡ ফার্স্ট ডাউনলোড iOS অ্যাপ (.IPA)",
+        btnIpaSub: "ডিরেক্ট ডাউনলোড (৮০ KB) • AltStore, Scarlet, Sideloadly",
         safeTextIos: "ভেরিফাইড iOS প্যাকেজ • জেলব্রেক ছাড়াই ইন্সটলযোগ্য",
         iosStepsHeading: "আইফোনের হোম স্ক্রিনে যেভাবে যুক্ত করবেন:",
         iosStep1: "আপনার iPhone বা iPad-এর Safari ব্রাউজারে <strong>alora.zihan.xyz</strong> ওপেন করুন।",
@@ -1464,6 +1446,12 @@
       document.getElementById("feat4").textContent = d.feat4;
 
       document.getElementById("btnDownloadText").textContent = d.btnDownload;
+      if (document.getElementById("btnMirrorApkText") && d.btnMirrorApk) {
+        document.getElementById("btnMirrorApkText").textContent = d.btnMirrorApk;
+      }
+      if (document.getElementById("btnAndroidPwaText") && d.btnPwa) {
+        document.getElementById("btnAndroidPwaText").textContent = d.btnPwa;
+      }
       document.getElementById("safeText").textContent = d.safeText;
 
       document.getElementById("stepsHeading").textContent = d.stepsHeading;
@@ -1522,10 +1510,12 @@
 
     // Check back navigation source
     const navBackBtn = document.getElementById("navBackBtn");
-    if (navBackBtn && document.referrer && (document.referrer.includes("index.html") || document.referrer.includes("account.html"))) {
+    if (navBackBtn) {
       navBackBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        window.history.back();
+        if (window.history.length > 1 && document.referrer) {
+          e.preventDefault();
+          window.history.back();
+        }
       });
     }
 

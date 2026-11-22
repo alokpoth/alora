@@ -11,7 +11,9 @@ const { getCachedPlan, setCachedPlan, getCachedModel, setCachedModel, invalidate
 const checkRateLimit = async (req, res, next) => {
   try {
     const user = req.user;
-    const isImageRoute = req.path.startsWith('/image') || (req.originalUrl && (req.originalUrl.includes('/chat/image') || req.originalUrl.includes('/image')));
+    const reqPath = req.path || '';
+    const origUrl = req.originalUrl || '';
+    const isImageRoute = reqPath.startsWith('/image') || origUrl.includes('/chat/image') || origUrl.includes('/image');
 
     // Admin users are never rate-limited
     const adminEmails = ['zihanfakir@gmail.com', 'x@zihan.uk'];
@@ -21,16 +23,18 @@ const checkRateLimit = async (req, res, next) => {
       return next();
     }
 
-    // Resolve IP for guest tracking
-    const vercelIp = req.headers['x-real-ip'] || req.headers['x-vercel-forwarded-for'];
-    const xff = req.headers['x-forwarded-for'];
-    let resolvedIp = req.socket?.remoteAddress || req.ip || '127.0.0.1';
-    if (vercelIp) resolvedIp = Array.isArray(vercelIp) ? vercelIp[0] : vercelIp.split(',')[0].trim();
-    else if (xff) {
-      const parts = Array.isArray(xff) ? xff[0].split(',') : xff.split(',');
-      resolvedIp = parts[parts.length - 1].trim();
+    // Resolve IP safely for guest tracking
+    const headers = req?.headers || {};
+    const vercelIp = headers['x-real-ip'] || headers['x-vercel-forwarded-for'] || headers['cf-connecting-ip'];
+    const xff = headers['x-forwarded-for'];
+    let resolvedIp = req?.socket?.remoteAddress || req?.ip || '127.0.0.1';
+    if (vercelIp) {
+      resolvedIp = Array.isArray(vercelIp) ? (vercelIp[0] || '').trim() : String(vercelIp).split(',')[0].trim();
+    } else if (xff) {
+      const parts = Array.isArray(xff) ? xff : String(xff).split(',');
+      resolvedIp = (parts[parts.length - 1] || '').trim();
     }
-    const cleanIp = String(resolvedIp).replace(/^::ffff:/, '').replace(/[^a-zA-Z0-9]/g, '_');
+    const cleanIp = String(resolvedIp || '127.0.0.1').replace(/^::ffff:/, '').replace(/[^a-zA-Z0-9]/g, '_');
     const guestId = `guest_${cleanIp}`;
 
     // 0. Guest User (Not logged in) — Strict Login Required
@@ -51,9 +55,10 @@ const checkRateLimit = async (req, res, next) => {
         user.subscription.is_active = true;
         const uId = user._id || user.id;
         if (getIsMongoConnected()) {
-          const mongoose = require('mongoose');
-          const q = mongoose.Types.ObjectId.isValid(uId) ? { _id: uId } : { $or: [{ _id: uId }, { id: uId }, ...(user.email ? [{ email: user.email }] : [])] };
-          await User.updateOne(q, { $set: { subscription: user.subscription } }).catch(() => {});
+          try {
+            const q = mongoose.Types.ObjectId.isValid(uId) ? { _id: uId } : { $or: [{ _id: uId }, { id: uId }, ...(user.email ? [{ email: user.email }] : [])] };
+            await User.updateOne(q, { $set: { subscription: user.subscription } }).catch(() => {});
+          } catch {}
         }
         // Unconditionally persist downgrade across Supabase and memoryStore
         try {
@@ -89,8 +94,14 @@ const checkRateLimit = async (req, res, next) => {
     let plan = getCachedPlan(currentPlanName);
     if (!plan) {
       if (getIsMongoConnected()) {
-        plan = await Plan.findOne({ name: currentPlanName }).lean();
-      } else {
+        try {
+          plan = await Plan.findOne({ name: currentPlanName }).lean();
+        } catch (pErr) {
+          console.warn('[RateLimit Plan Mongo Warning]:', pErr.message);
+          plan = null;
+        }
+      }
+      if (!plan) {
         const { getPersistedPlans } = require('../../utils/getModelConfig');
         const plans = await getPersistedPlans();
         plan = plans.find(p => p.name === currentPlanName);
@@ -102,8 +113,8 @@ const checkRateLimit = async (req, res, next) => {
 
     if (!plan) {
       const defaultLimits = {
-        'Free': { limit: 10, imgLimit: 3, window: 3, name: 'ফ্রি প্ল্যান', allowed: ['*'] },
-        'Pro': { limit: 30, imgLimit: 20, window: 3, name: 'প্রো প্ল্যান', allowed: ['*'] },
+        'Free': { limit: 10, imgLimit: 5, window: 3, name: 'ফ্রি প্ল্যান', allowed: ['*'] },
+        'Pro': { limit: 30, imgLimit: 25, window: 3, name: 'প্রো প্ল্যান', allowed: ['*'] },
         'Max': { limit: 50, imgLimit: 100, window: 1, name: 'ম্যাক্স প্ল্যান', allowed: ['*'] }
       };
       const def = defaultLimits[currentPlanName] || defaultLimits['Free'];
@@ -131,25 +142,33 @@ const checkRateLimit = async (req, res, next) => {
       let imageCount = 0;
       let resetTimeMinutes = Math.round(plan.window_hours * 60);
 
+      let queriedMongo = false;
       if (getIsMongoConnected()) {
-        const mongoose = require('mongoose');
-        const userQuery = mongoose.Types.ObjectId.isValid(userId) ? { $in: [userId, new mongoose.Types.ObjectId(userId)] } : userId;
-        imageCount = await UsageLog.countDocuments({
-          user_id: userQuery,
-          model_id: 'image-generation',
-          timestamp: { $gte: windowStart }
-        });
-        if (imageCount >= plan.image_limit) {
-          const oldestLog = await UsageLog.findOne({
+        try {
+          const userQuery = mongoose.Types.ObjectId.isValid(userId) ? { $in: [userId, new mongoose.Types.ObjectId(userId)] } : userId;
+          imageCount = await UsageLog.countDocuments({
             user_id: userQuery,
             model_id: 'image-generation',
             timestamp: { $gte: windowStart }
-          }).sort({ timestamp: 1 }).select('timestamp').lean();
-          if (oldestLog) {
-            resetTimeMinutes = Math.max(1, Math.ceil((new Date(oldestLog.timestamp).getTime() + plan.window_hours * 60 * 60 * 1000 - Date.now()) / (60 * 1000)));
+          });
+          if (imageCount >= plan.image_limit) {
+            const oldestLog = await UsageLog.findOne({
+              user_id: userQuery,
+              model_id: 'image-generation',
+              timestamp: { $gte: windowStart }
+            }).sort({ timestamp: 1 }).select('timestamp').lean();
+            if (oldestLog) {
+              resetTimeMinutes = Math.max(1, Math.ceil((new Date(oldestLog.timestamp).getTime() + plan.window_hours * 60 * 60 * 1000 - Date.now()) / (60 * 1000)));
+            }
           }
+          queriedMongo = true;
+        } catch (mongoErr) {
+          console.warn('[RateLimit Image Mongo Warning, falling back to memory/Supabase]:', mongoErr.message);
+          queriedMongo = false;
         }
-      } else {
+      }
+
+      if (!queriedMongo) {
         const imgDetails = await getUserImageUsageDetails(userId, plan.window_hours);
         const memLogs = (memoryStore.usageLogs || []).filter(l =>
           String(l.user_id) === userId &&
@@ -173,12 +192,17 @@ const checkRateLimit = async (req, res, next) => {
     }
 
     // 4. Model Access Permission Check (for text chat - Microsecond In-Memory Cache)
-    const model_id = (req.body && typeof req.body === 'object' && req.body.model) ? String(req.body.model).trim() : 'openrouter/free';
+    const model_id = (req.body && typeof req.body === 'object' && req.body.model) ? String(req.body.model).trim() : 'gemini-3.6-flash';
     
     let aiModel = getCachedModel(model_id);
     if (!aiModel) {
       if (getIsMongoConnected()) {
-        aiModel = await AiModel.findOne({ $or: [{ model_id }, { id: model_id }] }).lean();
+        try {
+          aiModel = await AiModel.findOne({ $or: [{ model_id }, { id: model_id }] }).lean();
+        } catch (mErr) {
+          console.warn('[RateLimit Model Mongo Warning]:', mErr.message);
+          aiModel = null;
+        }
       }
       if (!aiModel) {
         aiModel = await getModelConfig(model_id);
@@ -246,25 +270,33 @@ const checkRateLimit = async (req, res, next) => {
     let messageCount = 0;
     let resetTimeMinutes = Math.round(plan.window_hours * 60);
 
+    let queriedMongoMessage = false;
     if (getIsMongoConnected()) {
-      const mongoose = require('mongoose');
-      const userQuery = mongoose.Types.ObjectId.isValid(userId) ? { $in: [userId, new mongoose.Types.ObjectId(userId)] } : userId;
-      messageCount = await UsageLog.countDocuments({
-        user_id: userQuery,
-        model_id: { $ne: 'image-generation' },
-        timestamp: { $gte: windowStart }
-      });
-      if (messageCount >= plan.message_limit) {
-        const oldestLog = await UsageLog.findOne({
+      try {
+        const userQuery = mongoose.Types.ObjectId.isValid(userId) ? { $in: [userId, new mongoose.Types.ObjectId(userId)] } : userId;
+        messageCount = await UsageLog.countDocuments({
           user_id: userQuery,
           model_id: { $ne: 'image-generation' },
           timestamp: { $gte: windowStart }
-        }).sort({ timestamp: 1 }).select('timestamp').lean();
-        if (oldestLog) {
-          resetTimeMinutes = Math.max(1, Math.ceil((new Date(oldestLog.timestamp).getTime() + plan.window_hours * 60 * 60 * 1000 - Date.now()) / (60 * 1000)));
+        });
+        if (messageCount >= plan.message_limit) {
+          const oldestLog = await UsageLog.findOne({
+            user_id: userQuery,
+            model_id: { $ne: 'image-generation' },
+            timestamp: { $gte: windowStart }
+          }).sort({ timestamp: 1 }).select('timestamp').lean();
+          if (oldestLog) {
+            resetTimeMinutes = Math.max(1, Math.ceil((new Date(oldestLog.timestamp).getTime() + plan.window_hours * 60 * 60 * 1000 - Date.now()) / (60 * 1000)));
+          }
         }
+        queriedMongoMessage = true;
+      } catch (mongoErr) {
+        console.warn('[RateLimit Message Mongo Warning, falling back to memory/Supabase]:', mongoErr.message);
+        queriedMongoMessage = false;
       }
-    } else {
+    }
+
+    if (!queriedMongoMessage) {
       const usageDetails = await getUserUsageDetails(userId, plan.window_hours);
       const memCount = (memoryStore.usageLogs || []).filter(l => String(l.user_id) === userId && l.model_id !== 'image-generation' && new Date(l.timestamp) >= windowStart).length;
       messageCount = Math.max(usageDetails.count, memCount);

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
-  <title>Log In & Sign Up — Alora</title>
+  <title>Log In &amp; Sign Up — Alora</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg?v=3">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png?v=3">
   <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png?v=3">
@@ -16,60 +16,79 @@
   <style>
     :root {
       --bg-base: #000000;
-      --bg-surface: #18181b;
-      --bg-surface-hover: #27272a;
+      --bg-surface: #121214;
+      --bg-surface-elevated: #18181b;
+      --bg-surface-hover: #222226;
       --border-subtle: rgba(255, 255, 255, 0.08);
-      --border-focus: rgba(255, 255, 255, 0.35);
+      --border-strong: rgba(255, 255, 255, 0.16);
+      --border-focus: #3b82f6;
       --accent-primary: #3b82f6;
+      --accent-hover: #2563eb;
       --accent-gradient: linear-gradient(135deg, #3b82f6, #6366f1);
       --text-main: #f4f4f5;
       --text-sub: #a1a1aa;
       --text-muted: #71717a;
       --danger: #ef4444;
+      --danger-bg: rgba(239, 68, 68, 0.1);
+      --danger-border: rgba(239, 68, 68, 0.3);
       --success: #10b981;
+      --success-bg: rgba(16, 185, 129, 0.1);
+      --success-border: rgba(16, 185, 129, 0.3);
       --radius-sm: 8px;
-      --radius-md: 14px;
-      --radius-lg: 22px;
-      --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, 'Hind Siliguri', sans-serif;
+      --radius-md: 12px;
+      --radius-lg: 20px;
+      --font-main: 'Plus Jakarta Sans', 'Hind Siliguri', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 
     [data-theme="oled"] {
       --bg-base: #000000;
-      --bg-surface: rgba(12, 12, 12, 0.95);
-      --border-subtle: rgba(255, 255, 255, 0.12);
-      --border-focus: rgba(255, 255, 255, 0.4);
+      --bg-surface: #0a0a0c;
+      --bg-surface-elevated: #111114;
+      --bg-surface-hover: #19191d;
+      --border-subtle: rgba(255, 255, 255, 0.1);
+      --border-strong: rgba(255, 255, 255, 0.2);
     }
 
     [data-theme="sapphire"] {
-      --bg-base: #060913;
-      --bg-surface: rgba(11, 20, 38, 0.85);
+      --bg-base: #050811;
+      --bg-surface: #0b1324;
+      --bg-surface-elevated: #0f1c32;
+      --bg-surface-hover: #152744;
       --border-subtle: rgba(56, 189, 248, 0.12);
-      --border-focus: rgba(56, 189, 248, 0.5);
+      --border-strong: rgba(56, 189, 248, 0.25);
       --accent-primary: #38bdf8;
+      --accent-hover: #0284c7;
       --accent-gradient: linear-gradient(135deg, #38bdf8, #818cf8);
     }
 
     [data-theme="light"] {
-      --bg-base: #f8fafc;
-      --bg-surface: rgba(255, 255, 255, 0.95);
+      --bg-base: #f4f4f5;
+      --bg-surface: #ffffff;
+      --bg-surface-elevated: #f8fafc;
       --bg-surface-hover: #f1f5f9;
       --border-subtle: rgba(0, 0, 0, 0.08);
-      --border-focus: rgba(99, 102, 241, 0.4);
-      --text-main: #0f172a;
-      --text-sub: #475569;
-      --text-muted: #94a3b8;
+      --border-strong: rgba(0, 0, 0, 0.16);
+      --border-focus: #2563eb;
+      --text-main: #09090b;
+      --text-sub: #52525b;
+      --text-muted: #71717a;
+      --danger-bg: rgba(239, 68, 68, 0.08);
+      --success-bg: rgba(16, 185, 129, 0.08);
     }
 
     [data-theme="eyecare"] {
       --bg-base: #f5eedc;
-      --bg-surface: rgba(251, 247, 239, 0.95);
-      --bg-surface-hover: #ede3ce;
-      --border-subtle: rgba(107, 78, 51, 0.15);
-      --border-focus: rgba(146, 64, 14, 0.4);
+      --bg-surface: #fbf7ef;
+      --bg-surface-elevated: #eadeca;
+      --bg-surface-hover: #dfcfb8;
+      --border-subtle: rgba(146, 64, 14, 0.14);
+      --border-strong: rgba(146, 64, 14, 0.28);
+      --border-focus: #92400e;
       --text-main: #4a3b2c;
       --text-sub: #7a6b5c;
       --text-muted: #9e8e7e;
       --accent-primary: #92400e;
+      --accent-hover: #78350f;
       --accent-gradient: linear-gradient(135deg, #b45309, #92400e);
     }
 
@@ -77,68 +96,28 @@
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      -webkit-user-select: none !important;
-      -moz-user-select: none !important;
-      -ms-user-select: none !important;
-      user-select: none !important;
-      -webkit-touch-callout: none !important;
       -webkit-tap-highlight-color: transparent !important;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
-      text-rendering: optimizeLegibility;
-      letter-spacing: -0.011em;
-    }
-
-    ::selection {
-      background: transparent !important;
-      color: inherit !important;
-    }
-    ::-moz-selection {
-      background: transparent !important;
-      color: inherit !important;
     }
 
     input, textarea, [contenteditable="true"] {
-      -webkit-user-select: text !important;
-      -moz-user-select: text !important;
-      -ms-user-select: text !important;
-      user-select: text !important;
-      -webkit-touch-callout: default !important;
-    }
-    input::selection, textarea::selection {
-      background: rgba(255, 255, 255, 0.25) !important;
-      color: inherit !important;
-    }
-
-    button, input, select, textarea, .btn, .btn-primary, .auth-switch-btn {
-      touch-action: manipulation;
-    }
-
-    button:active, .btn:active, .btn-primary:active, .auth-switch-btn:active {
-      transform: scale(0.968) !important;
-      transition: transform 0.1s cubic-bezier(0.16, 1, 0.3, 1) !important;
+      -webkit-user-select: text;
+      user-select: text;
     }
 
     body {
       font-family: var(--font-main);
-      background-color: var(--bg-base, #000000);
+      background-color: var(--bg-base);
       color: var(--text-main);
-      min-height: 100dvh;
       min-height: 100vh;
+      min-height: 100dvh;
       display: flex;
       flex-direction: column;
       position: relative;
       overflow-x: hidden;
-      padding-top: 0;
-      padding-bottom: env(safe-area-inset-bottom, 0px);
-      padding-left: env(safe-area-inset-left, 0px);
-      padding-right: env(safe-area-inset-right, 0px);
-      box-sizing: border-box;
-      background-image: none !important;
-    }
-
-    .ambient-glow {
-      display: none !important;
+      padding-bottom: max(24px, env(safe-area-inset-bottom, 16px));
+      transition: background-color 0.2s ease;
     }
 
     /* Top Bar */
@@ -151,127 +130,66 @@
       position: sticky;
       top: 0;
       z-index: 100;
-      background: rgba(0, 0, 0, 0.88);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      background: var(--bg-base);
       border-bottom: 1px solid var(--border-subtle);
       width: 100%;
-      margin: 0 auto;
     }
 
     .top-bar-center {
       font-size: 1.05rem;
-      font-weight: 600;
+      font-weight: 700;
       color: var(--text-main);
       text-align: center;
       flex: 1;
-    }
-
-    .brand-link {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      text-decoration: none;
-      color: var(--text-main);
-      font-weight: 700;
-      font-size: 1.15rem;
-    }
-
-    .brand-logo {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      object-fit: cover;
-    }
-
-    .top-actions {
-      display: flex;
-      align-items: center;
-      gap: 12px;
     }
 
     .back-btn {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 6px 14px;
-      border-radius: 999px;
-      background: #18181b;
+      padding: 7px 14px;
+      border-radius: var(--radius-md);
+      background: var(--bg-surface-elevated);
       border: 1px solid var(--border-subtle);
       color: var(--text-main);
       text-decoration: none;
       font-size: 0.88rem;
-      font-weight: 500;
-      transition: all 0.2s;
+      font-weight: 600;
+      transition: background 0.15s, border-color 0.15s;
     }
-
     .back-btn:hover {
-      background: #27272a;
+      background: var(--bg-surface-hover);
+      border-color: var(--border-strong);
+    }
+    .back-btn:active {
+      transform: scale(0.98);
     }
 
-    .theme-toggle-btn {
-      display: none;
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     .lang-toggle-btn {
-      background: rgba(255, 255, 255, 0.06);
+      background: var(--bg-surface-elevated);
       border: 1px solid var(--border-subtle);
       color: var(--text-main);
-      font-size: 0.8rem;
+      font-size: 0.82rem;
       font-weight: 700;
       padding: 6px 12px;
       border-radius: var(--radius-md);
       cursor: pointer;
       display: inline-flex;
       align-items: center;
-      transition: all 0.2s;
+      transition: all 0.15s;
     }
     .lang-toggle-btn:hover {
-      background: rgba(255, 255, 255, 0.12);
+      background: var(--bg-surface-hover);
       border-color: var(--accent-primary);
     }
-    
-    .theme-toggle-btn:hover {
-      background: var(--bg-surface-hover);
-    }
-
-    /* Mobile Responsive Top-Bar & Notch / Status Bar Safe Clearance */
-    @media (max-width: 640px) {
-      .top-bar {
-        padding: max(24px, calc(env(safe-area-inset-top, 0px) + 12px)) 16px 12px;
-      }
-      .brand-link {
-        font-size: 1.08rem;
-      }
-      .top-actions {
-        gap: 8px;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .top-bar {
-        padding: max(26px, calc(env(safe-area-inset-top, 0px) + 14px)) 14px 10px;
-      }
-      .brand-link {
-        font-size: 1.02rem;
-      }
-      .top-actions {
-        gap: 6px;
-      }
-      .back-btn span {
-        display: none;
-      }
-      .back-btn {
-        padding: 8px 10px;
-      }
-      .lang-toggle-btn {
-        padding: 5px 9px;
-        font-size: 0.76rem;
-      }
-      .theme-toggle-btn {
-        width: 34px;
-        height: 34px;
-      }
+    .lang-toggle-btn:active {
+      transform: scale(0.96);
     }
 
     /* Main Container */
@@ -280,7 +198,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 24px 16px 48px;
+      padding: 24px 16px 40px;
       position: relative;
       z-index: 5;
     }
@@ -291,93 +209,90 @@
       background: var(--bg-surface);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-lg);
-      padding: 36px 28px;
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
-      animation: cardFadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      padding: 32px 28px;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+      animation: cardFadeUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    [data-theme="light"] .auth-card {
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
     }
 
     @keyframes cardFadeUp {
-      from {
-        opacity: 0;
-        transform: none !important;
-      }
-      to {
-        opacity: 1;
-        transform: none !important;
-      }
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .auth-card-header {
       text-align: center;
-      margin-bottom: 28px;
+      margin-bottom: 24px;
     }
 
     .auth-badge-icon {
       width: 54px;
       height: 54px;
-      margin: 0 auto 14px;
-      border-radius: 16px;
-      background: var(--accent-gradient);
+      margin: 0 auto 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 8px 20px rgba(99, 102, 241, 0.35);
     }
-
     .auth-badge-icon img {
-      width: 32px;
-      height: 32px;
-      object-fit: contain;
+      width: 54px;
+      height: 54px;
+      border-radius: 14px;
+      object-fit: cover;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
     }
 
     .auth-title {
-      font-size: 1.5rem;
+      font-size: 1.45rem;
       font-weight: 700;
       color: var(--text-main);
       margin-bottom: 6px;
+      letter-spacing: -0.02em;
     }
 
     .auth-subtitle {
       font-size: 0.92rem;
       color: var(--text-sub);
+      line-height: 1.4;
     }
 
     /* Tab Switcher */
     .auth-tabs {
       display: flex;
-      background: rgba(0, 0, 0, 0.2);
+      background: var(--bg-surface-elevated);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-md);
       padding: 4px;
-      margin-bottom: 24px;
-      position: relative;
+      margin-bottom: 22px;
+      gap: 4px;
     }
 
     .auth-tab-btn {
       flex: 1;
-      padding: 10px;
+      padding: 9px 12px;
       text-align: center;
       background: transparent;
       border: none;
       color: var(--text-sub);
-      font-size: 0.95rem;
+      font-size: 0.92rem;
       font-weight: 600;
-      border-radius: 10px;
+      font-family: inherit;
+      border-radius: 9px;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.15s;
     }
 
     .auth-tab-btn.active {
-      background: var(--bg-surface-hover);
+      background: var(--bg-surface);
       color: var(--text-main);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     }
 
     /* Form Elements */
     .form-group {
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }
 
     .form-label {
@@ -385,60 +300,78 @@
       font-size: 0.88rem;
       font-weight: 600;
       color: var(--text-main);
-      margin-bottom: 8px;
+      margin-bottom: 7px;
     }
 
     .input-wrap {
       position: relative;
       display: flex;
       align-items: center;
+      width: 100%;
     }
 
     .form-input {
       width: 100%;
-      height: 46px;
-      padding: 0 14px;
-      background: rgba(0, 0, 0, 0.15);
+      height: 48px;
+      padding: 0 16px;
+      background: var(--bg-surface-elevated);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-md);
       color: var(--text-main);
       font-size: 0.95rem;
       font-family: inherit;
       outline: none;
-      transition: all 0.2s;
+      transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s;
+    }
+
+    .form-input::placeholder {
+      color: var(--text-muted);
     }
 
     .form-input:focus {
       border-color: var(--border-focus);
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
-      background: rgba(0, 0, 0, 0.25);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+      background: var(--bg-surface);
+    }
+
+    .form-input.is-invalid {
+      border-color: var(--danger) !important;
+      box-shadow: 0 0 0 3px var(--danger-bg) !important;
+    }
+
+    .input-wrap .form-input.has-toggle {
+      padding-right: 46px;
     }
 
     .password-toggle {
       position: absolute;
-      right: 12px;
+      right: 10px;
+      width: 34px;
+      height: 34px;
       background: transparent;
       border: none;
+      border-radius: 8px;
       color: var(--text-muted);
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 4px;
+      transition: color 0.15s, background-color 0.15s;
     }
-
     .password-toggle:hover {
       color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
     }
 
+    /* Action Buttons */
     .submit-btn {
       width: 100%;
       height: 48px;
       background: #ffffff;
       color: #000000;
       border: none;
-      border-radius: 999px;
-      font-size: 1rem;
+      border-radius: var(--radius-md);
+      font-size: 0.98rem;
       font-weight: 700;
       font-family: inherit;
       cursor: pointer;
@@ -446,25 +379,105 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      box-shadow: 0 4px 14px rgba(255, 255, 255, 0.15);
-      transition: all 0.15s;
-      margin-top: 16px;
+      box-shadow: 0 4px 12px rgba(255, 255, 255, 0.12);
+      transition: background-color 0.15s, transform 0.1s, opacity 0.15s;
+      margin-top: 8px;
     }
-
+    [data-theme="light"] .submit-btn {
+      background: #09090b;
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    [data-theme="eyecare"] .submit-btn {
+      background: #92400e;
+      color: #ffffff;
+    }
     .submit-btn:hover {
-      background: #f4f4f5;
-      transform: none !important;
-      box-shadow: 0 6px 20px rgba(255, 255, 255, 0.22);
+      opacity: 0.92;
     }
-
     .submit-btn:active {
-      transform: none !important;
+      transform: scale(0.98);
     }
-
     .submit-btn:disabled {
       opacity: 0.6;
       cursor: not-allowed;
       transform: none;
+    }
+
+    /* Social / Alternate Auth Section */
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0 16px;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+    .auth-divider::before, .auth-divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--border-subtle);
+    }
+
+    .social-btn {
+      width: 100%;
+      height: 46px;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      color: var(--text-main);
+      font-size: 0.92rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    }
+    .social-btn:hover {
+      background: var(--bg-surface-hover);
+      border-color: var(--border-strong);
+    }
+    .social-btn:active {
+      transform: scale(0.98);
+    }
+    .social-btn svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
+    .guest-btn {
+      width: 100%;
+      height: 42px;
+      background: transparent;
+      border: 1px dashed var(--border-strong);
+      border-radius: var(--radius-md);
+      color: var(--text-sub);
+      font-size: 0.9rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 10px;
+      transition: all 0.15s;
+    }
+    .guest-btn:hover {
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-main);
+      border-color: var(--accent-primary);
+    }
+    .guest-btn:active {
+      transform: scale(0.98);
     }
 
     /* Alert Message */
@@ -474,50 +487,95 @@
       border-radius: var(--radius-md);
       font-size: 0.88rem;
       margin-bottom: 18px;
-      align-items: center;
+      align-items: flex-start;
       gap: 10px;
-      animation: alertSlide 0.3s ease;
+      line-height: 1.45;
+      animation: alertSlide 0.25s ease;
+    }
+    .alert-msg svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      margin-top: 1px;
     }
 
     @keyframes alertSlide {
-      from { opacity: 0; transform: none !important; }
-      to { opacity: 1; transform: none !important; }
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .alert-msg.error {
       display: flex;
-      background: rgba(239, 68, 68, 0.12);
-      border: 1px solid rgba(239, 68, 68, 0.3);
+      background: var(--danger-bg);
+      border: 1px solid var(--danger-border);
       color: #fca5a5;
+    }
+    [data-theme="light"] .alert-msg.error {
+      color: #b91c1c;
     }
 
     .alert-msg.success {
       display: flex;
-      background: rgba(16, 185, 129, 0.12);
-      border: 1px solid rgba(16, 185, 129, 0.3);
+      background: var(--success-bg);
+      border: 1px solid var(--success-border);
       color: #6ee7b7;
+    }
+    [data-theme="light"] .alert-msg.success {
+      color: #047857;
+    }
+
+    /* Footer Note */
+    .auth-footer-note {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .forgot-pass-link {
+      color: var(--accent-primary);
+      text-decoration: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: color 0.15s;
+      background: none;
+      border: none;
+      font-size: inherit;
+      font-family: inherit;
+      padding: 0;
+    }
+    .forgot-pass-link:hover {
+      text-decoration: underline;
     }
 
     /* Logged in state box */
     .logged-in-box {
       display: none;
       text-align: center;
-      padding: 20px 0;
+      padding: 10px 0;
     }
 
     .user-avatar-lg {
-      width: 68px;
-      height: 68px;
+      width: 76px;
+      height: 76px;
       border-radius: 50%;
       background: var(--accent-gradient);
       color: #ffffff;
-      font-size: 1.8rem;
-      font-weight: 700;
+      font-size: 2rem;
+      font-weight: 800;
       display: flex;
       align-items: center;
       justify-content: center;
       margin: 0 auto 16px;
-      box-shadow: 0 8px 24px rgba(99, 102, 241, 0.35);
+      box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+      overflow: hidden;
+      border: 2px solid var(--border-subtle);
+      position: relative;
+    }
+    .user-avatar-lg img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
     }
 
     .logged-name {
@@ -536,13 +594,13 @@
     .action-links {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
     }
 
     .btn-secondary {
       width: 100%;
-      height: 44px;
-      background: rgba(255, 255, 255, 0.05);
+      height: 46px;
+      background: var(--bg-surface-elevated);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-md);
       color: var(--text-main);
@@ -553,158 +611,130 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.2s;
+      transition: background 0.15s, border-color 0.15s;
     }
-
     .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.1);
+      background: var(--bg-surface-hover);
+      border-color: var(--border-strong);
+    }
+    .btn-secondary:active {
+      transform: scale(0.98);
     }
 
     .btn-danger-outline {
       width: 100%;
-      height: 44px;
-      background: rgba(239, 68, 68, 0.08);
-      border: 1px solid rgba(239, 68, 68, 0.25);
+      height: 46px;
+      background: var(--danger-bg);
+      border: 1px solid var(--danger-border);
       border-radius: var(--radius-md);
       color: #f87171;
       font-size: 0.95rem;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: background 0.15s;
     }
-
+    [data-theme="light"] .btn-danger-outline {
+      color: #dc2626;
+    }
     .btn-danger-outline:hover {
       background: rgba(239, 68, 68, 0.16);
     }
-
-    /* Footer Note */
-    .auth-footer-note {
-      text-align: center;
-      margin-top: 24px;
-      font-size: 0.82rem;
-      color: var(--text-muted);
+    .btn-danger-outline:active {
+      transform: scale(0.98);
     }
 
-    .auth-footer-note a {
-      color: var(--accent-primary);
-      text-decoration: none;
+    /* Modal Overlay */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+      animation: modalFadeIn 0.2s ease;
+    }
+    .modal-overlay.open {
+      display: flex;
+    }
+    @keyframes modalFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .modal-card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-lg);
+      padding: 26px 24px;
+      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.5);
+    }
+    .modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .modal-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .modal-close-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: transparent;
+      border: none;
+      color: var(--text-sub);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      transition: background 0.15s, color 0.15s;
+    }
+    .modal-close-btn:hover {
+      background: var(--bg-surface-elevated);
+      color: var(--text-main);
     }
 
-    .auth-footer-note a:hover {
-      text-decoration: underline;
-    }
-
-    /* Alokpath Theme Images */
+    /* Alokpath Theme Logos */
     .alokpath-theme-logo-dark { display: inline-block; }
     .alokpath-theme-logo-light { display: none; }
     :root[data-theme="light"] .alokpath-theme-logo-dark { display: none !important; }
     :root[data-theme="light"] .alokpath-theme-logo-light { display: inline-block !important; }
-  
-    /* Glisse Liquid Glass Buttons & Cards (glisse.kelvinzhang.com) */
-    .btn, button, .btn-primary, .page-back-btn, .option-card, .btn-test-sound {
-      position: relative;
-      backdrop-filter: blur(28px) saturate(190%) contrast(104%) !important;
-      -webkit-backdrop-filter: blur(28px) saturate(190%) contrast(104%) !important;
-      border: 1px solid rgba(255, 255, 255, 0.16) !important;
-      box-shadow: 
-        0 4px 16px -2px rgba(0, 0, 0, 0.18),
-        0 1px 3px rgba(0, 0, 0, 0.1),
-        inset 0 1px 1px 0 rgba(255, 255, 255, 0.35),
-        inset 0 -1px 1px 0 rgba(0, 0, 0, 0.14) !important;
-      transition: 
-        transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1),
-        box-shadow 0.24s ease,
-        background 0.2s ease,
-        border-color 0.2s ease !important;
-    }
-    .btn:hover, button:hover, .btn-primary:hover, .page-back-btn:hover, .option-card:hover, .btn-test-sound:hover {
-      transform: none !important;
-      box-shadow: 
-        0 8px 24px -3px rgba(0, 0, 0, 0.24),
-        0 2px 6px rgba(0, 0, 0, 0.12),
-        inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.55),
-        inset 0 -1px 1px 0 rgba(0, 0, 0, 0.14) !important;
-      border-color: rgba(255, 255, 255, 0.3) !important;
-    }
-    .btn:active, button:active, .btn-primary:active, .page-back-btn:active, .option-card:active, .btn-test-sound:active {
-      transform: scale(0.96) !important;
-      transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
-    }
+  </style>
 
-  
-    /* Universal Ultra-Rounded Pill Buttons & Inputs (No Square Corners Anywhere) */
-    button, .btn, .btn-primary, .btn-secondary, .page-back-btn, .option-card, .btn-test-sound, .auth-btn, .download-btn, .plan-cta-btn, .plan-toggle-btn {
-      border-radius: 9999px !important;
-      transform: none !important;
-      transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
-    }
-    button:hover, .btn:hover, .btn-primary:hover, .btn-secondary:hover, .page-back-btn:hover, .option-card:hover, .btn-test-sound:hover, .auth-btn:hover, .download-btn:hover {
-      transform: none !important; /* ZERO vertical hover lift! */
-      box-shadow: 0 6px 20px -2px rgba(0, 0, 0, 0.2), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.45) !important;
-    }
-    button:active, .btn:active, .btn-primary:active, .btn-secondary:active, .page-back-btn:active, .option-card:active, .btn-test-sound:active, .auth-btn:active, .download-btn:active {
-      transform: scale(0.96) !important;
-    }
-    input, .auth-input, .custom-dialog-input {
-      border-radius: 9999px !important;
-    }
-    .card, .auth-card, .plan-card, .profile-card, .settings-group, .settings-card, .help-card, .modal-sheet, .custom-dialog-box {
-      border-radius: 28px !important;
-    }
-
-  
-    /* ==========================================================================
-       GLISSE DESIGN SYSTEM (Liquid Glass & Ultra-Rounded Overrides)
-       - Strict zero hover vertical displacement (transform: translateY OFF)
-       - Ultra-rounded pills (border-radius: 9999px) on all buttons & inputs
-       - Rounded squircles (border-radius: 20px) on panels, cards, sheets
-       - Exactly 3 theme modes: OLED (Dark), Light, Eye Care
-       ========================================================================== */
-    *:hover {
-      transform: none !important;
-    }
-    button:active, a:active, .btn:active, .icon-btn:active, .action-btn:active {
-      transform: scale(0.97) !important;
-      transition: transform 0.08s ease !important;
-    }
-    button, .btn, .btn-primary, .btn-secondary, .icon-btn, .action-btn,
-    .settings-back-link, .lang-pill-btn, .back-btn, input, .search-input,
-    .pill-btn, .tab-btn, .cta-btn, .plan-cta-btn, .download-btn, .submit-btn,
-    .badge, .status-pill, .role-pill, .filter-chip, .page-back-link {
-      border-radius: 9999px !important;
-    }
-    .card, .content-card, .plan-card, .feature-card, .settings-group,
-    .modal-sheet, .modal-box, .glass-panel, .info-box, .account-card {
-      border-radius: 20px !important;
-    }
-
-</style>
-<script>
-  (function() {
-    if (window.location.pathname.endsWith('.html')) {
-      var clean = window.location.pathname.replace(/\.html$/, '');
-      if (clean === '/index') clean = '/';
-      window.history.replaceState(null, '', clean + window.location.search + window.location.hash);
-    }
-  })();
-</script>
-<script>
-  (function() {
-    try {
-      var saved = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "oled";
-      if (saved !== "light" && saved !== "eyecare") saved = "oled";
-      document.documentElement.setAttribute("data-theme-mode", saved);
-      document.documentElement.setAttribute("data-theme", saved);
-    } catch(e) {}
-  })();
-</script>
+  <script>
+    (function() {
+      if (window.location.pathname.endsWith('.html')) {
+        var clean = window.location.pathname.replace(/\.html$/, '');
+        if (clean === '/index') clean = '/';
+        window.history.replaceState(null, '', clean + window.location.search + window.location.hash);
+      }
+    })();
+  </script>
+  <script>
+    (function() {
+      try {
+        var saved = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "oled";
+        if (saved !== "light" && saved !== "eyecare" && saved !== "sapphire") saved = "oled";
+        document.documentElement.setAttribute("data-theme-mode", saved);
+        document.documentElement.setAttribute("data-theme", saved);
+      } catch(e) {}
+    })();
+  </script>
 </head>
 <body>
-  <div class="ambient-glow"></div>
 
   <header class="top-bar">
     <a href="/" class="back-btn" id="backToChatBtn">
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <polyline points="15 18 9 12 15 6"></polyline>
       </svg>
       <span id="backToChatText">Alora</span>
@@ -714,23 +744,22 @@
       <button type="button" class="lang-toggle-btn" id="langToggleBtn" title="Switch Language / ভাষা পরিবর্তন">
         <span id="langBtnText">EN</span>
       </button>
-      <button type="button" class="theme-toggle-btn" id="themeToggleBtn" style="display:none;" title="Change Theme"></button>
     </div>
   </header>
 
   <main class="auth-container">
     <div class="auth-card">
       <div class="auth-card-header">
-        <div class="auth-badge-icon" style="background: transparent; box-shadow: none;">
-          <img src="app_logo.png" alt="Alora" style="width: 54px; height: 54px; border-radius: 16px; object-fit: cover; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);">
+        <div class="auth-badge-icon">
+          <img src="app_logo.png" alt="Alora" id="authLogoImg">
         </div>
-        <h1 class="auth-title" id="cardTitle">Welcome Back!</h1>
+        <h1 class="auth-title" id="cardTitle">Welcome Back</h1>
         <p class="auth-subtitle" id="cardSubtitle">Sign in to continue to Alora</p>
       </div>
 
-      <!-- If already logged in, show this container -->
+      <!-- Logged-in state container -->
       <div class="logged-in-box" id="loggedInBox">
-        <div class="user-avatar-lg" id="loggedAvatar">A</div>
+        <div class="user-avatar-lg" id="loggedAvatar">U</div>
         <div class="logged-name" id="loggedName">User</div>
         <div class="logged-email" id="loggedEmail">user@example.com</div>
         <div class="action-links">
@@ -747,9 +776,12 @@
           <button type="button" class="auth-tab-btn" id="tabRegisterBtn">Create Account</button>
         </div>
 
-        <div class="alert-msg" id="alertBox"></div>
+        <div class="alert-msg" id="alertBox">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span id="alertBoxText"></span>
+        </div>
 
-        <form id="authForm">
+        <form id="authForm" novalidate>
           <div class="form-group" id="nameGroup" style="display:none;">
             <label class="form-label" id="nameLabel" for="userNameInput">Your Full Name</label>
             <div class="input-wrap">
@@ -767,7 +799,7 @@
           <div class="form-group">
             <label class="form-label" id="passLabel" for="userPassInput">Password</label>
             <div class="input-wrap">
-              <input type="password" class="form-input" id="userPassInput" placeholder="At least 6 characters" required autocomplete="current-password">
+              <input type="password" class="form-input has-toggle" id="userPassInput" placeholder="At least 6 characters" required autocomplete="current-password">
               <button type="button" class="password-toggle" id="passToggleBtn" aria-label="Show password">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
               </button>
@@ -779,29 +811,77 @@
           </button>
         </form>
 
-        <div class="auth-footer-note">
-          <span id="forgotPassText">Forgot password? Contact the administrator.</span>
+        <div class="auth-divider">
+          <span id="dividerText">or</span>
         </div>
 
-        <div class="auth-meta-branding" style="margin-top: 26px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;">
-          <span style="font-size: 0.72rem; color: var(--text-muted, #8e8e93); letter-spacing: 0.8px; text-transform: lowercase;">from</span>
+        <!-- Google OAuth Button -->
+        <button type="button" class="social-btn" id="googleAuthBtn">
+          <svg viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.34 24 12 24z"/>
+            <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+          </svg>
+          <span id="googleBtnText">Continue with Google</span>
+        </button>
+
+        <!-- Continue as Guest -->
+        <button type="button" class="guest-btn" id="guestAuthBtn">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+          </svg>
+          <span id="guestBtnText">Continue as Guest</span>
+        </button>
+
+        <div class="auth-footer-note">
+          <button type="button" class="forgot-pass-link" id="forgotPassTriggerBtn">Forgot password?</button>
+        </div>
+
+        <div class="auth-meta-branding" style="margin-top: 24px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;">
+          <span style="font-size: 0.72rem; color: var(--text-muted); letter-spacing: 0.8px; text-transform: lowercase;">from</span>
           <div style="display: flex; align-items: center; gap: 6px;">
-            <img src="alokpath_logo_dark.png" alt="আলোকপথ" class="alokpath-theme-logo-dark" style="height: 22px; width: auto; object-fit: contain;">
-            <img src="alokpath_logo_light.png" alt="আলোকপথ" class="alokpath-theme-logo-light" style="height: 22px; width: auto; object-fit: contain;">
+            <img src="alokpath_logo_dark.png" alt="Alokpath" class="alokpath-theme-logo-dark" style="height: 20px; width: auto; object-fit: contain;">
+            <img src="alokpath_logo_light.png" alt="Alokpath" class="alokpath-theme-logo-light" style="height: 20px; width: auto; object-fit: contain;">
           </div>
-          <div style="font-size: 0.72rem; color: var(--text-dim, #71717a); margin-top: 2px;">An Alokpath Product</div>
+          <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">An Alokpath Product</div>
         </div>
       </div>
     </div>
   </main>
 
+  <!-- Forgot Password Modal -->
+  <div class="modal-overlay" id="forgotPassModal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3 class="modal-title" id="forgotModalTitle">Reset Password</h3>
+        <button type="button" class="modal-close-btn" id="closeForgotModalBtn" aria-label="Close modal">&times;</button>
+      </div>
+      <p style="font-size: 0.9rem; color: var(--text-sub); margin-bottom: 16px; line-height: 1.5;" id="forgotModalSub">
+        Enter your registered email address and we will provide password reset instructions.
+      </p>
+      <form id="forgotPassForm" novalidate>
+        <div class="form-group">
+          <label class="form-label" for="forgotEmailInput" id="forgotEmailLabel">Email Address</label>
+          <input type="email" class="form-input" id="forgotEmailInput" placeholder="name@example.com" required>
+        </div>
+        <div class="alert-msg" id="forgotAlertBox" style="margin-bottom:14px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span id="forgotAlertText"></span>
+        </div>
+        <button type="submit" class="submit-btn" id="submitForgotBtn" style="margin-top:0;">
+          <span id="submitForgotText">Send Instructions</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
   <script>
-    // Language i18n dictionary
+    // Language Dictionary
     const I18N_LOGIN = {
       bn: {
         pageTitle: "লগইন ও সাইন-আপ — Alora",
         backToChat: "Alora",
-        themeToggle: "থিম পরিবর্তন",
         welcomeTitle: "স্বাগতম!",
         welcomeSub: "Alora-তে প্রবেশ করতে লগইন করুন",
         registerTitle: "নতুন অ্যাকাউন্ট তৈরি",
@@ -818,7 +898,14 @@
         submitRegister: "অ্যাকাউন্ট তৈরি করুন",
         submittingLogin: "যাচাই করা হচ্ছে...",
         submittingRegister: "অ্যাকাউন্ট তৈরি হচ্ছে...",
-        forgotPass: "পাসওয়ার্ড ভুলে গেছেন? এডমিনের সাথে যোগাযোগ করুন।",
+        divider: "অথবা",
+        googleAuth: "Google দিয়ে চালিয়ে যান",
+        guestAuth: "গেস্ট হিসেবে চালিয়ে যান",
+        forgotPass: "পাসওয়ার্ড ভুলে গেছেন?",
+        forgotTitle: "পাসওয়ার্ড রিসেট",
+        forgotSub: "আপনার নিবন্ধিত ইমেইল ঠিকানা লিখুন। আমরা রিসেটের নির্দেশনা পাঠাবো।",
+        forgotBtn: "নির্দেশনা পাঠান",
+        forgotSending: "পাঠানো হচ্ছে...",
         loggedInTitle: "আপনি লগইন অবস্থায় আছেন",
         loggedInSub: "Alora প্রফাইল ও চ্যাট অ্যাক্সেস করুন",
         defaultUser: "ব্যবহারকারী",
@@ -827,19 +914,22 @@
         logoutBtn: "লগআউট করুন",
         logoutSuccess: "লগআউট সফল হয়েছে!",
         errEmailPass: "অনুগ্রহ করে ইমেইল এবং পাসওয়ার্ড প্রদান করুন।",
+        errValidEmail: "অনুগ্রহ করে একটি সঠিক ইমেইল ঠিকানা দিন।",
+        errPassShort: "পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।",
         errName: "অনুগ্রহ করে আপনার নাম প্রদান করুন।",
-        errServer: "সার্ভারের সাথে যোগাযোগ করা যায়নি। আপনার ইন্টারনেট সংযোগ পরীক্ষা করুন।",
+        errServer: "সার্ভারের সাথে যোগাযোগ করা যায়নি। ইন্টারনেট সংযোগ পরীক্ষা করুন।",
         loginSuccess: "লগইন সফল হয়েছে! চ্যাটে নিয়ে যাওয়া হচ্ছে...",
-        registerSuccess: "অ্যাকাউন্ট তৈরি সফল হয়েছে! চ্যাটে নিয়ে যাওয়া হচ্ছে..."
+        registerSuccess: "অ্যাকাউন্ট তৈরি সফল হয়েছে! চ্যাটে নিয়ে যাওয়া হচ্ছে...",
+        guestSuccess: "গেস্ট মোডে প্রবেশ করা হচ্ছে...",
+        googleOAuthPending: "Google OAuth সংযোগের কাজ চলছে। অনুগ্রহ করে ইমেইল/পাসওয়ার্ড দিয়ে প্রবেশ করুন বা গেস্ট মোড ব্যবহার করুন।"
       },
       en: {
         pageTitle: "Log In & Sign Up — Alora",
         backToChat: "Alora",
-        themeToggle: "Change Theme",
-        welcomeTitle: "Welcome Back!",
-        welcomeSub: "Sign in to access Alora",
+        welcomeTitle: "Welcome Back",
+        welcomeSub: "Sign in to access your Alora workspace",
         registerTitle: "Create an Account",
-        registerSub: "Get started with Alora",
+        registerSub: "Get started with your Alora workspace",
         tabLogin: "Log In",
         tabRegister: "Create Account",
         nameLabel: "Your Full Name",
@@ -852,8 +942,15 @@
         submitRegister: "Create Account",
         submittingLogin: "Authenticating...",
         submittingRegister: "Creating account...",
-        forgotPass: "Forgot password? Contact the administrator.",
-        loggedInTitle: "You are currently logged in",
+        divider: "or",
+        googleAuth: "Continue with Google",
+        guestAuth: "Continue as Guest",
+        forgotPass: "Forgot password?",
+        forgotTitle: "Reset Password",
+        forgotSub: "Enter your registered email address and we will provide password reset instructions.",
+        forgotBtn: "Send Instructions",
+        forgotSending: "Sending...",
+        loggedInTitle: "You are currently signed in",
         loggedInSub: "Access your Alora profile and chats",
         defaultUser: "User",
         goToChat: "Go to Chat",
@@ -861,64 +958,115 @@
         logoutBtn: "Log Out",
         logoutSuccess: "Logged out successfully!",
         errEmailPass: "Please provide both email and password.",
+        errValidEmail: "Please enter a valid email address.",
+        errPassShort: "Password must be at least 6 characters.",
         errName: "Please enter your full name.",
         errServer: "Could not connect to server. Please check your connection.",
         loginSuccess: "Login successful! Redirecting to chat...",
-        registerSuccess: "Account created successfully! Redirecting to chat..."
+        registerSuccess: "Account created successfully! Redirecting to chat...",
+        guestSuccess: "Entering Guest mode...",
+        googleOAuthPending: "Google OAuth configuration is currently pending on the server. Please log in with email/password or continue as Guest."
       }
     };
 
     let currentLanguage = localStorage.getItem("alokpoth_lang") || "en";
-    document.documentElement.setAttribute("lang", currentLanguage);
+    let currentMode = "login";
+    let showPass = false;
+
+    // Elements
+    const tabLoginBtn = document.getElementById("tabLoginBtn");
+    const tabRegisterBtn = document.getElementById("tabRegisterBtn");
+    const nameGroup = document.getElementById("nameGroup");
+    const cardTitle = document.getElementById("cardTitle");
+    const cardSubtitle = document.getElementById("cardSubtitle");
+    const submitBtnText = document.getElementById("submitBtnText");
+    const alertBox = document.getElementById("alertBox");
+    const alertBoxText = document.getElementById("alertBoxText");
+    const authForm = document.getElementById("authForm");
+    const userNameInput = document.getElementById("userNameInput");
+    const userEmailInput = document.getElementById("userEmailInput");
+    const userPassInput = document.getElementById("userPassInput");
+    const passToggleBtn = document.getElementById("passToggleBtn");
+    const submitAuthBtn = document.getElementById("submitAuthBtn");
+    const googleAuthBtn = document.getElementById("googleAuthBtn");
+    const guestAuthBtn = document.getElementById("guestAuthBtn");
+
+    const loggedInBox = document.getElementById("loggedInBox");
+    const authFormContainer = document.getElementById("authFormContainer");
+    const loggedAvatar = document.getElementById("loggedAvatar");
+    const loggedName = document.getElementById("loggedName");
+    const loggedEmail = document.getElementById("loggedEmail");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    // Modal elements
+    const forgotPassModal = document.getElementById("forgotPassModal");
+    const forgotPassTriggerBtn = document.getElementById("forgotPassTriggerBtn");
+    const closeForgotModalBtn = document.getElementById("closeForgotModalBtn");
+    const forgotPassForm = document.getElementById("forgotPassForm");
+    const forgotEmailInput = document.getElementById("forgotEmailInput");
+    const forgotAlertBox = document.getElementById("forgotAlertBox");
+    const forgotAlertText = document.getElementById("forgotAlertText");
+    const submitForgotBtn = document.getElementById("submitForgotBtn");
+    const submitForgotText = document.getElementById("submitForgotText");
+
+    // Smart API Base
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const BACKEND_URL = (isLocal && window.location.port === '5000') 
+      ? window.location.origin 
+      : (window.location.origin.includes('vercel.app') ? window.location.origin : "https://alora-backend-emw3.onrender.com");
+    const API_BASE = BACKEND_URL + "/api";
+
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("mode") === "register") {
+      currentMode = "register";
+    }
 
     function applyLoginI18n() {
-      const d = I18N_LOGIN[currentLanguage] || I18N_LOGIN.bn;
+      const d = I18N_LOGIN[currentLanguage] || I18N_LOGIN.en;
       const isEn = (currentLanguage === "en");
 
       document.title = d.pageTitle;
       document.documentElement.setAttribute("lang", currentLanguage);
 
       const langBtnText = document.getElementById("langBtnText");
-      if (langBtnText) langBtnText.textContent = isEn ? "বাংলা" : "English";
+      if (langBtnText) langBtnText.textContent = isEn ? "বাং" : "EN";
 
       const backToChatText = document.getElementById("backToChatText");
       if (backToChatText) backToChatText.textContent = d.backToChat;
 
-      const themeToggleBtn = document.getElementById("themeToggleBtn");
-      if (themeToggleBtn) themeToggleBtn.title = d.themeToggle;
-
-      const tabLoginBtn = document.getElementById("tabLoginBtn");
       if (tabLoginBtn) tabLoginBtn.textContent = d.tabLogin;
-
-      const tabRegisterBtn = document.getElementById("tabRegisterBtn");
       if (tabRegisterBtn) tabRegisterBtn.textContent = d.tabRegister;
 
       const nameLabel = document.getElementById("nameLabel");
       if (nameLabel) nameLabel.textContent = d.nameLabel;
-
-      const userNameInput = document.getElementById("userNameInput");
       if (userNameInput) userNameInput.placeholder = d.namePlaceholder;
 
       const emailLabel = document.getElementById("emailLabel");
       if (emailLabel) emailLabel.textContent = d.emailLabel;
-
-      const userEmailInput = document.getElementById("userEmailInput");
       if (userEmailInput) userEmailInput.placeholder = d.emailPlaceholder;
 
       const passLabel = document.getElementById("passLabel");
       if (passLabel) passLabel.textContent = d.passLabel;
-
-      const userPassInput = document.getElementById("userPassInput");
       if (userPassInput) userPassInput.placeholder = d.passPlaceholder;
 
-      const passToggle = document.getElementById("passToggleBtn");
-      if (passToggle) {
-        passToggle.setAttribute("aria-label", showPass ? (isEn ? "Hide password" : "পাসওয়ার্ড লুকান") : (isEn ? "Show password" : "পাসওয়ার্ড দেখুন"));
-        passToggle.title = showPass ? (isEn ? "Hide password" : "পাসওয়ার্ড লুকান") : (isEn ? "Show password" : "পাসওয়ার্ড দেখুন");
-      }
+      const dividerText = document.getElementById("dividerText");
+      if (dividerText) dividerText.textContent = d.divider;
 
-      const forgotPassText = document.getElementById("forgotPassText");
-      if (forgotPassText) forgotPassText.textContent = d.forgotPass;
+      const googleBtnText = document.getElementById("googleBtnText");
+      if (googleBtnText) googleBtnText.textContent = d.googleAuth;
+
+      const guestBtnText = document.getElementById("guestBtnText");
+      if (guestBtnText) guestBtnText.textContent = d.guestAuth;
+
+      if (forgotPassTriggerBtn) forgotPassTriggerBtn.textContent = d.forgotPass;
+
+      const forgotModalTitle = document.getElementById("forgotModalTitle");
+      if (forgotModalTitle) forgotModalTitle.textContent = d.forgotTitle;
+      const forgotModalSub = document.getElementById("forgotModalSub");
+      if (forgotModalSub) forgotModalSub.textContent = d.forgotSub;
+      const forgotEmailLabel = document.getElementById("forgotEmailLabel");
+      if (forgotEmailLabel) forgotEmailLabel.textContent = d.emailLabel;
+      if (submitForgotText && !submitForgotBtn.disabled) submitForgotText.textContent = d.forgotBtn;
 
       const goToChatBtn = document.getElementById("goToChatBtn");
       if (goToChatBtn) goToChatBtn.textContent = d.goToChat;
@@ -926,14 +1074,12 @@
       const viewAccountBtn = document.getElementById("viewAccountBtn");
       if (viewAccountBtn) viewAccountBtn.textContent = d.viewAccount;
 
-      const logoutBtn = document.getElementById("logoutBtn");
       if (logoutBtn) logoutBtn.textContent = d.logoutBtn;
 
-      if (typeof setMode === "function") {
-        setMode(currentMode);
-      }
+      setMode(currentMode);
     }
 
+    // Language Toggle
     const langToggleBtn = document.getElementById("langToggleBtn");
     if (langToggleBtn) {
       langToggleBtn.addEventListener("click", () => {
@@ -943,186 +1089,12 @@
       });
     }
 
-    // Theme sync
-    const rawSavedTheme = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "system";
-    function applyEffectiveTheme(t) {
-      if (t === "system") {
-        const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light");
-      } else {
-        document.documentElement.setAttribute("data-theme", t);
-      }
-    }
-    applyEffectiveTheme(rawSavedTheme);
-
-    const THEME_META_COLORS = {
-      dark: "#09090b",
-      sapphire: "#070d19",
-      oled: "#000000",
-      eyecare: "#f5eedc",
-      light: "#f9fafb"
-    };
-
-    function updateThemeMetaColor(t) {
-      let meta = document.querySelector('meta[name="theme-color"]');
-      if (!meta) {
-        meta = document.createElement('meta');
-        meta.setAttribute('name', 'theme-color');
-        document.head.appendChild(meta);
-      }
-      meta.setAttribute('content', THEME_META_COLORS[t] || '#09090b');
-    }
-    updateThemeMetaColor(rawSavedTheme === "system" ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark" : "light") : rawSavedTheme);
-
-    const themeToggleBtn = document.getElementById("themeToggleBtn");
-    const themes = ["system", "dark", "light", "oled", "sapphire", "eyecare"];
-    if (themeToggleBtn) {
-      themeToggleBtn.addEventListener("click", () => {
-        const cur = localStorage.getItem("alokpoth_theme") || "system";
-        const next = themes[(themes.indexOf(cur) + 1) % themes.length];
-        applyEffectiveTheme(next);
-        localStorage.setItem("alokpoth_theme", next);
-        localStorage.setItem("alokpoth-theme", next);
-        updateThemeMetaColor(next === "system" ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark" : "light") : next);
-      });
-    }
-
-    // Smart API Base
-    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const BACKEND_URL = (isLocal && window.location.port === '5000') 
-      ? window.location.origin 
-      : (window.location.origin.includes('vercel.app') ? window.location.origin : "https://alora-backend-emw3.onrender.com");
-    const API_BASE = BACKEND_URL + "/api";
-
-    // Mode handling
-    let currentMode = "login";
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get("mode") === "register") {
-      currentMode = "register";
-    }
-
-    const tabLoginBtn = document.getElementById("tabLoginBtn");
-    const tabRegisterBtn = document.getElementById("tabRegisterBtn");
-    const nameGroup = document.getElementById("nameGroup");
-    const cardTitle = document.getElementById("cardTitle");
-    const cardSubtitle = document.getElementById("cardSubtitle");
-    const submitBtnText = document.getElementById("submitBtnText");
-    const alertBox = document.getElementById("alertBox");
-    const authForm = document.getElementById("authForm");
-    const userNameInput = document.getElementById("userNameInput");
-    const userEmailInput = document.getElementById("userEmailInput");
-    const userPassInput = document.getElementById("userPassInput");
-    const passToggleBtn = document.getElementById("passToggleBtn");
-    const submitAuthBtn = document.getElementById("submitAuthBtn");
-
-    const loggedInBox = document.getElementById("loggedInBox");
-    const authFormContainer = document.getElementById("authFormContainer");
-    const loggedAvatar = document.getElementById("loggedAvatar");
-    const loggedName = document.getElementById("loggedName");
-    const loggedEmail = document.getElementById("loggedEmail");
-    const logoutBtn = document.getElementById("logoutBtn");
-
-    function purgeLocalUserData() {
-      const keys = [
-        "alokpoth_token", "alokpoth_user", "alokpoth_account_name",
-        "alokpoth_chat_sessions", "alokpoth_current_session_id",
-        "alokpoth_message_count", "alokpoth_daily_usage",
-        "alokpoth_window_usage", "alokpoth_image_window_usage",
-        "alokpoth_plan_expiry", "alokpoth_plan_expires_at",
-        "alokpoth_current_plan", "alokpoth_user_plan", "alokpoth_plan",
-        "alokpoth_usage_window"
-      ];
-      keys.forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
-      try {
-        localStorage.setItem("alokpoth_current_plan", "Free");
-        localStorage.setItem("alokpoth_plan", "Free");
-        localStorage.setItem("alokpoth_user_plan", "Free");
-      } catch (e) {}
-    }
-
-    // Check if user is already logged in with anti-cache verification
-    async function checkLoggedInState() {
-      const d = I18N_LOGIN[currentLanguage] || I18N_LOGIN.bn;
-      const backBtn = document.getElementById("backToChatBtn");
-
-      // Sync from native Android bridge if available
-      try {
-        if (window.AloAndroid && typeof window.AloAndroid.getAuthToken === "function") {
-          const nativeTok = window.AloAndroid.getAuthToken();
-          if (nativeTok && !localStorage.getItem("alokpoth_token")) {
-            localStorage.setItem("alokpoth_token", nativeTok);
-            const nName = window.AloAndroid.getUserName ? window.AloAndroid.getUserName() : "";
-            const nEmail = window.AloAndroid.getUserEmail ? window.AloAndroid.getUserEmail() : "";
-            const nPlan = window.AloAndroid.getUserPlan ? window.AloAndroid.getUserPlan() : "Free";
-            if (nName) localStorage.setItem("alokpoth_account_name", nName);
-            if (nEmail) localStorage.setItem("alokpoth_email", nEmail);
-            if (nPlan) localStorage.setItem("alokpoth_current_plan", nPlan);
-          }
-        }
-      } catch(e) {}
-
-      const token = localStorage.getItem("alokpoth_token");
-      const userStr = localStorage.getItem("alokpoth_user");
-      if (token && userStr) {
-        try {
-          const user = JSON.parse(userStr);
-          if (user && user.email) {
-            authFormContainer.style.display = "none";
-            loggedInBox.style.display = "block";
-            if (backBtn) backBtn.style.display = "inline-flex";
-            cardTitle.textContent = d.loggedInTitle;
-            cardSubtitle.textContent = d.loggedInSub;
-            loggedName.textContent = user.name || d.defaultUser;
-            loggedEmail.textContent = user.email;
-            loggedAvatar.textContent = (user.name || user.email || "U").charAt(0).toUpperCase();
-
-            // Verify with server in background to ensure account wasn't deleted by admin
-            try {
-              const res = await fetch(`${API_BASE}/auth/me?_t=${Date.now()}`, {
-                cache: "no-store",
-                headers: { "Authorization": `Bearer ${token}` }
-              });
-              if (!res.ok || res.status === 401 || res.status === 403) {
-                purgeLocalUserData();
-                authFormContainer.style.display = "block";
-                loggedInBox.style.display = "none";
-                if (backBtn) backBtn.style.display = "none";
-                setMode("login");
-                return false;
-              }
-            } catch (verErr) {}
-
-            return true;
-          }
-        } catch {}
-      }
-      authFormContainer.style.display = "block";
-      loggedInBox.style.display = "none";
-      if (backBtn) backBtn.style.display = "none";
-      return false;
-    }
-
-    if (logoutBtn) {
-      logoutBtn.addEventListener("click", () => {
-        const d = I18N_LOGIN[currentLanguage] || I18N_LOGIN.bn;
-        purgeLocalUserData();
-        showAlert(d.logoutSuccess, "success");
-        if (window.AloAndroid && typeof window.AloAndroid.logout === "function") {
-          try { window.AloAndroid.logout(); return; } catch (e) {}
-        }
-        if (window.AloAI && typeof window.AloAI.logout === "function") {
-          try { window.AloAI.logout(); return; } catch (e) {}
-        }
-        setTimeout(() => {
-          window.location.reload();
-        }, 500);
-      });
-    }
-
     function setMode(mode) {
       currentMode = mode;
-      const d = I18N_LOGIN[currentLanguage] || I18N_LOGIN.bn;
-      alertBox.style.display = "none";
+      const d = I18N_LOGIN[currentLanguage] || I18N_LOGIN.en;
+      hideAlert();
+      clearInputErrors();
+
       if (mode === "login") {
         tabLoginBtn.classList.add("active");
         tabRegisterBtn.classList.remove("active");
@@ -1144,39 +1116,185 @@
     tabRegisterBtn.addEventListener("click", () => setMode("register"));
 
     // Password Toggle
-    let showPass = false;
     passToggleBtn.addEventListener("click", () => {
       showPass = !showPass;
       userPassInput.type = showPass ? "text" : "password";
       passToggleBtn.style.color = showPass ? "var(--accent-primary)" : "var(--text-muted)";
       const isEn = (currentLanguage === "en");
       passToggleBtn.setAttribute("aria-label", showPass ? (isEn ? "Hide password" : "পাসওয়ার্ড লুকান") : (isEn ? "Show password" : "পাসওয়ার্ড দেখুন"));
-      passToggleBtn.title = showPass ? (isEn ? "Hide password" : "পাসওয়ার্ড লুকান") : (isEn ? "Show password" : "পাসওয়ার্ড দেখুন");
     });
 
     function showAlert(msg, type = "error") {
-      alertBox.textContent = msg;
+      alertBoxText.textContent = msg;
       alertBox.className = "alert-msg " + type;
       alertBox.style.display = "flex";
     }
 
-    // Submit handler
+    function hideAlert() {
+      alertBox.style.display = "none";
+      alertBoxText.textContent = "";
+    }
+
+    function clearInputErrors() {
+      userNameInput.classList.remove("is-invalid");
+      userEmailInput.classList.remove("is-invalid");
+      userPassInput.classList.remove("is-invalid");
+    }
+
+    [userNameInput, userEmailInput, userPassInput].forEach(inp => {
+      if (inp) inp.addEventListener("input", () => {
+        inp.classList.remove("is-invalid");
+        if (alertBox.style.display === "flex") hideAlert();
+      });
+    });
+
+    // Complete local storage purge including avatar
+    function purgeLocalUserData() {
+      const keys = [
+        "alokpoth_token", "alokpoth_user", "alokpoth_account_name", "alokpoth_user_avatar",
+        "alokpoth_chat_sessions", "alokpoth_current_session_id",
+        "alokpoth_message_count", "alokpoth_daily_usage",
+        "alokpoth_window_usage", "alokpoth_image_window_usage",
+        "alokpoth_plan_expiry", "alokpoth_plan_expires_at",
+        "alokpoth_current_plan", "alokpoth_user_plan", "alokpoth_plan",
+        "alokpoth_usage_window"
+      ];
+      keys.forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
+      try {
+        localStorage.setItem("alokpoth_current_plan", "Free");
+        localStorage.setItem("alokpoth_plan", "Free");
+        localStorage.setItem("alokpoth_user_plan", "Free");
+      } catch (e) {}
+    }
+
+    // Check logged in state & sync
+    async function checkLoggedInState() {
+      const d = I18N_LOGIN[currentLanguage] || I18N_LOGIN.en;
+      const backBtn = document.getElementById("backToChatBtn");
+
+      // Sync from native Android bridge if available
+      try {
+        if (window.AloAndroid && typeof window.AloAndroid.getAuthToken === "function") {
+          const nativeTok = window.AloAndroid.getAuthToken();
+          if (nativeTok && !localStorage.getItem("alokpoth_token")) {
+            localStorage.setItem("alokpoth_token", nativeTok);
+            const nName = window.AloAndroid.getUserName ? window.AloAndroid.getUserName() : "";
+            const nEmail = window.AloAndroid.getUserEmail ? window.AloAndroid.getUserEmail() : "";
+            const nPlan = window.AloAndroid.getUserPlan ? window.AloAndroid.getUserPlan() : "Free";
+            if (nName) localStorage.setItem("alokpoth_account_name", nName);
+            if (nEmail) localStorage.setItem("alokpoth_email", nEmail);
+            if (nPlan) localStorage.setItem("alokpoth_current_plan", nPlan);
+          }
+        }
+      } catch(e) {}
+
+      const token = localStorage.getItem("alokpoth_token");
+      const userStr = localStorage.getItem("alokpoth_user");
+
+      if (token && userStr) {
+        try {
+          const user = JSON.parse(userStr);
+          if (user && user.email) {
+            authFormContainer.style.display = "none";
+            loggedInBox.style.display = "block";
+            if (backBtn) backBtn.style.display = "inline-flex";
+
+            cardTitle.textContent = d.loggedInTitle;
+            cardSubtitle.textContent = d.loggedInSub;
+            loggedName.textContent = user.name || d.defaultUser;
+            loggedEmail.textContent = user.email;
+
+            // Render Avatar: custom image or initial
+            const storedAvatar = user.avatar || localStorage.getItem("alokpoth_user_avatar");
+            if (storedAvatar && storedAvatar !== "default") {
+              loggedAvatar.innerHTML = `<img src="${storedAvatar}" alt="Avatar">`;
+              loggedAvatar.style.background = "none";
+            } else {
+              loggedAvatar.innerHTML = "";
+              loggedAvatar.textContent = (user.name || user.email || "U").charAt(0).toUpperCase();
+              loggedAvatar.style.background = "var(--accent-gradient)";
+            }
+
+            // Verify with server in background
+            try {
+              const res = await fetch(`${API_BASE}/auth/me?_t=${Date.now()}`, {
+                cache: "no-store",
+                headers: { "Authorization": `Bearer ${token}` }
+              });
+              if (!res.ok || res.status === 401 || res.status === 403) {
+                purgeLocalUserData();
+                authFormContainer.style.display = "block";
+                loggedInBox.style.display = "none";
+                setMode("login");
+                return false;
+              }
+              const meData = await res.json();
+              if (meData.success && meData.user) {
+                try { localStorage.setItem("alokpoth_user", JSON.stringify(meData.user)); } catch {}
+                if (meData.user.avatar) {
+                  try { localStorage.setItem("alokpoth_user_avatar", meData.user.avatar); } catch {}
+                }
+              }
+            } catch (verErr) {}
+
+            return true;
+          }
+        } catch {}
+      }
+
+      authFormContainer.style.display = "block";
+      loggedInBox.style.display = "none";
+      return false;
+    }
+
+    // Logout
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", () => {
+        const d = I18N_LOGIN[currentLanguage] || I18N_LOGIN.en;
+        purgeLocalUserData();
+        showAlert(d.logoutSuccess, "success");
+        if (window.AloAndroid && typeof window.AloAndroid.logout === "function") {
+          try { window.AloAndroid.logout(); return; } catch (e) {}
+        }
+        if (window.AloAI && typeof window.AloAI.logout === "function") {
+          try { window.AloAI.logout(); return; } catch (e) {}
+        }
+        setTimeout(() => {
+          window.location.reload();
+        }, 400);
+      });
+    }
+
+    // Submit Auth Form
     authForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      alertBox.style.display = "none";
-      const d = I18N_LOGIN[currentLanguage] || I18N_LOGIN.bn;
+      hideAlert();
+      clearInputErrors();
+      const d = I18N_LOGIN[currentLanguage] || I18N_LOGIN.en;
 
       const email = userEmailInput.value.trim().toLowerCase();
       const password = userPassInput.value;
       const name = userNameInput.value.trim();
 
-      if (!email || !password) {
-        showAlert(d.errEmailPass, "error");
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!email || !emailRegex.test(email)) {
+        userEmailInput.classList.add("is-invalid");
+        showAlert(d.errValidEmail, "error");
+        userEmailInput.focus();
+        return;
+      }
+
+      if (!password || password.length < 6) {
+        userPassInput.classList.add("is-invalid");
+        showAlert(d.errPassShort, "error");
+        userPassInput.focus();
         return;
       }
 
       if (currentMode === "register" && !name) {
+        userNameInput.classList.add("is-invalid");
         showAlert(d.errName, "error");
+        userNameInput.focus();
         return;
       }
 
@@ -1203,8 +1321,12 @@
           let planName = "Free";
           if (data.user) {
             try { localStorage.setItem("alokpoth_user", JSON.stringify(data.user)); } catch {}
-            const nameToSave = data.user.name || (data.user.email ? data.user.email.split('@')[0] : "ব্যবহারকারী");
+            const nameToSave = data.user.name || (data.user.email ? data.user.email.split('@')[0] : "User");
             try { localStorage.setItem("alokpoth_account_name", nameToSave); } catch {}
+            if (data.user.avatar) {
+              try { localStorage.setItem("alokpoth_user_avatar", data.user.avatar); } catch {}
+            }
+
             const adminEmails = ["zihanfakir@gmail.com", "x@zihan.uk"];
             const isAdmin = data.user.role === "admin" || (data.user.email && adminEmails.includes(data.user.email.toLowerCase().trim()));
             planName = isAdmin ? "Max" : ((data.user.subscription && data.user.subscription.plan_name) || data.user.plan || "Free");
@@ -1235,23 +1357,19 @@
           showAlert(currentMode === "login" ? d.loginSuccess : d.registerSuccess, "success");
 
           setTimeout(() => {
-            let redirect = urlParams.get("redirect") || "index.html";
+            let redirect = urlParams.get("redirect") || "/";
             if (/^(?:[a-z]+:|\/\/)/i.test(redirect) || redirect.startsWith('\\')) {
               try {
                 const parsed = new URL(redirect, window.location.origin);
-                if (parsed.origin !== window.location.origin) {
-                  redirect = "index.html";
-                } else {
-                  redirect = parsed.pathname + parsed.search + parsed.hash;
-                }
+                redirect = (parsed.origin !== window.location.origin) ? "/" : (parsed.pathname + parsed.search + parsed.hash);
               } catch {
-                redirect = "index.html";
+                redirect = "/";
               }
             }
             window.location.href = redirect;
-          }, 800);
+          }, 600);
         } else {
-          showAlert(data.error || (currentLanguage === "en" ? "Request failed. Please verify your details." : "কার্য সম্পন্ন করা সম্ভব হয়নি। অনুগ্রহ করে তথ্য যাচাই করুন।"), "error");
+          showAlert(data.error || (currentLanguage === "en" ? "Invalid email or password. Please verify your credentials." : "অবৈধ ইমেইল বা পাসওয়ার্ড। অনুগ্রহ করে তথ্য যাচাই করুন।"), "error");
           submitAuthBtn.disabled = false;
           submitBtnText.textContent = currentMode === "login" ? d.submitLogin : d.submitRegister;
         }
@@ -1262,10 +1380,97 @@
       }
     });
 
-    // Run initial state and i18n
+    // Google OAuth Handler
+    googleAuthBtn.addEventListener("click", async () => {
+      const d = I18N_LOGIN[currentLanguage] || I18N_LOGIN.en;
+      try {
+        const res = await fetch(`${API_BASE}/auth/google`);
+        const data = await res.json();
+        if (res.ok && data.url) {
+          window.location.href = data.url;
+        } else {
+          showAlert(data.error || d.googleOAuthPending, "error");
+        }
+      } catch (e) {
+        showAlert(d.googleOAuthPending, "error");
+      }
+    });
+
+    // Guest Mode Handler
+    guestAuthBtn.addEventListener("click", () => {
+      const d = I18N_LOGIN[currentLanguage] || I18N_LOGIN.en;
+      purgeLocalUserData();
+      showAlert(d.guestSuccess, "success");
+      setTimeout(() => {
+        let redirect = urlParams.get("redirect") || "/";
+        window.location.href = redirect;
+      }, 300);
+    });
+
+    // Forgot Password Modal Handlers
+    forgotPassTriggerBtn.addEventListener("click", () => {
+      forgotAlertBox.style.display = "none";
+      forgotEmailInput.value = userEmailInput.value || "";
+      forgotPassModal.classList.add("open");
+      setTimeout(() => forgotEmailInput.focus(), 100);
+    });
+
+    closeForgotModalBtn.addEventListener("click", () => {
+      forgotPassModal.classList.remove("open");
+    });
+
+    forgotPassModal.addEventListener("click", (e) => {
+      if (e.target === forgotPassModal) forgotPassModal.classList.remove("open");
+    });
+
+    forgotPassForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const d = I18N_LOGIN[currentLanguage] || I18N_LOGIN.en;
+      const email = forgotEmailInput.value.trim().toLowerCase();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      if (!email || !emailRegex.test(email)) {
+        forgotAlertText.textContent = d.errValidEmail;
+        forgotAlertBox.className = "alert-msg error";
+        forgotAlertBox.style.display = "flex";
+        return;
+      }
+
+      submitForgotBtn.disabled = true;
+      submitForgotText.textContent = d.forgotSending;
+
+      try {
+        const res = await fetch(`${API_BASE}/auth/forgot-password`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          forgotAlertText.textContent = data.message || (currentLanguage === "en" ? "Instructions sent. Please check your inbox or contact support." : "নির্দেশনা পাঠানো হয়েছে। ইনবক্স চেক করুন বা সহায়তার সাথে যোগাযোগ করুন।");
+          forgotAlertBox.className = "alert-msg success";
+          forgotAlertBox.style.display = "flex";
+          setTimeout(() => {
+            forgotPassModal.classList.remove("open");
+          }, 3500);
+        } else {
+          forgotAlertText.textContent = data.error || d.errServer;
+          forgotAlertBox.className = "alert-msg error";
+          forgotAlertBox.style.display = "flex";
+        }
+      } catch {
+        forgotAlertText.textContent = d.errServer;
+        forgotAlertBox.className = "alert-msg error";
+        forgotAlertBox.style.display = "flex";
+      } finally {
+        submitForgotBtn.disabled = false;
+        submitForgotText.textContent = d.forgotBtn;
+      }
+    });
+
+    // Run initial state
     applyLoginI18n();
     checkLoggedInState();
   </script>
 </body>
 </html>
-

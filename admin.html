@@ -803,29 +803,28 @@
     }
 
   
-    /* ==========================================================================
-       GLISSE DESIGN SYSTEM (Liquid Glass & Ultra-Rounded Overrides)
-       - Strict zero hover vertical displacement (transform: translateY OFF)
-       - Ultra-rounded pills (border-radius: 9999px) on all buttons & inputs
-       - Rounded squircles (border-radius: 20px) on panels, cards, sheets
-       - Exactly 3 theme modes: OLED (Dark), Light, Eye Care
-       ========================================================================== */
-    *:hover {
+    
+    /* Clean Modern Controls (Vercel/Linear Design System) */
+    button, .btn, .btn-primary, .btn-secondary, .page-back-btn, .option-card, .btn-test-sound, .auth-btn, .download-btn, .plan-cta-btn, .plan-toggle-btn, .pill-btn, .tab-btn, .cta-btn, .submit-btn, .back-btn, .settings-back-link {
+      border-radius: 9px !important;
       transform: none !important;
+      transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease !important;
     }
-    button:active, a:active, .btn:active, .icon-btn:active, .action-btn:active {
-      transform: scale(0.97) !important;
-      transition: transform 0.08s ease !important;
+    button:hover, .btn:hover, .btn-primary:hover, .btn-secondary:hover, .page-back-btn:hover, .option-card:hover, .btn-test-sound:hover, .auth-btn:hover, .download-btn:hover {
+      transform: none !important;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18) !important;
     }
-    button, .btn, .btn-primary, .btn-secondary, .icon-btn, .action-btn,
-    .settings-back-link, .lang-pill-btn, .back-btn, input, .search-input,
-    .pill-btn, .tab-btn, .cta-btn, .plan-cta-btn, .download-btn, .submit-btn,
-    .badge, .status-pill, .role-pill, .filter-chip, .page-back-link {
-      border-radius: 9999px !important;
+    button:active, .btn:active, .btn-primary:active, .btn-secondary:active, .page-back-btn:active, .option-card:active, .btn-test-sound:active, .auth-btn:active, .download-btn:active {
+      transform: scale(0.975) !important;
     }
-    .card, .content-card, .plan-card, .feature-card, .settings-group,
-    .modal-sheet, .modal-box, .glass-panel, .info-box, .account-card {
-      border-radius: 20px !important;
+    input, .auth-input, .custom-dialog-input, .search-input {
+      border-radius: 10px !important;
+    }
+    .card, .auth-card, .plan-card, .profile-card, .settings-group, .settings-card, .help-card, .modal-sheet, .custom-dialog-box, .content-card, .feature-card, .modal-box, .glass-panel, .info-box, .account-card {
+      border-radius: 14px !important;
+    }
+    .badge, .status-pill, .role-pill, .filter-chip {
+      border-radius: 6px !important;
     }
 
 </style>
@@ -1546,7 +1545,7 @@
   </div>
 
   <script>
-    // Smart API Base: On GitHub Pages (alora.zihan.xyz), route to Vercel backend.
+    // Smart API Base: On Static Host (alora.zihan.xyz), route to backend.
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const BACKEND_URL = (isLocal && window.location.port === '5000') 
       ? window.location.origin 
@@ -2591,10 +2590,10 @@
     const newModelEff = document.getElementById("newModelEff");
     if (newModelPrem && newModelEff) {
       newModelPrem.addEventListener("change", (e) => {
-        if (e.target.checked) newModelEff.checked = false;
+        if (e.target && e.target.checked) newModelEff.checked = false;
       });
       newModelEff.addEventListener("change", (e) => {
-        if (e.target.checked) newModelPrem.checked = false;
+        if (e.target && e.target.checked) newModelPrem.checked = false;
       });
     }
 
@@ -2634,6 +2633,10 @@
                 <option value="Pro" ${plan === 'Pro' ? 'selected' : ''}>Pro (কাস্টম মেয়াদ)</option>
                 <option value="Max" ${plan === 'Max' ? 'selected' : ''}>Max (কাস্টম মেয়াদ)</option>
               </select>
+              <select class="user-role-select" data-user-id="${escapeHtml(uId)}" style="padding: 4px 8px; font-size: 0.8rem;">
+                <option value="user" ${u.role !== 'admin' ? 'selected' : ''}>User</option>
+                <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+              </select>
               <button type="button" class="btn ${u.is_blocked ? 'btn-success' : 'btn-danger'} btn-toggle-block" data-user-id="${escapeHtml(uId)}" data-blocked="${!u.is_blocked}">
                 ${u.is_blocked ? 'আনব্লক' : 'ব্লক'}
               </button>
@@ -2649,6 +2652,12 @@
       tbody.querySelectorAll(".user-plan-select").forEach(sel => {
         sel.addEventListener("change", function() {
           if (this.value) updateUserPlan(this.dataset.userId, this.value);
+        });
+      });
+
+      tbody.querySelectorAll(".user-role-select").forEach(sel => {
+        sel.addEventListener("change", function() {
+          if (this.value) updateUserRole(this.dataset.userId, this.value);
         });
       });
 
@@ -2701,6 +2710,27 @@
     }
 
     document.getElementById("userSearchInput")?.addEventListener("input", filterUsers);
+
+    async function updateUserRole(userId, newRole) {
+      if (!userId || !newRole) return;
+      try {
+        const res = await authFetch(`${API_BASE}/admin/users/${encodeURIComponent(userId)}/role`, {
+          method: "PUT",
+          body: JSON.stringify({ role: newRole })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`রোল সফলভাবে ${newRole}-এ পরিবর্তন করা হয়েছে`, "success");
+          loadUsers();
+        } else {
+          showToast(data.error || "রোল পরিবর্তন করা সম্ভব হয়নি", "error");
+          loadUsers();
+        }
+      } catch (err) {
+        showToast("সার্ভার এরর", "error");
+        loadUsers();
+      }
+    }
 
     async function updateUserPlan(userId, plan_name) {
       if (!plan_name) return;

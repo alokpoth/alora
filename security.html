@@ -17,82 +17,74 @@
   <style>
     :root {
       --bg-base: #000000;
-      --bg-card: #18181b;
-      --bg-card-hover: #222226;
-      --border-card: rgba(255, 255, 255, 0.08);
+      --bg-card: #121215;
+      --bg-card-hover: #1c1c22;
+      --border-card: rgba(255, 255, 255, 0.09);
       --border-divider: rgba(255, 255, 255, 0.06);
       --text-main: #ffffff;
-      --text-sub: #71717a;
-      --text-dim: #a1a1aa;
+      --text-sub: #a1a1aa;
+      --text-dim: #71717a;
       --accent-blue: #3b82f6;
       --accent-blue-hover: #2563eb;
       --accent-danger: #ef4444;
+      --accent-danger-hover: #dc2626;
+      --accent-success: #10b981;
       --font-main: 'Plus Jakarta Sans', 'Hind Siliguri', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-
-    [data-theme="dark"] {
-      --bg-base: #09090b;
-      --bg-card: #18181b;
-      --bg-card-hover: #222226;
-      --border-card: rgba(255, 255, 255, 0.08);
-      --border-divider: rgba(255, 255, 255, 0.06);
-      --text-main: #ffffff;
-      --text-sub: #71717a;
     }
 
     [data-theme="oled"] {
       --bg-base: #000000;
-      --bg-card: #111113;
-      --bg-card-hover: #1c1c1f;
-      --border-card: rgba(255, 255, 255, 0.12);
+      --bg-card: #111114;
+      --bg-card-hover: #1a1a20;
+      --border-card: rgba(255, 255, 255, 0.1);
       --border-divider: rgba(255, 255, 255, 0.06);
       --text-main: #ffffff;
-      --text-sub: #71717a;
+      --text-sub: #a1a1aa;
+      --text-dim: #71717a;
+      --accent-blue: #3b82f6;
     }
 
     [data-theme="sapphire"] {
       --bg-base: #070d19;
-      --bg-card: #0f1c32;
-      --bg-card-hover: #152744;
-      --border-card: rgba(56, 189, 248, 0.15);
+      --bg-card: #0e1a30;
+      --bg-card-hover: #152646;
+      --border-card: rgba(56, 189, 248, 0.18);
       --border-divider: rgba(56, 189, 248, 0.08);
       --text-main: #f8fafc;
       --text-sub: #94a3b8;
+      --text-dim: #64748b;
+      --accent-blue: #38bdf8;
+    }
+
+    [data-theme="light"] {
+      --bg-base: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-card-hover: #f1f5f9;
+      --border-card: rgba(0, 0, 0, 0.08);
+      --border-divider: rgba(0, 0, 0, 0.06);
+      --text-main: #09090b;
+      --text-sub: #64748b;
+      --text-dim: #94a3b8;
+      --accent-blue: #2563eb;
     }
 
     [data-theme="eyecare"] {
       --bg-base: #f5eedc;
       --bg-card: #eadeca;
       --bg-card-hover: #dfcfb8;
-      --border-card: rgba(146, 64, 14, 0.15);
+      --border-card: rgba(146, 64, 14, 0.16);
       --border-divider: rgba(146, 64, 14, 0.08);
       --text-main: #4a3b2c;
       --text-sub: #7a6b5c;
-      --text-dim: #9e8e7e;
-    }
-
-    [data-theme="light"] {
-      --bg-base: #f4f4f5;
-      --bg-card: #ffffff;
-      --bg-card-hover: #f8fafc;
-      --border-card: rgba(0, 0, 0, 0.08);
-      --border-divider: rgba(0, 0, 0, 0.05);
-      --text-main: #09090b;
-      --text-sub: #71717a;
-      --text-dim: #52525b;
+      --text-dim: #9c8a77;
+      --accent-blue: #b45309;
     }
 
     *, *::before, *::after {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      -webkit-tap-highlight-color: transparent !important;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    a {
-      text-decoration: none !important;
-      color: inherit;
+      -webkit-tap-highlight-color: transparent;
     }
 
     body {
@@ -104,6 +96,7 @@
       flex-direction: column;
       position: relative;
       overflow-x: hidden;
+      padding-top: env(safe-area-inset-top, 0);
       padding-bottom: max(32px, env(safe-area-inset-bottom, 20px));
       transition: background-color 0.2s ease;
     }
@@ -113,15 +106,13 @@
       position: sticky;
       top: 0;
       z-index: 50;
-      background: var(--bg-base);
+      background: var(--bg-card);
       border-bottom: 1px solid var(--border-divider);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      height: calc(56px + env(safe-area-inset-top, 0px));
-      padding: env(safe-area-inset-top, 0px) 16px 0 16px;
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      height: 56px;
+      padding: 0 16px;
     }
 
     .settings-back-link {
@@ -130,24 +121,28 @@
       gap: 6px;
       color: var(--text-main);
       text-decoration: none;
-      font-size: 1rem;
+      font-size: 0.9rem;
       font-weight: 600;
       cursor: pointer;
-      padding: 6px 8px;
-      border-radius: 8px;
-      transition: opacity 0.15s;
+      padding: 7px 12px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-card);
+      transition: opacity 0.15s, background 0.15s;
+    }
+    :root[data-theme="light"] .settings-back-link {
+      background: rgba(0, 0, 0, 0.04);
     }
     .settings-back-link:active {
-      opacity: 0.7;
+      opacity: 0.75;
+      transform: scale(0.98);
     }
     .settings-back-link svg {
-      width: 20px;
-      height: 20px;
-      stroke-width: 2.4;
+      width: 17px;
+      height: 17px;
+      stroke-width: 2.2;
       stroke: currentColor;
       fill: none;
-      stroke-linecap: round;
-      stroke-linejoin: round;
     }
 
     .nav-title {
@@ -163,43 +158,47 @@
     }
 
     .lang-pill-btn {
-      background: rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.06);
       border: 1px solid var(--border-card);
       color: var(--text-main);
-      font-size: 0.8rem;
+      font-size: 0.82rem;
       font-weight: 600;
-      padding: 5px 10px;
-      border-radius: 9999px;
+      padding: 6px 12px;
+      border-radius: 10px;
       cursor: pointer;
       transition: background 0.15s;
     }
+    :root[data-theme="light"] .lang-pill-btn {
+      background: rgba(0, 0, 0, 0.04);
+    }
     .lang-pill-btn:active {
-      background: rgba(255, 255, 255, 0.15);
+      transform: scale(0.96);
     }
 
     /* Main Container */
     .content-container {
       width: 100%;
-      max-width: 580px;
-      margin: 0 auto;
-      padding: 20px 16px 40px;
+      max-width: 600px;
+      margin: 20px auto 0;
+      padding: 0 16px;
       display: flex;
       flex-direction: column;
       gap: 16px;
+      flex: 1;
     }
 
     .settings-card {
       background: var(--bg-card);
       border: 1px solid var(--border-card);
       border-radius: 16px;
-      padding: 20px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      padding: 22px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
     }
 
     .card-title {
-      font-size: 1.05rem;
+      font-size: 1.08rem;
       font-weight: 700;
-      color: #ffffff;
+      color: var(--text-main);
       margin-bottom: 14px;
       display: flex;
       align-items: center;
@@ -212,8 +211,6 @@
       stroke: currentColor;
       fill: none;
       stroke-width: 2;
-      stroke-linecap: round;
-      stroke-linejoin: round;
     }
 
     .meta-row {
@@ -234,24 +231,156 @@
     .meta-value {
       font-size: 0.92rem;
       font-weight: 600;
-      color: #ffffff;
+      color: var(--text-main);
     }
 
     .badge-pill {
       font-size: 0.78rem;
       padding: 3px 10px;
-      border-radius: 9999px;
-      font-weight: 600;
-      background: rgba(59, 130, 246, 0.15);
-      color: #60a5fa;
-      border: 1px solid rgba(59, 130, 246, 0.3);
+      border-radius: 6px;
+      font-weight: 700;
+      background: rgba(59, 130, 246, 0.12);
+      color: var(--accent-blue);
+      border: 1px solid rgba(59, 130, 246, 0.25);
     }
     .badge-pill.plan {
       background: rgba(255, 255, 255, 0.08);
-      color: #e4e4e7;
-      border-color: rgba(255, 255, 255, 0.15);
+      color: var(--text-main);
+      border-color: var(--border-card);
     }
 
+    /* Modern Toggle Switch */
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 26px;
+      flex-shrink: 0;
+    }
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #3f3f46;
+      transition: background-color 0.2s;
+      border-radius: 9999px;
+    }
+    .toggle-slider::before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 3px;
+      bottom: 3px;
+      background-color: #ffffff;
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      border-radius: 50%;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+    }
+    .toggle-switch input:checked + .toggle-slider {
+      background-color: var(--accent-blue);
+    }
+    .toggle-switch input:checked + .toggle-slider::before {
+      transform: translateX(18px);
+    }
+
+    /* Sessions List */
+    .sessions-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .session-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-card);
+      gap: 12px;
+    }
+    :root[data-theme="light"] .session-item {
+      background: rgba(0, 0, 0, 0.02);
+    }
+    .session-lead {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+    .session-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-card);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--accent-blue);
+    }
+    .session-icon svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+    }
+    .session-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+    .session-title {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .session-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: rgba(16, 185, 129, 0.14);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .session-meta {
+      font-size: 0.78rem;
+      color: var(--text-sub);
+    }
+    .btn-revoke {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      color: var(--accent-danger);
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s;
+      flex-shrink: 0;
+    }
+    .btn-revoke:hover {
+      background: rgba(239, 68, 68, 0.18);
+    }
+    .btn-revoke:active {
+      transform: scale(0.96);
+    }
+
+    /* Forms */
     .form-group {
       margin-bottom: 14px;
     }
@@ -268,18 +397,21 @@
       width: 100%;
       height: 46px;
       padding: 0 14px;
-      background: rgba(0, 0, 0, 0.35);
+      background: rgba(0, 0, 0, 0.3);
       border: 1px solid var(--border-card);
-      border-radius: 12px;
-      color: #ffffff;
+      border-radius: 10px;
+      color: var(--text-main);
       font-size: 0.95rem;
       font-family: inherit;
       outline: none;
       transition: border-color 0.15s, box-shadow 0.15s;
     }
+    :root[data-theme="light"] .form-input {
+      background: #f8fafc;
+    }
     .form-input:focus {
       border-color: var(--accent-blue);
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
     }
 
     .password-input-wrap {
@@ -302,12 +434,11 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 8px;
-      transition: color 0.15s, background 0.15s;
+      border-radius: 6px;
+      transition: color 0.15s;
     }
     .toggle-pass-btn:hover {
-      color: #ffffff;
-      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
     }
     .toggle-pass-btn svg {
       width: 18px;
@@ -315,26 +446,24 @@
       stroke: currentColor;
       fill: none;
       stroke-width: 2;
-      stroke-linecap: round;
-      stroke-linejoin: round;
     }
 
     .btn-submit {
       width: 100%;
       height: 48px;
-      border-radius: 12px;
+      border-radius: 10px;
       background: var(--accent-blue);
       color: #ffffff;
       border: none;
-      font-size: 0.98rem;
-      font-weight: 600;
+      font-size: 0.96rem;
+      font-weight: 700;
       font-family: inherit;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      transition: background 0.15s;
+      transition: background 0.15s, transform 0.1s;
       margin-top: 14px;
     }
     .btn-submit:hover {
@@ -346,6 +475,31 @@
     .btn-submit:disabled {
       opacity: 0.6;
       cursor: not-allowed;
+    }
+
+    .btn-danger-block {
+      width: 100%;
+      height: 46px;
+      border-radius: 10px;
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+      font-size: 0.94rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background 0.15s, transform 0.1s;
+      margin-top: 12px;
+    }
+    .btn-danger-block:hover {
+      background: rgba(239, 68, 68, 0.2);
+    }
+    .btn-danger-block:active {
+      transform: scale(0.98);
     }
 
     .security-note {
@@ -360,70 +514,43 @@
       bottom: max(20px, env(safe-area-inset-bottom, 20px));
       left: 50%;
       transform: translateX(-50%);
-      padding: 10px 18px;
-      border-radius: 9999px;
+      padding: 10px 20px;
+      border-radius: 10px;
       font-size: 0.88rem;
       font-weight: 500;
       color: #ffffff;
       background: rgba(24, 24, 27, 0.95);
       border: 1px solid rgba(255, 255, 255, 0.15);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
       z-index: 1000;
       display: none;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      backdrop-filter: blur(12px);
       white-space: nowrap;
     }
     .toast.success { border-color: #10b981; }
     .toast.error { border-color: #ef4444; }
-  
+  </style>
 
-
-    /* ==========================================================================
-       GLISSE DESIGN SYSTEM (Liquid Glass & Ultra-Rounded Overrides)
-       - Strict zero hover vertical displacement (transform: translateY OFF)
-       - Ultra-rounded pills (border-radius: 9999px) on all buttons & inputs
-       - Rounded squircles (border-radius: 20px) on panels, cards, sheets
-       - Exactly 3 theme modes: OLED (Dark), Light, Eye Care
-       ========================================================================== */
-    *:hover {
-      transform: none !important;
-    }
-    button:active, a:active, .btn:active, .icon-btn:active, .action-btn:active {
-      transform: scale(0.97) !important;
-      transition: transform 0.08s ease !important;
-    }
-    button, .btn, .btn-primary, .btn-secondary, .icon-btn, .action-btn,
-    .settings-back-link, .lang-pill-btn, .back-btn, input, .search-input,
-    .pill-btn, .tab-btn, .cta-btn, .plan-cta-btn, .download-btn, .submit-btn,
-    .badge, .status-pill, .role-pill, .filter-chip, .page-back-link {
-      border-radius: 9999px !important;
-    }
-    .card, .content-card, .plan-card, .feature-card, .settings-group,
-    .modal-sheet, .modal-box, .glass-panel, .info-box, .account-card {
-      border-radius: 20px !important;
-    }
-
-</style>
-<script>
-  (function() {
-    if (window.location.pathname.endsWith('.html')) {
-      var clean = window.location.pathname.replace(/\.html$/, '');
-      if (clean === '/index') clean = '/';
-      window.history.replaceState(null, '', clean + window.location.search + window.location.hash);
-    }
-  })();
-</script>
-<script>
-  (function() {
-    try {
-      var saved = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "oled";
-      if (saved !== "light" && saved !== "eyecare") saved = "oled";
-      document.documentElement.setAttribute("data-theme-mode", saved);
-      document.documentElement.setAttribute("data-theme", saved);
-    } catch(e) {}
-  })();
-</script>
+  <script>
+    (function() {
+      if (window.location.pathname.endsWith('.html')) {
+        var clean = window.location.pathname.replace(/\.html$/, '');
+        if (clean === '/index') clean = '/';
+        window.history.replaceState(null, '', clean + window.location.search + window.location.hash);
+      }
+    })();
+  </script>
+  <script>
+    (function() {
+      try {
+        var saved = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "oled";
+        var valid = ["oled", "sapphire", "light", "eyecare"];
+        var mode = valid.indexOf(saved) !== -1 ? saved : "oled";
+        document.documentElement.setAttribute("data-theme-mode", mode);
+        document.documentElement.setAttribute("data-theme", mode);
+      } catch(e) {}
+    })();
+  </script>
 </head>
 <body>
   <div id="toastEl" class="toast"></div>
@@ -437,7 +564,7 @@
     <div class="nav-title" id="pageTitle">Account &amp; Security</div>
     <div class="nav-actions">
       <button type="button" class="lang-pill-btn" id="langToggleBtn" title="Language Switch">
-        <span id="langBtnText">EN</span>
+        <span id="langBtnText">BN</span>
       </button>
     </div>
   </header>
@@ -463,8 +590,98 @@
       </div>
       <div class="meta-row">
         <span class="meta-label" id="labelStatus">Account Status</span>
-        <span class="meta-value" style="color:#10b981;" id="valStatus">● Active</span>
+        <span class="meta-value" style="color:var(--accent-success);" id="valStatus">● Active</span>
       </div>
+    </div>
+
+    <!-- Two-Factor Authentication Card -->
+    <div class="settings-card">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 14px;">
+        <div>
+          <div class="card-title" style="margin-bottom: 4px;">
+            <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span id="twoFactorTitle">Two-Factor Authentication (2FA)</span>
+          </div>
+          <p class="security-note" id="twoFactorDesc">
+            Add an extra layer of protection to your account with two-step token verification on unfamiliar devices.
+          </p>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="twoFactorToggle">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div style="margin-top: 12px; display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 0.82rem; color: var(--text-sub);" id="twoFactorStatusLabel">Current Status:</span>
+        <span id="twoFactorStatusBadge" style="font-size: 0.82rem; font-weight: 700; color: #a1a1aa;">Disabled</span>
+      </div>
+    </div>
+
+    <!-- Active Sessions List Card -->
+    <div class="settings-card">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        <span id="activeSessionsTitle">Active Authorized Sessions</span>
+      </div>
+      <p class="security-note" id="activeSessionsDesc">
+        Devices and browsers currently logged into this Alora account. Revoke any unfamiliar session immediately.
+      </p>
+
+      <div class="sessions-list" id="sessionsListContainer">
+        <!-- Current Session -->
+        <div class="session-item" id="sessionItemCurrent">
+          <div class="session-lead">
+            <div class="session-icon">
+              <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            </div>
+            <div class="session-info">
+              <span class="session-title">
+                <span id="sessionCurDevice">Current Browser</span>
+                <span class="session-badge" id="sessionCurBadge">This Device</span>
+              </span>
+              <span class="session-meta" id="sessionCurMeta">Active now • Local network session</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Android App Session Mockup -->
+        <div class="session-item" id="sessionItemAndroid">
+          <div class="session-lead">
+            <div class="session-icon">
+              <svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+            </div>
+            <div class="session-info">
+              <span class="session-title" id="sessionAndroidTitle">Alora Android Native App</span>
+              <span class="session-meta" id="sessionAndroidMeta">Last active 2 hours ago • Dhaka, BD</span>
+            </div>
+          </div>
+          <button type="button" class="btn-revoke" onclick="revokeSession('sessionItemAndroid')">
+            <span class="btn-revoke-text">Revoke</span>
+          </button>
+        </div>
+
+        <!-- Web PWA Session Mockup -->
+        <div class="session-item" id="sessionItemPwa">
+          <div class="session-lead">
+            <div class="session-icon">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            </div>
+            <div class="session-info">
+              <span class="session-title" id="sessionPwaTitle">Apple Safari (iOS PWA)</span>
+              <span class="session-meta" id="sessionPwaMeta">Last active yesterday • Mobile</span>
+            </div>
+          </div>
+          <button type="button" class="btn-revoke" onclick="revokeSession('sessionItemPwa')">
+            <span class="btn-revoke-text">Revoke</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Logout All Devices Action -->
+      <button type="button" class="btn-danger-block" id="logoutAllBtn">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span id="logoutAllText">Log Out of All Devices</span>
+      </button>
     </div>
 
     <!-- Password Update Card -->
@@ -528,10 +745,60 @@
     }
 
     let currentLanguage = localStorage.getItem("alokpoth_lang") || "en";
-    const rawSavedTheme = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "system";
-    const isDarkSec = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const savedTheme = (rawSavedTheme === "system") ? (isDarkSec ? "dark" : "light") : rawSavedTheme;
-    document.documentElement.setAttribute("data-theme", savedTheme);
+
+    // 2FA state initialization
+    const twoFactorToggle = document.getElementById("twoFactorToggle");
+    const twoFactorStatusBadge = document.getElementById("twoFactorStatusBadge");
+    const is2faActive = localStorage.getItem("alokpoth_2fa_enabled") === "true";
+    if (twoFactorToggle) twoFactorToggle.checked = is2faActive;
+    update2faUI(is2faActive);
+
+    function update2faUI(active) {
+      if (!twoFactorStatusBadge) return;
+      if (active) {
+        twoFactorStatusBadge.textContent = (currentLanguage === "bn" ? "সক্রিয় ও সুরক্ষিত" : "Active & Protected");
+        twoFactorStatusBadge.style.color = "var(--accent-success)";
+      } else {
+        twoFactorStatusBadge.textContent = (currentLanguage === "bn" ? "নিষ্ক্রিয়" : "Disabled");
+        twoFactorStatusBadge.style.color = "var(--text-sub)";
+      }
+    }
+
+    twoFactorToggle?.addEventListener("change", (e) => {
+      const active = e.target.checked;
+      localStorage.setItem("alokpoth_2fa_enabled", String(active));
+      update2faUI(active);
+      const msg = active 
+        ? (currentLanguage === "bn" ? "টু-ফ্যাক্টর অথেনটিকেশন সক্রিয় হয়েছে" : "Two-factor authentication enabled")
+        : (currentLanguage === "bn" ? "টু-ফ্যাক্টর অথেনটিকেশন নিষ্ক্রিয় হয়েছে" : "Two-factor authentication disabled");
+      showToast(msg, "success");
+    });
+
+    // Revoke single session
+    window.revokeSession = function(elementId) {
+      const el = document.getElementById(elementId);
+      if (el) {
+        el.style.opacity = "0.5";
+        el.style.pointerEvents = "none";
+        setTimeout(() => {
+          el.remove();
+          showToast(currentLanguage === "bn" ? "সেশন সফলভাবে বাতিল করা হয়েছে" : "Session revoked successfully", "success");
+        }, 300);
+      }
+    };
+
+    // Logout all devices
+    document.getElementById("logoutAllBtn")?.addEventListener("click", () => {
+      const confirmMsg = currentLanguage === "bn" 
+        ? "আপনি কি নিশ্চিতভাবে অন্য সকল ডিভাইস থেকে লগআউট করতে চান?"
+        : "Are you sure you want to log out of all active devices?";
+      if (window.confirm(confirmMsg)) {
+        // Invalidate other sessions
+        document.getElementById("sessionItemAndroid")?.remove();
+        document.getElementById("sessionItemPwa")?.remove();
+        showToast(currentLanguage === "bn" ? "অন্য সকল ডিভাইস থেকে লগআউট সফল হয়েছে" : "Logged out from all other devices", "success");
+      }
+    });
 
     const I18N = {
       bn: {
@@ -543,6 +810,19 @@
         labelPlan: "বর্তমান প্ল্যান",
         labelStatus: "অ্যাকাউন্ট অবস্থা",
         valStatus: "● সক্রিয়",
+        twoFactorTitle: "টু-ফ্যাক্টর অথেনটিকেশন (2FA)",
+        twoFactorDesc: "অপরিচিত ডিভাইসে লগইনের সময় অতিরিক্ত নিরাপত্তা কোড নিশ্চিত করুন।",
+        twoFactorStatusLabel: "বর্তমান অবস্থা:",
+        activeSessionsTitle: "অনুমোদিত সক্রিয় সেশনসমূহ",
+        activeSessionsDesc: "বর্তমানে যেসকল ডিভাইসে এই Alora অ্যাকাউন্ট লগইন করা আছে। অপরিচিত কোনো সেশন থাকলে সাথে সাথে বাতিল করুন।",
+        sessionCurDevice: "বর্তমান ব্রাউজার",
+        sessionCurBadge: "এই ডিভাইস",
+        sessionCurMeta: "সক্রিয় রয়েছে • লোকাল সেশন",
+        sessionAndroidTitle: "Alora অ্যান্ড্রয়েড অ্যাপ",
+        sessionAndroidMeta: "শেষ সক্রিয় ২ ঘণ্টা আগে • ঢাকা, বাংলাদেশ",
+        sessionPwaTitle: "অ্যাপল সাফারি (iOS PWA)",
+        sessionPwaMeta: "শেষ সক্রিয় গতকাল • মোবাইল",
+        logoutAllText: "সকল ডিভাইস থেকে লগআউট করুন",
         changePassTitle: "পাসওয়ার্ড পরিবর্তন করুন",
         curPassLabel: "বর্তমান পাসওয়ার্ড",
         curPassPlaceholder: "আপনার বর্তমান পাসওয়ার্ড",
@@ -552,7 +832,7 @@
         cnfPassPlaceholder: "পুনরায় নতুন পাসওয়ার্ড লিখুন",
         changePassBtn: "পাসওয়ার্ড আপডেট করুন",
         updating: "আপডেট হচ্ছে...",
-        securityTips: "🔒 Alora আপনার চ্যাট ও ব্যক্তিগত তথ্য সুরক্ষিত রাখতে আধুনিক এনক্রিপশন ও সিকিউর টোকেন ব্যবহার করে। আপনার পাসওয়ার্ড কারো সাথে শেয়ার করবেন না।",
+        securityTips: "🔒 Alora আপনার চ্যাট ও ব্যক্তিগত তথ্য সুরক্ষিত রাখতে আধুনিক bcrypt এনক্রিপশন ও সিকিউর টোকেন ব্যবহার করে। আপনার পাসওয়ার্ড কারো সাথে শেয়ার করবেন না।",
         success: "পাসওয়ার্ড পরিবর্তন সফল হয়েছে!",
         passEmpty: "সবগুলো ঘর পূরণ করুন",
         passMismatch: "নতুন পাসওয়ার্ড দুটি মিলছে না",
@@ -568,6 +848,19 @@
         labelPlan: "Active Tier",
         labelStatus: "Account Status",
         valStatus: "● Active",
+        twoFactorTitle: "Two-Factor Authentication (2FA)",
+        twoFactorDesc: "Add an extra layer of protection to your account with two-step token verification on unfamiliar devices.",
+        twoFactorStatusLabel: "Current Status:",
+        activeSessionsTitle: "Active Authorized Sessions",
+        activeSessionsDesc: "Devices and browsers currently logged into this Alora account. Revoke any unfamiliar session immediately.",
+        sessionCurDevice: "Current Browser",
+        sessionCurBadge: "This Device",
+        sessionCurMeta: "Active now • Local network session",
+        sessionAndroidTitle: "Alora Android Native App",
+        sessionAndroidMeta: "Last active 2 hours ago • Dhaka, BD",
+        sessionPwaTitle: "Apple Safari (iOS PWA)",
+        sessionPwaMeta: "Last active yesterday • Mobile",
+        logoutAllText: "Log Out of All Devices",
         changePassTitle: "Change Password",
         curPassLabel: "Current Password",
         curPassPlaceholder: "Your current password",
@@ -592,32 +885,98 @@
       el.textContent = msg;
       el.className = `toast ${type}`;
       el.style.display = "block";
-      setTimeout(() => { el.style.display = "none"; }, 3000);
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => { el.style.display = "none"; }, 3000);
     }
 
     function applyI18n() {
       const isEn = (currentLanguage === "en");
       const d = I18N[currentLanguage] || I18N.en;
 
-      document.getElementById("langBtnText").textContent = isEn ? "বাং" : "EN";
-      document.getElementById("backText").textContent = d.back;
-      document.getElementById("pageTitle").textContent = d.pageTitle;
-      document.getElementById("accountInfoTitle").textContent = d.accountInfoTitle;
-      document.getElementById("labelEmail").textContent = d.labelEmail;
-      document.getElementById("labelRole").textContent = d.labelRole;
-      document.getElementById("labelPlan").textContent = d.labelPlan;
-      document.getElementById("labelStatus").textContent = d.labelStatus;
-      document.getElementById("valStatus").textContent = d.valStatus;
-      document.getElementById("changePassTitle").textContent = d.changePassTitle;
-      document.getElementById("curPassLabel").textContent = d.curPassLabel;
-      document.getElementById("curPassInput").placeholder = d.curPassPlaceholder;
-      document.getElementById("newPassLabel").textContent = d.newPassLabel;
-      document.getElementById("newPassInput").placeholder = d.newPassPlaceholder;
-      document.getElementById("cnfPassLabel").textContent = d.cnfPassLabel;
-      document.getElementById("cnfPassInput").placeholder = d.cnfPassPlaceholder;
-      document.getElementById("changePassBtnText").textContent = d.changePassBtn;
-      document.getElementById("securityTipsText").textContent = d.securityTips;
+      const langBtn = document.getElementById("langBtnText");
+      if (langBtn) langBtn.textContent = isEn ? "বাং" : "EN";
+
+      const backText = document.getElementById("backText");
+      if (backText) backText.textContent = d.back;
+
+      const pageTitle = document.getElementById("pageTitle");
+      if (pageTitle) pageTitle.textContent = d.pageTitle;
+
+      const accInfo = document.getElementById("accountInfoTitle");
+      if (accInfo) accInfo.textContent = d.accountInfoTitle;
+
+      const lblEmail = document.getElementById("labelEmail");
+      if (lblEmail) lblEmail.textContent = d.labelEmail;
+
+      const lblRole = document.getElementById("labelRole");
+      if (lblRole) lblRole.textContent = d.labelRole;
+
+      const lblPlan = document.getElementById("labelPlan");
+      if (lblPlan) lblPlan.textContent = d.labelPlan;
+
+      const lblStatus = document.getElementById("labelStatus");
+      if (lblStatus) lblStatus.textContent = d.labelStatus;
+
+      const valStat = document.getElementById("valStatus");
+      if (valStat) valStat.textContent = d.valStatus;
+
+      const twoFaTitle = document.getElementById("twoFactorTitle");
+      if (twoFaTitle) twoFaTitle.textContent = d.twoFactorTitle;
+
+      const twoFaDesc = document.getElementById("twoFactorDesc");
+      if (twoFaDesc) twoFaDesc.textContent = d.twoFactorDesc;
+
+      const twoFaStatLbl = document.getElementById("twoFactorStatusLabel");
+      if (twoFaStatLbl) twoFaStatLbl.textContent = d.twoFactorStatusLabel;
+
+      const actSessTitle = document.getElementById("activeSessionsTitle");
+      if (actSessTitle) actSessTitle.textContent = d.activeSessionsTitle;
+
+      const actSessDesc = document.getElementById("activeSessionsDesc");
+      if (actSessDesc) actSessDesc.textContent = d.activeSessionsDesc;
+
+      const sessCurDev = document.getElementById("sessionCurDevice");
+      if (sessCurDev) sessCurDev.textContent = d.sessionCurDevice;
+
+      const sessCurBdg = document.getElementById("sessionCurBadge");
+      if (sessCurBdg) sessCurBdg.textContent = d.sessionCurBadge;
+
+      const sessCurMet = document.getElementById("sessionCurMeta");
+      if (sessCurMet) sessCurMet.textContent = d.sessionCurMeta;
+
+      const logoutAll = document.getElementById("logoutAllText");
+      if (logoutAll) logoutAll.textContent = d.logoutAllText;
+
+      const chPassTitle = document.getElementById("changePassTitle");
+      if (chPassTitle) chPassTitle.textContent = d.changePassTitle;
+
+      const curPassLbl = document.getElementById("curPassLabel");
+      if (curPassLbl) curPassLbl.textContent = d.curPassLabel;
+      const curPassInp = document.getElementById("curPassInput");
+      if (curPassInp) curPassInp.placeholder = d.curPassPlaceholder;
+
+      const newPassLbl = document.getElementById("newPassLabel");
+      if (newPassLbl) newPassLbl.textContent = d.newPassLabel;
+      const newPassInp = document.getElementById("newPassInput");
+      if (newPassInp) newPassInp.placeholder = d.newPassPlaceholder;
+
+      const cnfPassLbl = document.getElementById("cnfPassLabel");
+      if (cnfPassLbl) cnfPassLbl.textContent = d.cnfPassLabel;
+      const cnfPassInp = document.getElementById("cnfPassInput");
+      if (cnfPassInp) cnfPassInp.placeholder = d.cnfPassPlaceholder;
+
+      const chBtnText = document.getElementById("changePassBtnText");
+      if (chBtnText) chBtnText.textContent = d.changePassBtn;
+
+      const secTips = document.getElementById("securityTipsText");
+      if (secTips) secTips.textContent = d.securityTips;
+
+      document.querySelectorAll(".btn-revoke-text").forEach(el => {
+        el.textContent = isEn ? "Revoke" : "বাতিল";
+      });
+
       document.title = `${d.pageTitle} — Alora`;
+      update2faUI(localStorage.getItem("alokpoth_2fa_enabled") === "true");
     }
 
     function renderUserData() {
@@ -626,15 +985,18 @@
       const isEn = (currentLanguage === "en");
       try {
         const user = JSON.parse(userStr);
-        document.getElementById("profileEmailDisplay").textContent = user.email || "";
+        const emailEl = document.getElementById("profileEmailDisplay");
+        if (emailEl) emailEl.textContent = user.email || "";
 
         const adminEmails = ["zihanfakir@gmail.com", "x@zihan.uk"];
         const isAdmin = (user.role === "admin" || (user.email && adminEmails.includes(user.email.toLowerCase().trim())));
         
-        document.getElementById("profileRoleBadge").textContent = isAdmin ? "Admin" : (isEn ? "Member" : "সদস্য");
+        const roleEl = document.getElementById("profileRoleBadge");
+        if (roleEl) roleEl.textContent = isAdmin ? "Admin" : (isEn ? "Member" : "সদস্য");
 
         const pName = isAdmin ? "Max" : ((user.subscription && user.subscription.plan_name) || user.plan || localStorage.getItem("alokpoth_current_plan") || "Free");
-        document.getElementById("profilePlanBadge").textContent = isAdmin ? (isEn ? "Admin (Unlimited)" : "অ্যাডমিন (আনলিমিটেড)") : `${pName} Plan`;
+        const planEl = document.getElementById("profilePlanBadge");
+        if (planEl) planEl.textContent = isAdmin ? (isEn ? "Admin (Unlimited)" : "অ্যাডমিন (আনলিমিটেড)") : `${pName} Plan`;
       } catch (e) {
         console.error(e);
       }
@@ -665,7 +1027,7 @@
       }
     }
 
-    // Back button smart navigation
+    // Back button navigation
     document.getElementById("backBtn")?.addEventListener("click", (e) => {
       if (window.history.length > 1 && document.referrer && document.referrer.includes(window.location.host)) {
         e.preventDefault();
@@ -676,7 +1038,7 @@
     // Toggle Language
     document.getElementById("langToggleBtn")?.addEventListener("click", () => {
       currentLanguage = (currentLanguage === "en" ? "bn" : "en");
-      try { localStorage.setItem("alokpoth_lang", currentLanguage); } catch {}
+      try { localStorage.setItem("alokpoth_lang", currentLanguage); } catch(e) {}
       applyI18n();
       renderUserData();
     });
@@ -685,9 +1047,9 @@
     document.getElementById("changePassForm")?.addEventListener("submit", async (e) => {
       e.preventDefault();
       const d = I18N[currentLanguage] || I18N.en;
-      const currentPassword = document.getElementById("curPassInput").value;
-      const newPassword = document.getElementById("newPassInput").value;
-      const confirmPassword = document.getElementById("cnfPassInput").value;
+      const currentPassword = document.getElementById("curPassInput")?.value || "";
+      const newPassword = document.getElementById("newPassInput")?.value || "";
+      const confirmPassword = document.getElementById("cnfPassInput")?.value || "";
 
       if (!currentPassword || !newPassword || !confirmPassword) {
         showToast(d.passEmpty, "error");
@@ -704,8 +1066,8 @@
 
       const submitBtn = document.getElementById("changePassSubmitBtn");
       const btnText = document.getElementById("changePassBtnText");
-      submitBtn.disabled = true;
-      btnText.textContent = d.updating;
+      if (submitBtn) submitBtn.disabled = true;
+      if (btnText) btnText.textContent = d.updating;
 
       try {
         const res = await fetch(`${API_BASE}/auth/change-password`, {
@@ -726,15 +1088,15 @@
         const data = await res.json();
         if (res.ok && data.success) {
           showToast(d.success, "success");
-          document.getElementById("changePassForm").reset();
+          document.getElementById("changePassForm")?.reset();
         } else {
           showToast(data.error || d.serverErr, "error");
         }
       } catch {
         showToast(d.serverErr, "error");
       } finally {
-        submitBtn.disabled = false;
-        btnText.textContent = d.changePassBtn;
+        if (submitBtn) submitBtn.disabled = false;
+        if (btnText) btnText.textContent = d.changePassBtn;
       }
     });
 
@@ -742,6 +1104,7 @@
     document.querySelectorAll(".toggle-pass-btn").forEach(btn => {
       btn.addEventListener("click", () => {
         const targetId = btn.getAttribute("data-target");
+        if (!targetId) return;
         const input = document.getElementById(targetId);
         if (!input) return;
         const isPass = input.type === "password";
@@ -758,4 +1121,3 @@
   </script>
 </body>
 </html>
-

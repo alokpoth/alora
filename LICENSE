@@ -1,0 +1,80 @@
+ALOKPATH PERSONAL NON-COMMERCIAL SOURCE-AVAILABLE LICENSE
+Version 1.0 (2026)
+
+Copyright (c) 2026 Alokpath (আলোকপথ). All rights reserved.
+Author & Creator: Zihan Fakir (Alokpath)
+
+================================================================================
+PREAMBLE & SUMMARY (সারসংক্ষেপ)
+================================================================================
+This software and associated documentation files (the "Software") are made available 
+publicly as source-available code. By viewing, downloading, installing, copying, or 
+otherwise using this Software, you agree to be bound by the terms and conditions 
+of this License.
+
+- [EN] This software is open to public inspection and personal study, but is STRICTLY 
+  RESTRICTED to personal, non-commercial use on individual devices. Commercial use, 
+  reselling, hosted SaaS, monetization, or public redistribution of modified forks 
+  is STRICTLY PROHIBITED.
+- [BN] এই সফটওয়্যারটি উন্মুক্তভাবে প্রদর্শন ও ব্যক্তিগত শিক্ষার জন্য উন্মুক্ত, কিন্তু 
+  ব্যবহারের ক্ষেত্রে এটি সম্পূর্ণরূপে ব্যক্তিগত কাজের জন্য সীমাবদ্ধ। যেকোনো ধরনের 
+  বাণিজ্যিক ব্যবহার, বিক্রয়, পেইড সার্ভিস, সাবস্ক্রিপশন, হোস্টিং অথবা মডিফাই করে 
+  পুনরায় পাবলিক বা রিডিস্ট্রিবিউট করা কঠোরভাবে নিষিদ্ধ। শুধু নিজে ব্যক্তিগত প্রয়োজনে 
+  ব্যবহার করতে পারবেন।
+
+================================================================================
+TERMS AND CONDITIONS
+================================================================================
+
+1. GRANT OF LICENSE (ব্যবহারের অনুমতি)
+   Subject to the strict restrictions in Section 2, the Licensor hereby grants to 
+   any individual a free, personal, non-exclusive, non-transferable, revocable license 
+   to:
+   (a) View, inspect, and audit the source code for personal educational and security 
+       evaluation purposes;
+   (b) Compile and run the Software solely on your personal, private, non-commercial 
+       devices for your own private individual use.
+
+2. STRICT PROHIBITIONS & RESTRICTIONS (কঠোর নিষেধাজ্ঞা ও শর্তাবলী)
+
+   (a) NO COMMERCIAL USE (বাণিজ্যিক ব্যবহার সম্পূর্ণ নিষিদ্ধ):
+       Commercial use of any kind is strictly prohibited. You may not use, market, 
+       license, sell, rent, lease, monetize, or charge any fee for the Software, 
+       any component thereof, or any service powered directly or indirectly by the 
+       Software. This includes, without limitation, operating a Software-as-a-Service 
+       (SaaS), AI API gateway, public server, commercial deployment, or incorporating 
+       the Software into any revenue-generating enterprise.
+
+   (b) NO PUBLIC REDISTRIBUTION & NO DERIVATIVE PUBLISHING (পুনর্বিতরণ ও মডিফিকেশন নিষিদ্ধ):
+       You may NOT redistribute, sublicense, republish, broadcast, host, or make 
+       available the Software, in whole or in part, in source or compiled form, to any 
+       third party or public platform.
+       You may NOT publicly release modified versions, forks, or derivative works of 
+       this Software. Any modification made for personal, private experimentation must 
+       remain strictly private and confined to your own personal device.
+
+   (c) ATTRIBUTION & BRANDING PRESERVATION (ব্র্যান্ডিং ও কপিরাইট সংরক্ষণ):
+       All copyright, author attribution, trademark, and proprietary notices, 
+       including but not limited to the "Alokpath" (আলোকপথ) and "Alora" marks and 
+       notices, must remain intact in all copies and views of the Software. You may 
+       not remove, alter, or obscure any proprietary notices.
+
+3. OWNERSHIP (মালিকানা)
+   The Licensor retains all right, title, interest, and intellectual property rights 
+   in and to the Software, including all copyrights, patents, trademarks, and trade 
+   secrets. No title or ownership rights are transferred under this License.
+
+4. TERMINATION (লাইসেন্স বাতিল)
+   Any breach or violation of the terms of this License immediately and automatically 
+   terminates your rights hereunder without notice. Upon termination, you must 
+   immediately cease all use of the Software and permanently delete all copies 
+   in your possession or control.
+
+5. DISCLAIMER OF WARRANTY (ওয়ারেন্টি অস্বীকৃতি)
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+   FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER 
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, 
+   OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN 
+   THE SOFTWARE.

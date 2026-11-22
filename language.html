@@ -17,79 +17,75 @@
   <style>
     :root {
       --bg-base: #000000;
-      --bg-card: #18181b;
-      --bg-card-hover: #222226;
-      --border-card: rgba(255, 255, 255, 0.08);
+      --bg-card: #121215;
+      --bg-card-hover: #1c1c22;
+      --border-card: rgba(255, 255, 255, 0.09);
       --border-divider: rgba(255, 255, 255, 0.06);
       --text-main: #ffffff;
-      --text-sub: #71717a;
-      --text-dim: #a1a1aa;
+      --text-sub: #a1a1aa;
+      --text-dim: #71717a;
       --accent-blue: #3b82f6;
       --accent-blue-hover: #2563eb;
       --font-main: 'Plus Jakarta Sans', 'Hind Siliguri', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
 
-    [data-theme="dark"] {
-      --bg-base: #09090b;
-      --bg-card: #18181b;
-      --bg-card-hover: #222226;
-      --border-card: rgba(255, 255, 255, 0.08);
-      --border-divider: rgba(255, 255, 255, 0.06);
-      --text-main: #ffffff;
-      --text-sub: #71717a;
-    }
-
     [data-theme="oled"] {
       --bg-base: #000000;
-      --bg-card: #111113;
-      --bg-card-hover: #1c1c1f;
-      --border-card: rgba(255, 255, 255, 0.12);
+      --bg-card: #111114;
+      --bg-card-hover: #1a1a20;
+      --border-card: rgba(255, 255, 255, 0.1);
       --border-divider: rgba(255, 255, 255, 0.06);
       --text-main: #ffffff;
-      --text-sub: #71717a;
+      --text-sub: #a1a1aa;
+      --text-dim: #71717a;
+      --accent-blue: #3b82f6;
     }
 
     [data-theme="sapphire"] {
       --bg-base: #070d19;
-      --bg-card: #0f1c32;
-      --bg-card-hover: #152744;
-      --border-card: rgba(56, 189, 248, 0.15);
+      --bg-card: #0e1a30;
+      --bg-card-hover: #152646;
+      --border-card: rgba(56, 189, 248, 0.18);
       --border-divider: rgba(56, 189, 248, 0.08);
       --text-main: #f8fafc;
       --text-sub: #94a3b8;
+      --text-dim: #64748b;
+      --accent-blue: #38bdf8;
+    }
+
+    [data-theme="light"] {
+      --bg-base: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-card-hover: #f1f5f9;
+      --border-card: rgba(0, 0, 0, 0.08);
+      --border-divider: rgba(0, 0, 0, 0.06);
+      --text-main: #09090b;
+      --text-sub: #64748b;
+      --text-dim: #94a3b8;
+      --accent-blue: #2563eb;
     }
 
     [data-theme="eyecare"] {
       --bg-base: #f5eedc;
       --bg-card: #eadeca;
       --bg-card-hover: #dfcfb8;
-      --border-card: rgba(146, 64, 14, 0.15);
+      --border-card: rgba(146, 64, 14, 0.16);
       --border-divider: rgba(146, 64, 14, 0.08);
       --text-main: #4a3b2c;
       --text-sub: #7a6b5c;
-    }
-
-    [data-theme="light"] {
-      --bg-base: #f4f4f5;
-      --bg-card: #ffffff;
-      --bg-card-hover: #f8fafc;
-      --border-card: rgba(0, 0, 0, 0.08);
-      --border-divider: rgba(0, 0, 0, 0.05);
-      --text-main: #09090b;
-      --text-sub: #71717a;
-      --text-dim: #52525b;
+      --text-dim: #9c8a77;
+      --accent-blue: #b45309;
     }
 
     *, *::before, *::after {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      -webkit-tap-highlight-color: transparent !important;
-      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
     }
 
     a {
-      text-decoration: none !important;
+      text-decoration: none;
       color: inherit;
     }
 
@@ -102,6 +98,7 @@
       flex-direction: column;
       position: relative;
       overflow-x: hidden;
+      padding-top: env(safe-area-inset-top, 0);
       padding-bottom: max(32px, env(safe-area-inset-bottom, 20px));
       transition: background-color 0.2s ease;
     }
@@ -111,15 +108,13 @@
       position: sticky;
       top: 0;
       z-index: 50;
-      background: var(--bg-base);
+      background: var(--bg-card);
       border-bottom: 1px solid var(--border-divider);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      height: calc(56px + env(safe-area-inset-top, 0px));
-      padding: env(safe-area-inset-top, 0px) 16px 0 16px;
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      height: 56px;
+      padding: 0 16px;
     }
 
     .settings-back-link {
@@ -128,24 +123,28 @@
       gap: 6px;
       color: var(--text-main);
       text-decoration: none;
-      font-size: 1rem;
+      font-size: 0.9rem;
       font-weight: 600;
       cursor: pointer;
-      padding: 6px 8px;
-      border-radius: 8px;
-      transition: opacity 0.15s;
+      padding: 7px 12px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-card);
+      transition: opacity 0.15s, background 0.15s;
+    }
+    :root[data-theme="light"] .settings-back-link {
+      background: rgba(0, 0, 0, 0.04);
     }
     .settings-back-link:active {
-      opacity: 0.7;
+      opacity: 0.75;
+      transform: scale(0.98);
     }
     .settings-back-link svg {
-      width: 20px;
-      height: 20px;
-      stroke-width: 2.4;
+      width: 17px;
+      height: 17px;
+      stroke-width: 2.2;
       stroke: currentColor;
       fill: none;
-      stroke-linecap: round;
-      stroke-linejoin: round;
     }
 
     .nav-title {
@@ -161,43 +160,47 @@
     }
 
     .lang-pill-btn {
-      background: rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.06);
       border: 1px solid var(--border-card);
       color: var(--text-main);
-      font-size: 0.8rem;
+      font-size: 0.82rem;
       font-weight: 600;
-      padding: 5px 10px;
-      border-radius: 9999px;
+      padding: 6px 12px;
+      border-radius: 10px;
       cursor: pointer;
       transition: background 0.15s;
     }
+    :root[data-theme="light"] .lang-pill-btn {
+      background: rgba(0, 0, 0, 0.04);
+    }
     .lang-pill-btn:active {
-      background: rgba(255, 255, 255, 0.15);
+      transform: scale(0.96);
     }
 
     /* Main Container */
     .content-container {
       width: 100%;
-      max-width: 580px;
-      margin: 0 auto;
-      padding: 20px 16px 40px;
+      max-width: 600px;
+      margin: 20px auto 0;
+      padding: 0 16px;
       display: flex;
       flex-direction: column;
       gap: 16px;
+      flex: 1;
     }
 
     .settings-card {
       background: var(--bg-card);
       border: 1px solid var(--border-card);
       border-radius: 16px;
-      padding: 20px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      padding: 22px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
     }
 
     .card-title {
-      font-size: 1.05rem;
+      font-size: 1.12rem;
       font-weight: 700;
-      color: #ffffff;
+      color: var(--text-main);
       margin-bottom: 6px;
       display: flex;
       align-items: center;
@@ -212,44 +215,49 @@
       stroke-width: 2;
     }
     .card-desc {
-      font-size: 0.85rem;
+      font-size: 0.88rem;
       color: var(--text-sub);
-      line-height: 1.45;
-      margin-bottom: 16px;
+      line-height: 1.5;
+      margin-bottom: 20px;
     }
 
-    /* AMOLED Option Card Picker */
+    /* Option Cards */
     .option-card-group {
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid var(--border-card);
-      border-radius: 14px;
-      overflow: hidden;
       display: flex;
       flex-direction: column;
+      gap: 10px;
     }
     .option-card {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 14px 16px;
+      padding: 16px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1.5px solid var(--border-card);
       cursor: pointer;
-      transition: background 0.15s, border-color 0.15s;
+      transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
       user-select: none;
-      -webkit-tap-highlight-color: transparent;
-      border-bottom: 1px solid var(--border-divider);
+      -webkit-user-select: none;
     }
-    .option-card:last-child {
-      border-bottom: none;
+    :root[data-theme="light"] .option-card {
+      background: rgba(0, 0, 0, 0.02);
     }
-    .option-card:hover, .option-card:active {
+    .option-card:hover {
       background: var(--bg-card-hover);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+    :root[data-theme="light"] .option-card:hover {
+      border-color: rgba(0, 0, 0, 0.16);
     }
     .option-card.active {
-      background: rgba(59, 130, 246, 0.09);
+      border-color: var(--accent-blue);
+      background: rgba(59, 130, 246, 0.08);
+      box-shadow: 0 0 0 1px var(--accent-blue);
     }
     .option-card:focus-visible {
       outline: 2px solid var(--accent-blue);
-      outline-offset: -2px;
+      outline-offset: 2px;
     }
     .option-lead {
       display: flex;
@@ -258,41 +266,41 @@
       min-width: 0;
     }
     .option-icon-badge {
-      width: 38px;
-      height: 38px;
+      width: 42px;
+      height: 42px;
       border-radius: 12px;
       background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-card);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.25rem;
+      font-size: 1.4rem;
       flex-shrink: 0;
       transition: all 0.2s;
     }
     .option-card.active .option-icon-badge {
-      background: rgba(59, 130, 246, 0.18);
-      border-color: rgba(59, 130, 246, 0.45);
+      background: rgba(59, 130, 246, 0.16);
+      border-color: var(--accent-blue);
     }
     .option-info {
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 3px;
       min-width: 0;
     }
     .option-title {
-      font-size: 0.98rem;
-      font-weight: 600;
+      font-size: 1rem;
+      font-weight: 700;
       color: var(--text-main);
     }
     .option-desc {
-      font-size: 0.8rem;
+      font-size: 0.82rem;
       color: var(--text-sub);
       line-height: 1.35;
     }
     .option-check {
-      width: 22px;
-      height: 22px;
+      width: 24px;
+      height: 24px;
       border-radius: 50%;
       background: var(--accent-blue);
       color: #ffffff;
@@ -300,15 +308,16 @@
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      margin-left: 10px;
-      box-shadow: 0 0 10px rgba(59, 130, 246, 0.35);
+      margin-left: 12px;
     }
     .option-check svg {
-      width: 13px;
-      height: 13px;
+      width: 14px;
+      height: 14px;
       stroke: currentColor;
-      stroke-width: 2.5;
+      stroke-width: 2.6;
       fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
     .option-card.active .option-check {
       display: flex;
@@ -320,67 +329,42 @@
       bottom: max(20px, env(safe-area-inset-bottom, 20px));
       left: 50%;
       transform: translateX(-50%);
-      padding: 10px 18px;
-      border-radius: 9999px;
+      padding: 10px 20px;
+      border-radius: 10px;
       font-size: 0.88rem;
       font-weight: 500;
       color: #ffffff;
       background: rgba(24, 24, 27, 0.95);
       border: 1px solid rgba(255, 255, 255, 0.15);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
       z-index: 1000;
       display: none;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      backdrop-filter: blur(12px);
       white-space: nowrap;
     }
     .toast.success { border-color: #10b981; }
-  
-    /* ==========================================================================
-       GLISSE DESIGN SYSTEM (Liquid Glass & Ultra-Rounded Overrides)
-       - Strict zero hover vertical displacement (transform: translateY OFF)
-       - Ultra-rounded pills (border-radius: 9999px) on all buttons & inputs
-       - Rounded squircles (border-radius: 20px) on panels, cards, sheets
-       - Exactly 3 theme modes: OLED (Dark), Light, Eye Care
-       ========================================================================== */
-    *:hover {
-      transform: none !important;
-    }
-    button:active, a:active, .btn:active, .icon-btn:active, .action-btn:active {
-      transform: scale(0.97) !important;
-      transition: transform 0.08s ease !important;
-    }
-    button, .btn, .btn-primary, .btn-secondary, .icon-btn, .action-btn,
-    .settings-back-link, .lang-pill-btn, .back-btn, input, .search-input,
-    .pill-btn, .tab-btn, .cta-btn, .plan-cta-btn, .download-btn, .submit-btn,
-    .badge, .status-pill, .role-pill, .filter-chip, .page-back-link {
-      border-radius: 9999px !important;
-    }
-    .card, .content-card, .plan-card, .feature-card, .settings-group,
-    .modal-sheet, .modal-box, .glass-panel, .info-box, .account-card {
-      border-radius: 20px !important;
-    }
+  </style>
 
-</style>
-<script>
-  (function() {
-    if (window.location.pathname.endsWith('.html')) {
-      var clean = window.location.pathname.replace(/\.html$/, '');
-      if (clean === '/index') clean = '/';
-      window.history.replaceState(null, '', clean + window.location.search + window.location.hash);
-    }
-  })();
-</script>
-<script>
-  (function() {
-    try {
-      var saved = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "oled";
-      if (saved !== "light" && saved !== "eyecare") saved = "oled";
-      document.documentElement.setAttribute("data-theme-mode", saved);
-      document.documentElement.setAttribute("data-theme", saved);
-    } catch(e) {}
-  })();
-</script>
+  <script>
+    (function() {
+      if (window.location.pathname.endsWith('.html')) {
+        var clean = window.location.pathname.replace(/\.html$/, '');
+        if (clean === '/index') clean = '/';
+        window.history.replaceState(null, '', clean + window.location.search + window.location.hash);
+      }
+    })();
+  </script>
+  <script>
+    (function() {
+      try {
+        var saved = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "oled";
+        var valid = ["oled", "sapphire", "light", "eyecare"];
+        var mode = valid.indexOf(saved) !== -1 ? saved : "oled";
+        document.documentElement.setAttribute("data-theme-mode", mode);
+        document.documentElement.setAttribute("data-theme", mode);
+      } catch(e) {}
+    })();
+  </script>
 </head>
 <body>
   <div id="toastEl" class="toast"></div>
@@ -394,7 +378,7 @@
     <div class="nav-title" id="pageTitle">App Language</div>
     <div class="nav-actions">
       <button type="button" class="lang-pill-btn" id="langToggleBtn" title="Language Switch">
-        <span id="langBtnText">EN</span>
+        <span id="langBtnText">BN</span>
       </button>
     </div>
   </header>
@@ -406,7 +390,7 @@
         <span id="sectionTitle">Interface Language</span>
       </div>
       <p class="card-desc" id="sectionDesc">
-        Choose your preferred language for menus, buttons, and app navigation. Changes will apply immediately.
+        Choose your preferred language for menus, prompts, buttons, and app navigation. Changes will apply immediately.
       </p>
 
       <!-- Language Cards -->
@@ -428,7 +412,7 @@
           <div class="option-lead">
             <div class="option-icon-badge">🇬🇧</div>
             <div class="option-info">
-              <span class="option-title" id="titleEn">English (US / UK)</span>
+              <span class="option-title" id="titleEn">English (US / International)</span>
               <span class="option-desc" id="descEn">Clean and standardized international interface</span>
             </div>
           </div>
@@ -440,10 +424,6 @@
 
   <script>
     let currentLanguage = localStorage.getItem("alokpoth_lang") || "en";
-    const rawSavedTheme = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "system";
-    const isDarkLang = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const savedTheme = (rawSavedTheme === "system") ? (isDarkLang ? "dark" : "light") : rawSavedTheme;
-    document.documentElement.setAttribute("data-theme", savedTheme);
 
     const I18N = {
       bn: {
@@ -451,9 +431,9 @@
         pageTitle: "অ্যাপের ভাষা",
         sectionTitle: "ইন্টারফেস ভাষা",
         sectionDesc: "মেনু, বাটন এবং সম্পূর্ণ অ্যাপের জন্য আপনার পছন্দের ভাষা নির্বাচন করুন। এটি তাৎক্ষণিকভাবে কার্যকর হবে।",
-        titleBn: "বাংলা (Bengali - ডিফল্ট)",
+        titleBn: "বাংলা (Bengali)",
         descBn: "খাঁটি, সাবলীল ও সমৃদ্ধ বাংলা ইউজার ইন্টারফেস",
-        titleEn: "English (US / UK)",
+        titleEn: "English (US / International)",
         descEn: "আন্তর্জাতিক মানসম্পন্ন ইংরেজি ইউজার ইন্টারফেস",
         saved: "ভাষা সফলভাবে পরিবর্তন করা হয়েছে!"
       },
@@ -464,8 +444,8 @@
         sectionDesc: "Choose your preferred language for menus, buttons, and app navigation. Changes will apply immediately.",
         titleBn: "বাংলা (Bengali)",
         descBn: "Rich, native, and fluent Bengali user interface",
-        titleEn: "English (US / UK - Default)",
-        descEn: "Standard international English user interface",
+        titleEn: "English (US / International)",
+        descEn: "Clean and standardized international interface",
         saved: "Language changed successfully!"
       }
     };
@@ -476,27 +456,46 @@
       el.textContent = msg;
       el.className = "toast success";
       el.style.display = "block";
-      setTimeout(() => { el.style.display = "none"; }, 2000);
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => { el.style.display = "none"; }, 2000);
     }
 
     function applyI18n() {
       const isEn = (currentLanguage === "en");
       const d = I18N[currentLanguage] || I18N.en;
 
-      document.getElementById("langBtnText").textContent = isEn ? "বাং" : "EN";
-      document.getElementById("backText").textContent = d.back;
-      document.getElementById("pageTitle").textContent = d.pageTitle;
-      document.getElementById("sectionTitle").textContent = d.sectionTitle;
-      document.getElementById("sectionDesc").textContent = d.sectionDesc;
-      document.getElementById("titleBn").textContent = d.titleBn;
-      document.getElementById("descBn").textContent = d.descBn;
-      document.getElementById("titleEn").textContent = d.titleEn;
-      document.getElementById("descEn").textContent = d.descEn;
+      const langBtn = document.getElementById("langBtnText");
+      if (langBtn) langBtn.textContent = isEn ? "বাং" : "EN";
+
+      const backText = document.getElementById("backText");
+      if (backText) backText.textContent = d.back;
+
+      const pageTitle = document.getElementById("pageTitle");
+      if (pageTitle) pageTitle.textContent = d.pageTitle;
+
+      const sectionTitle = document.getElementById("sectionTitle");
+      if (sectionTitle) sectionTitle.textContent = d.sectionTitle;
+
+      const sectionDesc = document.getElementById("sectionDesc");
+      if (sectionDesc) sectionDesc.textContent = d.sectionDesc;
+
+      const titleBn = document.getElementById("titleBn");
+      if (titleBn) titleBn.textContent = d.titleBn;
+
+      const descBn = document.getElementById("descBn");
+      if (descBn) descBn.textContent = d.descBn;
+
+      const titleEn = document.getElementById("titleEn");
+      if (titleEn) titleEn.textContent = d.titleEn;
+
+      const descEn = document.getElementById("descEn");
+      if (descEn) descEn.textContent = d.descEn;
+
       document.title = `${d.pageTitle} — Alora`;
 
       // Update active cards
       document.querySelectorAll("#languageGroup .option-card").forEach(card => {
-        const isActive = card.getAttribute("data-lang") === currentLanguage;
+        const isActive = (card.getAttribute("data-lang") === currentLanguage);
         card.classList.toggle("active", isActive);
         card.setAttribute("aria-checked", isActive ? "true" : "false");
       });
@@ -543,4 +542,3 @@
   </script>
 </body>
 </html>
-

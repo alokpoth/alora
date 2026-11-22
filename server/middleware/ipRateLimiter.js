@@ -16,21 +16,25 @@ const createRateLimiter = ({
   if (cleanup.unref) cleanup.unref();
 
   return (req, res, next) => {
-    const cfIp = req.headers['cf-connecting-ip'];
-    const realIp = req.headers['x-real-ip'] || req.headers['x-vercel-forwarded-for'];
-    const xff = req.headers['x-forwarded-for'];
+    if (!req) return next();
+    const headers = req.headers || {};
+    const cfIp = headers['cf-connecting-ip'];
+    const realIp = headers['x-real-ip'] || headers['x-vercel-forwarded-for'];
+    const xff = headers['x-forwarded-for'];
+
     let resolvedIp = req.socket?.remoteAddress || req.ip || '127.0.0.1';
     if (cfIp) {
-      resolvedIp = Array.isArray(cfIp) ? cfIp[0].trim() : String(cfIp).split(',')[0].trim();
+      resolvedIp = Array.isArray(cfIp) ? (cfIp[0] || '').trim() : String(cfIp).split(',')[0].trim();
     } else if (realIp) {
-      resolvedIp = Array.isArray(realIp) ? realIp[0].trim() : String(realIp).split(',')[0].trim();
+      resolvedIp = Array.isArray(realIp) ? (realIp[0] || '').trim() : String(realIp).split(',')[0].trim();
     } else if (xff) {
-      const parts = Array.isArray(xff) ? xff[0].split(',') : String(xff).split(',');
-      resolvedIp = parts[0].trim();
+      const parts = Array.isArray(xff) ? xff : String(xff).split(',');
+      resolvedIp = (parts[0] || '').trim();
     }
-    const rawIp = resolvedIp;
-    const cleanIp = String(rawIp).replace(/^::ffff:/, '');
-    const prefix = req.baseUrl || req.route?.path || 'rate';
+
+    const rawIp = resolvedIp || '127.0.0.1';
+    const cleanIp = String(rawIp).replace(/^::ffff:/, '').replace(/[^a-zA-Z0-9.:_-]/g, '_');
+    const prefix = req.baseUrl || req.route?.path || req.path || 'rate';
     const key = `${prefix}:${cleanIp}`;
     const now = Date.now();
 
@@ -46,19 +50,25 @@ const createRateLimiter = ({
     if (!record || now > record.resetTime) {
       record = { count: 1, resetTime: now + windowMs };
       localStore.set(key, record);
-      res.setHeader('X-RateLimit-Limit', max);
-      res.setHeader('X-RateLimit-Remaining', max - 1);
+      if (res && typeof res.setHeader === 'function') {
+        res.setHeader('X-RateLimit-Limit', max);
+        res.setHeader('X-RateLimit-Remaining', max - 1);
+      }
       return next();
     }
 
     record.count += 1;
     const remaining = Math.max(0, max - record.count);
-    res.setHeader('X-RateLimit-Limit', max);
-    res.setHeader('X-RateLimit-Remaining', remaining);
+    if (res && typeof res.setHeader === 'function') {
+      res.setHeader('X-RateLimit-Limit', max);
+      res.setHeader('X-RateLimit-Remaining', remaining);
+    }
 
     if (record.count > max) {
       const retryAfterSec = Math.max(1, Math.ceil((record.resetTime - now) / 1000));
-      res.setHeader('Retry-After', retryAfterSec);
+      if (res && typeof res.setHeader === 'function') {
+        res.setHeader('Retry-After', retryAfterSec);
+      }
       return res.status(429).json({ success: false, error: message, retry_after: retryAfterSec });
     }
 

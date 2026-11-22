@@ -5,6 +5,7 @@ const {
   getUsers,
   deleteUser,
   updateUserPlan,
+  updateUserRole,
   toggleBlockUser,
   getPlans,
   updatePlanLimits,
@@ -17,6 +18,10 @@ const {
   addModel,
   deleteModel,
   reorderModels,
+  getApiKeys,
+  saveApiKey,
+  deleteApiKey,
+  getSystemLogs,
   getSettings,
   updateSettings,
   testWebSearchSetting,
@@ -34,9 +39,11 @@ router.get('/settings', getSettings);
 router.put('/settings', updateSettings);
 router.post('/settings/test-search', testWebSearchSetting);
 router.post('/settings/test-image', testImageGenSetting);
+
 router.get('/users', getUsers);
 router.delete('/users/:userId', deleteUser);
 router.put('/users/:userId/plan', updateUserPlan);
+router.put('/users/:userId/role', updateUserRole);
 router.put('/users/:userId/block', toggleBlockUser);
 
 router.get('/plans', getPlans);
@@ -53,5 +60,11 @@ router.put('/models/reorder', reorderModels);
 router.put('/models/:modelId(*)', updateModel);
 router.delete('/models', deleteModel);
 router.delete('/models/:modelId(*)', deleteModel);
+
+router.get('/keys', getApiKeys);
+router.post('/keys', saveApiKey);
+router.delete('/keys/:provider', deleteApiKey);
+
+router.get('/logs', getSystemLogs);
 
 module.exports = router;

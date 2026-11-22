@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
   <meta name="theme-color" content="#000000">
-  <title>Help Center — Alora</title>
+  <title>Help Center &amp; FAQ — Alora</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg?v=3">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png?v=3">
   <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png?v=3">
@@ -17,77 +17,72 @@
   <style>
     :root {
       --bg-base: #000000;
-      --bg-card: #18181b;
-      --bg-card-hover: #222226;
-      --border-card: rgba(255, 255, 255, 0.08);
+      --bg-card: #121215;
+      --bg-card-hover: #1c1c22;
+      --border-card: rgba(255, 255, 255, 0.09);
       --border-divider: rgba(255, 255, 255, 0.06);
       --text-main: #ffffff;
-      --text-sub: #71717a;
-      --text-dim: #a1a1aa;
+      --text-sub: #a1a1aa;
+      --text-dim: #71717a;
       --accent-blue: #3b82f6;
       --accent-blue-hover: #2563eb;
-      --accent-danger: #ef4444;
+      --accent-success: #10b981;
       --font-main: 'Plus Jakarta Sans', 'Hind Siliguri', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-
-    [data-theme="dark"] {
-      --bg-base: #09090b;
-      --bg-card: #18181b;
-      --bg-card-hover: #222226;
-      --border-card: rgba(255, 255, 255, 0.08);
-      --border-divider: rgba(255, 255, 255, 0.06);
-      --text-main: #ffffff;
-      --text-sub: #71717a;
     }
 
     [data-theme="oled"] {
       --bg-base: #000000;
-      --bg-card: #111113;
-      --bg-card-hover: #1c1c1f;
-      --border-card: rgba(255, 255, 255, 0.12);
+      --bg-card: #111114;
+      --bg-card-hover: #1a1a20;
+      --border-card: rgba(255, 255, 255, 0.1);
       --border-divider: rgba(255, 255, 255, 0.06);
       --text-main: #ffffff;
-      --text-sub: #71717a;
+      --text-sub: #a1a1aa;
+      --text-dim: #71717a;
+      --accent-blue: #3b82f6;
     }
 
     [data-theme="sapphire"] {
       --bg-base: #070d19;
-      --bg-card: #0f1c32;
-      --bg-card-hover: #152744;
-      --border-card: rgba(56, 189, 248, 0.15);
+      --bg-card: #0e1a30;
+      --bg-card-hover: #152646;
+      --border-card: rgba(56, 189, 248, 0.18);
       --border-divider: rgba(56, 189, 248, 0.08);
       --text-main: #f8fafc;
       --text-sub: #94a3b8;
+      --text-dim: #64748b;
+      --accent-blue: #38bdf8;
+    }
+
+    [data-theme="light"] {
+      --bg-base: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-card-hover: #f1f5f9;
+      --border-card: rgba(0, 0, 0, 0.08);
+      --border-divider: rgba(0, 0, 0, 0.06);
+      --text-main: #09090b;
+      --text-sub: #64748b;
+      --text-dim: #94a3b8;
+      --accent-blue: #2563eb;
     }
 
     [data-theme="eyecare"] {
       --bg-base: #f5eedc;
       --bg-card: #eadeca;
       --bg-card-hover: #dfcfb8;
-      --border-card: rgba(146, 64, 14, 0.15);
+      --border-card: rgba(146, 64, 14, 0.16);
       --border-divider: rgba(146, 64, 14, 0.08);
       --text-main: #4a3b2c;
       --text-sub: #7a6b5c;
-      --text-dim: #9e8e7e;
-    }
-
-    [data-theme="light"] {
-      --bg-base: #f4f4f5;
-      --bg-card: #ffffff;
-      --bg-card-hover: #f8fafc;
-      --border-card: rgba(0, 0, 0, 0.08);
-      --border-divider: rgba(0, 0, 0, 0.05);
-      --text-main: #09090b;
-      --text-sub: #71717a;
-      --text-dim: #52525b;
+      --text-dim: #9c8a77;
+      --accent-blue: #b45309;
     }
 
     *, *::before, *::after {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      -webkit-tap-highlight-color: transparent !important;
-      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
     }
 
     body {
@@ -99,6 +94,7 @@
       flex-direction: column;
       position: relative;
       overflow-x: hidden;
+      padding-top: env(safe-area-inset-top, 0);
       padding-bottom: max(32px, env(safe-area-inset-bottom, 20px));
       transition: background-color 0.2s ease;
     }
@@ -108,15 +104,13 @@
       position: sticky;
       top: 0;
       z-index: 50;
-      background: var(--bg-base);
+      background: var(--bg-card);
       border-bottom: 1px solid var(--border-divider);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      height: calc(56px + env(safe-area-inset-top, 0px));
-      padding: env(safe-area-inset-top, 0px) 16px 0 16px;
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      height: 56px;
+      padding: 0 16px;
     }
 
     .settings-back-link {
@@ -125,24 +119,28 @@
       gap: 6px;
       color: var(--text-main);
       text-decoration: none;
-      font-size: 1rem;
+      font-size: 0.9rem;
       font-weight: 600;
       cursor: pointer;
-      padding: 6px 8px;
-      border-radius: 8px;
-      transition: opacity 0.15s;
+      padding: 7px 12px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-card);
+      transition: opacity 0.15s, background 0.15s;
+    }
+    :root[data-theme="light"] .settings-back-link {
+      background: rgba(0, 0, 0, 0.04);
     }
     .settings-back-link:active {
-      opacity: 0.7;
+      opacity: 0.75;
+      transform: scale(0.98);
     }
     .settings-back-link svg {
-      width: 20px;
-      height: 20px;
-      stroke-width: 2.4;
+      width: 17px;
+      height: 17px;
+      stroke-width: 2.2;
       stroke: currentColor;
       fill: none;
-      stroke-linecap: round;
-      stroke-linejoin: round;
     }
 
     .nav-title {
@@ -158,29 +156,92 @@
     }
 
     .lang-pill-btn {
-      background: rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.06);
       border: 1px solid var(--border-card);
       color: var(--text-main);
-      font-size: 0.8rem;
+      font-size: 0.82rem;
       font-weight: 600;
-      padding: 5px 10px;
-      border-radius: 9999px;
+      padding: 6px 12px;
+      border-radius: 10px;
       cursor: pointer;
       transition: background 0.15s;
     }
+    :root[data-theme="light"] .lang-pill-btn {
+      background: rgba(0, 0, 0, 0.04);
+    }
     .lang-pill-btn:active {
-      background: rgba(255, 255, 255, 0.15);
+      transform: scale(0.96);
     }
 
     /* Main Container */
     .content-container {
       width: 100%;
-      max-width: 580px;
-      margin: 0 auto;
-      padding: 20px 16px 40px;
+      max-width: 620px;
+      margin: 20px auto 0;
+      padding: 0 16px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 16px;
+      flex: 1;
+    }
+
+    /* Search Box */
+    .search-box-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+    .search-box-wrap svg.search-icon {
+      position: absolute;
+      left: 14px;
+      width: 18px;
+      height: 18px;
+      stroke: var(--text-sub);
+      fill: none;
+      stroke-width: 2.2;
+      pointer-events: none;
+    }
+    .search-input {
+      width: 100%;
+      height: 48px;
+      padding: 0 40px 0 42px;
+      background: var(--bg-card);
+      border: 1.5px solid var(--border-card);
+      border-radius: 12px;
+      color: var(--text-main);
+      font-size: 0.95rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+    .search-input:focus {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+    .clear-search-btn {
+      position: absolute;
+      right: 12px;
+      background: none;
+      border: none;
+      color: var(--text-sub);
+      cursor: pointer;
+      padding: 6px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+    }
+    .clear-search-btn:hover {
+      color: var(--text-main);
+    }
+    .clear-search-btn svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2.4;
     }
 
     .settings-card {
@@ -188,14 +249,14 @@
       border: 1px solid var(--border-card);
       border-radius: 16px;
       padding: 20px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
     }
 
     .card-title {
-      font-size: 1.05rem;
+      font-size: 1.08rem;
       font-weight: 700;
-      color: #ffffff;
-      margin-bottom: 12px;
+      color: var(--text-main);
+      margin-bottom: 14px;
       display: flex;
       align-items: center;
       gap: 8px;
@@ -209,12 +270,16 @@
       stroke-width: 2;
     }
 
+    /* FAQ Items */
+    .faq-list {
+      display: flex;
+      flex-direction: column;
+    }
     .faq-item {
       padding: 14px 0;
       border-bottom: 1px solid var(--border-divider);
       cursor: pointer;
       user-select: none;
-      transition: background 0.15s ease;
     }
     .faq-item:last-child {
       border-bottom: none;
@@ -230,10 +295,11 @@
       gap: 12px;
     }
     .faq-q {
-      font-size: 0.98rem;
-      font-weight: 600;
-      color: #ffffff;
+      font-size: 0.96rem;
+      font-weight: 700;
+      color: var(--text-main);
       transition: color 0.15s ease;
+      line-height: 1.4;
     }
     .faq-item:hover .faq-q, .faq-item.open .faq-q {
       color: var(--accent-blue);
@@ -245,7 +311,7 @@
       fill: none;
       stroke-width: 2.2;
       flex-shrink: 0;
-      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), stroke 0.15s;
+      transition: transform 0.2s ease, stroke 0.15s;
     }
     .faq-item.open .faq-chevron {
       transform: rotate(180deg);
@@ -261,18 +327,27 @@
     }
     .faq-item.open .faq-a {
       display: block;
-      animation: faqFadeIn 0.2s ease;
+      animation: faqFade 0.2s ease;
     }
-    @keyframes faqFadeIn {
-      from { opacity: 0; transform: translateY(-4px); }
+    @keyframes faqFade {
+      from { opacity: 0; transform: translateY(-3px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
+    .no-results-box {
+      display: none;
+      text-align: center;
+      padding: 30px 16px;
+      color: var(--text-sub);
+      font-size: 0.9rem;
+    }
+
+    /* Support Links */
     .contact-item {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 10px 0;
+      padding: 12px 0;
       border-bottom: 1px solid var(--border-divider);
       font-size: 0.9rem;
     }
@@ -287,60 +362,66 @@
       color: var(--accent-blue);
       font-weight: 600;
       text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .contact-val:hover {
+      text-decoration: underline;
     }
 
     .version-stamp {
       text-align: center;
       font-size: 0.82rem;
       color: var(--text-sub);
-      margin-top: 8px;
+      margin-top: 10px;
     }
   
-    /* ==========================================================================
-       GLISSE DESIGN SYSTEM (Liquid Glass & Ultra-Rounded Overrides)
-       - Strict zero hover vertical displacement (transform: translateY OFF)
-       - Ultra-rounded pills (border-radius: 9999px) on all buttons & inputs
-       - Rounded squircles (border-radius: 20px) on panels, cards, sheets
-       - Exactly 3 theme modes: OLED (Dark), Light, Eye Care
-       ========================================================================== */
-    *:hover {
+    /* Clean Modern Controls (Vercel/Linear Design System) */
+    button, .btn, .btn-primary, .btn-secondary, .page-back-btn, .option-card, .btn-test-sound, .auth-btn, .download-btn, .plan-cta-btn, .plan-toggle-btn, .pill-btn, .tab-btn, .cta-btn, .submit-btn, .back-btn, .settings-back-link {
+      border-radius: 9px !important;
       transform: none !important;
+      transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease !important;
     }
-    button:active, a:active, .btn:active, .icon-btn:active, .action-btn:active {
-      transform: scale(0.97) !important;
-      transition: transform 0.08s ease !important;
+    button:hover, .btn:hover, .btn-primary:hover, .btn-secondary:hover, .page-back-btn:hover, .option-card:hover, .btn-test-sound:hover, .auth-btn:hover, .download-btn:hover {
+      transform: none !important;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18) !important;
     }
-    button, .btn, .btn-primary, .btn-secondary, .icon-btn, .action-btn,
-    .settings-back-link, .lang-pill-btn, .back-btn, input, .search-input,
-    .pill-btn, .tab-btn, .cta-btn, .plan-cta-btn, .download-btn, .submit-btn,
-    .badge, .status-pill, .role-pill, .filter-chip, .page-back-link {
-      border-radius: 9999px !important;
+    button:active, .btn:active, .btn-primary:active, .btn-secondary:active, .page-back-btn:active, .option-card:active, .btn-test-sound:active, .auth-btn:active, .download-btn:active {
+      transform: scale(0.975) !important;
     }
-    .card, .content-card, .plan-card, .feature-card, .settings-group,
-    .modal-sheet, .modal-box, .glass-panel, .info-box, .account-card {
-      border-radius: 20px !important;
+    input, .auth-input, .custom-dialog-input, .search-input {
+      border-radius: 10px !important;
+    }
+    .card, .auth-card, .plan-card, .profile-card, .settings-group, .settings-card, .help-card, .modal-sheet, .custom-dialog-box, .content-card, .feature-card, .modal-box, .glass-panel, .info-box, .account-card {
+      border-radius: 14px !important;
+    }
+    .badge, .status-pill, .role-pill, .filter-chip {
+      border-radius: 6px !important;
     }
 
 </style>
-<script>
-  (function() {
-    if (window.location.pathname.endsWith('.html')) {
-      var clean = window.location.pathname.replace(/\.html$/, '');
-      if (clean === '/index') clean = '/';
-      window.history.replaceState(null, '', clean + window.location.search + window.location.hash);
-    }
-  })();
-</script>
-<script>
-  (function() {
-    try {
-      var saved = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "oled";
-      if (saved !== "light" && saved !== "eyecare") saved = "oled";
-      document.documentElement.setAttribute("data-theme-mode", saved);
-      document.documentElement.setAttribute("data-theme", saved);
-    } catch(e) {}
-  })();
-</script>
+
+  <script>
+    (function() {
+      if (window.location.pathname.endsWith('.html')) {
+        var clean = window.location.pathname.replace(/\.html$/, '');
+        if (clean === '/index') clean = '/';
+        window.history.replaceState(null, '', clean + window.location.search + window.location.hash);
+      }
+    })();
+  </script>
+  <script>
+    (function() {
+      try {
+        var saved = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "oled";
+        var valid = ["oled", "sapphire", "light", "eyecare"];
+        var mode = valid.indexOf(saved) !== -1 ? saved : "oled";
+        document.documentElement.setAttribute("data-theme-mode", mode);
+        document.documentElement.setAttribute("data-theme", mode);
+      } catch(e) {}
+    })();
+  </script>
 </head>
 <body>
   <!-- Top Navigation -->
@@ -352,12 +433,21 @@
     <div class="nav-title" id="pageTitle">Help Center</div>
     <div class="nav-actions">
       <button type="button" class="lang-pill-btn" id="langToggleBtn" title="Language Switch">
-        <span id="langBtnText">EN</span>
+        <span id="langBtnText">BN</span>
       </button>
     </div>
   </header>
 
   <main class="content-container">
+    <!-- Live Topic Search Bar -->
+    <div class="search-box-wrap">
+      <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" class="search-input" id="helpSearchInput" placeholder="Search help topics, quota, models..." autocomplete="off">
+      <button type="button" class="clear-search-btn" id="clearSearchBtn" aria-label="Clear search">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
     <!-- FAQ Card -->
     <div class="settings-card">
       <div class="card-title">
@@ -365,36 +455,64 @@
         <span id="faqHeading">Frequently Asked Questions</span>
       </div>
 
-      <div class="faq-item open" role="button" tabindex="0">
-        <div class="faq-header">
-          <div class="faq-q" id="faqQ1">What is Alora?</div>
-          <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      <div class="faq-list" id="faqList">
+        <!-- Q1 -->
+        <div class="faq-item open" role="button" tabindex="0">
+          <div class="faq-header">
+            <div class="faq-q" id="faqQ1">What is Alora?</div>
+            <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="faq-a" id="faqA1">Alora is a high-speed intelligence platform built for coding, academic research, generative image synthesis, and Bengali language conversational mastery.</div>
         </div>
-        <div class="faq-a" id="faqA1">Alora is a high-speed intelligence platform built for coding, academic research, generative image synthesis, and Bengali language conversational mastery.</div>
+
+        <!-- Q2 -->
+        <div class="faq-item" role="button" tabindex="0">
+          <div class="faq-header">
+            <div class="faq-q" id="faqQ2">How does the fair usage quota work?</div>
+            <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="faq-a" id="faqA2">Each user plan includes a rolling window (e.g. Free: 10 messages / 3 hours, Pro: 30 / 3 hours, Max: 50 / 1 hour). When your limit is reached, your quota automatically resets as the window expires.</div>
+        </div>
+
+        <!-- Q3 -->
+        <div class="faq-item" role="button" tabindex="0">
+          <div class="faq-header">
+            <div class="faq-q" id="faqQ3">How can I redeem a code?</div>
+            <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="faq-a" id="faqA3">Navigate to the Redeem Code page from Settings, enter your promo code, and your account will immediately upgrade to Pro or Max.</div>
+        </div>
+
+        <!-- Q4 -->
+        <div class="faq-item" role="button" tabindex="0">
+          <div class="faq-header">
+            <div class="faq-q" id="faqQ4">Are Admin accounts rate-limited?</div>
+            <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="faq-a" id="faqA4">No. Verified admin accounts enjoy unlimited messages, unrestricted image generation, and instant access to all AI models without queuing or rate limits.</div>
+        </div>
+
+        <!-- Q5 -->
+        <div class="faq-item" role="button" tabindex="0">
+          <div class="faq-header">
+            <div class="faq-q" id="faqQ5">Can I use Alora offline?</div>
+            <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="faq-a" id="faqA5">Yes! All your previous chats, drafts, and preferences are cached locally using IndexedDB and LocalStorage, allowing you to browse and review conversations even with no network connection.</div>
+        </div>
+
+        <!-- Q6 -->
+        <div class="faq-item" role="button" tabindex="0">
+          <div class="faq-header">
+            <div class="faq-q" id="faqQ6">How do I change themes or speech audio?</div>
+            <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="faq-a" id="faqA6">You can adjust the theme from Settings &gt; Color Theme (OLED, Deep Sapphire, Light, Eye Care) and configure speech audio, volume, and tones from Settings &gt; Sound Settings.</div>
+        </div>
       </div>
 
-      <div class="faq-item" role="button" tabindex="0">
-        <div class="faq-header">
-          <div class="faq-q" id="faqQ2">How does the fair usage quota work?</div>
-          <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-        </div>
-        <div class="faq-a" id="faqA2">Each user plan includes a rolling window (e.g. Free: 10 messages / 3 hours, Pro: 30 / 3 hours, Max: 50 / 1 hour). When your limit is reached, your quota automatically resets as the window expires.</div>
-      </div>
-
-      <div class="faq-item" role="button" tabindex="0">
-        <div class="faq-header">
-          <div class="faq-q" id="faqQ3">How can I redeem a code?</div>
-          <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-        </div>
-        <div class="faq-a" id="faqA3">Navigate to the Redeem Code page from Settings, enter your 12-character promo code, and your account will immediately upgrade to Pro or Max.</div>
-      </div>
-
-      <div class="faq-item" role="button" tabindex="0">
-        <div class="faq-header">
-          <div class="faq-q" id="faqQ4">Are Admin accounts rate-limited?</div>
-          <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-        </div>
-        <div class="faq-a" id="faqA4">No. Verified admin accounts enjoy unlimited messages, unrestricted image generation, and instant access to all AI models without queuing or rate limits.</div>
+      <div class="no-results-box" id="noResultsBox">
+        <p id="noResultsText">No matching help topics found. Feel free to contact our developer directly.</p>
       </div>
     </div>
 
@@ -407,68 +525,85 @@
 
       <div class="contact-item">
         <span class="contact-label" id="labelPortal">Official Website</span>
-        <a href="https://alora.zihan.xyz" target="_blank" rel="noopener noreferrer" class="contact-val">alora.zihan.xyz</a>
+        <a href="https://alora.zihan.xyz" target="_blank" rel="noopener noreferrer" class="contact-val">
+          alora.zihan.xyz
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </a>
       </div>
       <div class="contact-item">
         <span class="contact-label" id="labelEmail">Contact Developer</span>
         <a href="mailto:zihanfakir@gmail.com" class="contact-val">zihanfakir@gmail.com</a>
       </div>
       <div class="contact-item">
+        <span class="contact-label" id="labelCommunity">Alokpath Platform</span>
+        <a href="https://alora.zihan.xyz" target="_blank" rel="noopener noreferrer" class="contact-val">alokpath.com</a>
+      </div>
+      <div class="contact-item">
         <span class="contact-label" id="labelSecurity">Security Status</span>
-        <span style="color:#10b981; font-weight:600;" id="valSecStatus">Verified &amp; Hardened</span>
+        <span style="color:var(--accent-success); font-weight:700;" id="valSecStatus">Verified &amp; Hardened</span>
       </div>
     </div>
 
     <div class="version-stamp" id="versionText">
-      Alora v2.0.0 (Native AMOLED Edition)
+      Alora v2.0.0 • An Alokpath Product • Developed by Zihan Fakir
     </div>
   </main>
 
   <script>
     let currentLanguage = localStorage.getItem("alokpoth_lang") || "en";
-    const rawSavedTheme = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "system";
-    const isDarkHelp = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const savedTheme = (rawSavedTheme === "system") ? (isDarkHelp ? "dark" : "light") : rawSavedTheme;
-    document.documentElement.setAttribute("data-theme", savedTheme);
 
     const I18N = {
       bn: {
         back: "সেটিংস",
         pageTitle: "সহায়তা কেন্দ্র",
+        searchPlaceholder: "প্রশ্ন বা বিষয় দিয়ে খুঁজুন...",
         faqHeading: "সাধারণ প্রশ্নোত্তর (FAQ)",
         faqQ1: "Alora কী?",
         faqA1: "Alora হলো একটি দ্রুতগতির কৃত্রিম বুদ্ধিমত্তা প্ল্যাটফর্ম যা কোডিং, গবেষণা, ছবি তৈরি ও সাবলীল বাংলা কথোপকথনের জন্য বিশেষভাবে তৈরি।",
         faqQ2: "মেসেজ কোটা কীভাবে কাজ করে?",
         faqA2: "প্রতিটি প্ল্যানে একটি নির্দিষ্ট উইন্ডো থাকে (যেমন ফ্রি প্ল্যানে ১০টি বার্তা প্রতি ৩ ঘণ্টায়, প্রো প্ল্যানে ৩০টি বার্তা প্রতি ৩ ঘণ্টায় এবং ম্যাক্সে ৫০টি বার্তা প্রতি ১ ঘণ্টায়)। উইন্ডো শেষ হলে কোটা স্বয়ংক্রিয়ভাবে নবায়ন হয়।",
         faqQ3: "রিডিম কোড কীভাবে ব্যবহার করব?",
-        faqA3: "সেটিংস থেকে রিডিম কোড পেজে যান, আপনার ১২-অক্ষরের কোডটি লিখুন এবং আপগ্রেড করুন বাটনে চাপলেই আপনার অ্যাকাউন্ট Pro বা Max-এ আপগ্রেড হয়ে যাবে।",
+        faqA3: "সেটিংস থেকে রিডিম কোড পেজে যান, আপনার প্রোমো কোডটি লিখুন এবং আপগ্রেড বাটনে চাপলেই আপনার অ্যাকাউন্ট Pro বা Max-এ আপগ্রেড হয়ে যাবে।",
         faqQ4: "অ্যাডমিন অ্যাকাউন্টে কোনো সীমাবদ্ধতা আছে কি?",
         faqA4: "না। অ্যাডমিন অ্যাকাউন্টে সীমাহীন বার্তা, সীমাহীন ছবি তৈরি এবং সকল এআই মডেলে কোনো রেট লিমিট ছাড়াই নিরবচ্ছিন্ন অ্যাক্সেস থাকে।",
+        faqQ5: "অফলাইনে Alora ব্যবহার করা যায় কি?",
+        faqA5: "হ্যাঁ! আপনার পূর্বের সকল চ্যাট ও সেটিংস নিরাপদে ব্রাউজারে সংরক্ষিত থাকে, ফলে ইন্টারনেট সংযোগ ছাড়াই পুরনো কথোপকথন দেখা ও পড়া যায়।",
+        faqQ6: "থিম ও সাউন্ড কীভাবে পরিবর্তন করব?",
+        faqA6: "সেটিংস > থিম থেকে OLED Dark, Deep Sapphire, Light ও Eye Care মোড নির্বাচন করতে পারেন এবং সেটিংস > শব্দ থেকে অডিও সাউন্ড কাস্টমাইজ করতে পারবেন।",
+        noResults: "কোনো প্রাসঙ্গিক প্রশ্নোত্তর পাওয়া যায়নি। প্রয়োজনে ডেভেলপারের সাথে সরাসরি যোগাযোগ করুন।",
         supportHeading: "সহায়তা ও যোগাযোগ",
         labelPortal: "অফিসিয়াল পোর্টাল",
         labelEmail: "ডেভেলপারের সাথে যোগাযোগ",
+        labelCommunity: "আলোকপথ প্ল্যাটফর্ম",
         labelSecurity: "নিরাপত্তা স্ট্যাটাস",
         valSecStatus: "ভেরিফায়েড ও নিরাপদ",
-        version: "Alora সংস্করণ ২.০.০ (অ্যামোলেড এডিশন)"
+        version: "Alora সংস্করণ ২.০.০ • আলোকপথ প্রোডাক্ট • প্রস্তুতকারক জিহান ফকির"
       },
       en: {
         back: "Settings",
         pageTitle: "Help Center",
+        searchPlaceholder: "Search help topics, quota, models...",
         faqHeading: "Frequently Asked Questions",
         faqQ1: "What is Alora?",
         faqA1: "Alora is a high-speed intelligence platform built for coding, academic research, generative image synthesis, and Bengali language conversational mastery.",
         faqQ2: "How does the fair usage quota work?",
         faqA2: "Each user plan includes a rolling window (e.g. Free: 10 messages / 3 hours, Pro: 30 / 3 hours, Max: 50 / 1 hour). When your limit is reached, your quota automatically resets as the window expires.",
         faqQ3: "How can I redeem a code?",
-        faqA3: "Navigate to the Redeem Code page from Settings, enter your 12-character promo code, and your account will immediately upgrade to Pro or Max.",
+        faqA3: "Navigate to the Redeem Code page from Settings, enter your promo code, and your account will immediately upgrade to Pro or Max.",
         faqQ4: "Are Admin accounts rate-limited?",
         faqA4: "No. Verified admin accounts enjoy unlimited messages, unrestricted image generation, and instant access to all AI models without queuing or rate limits.",
+        faqQ5: "Can I use Alora offline?",
+        faqA5: "Yes! All your previous chats, drafts, and preferences are cached locally using IndexedDB and LocalStorage, allowing you to browse and review conversations even with no network connection.",
+        faqQ6: "How do I change themes or speech audio?",
+        faqA6: "You can adjust the theme from Settings > Color Theme (OLED, Deep Sapphire, Light, Eye Care) and configure speech audio, volume, and tones from Settings > Sound Settings.",
+        noResults: "No matching help topics found. Feel free to contact our developer directly.",
         supportHeading: "Support & Community",
         labelPortal: "Official Website",
         labelEmail: "Contact Developer",
+        labelCommunity: "Alokpath Platform",
         labelSecurity: "Security Status",
         valSecStatus: "Verified & Hardened",
-        version: "Alora v2.0.0 (Native AMOLED Edition)"
+        version: "Alora v2.0.0 • An Alokpath Product • Developed by Zihan Fakir"
       }
     };
 
@@ -476,24 +611,52 @@
       const isEn = (currentLanguage === "en");
       const d = I18N[currentLanguage] || I18N.en;
 
-      document.getElementById("langBtnText").textContent = isEn ? "বাং" : "EN";
-      document.getElementById("backText").textContent = d.back;
-      document.getElementById("pageTitle").textContent = d.pageTitle;
-      document.getElementById("faqHeading").textContent = d.faqHeading;
-      document.getElementById("faqQ1").textContent = d.faqQ1;
-      document.getElementById("faqA1").textContent = d.faqA1;
-      document.getElementById("faqQ2").textContent = d.faqQ2;
-      document.getElementById("faqA2").textContent = d.faqA2;
-      document.getElementById("faqQ3").textContent = d.faqQ3;
-      document.getElementById("faqA3").textContent = d.faqA3;
-      document.getElementById("faqQ4").textContent = d.faqQ4;
-      document.getElementById("faqA4").textContent = d.faqA4;
-      document.getElementById("supportHeading").textContent = d.supportHeading;
-      document.getElementById("labelPortal").textContent = d.labelPortal;
-      document.getElementById("labelEmail").textContent = d.labelEmail;
-      document.getElementById("labelSecurity").textContent = d.labelSecurity;
-      document.getElementById("valSecStatus").textContent = d.valSecStatus;
-      document.getElementById("versionText").textContent = d.version;
+      const langBtn = document.getElementById("langBtnText");
+      if (langBtn) langBtn.textContent = isEn ? "বাং" : "EN";
+
+      const backText = document.getElementById("backText");
+      if (backText) backText.textContent = d.back;
+
+      const pageTitle = document.getElementById("pageTitle");
+      if (pageTitle) pageTitle.textContent = d.pageTitle;
+
+      const searchInput = document.getElementById("helpSearchInput");
+      if (searchInput) searchInput.placeholder = d.searchPlaceholder;
+
+      const faqHeading = document.getElementById("faqHeading");
+      if (faqHeading) faqHeading.textContent = d.faqHeading;
+
+      for (let i = 1; i <= 6; i++) {
+        const q = document.getElementById(`faqQ${i}`);
+        const a = document.getElementById(`faqA${i}`);
+        if (q && d[`faqQ${i}`]) q.textContent = d[`faqQ${i}`];
+        if (a && d[`faqA${i}`]) a.textContent = d[`faqA${i}`];
+      }
+
+      const noRes = document.getElementById("noResultsText");
+      if (noRes) noRes.textContent = d.noResults;
+
+      const supHead = document.getElementById("supportHeading");
+      if (supHead) supHead.textContent = d.supportHeading;
+
+      const lblPort = document.getElementById("labelPortal");
+      if (lblPort) lblPort.textContent = d.labelPortal;
+
+      const lblMail = document.getElementById("labelEmail");
+      if (lblMail) lblMail.textContent = d.labelEmail;
+
+      const lblComm = document.getElementById("labelCommunity");
+      if (lblComm) lblComm.textContent = d.labelCommunity;
+
+      const lblSec = document.getElementById("labelSecurity");
+      if (lblSec) lblSec.textContent = d.labelSecurity;
+
+      const valSec = document.getElementById("valSecStatus");
+      if (valSec) valSec.textContent = d.valSecStatus;
+
+      const verText = document.getElementById("versionText");
+      if (verText) verText.textContent = d.version;
+
       document.title = `${d.pageTitle} — Alora`;
     }
 
@@ -508,7 +671,7 @@
     // Toggle Language
     document.getElementById("langToggleBtn")?.addEventListener("click", () => {
       currentLanguage = (currentLanguage === "en" ? "bn" : "en");
-      try { localStorage.setItem("alokpoth_lang", currentLanguage); } catch {}
+      try { localStorage.setItem("alokpoth_lang", currentLanguage); } catch(e) {}
       applyI18n();
     });
 
@@ -525,8 +688,42 @@
       });
     });
 
+    // Live FAQ Search Filter
+    const helpSearchInput = document.getElementById("helpSearchInput");
+    const clearSearchBtn = document.getElementById("clearSearchBtn");
+    const noResultsBox = document.getElementById("noResultsBox");
+
+    function filterFaqs() {
+      const q = (helpSearchInput?.value || "").trim().toLowerCase();
+      if (clearSearchBtn) {
+        clearSearchBtn.style.display = q ? "flex" : "none";
+      }
+
+      let matches = 0;
+      document.querySelectorAll(".faq-item").forEach(item => {
+        const text = item.textContent.toLowerCase();
+        if (!q || text.includes(q)) {
+          item.style.display = "block";
+          if (q) item.classList.add("open");
+          matches++;
+        } else {
+          item.style.display = "none";
+        }
+      });
+
+      if (noResultsBox) {
+        noResultsBox.style.display = matches === 0 ? "block" : "none";
+      }
+    }
+
+    helpSearchInput?.addEventListener("input", filterFaqs);
+    clearSearchBtn?.addEventListener("click", () => {
+      if (helpSearchInput) helpSearchInput.value = "";
+      filterFaqs();
+      helpSearchInput?.focus();
+    });
+
     applyI18n();
   </script>
 </body>
 </html>
-

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
   <meta name="theme-color" content="#000000">
-  <title>Custom Prompt — Alora</title>
+  <title>Custom Instructions &amp; Personality — Alora</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg?v=3">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png?v=3">
   <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png?v=3">
@@ -17,77 +17,73 @@
   <style>
     :root {
       --bg-base: #000000;
-      --bg-card: #18181b;
-      --bg-card-hover: #222226;
-      --border-card: rgba(255, 255, 255, 0.08);
+      --bg-card: #121215;
+      --bg-card-hover: #1c1c22;
+      --border-card: rgba(255, 255, 255, 0.09);
       --border-divider: rgba(255, 255, 255, 0.06);
       --text-main: #ffffff;
-      --text-sub: #71717a;
-      --text-dim: #a1a1aa;
+      --text-sub: #a1a1aa;
+      --text-dim: #71717a;
       --accent-blue: #3b82f6;
       --accent-blue-hover: #2563eb;
       --accent-danger: #ef4444;
+      --accent-danger-hover: #dc2626;
       --font-main: 'Plus Jakarta Sans', 'Hind Siliguri', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-
-    [data-theme="dark"] {
-      --bg-base: #09090b;
-      --bg-card: #18181b;
-      --bg-card-hover: #222226;
-      --border-card: rgba(255, 255, 255, 0.08);
-      --border-divider: rgba(255, 255, 255, 0.06);
-      --text-main: #ffffff;
-      --text-sub: #71717a;
     }
 
     [data-theme="oled"] {
       --bg-base: #000000;
-      --bg-card: #111113;
-      --bg-card-hover: #1c1c1f;
-      --border-card: rgba(255, 255, 255, 0.12);
+      --bg-card: #111114;
+      --bg-card-hover: #1a1a20;
+      --border-card: rgba(255, 255, 255, 0.1);
       --border-divider: rgba(255, 255, 255, 0.06);
       --text-main: #ffffff;
-      --text-sub: #71717a;
+      --text-sub: #a1a1aa;
+      --text-dim: #71717a;
+      --accent-blue: #3b82f6;
     }
 
     [data-theme="sapphire"] {
       --bg-base: #070d19;
-      --bg-card: #0f1c32;
-      --bg-card-hover: #152744;
-      --border-card: rgba(56, 189, 248, 0.15);
+      --bg-card: #0e1a30;
+      --bg-card-hover: #152646;
+      --border-card: rgba(56, 189, 248, 0.18);
       --border-divider: rgba(56, 189, 248, 0.08);
       --text-main: #f8fafc;
       --text-sub: #94a3b8;
+      --text-dim: #64748b;
+      --accent-blue: #38bdf8;
+    }
+
+    [data-theme="light"] {
+      --bg-base: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-card-hover: #f1f5f9;
+      --border-card: rgba(0, 0, 0, 0.08);
+      --border-divider: rgba(0, 0, 0, 0.06);
+      --text-main: #09090b;
+      --text-sub: #64748b;
+      --text-dim: #94a3b8;
+      --accent-blue: #2563eb;
     }
 
     [data-theme="eyecare"] {
       --bg-base: #f5eedc;
       --bg-card: #eadeca;
       --bg-card-hover: #dfcfb8;
-      --border-card: rgba(146, 64, 14, 0.15);
+      --border-card: rgba(146, 64, 14, 0.16);
       --border-divider: rgba(146, 64, 14, 0.08);
       --text-main: #4a3b2c;
       --text-sub: #7a6b5c;
-      --text-dim: #9e8e7e;
-    }
-
-    [data-theme="light"] {
-      --bg-base: #f4f4f5;
-      --bg-card: #ffffff;
-      --bg-card-hover: #f8fafc;
-      --border-card: rgba(0, 0, 0, 0.08);
-      --border-divider: rgba(0, 0, 0, 0.05);
-      --text-main: #09090b;
-      --text-sub: #71717a;
-      --text-dim: #52525b;
+      --text-dim: #9c8a77;
+      --accent-blue: #b45309;
     }
 
     *, *::before, *::after {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      -webkit-tap-highlight-color: transparent !important;
-      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
     }
 
     body {
@@ -99,6 +95,7 @@
       flex-direction: column;
       position: relative;
       overflow-x: hidden;
+      padding-top: env(safe-area-inset-top, 0);
       padding-bottom: max(32px, env(safe-area-inset-bottom, 20px));
       transition: background-color 0.2s ease;
     }
@@ -108,15 +105,13 @@
       position: sticky;
       top: 0;
       z-index: 50;
-      background: var(--bg-base);
+      background: var(--bg-card);
       border-bottom: 1px solid var(--border-divider);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      height: calc(56px + env(safe-area-inset-top, 0px));
-      padding: env(safe-area-inset-top, 0px) 16px 0 16px;
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      height: 56px;
+      padding: 0 16px;
     }
 
     .settings-back-link {
@@ -125,24 +120,28 @@
       gap: 6px;
       color: var(--text-main);
       text-decoration: none;
-      font-size: 1rem;
+      font-size: 0.9rem;
       font-weight: 600;
       cursor: pointer;
-      padding: 6px 8px;
-      border-radius: 8px;
-      transition: opacity 0.15s;
+      padding: 7px 12px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-card);
+      transition: opacity 0.15s, background 0.15s;
+    }
+    :root[data-theme="light"] .settings-back-link {
+      background: rgba(0, 0, 0, 0.04);
     }
     .settings-back-link:active {
-      opacity: 0.7;
+      opacity: 0.75;
+      transform: scale(0.98);
     }
     .settings-back-link svg {
-      width: 20px;
-      height: 20px;
-      stroke-width: 2.4;
+      width: 17px;
+      height: 17px;
+      stroke-width: 2.2;
       stroke: currentColor;
       fill: none;
-      stroke-linecap: round;
-      stroke-linejoin: round;
     }
 
     .nav-title {
@@ -158,29 +157,33 @@
     }
 
     .lang-pill-btn {
-      background: rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.06);
       border: 1px solid var(--border-card);
       color: var(--text-main);
-      font-size: 0.8rem;
+      font-size: 0.82rem;
       font-weight: 600;
-      padding: 5px 10px;
-      border-radius: 9999px;
+      padding: 6px 12px;
+      border-radius: 10px;
       cursor: pointer;
       transition: background 0.15s;
     }
+    :root[data-theme="light"] .lang-pill-btn {
+      background: rgba(0, 0, 0, 0.04);
+    }
     .lang-pill-btn:active {
-      background: rgba(255, 255, 255, 0.15);
+      transform: scale(0.96);
     }
 
     /* Main Container */
     .content-container {
       width: 100%;
-      max-width: 620px;
-      margin: 0 auto;
-      padding: 20px 16px 40px;
+      max-width: 640px;
+      margin: 20px auto 0;
+      padding: 0 16px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 18px;
+      flex: 1;
     }
 
     .settings-card {
@@ -188,11 +191,7 @@
       border: 1px solid var(--border-card);
       border-radius: 16px;
       padding: 22px;
-      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
-    }
-
-    .card-header {
-      margin-bottom: 18px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
     }
 
     .card-title {
@@ -205,31 +204,28 @@
       gap: 10px;
     }
     .card-title svg {
-      width: 22px;
-      height: 22px;
+      width: 20px;
+      height: 20px;
       color: var(--accent-blue);
       stroke: currentColor;
       fill: none;
-      stroke-width: 2.2;
+      stroke-width: 2;
     }
 
     .card-subtitle {
       font-size: 0.88rem;
       color: var(--text-sub);
       line-height: 1.5;
-    }
-
-    .form-group {
       margin-bottom: 16px;
     }
 
     .custom-textarea {
       width: 100%;
-      min-height: 160px;
-      padding: 16px;
-      background: rgba(0, 0, 0, 0.35);
+      min-height: 150px;
+      padding: 14px 16px;
+      background: rgba(0, 0, 0, 0.3);
       border: 1px solid var(--border-card);
-      border-radius: 14px;
+      border-radius: 12px;
       color: var(--text-main);
       font-size: 0.95rem;
       font-family: inherit;
@@ -238,77 +234,106 @@
       line-height: 1.6;
       transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
+    :root[data-theme="light"] .custom-textarea {
+      background: #f8fafc;
+    }
     .custom-textarea:focus {
       border-color: var(--accent-blue);
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
     }
 
     .meta-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-top: 6px;
-      font-size: 0.78rem;
+      margin-top: 8px;
+      font-size: 0.8rem;
       color: var(--text-sub);
     }
 
-    /* Suggestion Chips */
-    .suggestion-chips-wrap {
-      margin-top: 14px;
-    }
-    .chips-label {
-      display: block;
-      font-size: 0.82rem;
-      font-weight: 600;
-      color: var(--text-sub);
-      margin-bottom: 10px;
-    }
-    .suggestion-chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .sugg-chip {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--border-card);
+    /* Personality Presets Grid */
+    .presets-heading {
+      font-size: 0.92rem;
+      font-weight: 700;
       color: var(--text-main);
-      font-size: 0.82rem;
-      font-weight: 500;
-      font-family: inherit;
-      padding: 7px 13px;
-      border-radius: 9999px;
-      cursor: pointer;
-      display: inline-flex;
+      margin: 18px 0 10px;
+      display: flex;
       align-items: center;
       gap: 6px;
-      transition: all 0.15s ease;
+    }
+
+    .presets-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 10px;
+    }
+
+    .preset-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1.5px solid var(--border-card);
+      border-radius: 12px;
+      padding: 12px 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
       user-select: none;
     }
-    .sugg-chip:hover {
-      background: rgba(59, 130, 246, 0.14);
-      border-color: rgba(59, 130, 246, 0.4);
-      color: #93c5fd;
+    :root[data-theme="light"] .preset-card {
+      background: rgba(0, 0, 0, 0.02);
     }
-    .sugg-chip:active {
-      transform: scale(0.96);
+    .preset-card:hover {
+      background: var(--bg-card-hover);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+    :root[data-theme="light"] .preset-card:hover {
+      border-color: rgba(0, 0, 0, 0.16);
+    }
+    .preset-card.active {
+      border-color: var(--accent-blue);
+      background: rgba(59, 130, 246, 0.08);
+      box-shadow: 0 0 0 1px var(--accent-blue);
+    }
+    .preset-icon {
+      font-size: 1.4rem;
+      flex-shrink: 0;
+      line-height: 1;
+      margin-top: 2px;
+    }
+    .preset-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+    .preset-name {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .preset-desc {
+      font-size: 0.78rem;
+      color: var(--text-sub);
+      line-height: 1.35;
     }
 
     /* Action buttons */
     .btn-row {
       display: flex;
       gap: 10px;
-      margin-top: 22px;
+      margin-top: 20px;
     }
 
     .btn-submit {
       flex: 1;
       height: 48px;
-      border-radius: 12px;
+      border-radius: 10px;
       background: var(--accent-blue);
       color: #ffffff;
       border: none;
-      font-size: 0.98rem;
-      font-weight: 600;
+      font-size: 0.96rem;
+      font-weight: 700;
       font-family: inherit;
       cursor: pointer;
       display: flex;
@@ -316,6 +341,7 @@
       justify-content: center;
       gap: 8px;
       transition: background 0.15s, transform 0.1s;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     }
     .btn-submit:hover {
       background: var(--accent-blue-hover);
@@ -324,14 +350,14 @@
       transform: scale(0.98);
     }
 
-    .btn-clear {
+    .btn-reset {
       height: 48px;
       padding: 0 18px;
-      border-radius: 12px;
+      border-radius: 10px;
       background: rgba(255, 255, 255, 0.06);
       border: 1px solid var(--border-card);
       color: var(--text-sub);
-      font-size: 0.95rem;
+      font-size: 0.92rem;
       font-weight: 600;
       font-family: inherit;
       cursor: pointer;
@@ -341,12 +367,15 @@
       gap: 6px;
       transition: all 0.15s ease;
     }
-    .btn-clear:hover {
-      background: rgba(239, 68, 68, 0.15);
+    :root[data-theme="light"] .btn-reset {
+      background: rgba(0, 0, 0, 0.04);
+    }
+    .btn-reset:hover {
+      background: rgba(239, 68, 68, 0.12);
       border-color: rgba(239, 68, 68, 0.3);
       color: var(--accent-danger);
     }
-    .btn-clear:active {
+    .btn-reset:active {
       transform: scale(0.98);
     }
 
@@ -356,67 +385,42 @@
       bottom: max(20px, env(safe-area-inset-bottom, 20px));
       left: 50%;
       transform: translateX(-50%);
-      padding: 10px 18px;
-      border-radius: 9999px;
+      padding: 10px 20px;
+      border-radius: 10px;
       font-size: 0.88rem;
       font-weight: 500;
       color: #ffffff;
       background: rgba(24, 24, 27, 0.95);
       border: 1px solid rgba(255, 255, 255, 0.15);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
       z-index: 1000;
       display: none;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      backdrop-filter: blur(12px);
       white-space: nowrap;
     }
     .toast.success { border-color: #10b981; }
-  
-    /* ==========================================================================
-       GLISSE DESIGN SYSTEM (Liquid Glass & Ultra-Rounded Overrides)
-       - Strict zero hover vertical displacement (transform: translateY OFF)
-       - Ultra-rounded pills (border-radius: 9999px) on all buttons & inputs
-       - Rounded squircles (border-radius: 20px) on panels, cards, sheets
-       - Exactly 3 theme modes: OLED (Dark), Light, Eye Care
-       ========================================================================== */
-    *:hover {
-      transform: none !important;
-    }
-    button:active, a:active, .btn:active, .icon-btn:active, .action-btn:active {
-      transform: scale(0.97) !important;
-      transition: transform 0.08s ease !important;
-    }
-    button, .btn, .btn-primary, .btn-secondary, .icon-btn, .action-btn,
-    .settings-back-link, .lang-pill-btn, .back-btn, input, .search-input,
-    .pill-btn, .tab-btn, .cta-btn, .plan-cta-btn, .download-btn, .submit-btn,
-    .badge, .status-pill, .role-pill, .filter-chip, .page-back-link {
-      border-radius: 9999px !important;
-    }
-    .card, .content-card, .plan-card, .feature-card, .settings-group,
-    .modal-sheet, .modal-box, .glass-panel, .info-box, .account-card {
-      border-radius: 20px !important;
-    }
+  </style>
 
-</style>
-<script>
-  (function() {
-    if (window.location.pathname.endsWith('.html')) {
-      var clean = window.location.pathname.replace(/\.html$/, '');
-      if (clean === '/index') clean = '/';
-      window.history.replaceState(null, '', clean + window.location.search + window.location.hash);
-    }
-  })();
-</script>
-<script>
-  (function() {
-    try {
-      var saved = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "oled";
-      if (saved !== "light" && saved !== "eyecare") saved = "oled";
-      document.documentElement.setAttribute("data-theme-mode", saved);
-      document.documentElement.setAttribute("data-theme", saved);
-    } catch(e) {}
-  })();
-</script>
+  <script>
+    (function() {
+      if (window.location.pathname.endsWith('.html')) {
+        var clean = window.location.pathname.replace(/\.html$/, '');
+        if (clean === '/index') clean = '/';
+        window.history.replaceState(null, '', clean + window.location.search + window.location.hash);
+      }
+    })();
+  </script>
+  <script>
+    (function() {
+      try {
+        var saved = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "oled";
+        var valid = ["oled", "sapphire", "light", "eyecare"];
+        var mode = valid.indexOf(saved) !== -1 ? saved : "oled";
+        document.documentElement.setAttribute("data-theme-mode", mode);
+        document.documentElement.setAttribute("data-theme", mode);
+      } catch(e) {}
+    })();
+  </script>
 </head>
 <body>
   <div id="toastEl" class="toast"></div>
@@ -430,51 +434,85 @@
     <div class="nav-title" id="pageTitle">Personalization</div>
     <div class="nav-actions">
       <button type="button" class="lang-pill-btn" id="langToggleBtn" title="Language Switch">
-        <span id="langBtnText">EN</span>
+        <span id="langBtnText">BN</span>
       </button>
     </div>
   </header>
 
   <main class="content-container">
     <div class="settings-card">
-      <div class="card-header">
-        <div class="card-title">
-          <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-          <span id="customPromptTitle">কাস্টম প্রম্পট</span>
-        </div>
-        <p class="card-subtitle" id="customPromptSubtitle">
-          Alora আপনার নির্দেশমতো ঠিক যেভাবে উত্তর দেবে ও আচরণ করবে, তা এখানে নিজের মতো করে লিখে দিন। Alora আপনার দেওয়া এই প্রম্পট সর্বোচ্চ অগ্রাধিকার দিয়ে অক্ষরে অক্ষরে পালন করবে।
-        </p>
+      <div class="card-title">
+        <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        <span id="customPromptTitle">Custom AI Instructions</span>
+      </div>
+      <p class="card-subtitle" id="customPromptSubtitle">
+        Define how Alora should communicate and adapt to your preferred workflow. These instructions receive highest priority across every conversation.
+      </p>
+
+      <textarea class="custom-textarea" id="customInstructions" placeholder="e.g. 'You are a Senior Full-Stack Engineer. Provide production-ready, clean code without conversational filler. Explain trade-offs directly.'"></textarea>
+      
+      <div class="meta-row">
+        <span id="charCount">0 characters (0 words)</span>
+        <span id="priorityBadge" style="color: var(--accent-blue); font-weight: 600;">★ Highest Priority Applied</span>
       </div>
 
-      <div class="form-group">
-        <textarea class="custom-textarea" id="customInstructions" placeholder="যেমন: 'তুমি একজন অভিজ্ঞ ফুলস্ট্যাক সফটওয়্যার ইঞ্জিনিয়ার। অপ্রয়োজনীয় কথা ছাড়া সবসময় সম্পূর্ণ কার্যকরী কোড দেবে। জটিল বিষয় বাস্তব উদাহরণ দিয়ে সহজ ভাষায় বুঝিয়ে বলবে।'"></textarea>
-        <div class="meta-row">
-          <span id="charCount">০ অক্ষর (০ শব্দ)</span>
-          <span id="priorityBadge" style="color: #60a5fa;">★ সর্বোচ্চ অগ্রাধিকার পাবে</span>
+      <!-- Presets Section -->
+      <div class="presets-heading">
+        <span id="presetsHeadingText">Personality &amp; Role Presets:</span>
+      </div>
+
+      <div class="presets-grid" id="presetsGrid">
+        <!-- Default -->
+        <div class="preset-card" data-preset="default" tabindex="0">
+          <div class="preset-icon">🌟</div>
+          <div class="preset-info">
+            <span class="preset-name" id="pNameDefault">Default Alora</span>
+            <span class="preset-desc" id="pDescDefault">Balanced, friendly, highly versatile intelligence</span>
+          </div>
         </div>
 
-        <div class="suggestion-chips-wrap">
-          <span class="chips-label" id="chipsLabel">দ্রুত ব্যবহারের জন্য কিছু আইডিয়া:</span>
-          <div class="suggestion-chips">
-            <button type="button" class="sugg-chip" data-text-en="Act as a Principal Software Engineer & Architect. Provide complete, production-ready, clean code with zero placeholders and explain trade-offs clearly." data-text-bn="একজন অভিজ্ঞ প্রিন্সিপাল সফটওয়্যার ইঞ্জিনিয়ার হিসেবে পরামর্শ দেবেন। কোডের ক্ষেত্রে কোনো প্লেসহোল্ডার ছাড়া সম্পূর্ণ প্রোডাকশন কোড দেবেন।">
-              👨‍💻 <span class="chip-txt" id="chipTxt1">সফটওয়্যার আর্কিটেক্ট</span>
-            </button>
-            <button type="button" class="sugg-chip" data-text-en="Provide concise, to-the-point answers using clean bullet points without unnecessary conversational filler." data-text-bn="অপ্রয়োজনীয় কথা বা ভূমিকা ছাড়া সরাসরি টু-দ্য-পয়েন্টে এবং সংক্ষিপ্ত বুলেট আকারে উত্তর দেবেন।">
-              ⚡ <span class="chip-txt" id="chipTxt2">সংক্ষিপ্ত ও টু-দ্য-পয়েন্ট</span>
-            </button>
-            <button type="button" class="sugg-chip" data-text-en="Explain complex concepts simply with intuitive real-world analogies and everyday examples." data-text-bn="জটিল বিষয়গুলোকে বাস্তব জীবনের সহজ ও সুন্দর উদাহরণ দিয়ে সহজভাবে ব্যাখ্যা করবেন।">
-              💡 <span class="chip-txt" id="chipTxt3">সহজ বাস্তব উদাহরণ</span>
-            </button>
-            <button type="button" class="sugg-chip" data-text-en="Act as an empathetic, warm, and thoughtful mentor who listens carefully and offers practical guidance." data-text-bn="একজন সহানুভূতিশীল, আন্তরিক ও অভিজ্ঞ মেন্টর হিসেবে বন্ধুভাবাপন্ন পরামর্শ দেবেন।">
-              🤝 <span class="chip-txt" id="chipTxt4">সহানুভূতিশীল মেন্টর</span>
-            </button>
-            <button type="button" class="sugg-chip" data-text-en="Think with master-level scientific rigor, deep analytical depth, and structured multi-angle insights." data-text-bn="গভীর বিশ্লেষণধর্মী দৃষ্টিভঙ্গি, যৌক্তিক কারণ এবং গবেষণামূলক গভীর অন্তর্দৃষ্টি সহ উত্তর দেবেন।">
-              🔬 <span class="chip-txt" id="chipTxt5">গভীর বিশ্লেষণ</span>
-            </button>
-            <button type="button" class="sugg-chip" data-text-en="Write with creative elegance, rich vocabulary, engaging rhythm, and captivating storytelling." data-text-bn="সমৃদ্ধ শব্দভাণ্ডার, চমৎকার সাহিত্যিক নান্দনিকতা ও আকর্ষণীয় ভঙ্গিতে ক্রিয়েটিভ লেখা তৈরি করবেন।">
-              ✍️ <span class="chip-txt" id="chipTxt6">ক্রিয়েটিভ রাইটিং</span>
-            </button>
+        <!-- Software Architect -->
+        <div class="preset-card" data-preset="coder" tabindex="0">
+          <div class="preset-icon">👨‍💻</div>
+          <div class="preset-info">
+            <span class="preset-name" id="pNameCoder">Software Architect</span>
+            <span class="preset-desc" id="pDescCoder">Clean, production-grade code with architectural insights</span>
+          </div>
+        </div>
+
+        <!-- Concise & Direct -->
+        <div class="preset-card" data-preset="concise" tabindex="0">
+          <div class="preset-icon">⚡</div>
+          <div class="preset-info">
+            <span class="preset-name" id="pNameConcise">Concise &amp; Direct</span>
+            <span class="preset-desc" id="pDescConcise">Brief, to-the-point answers using clean bullet points</span>
+          </div>
+        </div>
+
+        <!-- Empathetic Mentor -->
+        <div class="preset-card" data-preset="mentor" tabindex="0">
+          <div class="preset-icon">🤝</div>
+          <div class="preset-info">
+            <span class="preset-name" id="pNameMentor">Empathetic Mentor</span>
+            <span class="preset-desc" id="pDescMentor">Patient, supportive teacher with intuitive analogies</span>
+          </div>
+        </div>
+
+        <!-- Academic Researcher -->
+        <div class="preset-card" data-preset="researcher" tabindex="0">
+          <div class="preset-icon">🔬</div>
+          <div class="preset-info">
+            <span class="preset-name" id="pNameResearcher">Deep Researcher</span>
+            <span class="preset-desc" id="pDescResearcher">Rigorous analytical depth, structured citations &amp; logic</span>
+          </div>
+        </div>
+
+        <!-- Creative Writer -->
+        <div class="preset-card" data-preset="creative" tabindex="0">
+          <div class="preset-icon">✍️</div>
+          <div class="preset-info">
+            <span class="preset-name" id="pNameCreative">Creative Writer</span>
+            <span class="preset-desc" id="pDescCreative">Expressive literary style, captivating narrative flow</span>
           </div>
         </div>
       </div>
@@ -482,11 +520,11 @@
       <div class="btn-row">
         <button type="button" class="btn-submit" id="savePersonalizationBtn">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-          <span id="btnSaveText">প্রম্পট সংরক্ষণ করুন</span>
+          <span id="btnSaveText">Save Instructions</span>
         </button>
-        <button type="button" class="btn-clear" id="clearPromptBtn" title="মুছে ফেলুন">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-          <span id="btnClearText">মুছে ফেলুন</span>
+        <button type="button" class="btn-reset" id="resetDefaultBtn" title="Reset to default">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+          <span id="btnResetText">Reset to Default</span>
         </button>
       </div>
     </div>
@@ -494,19 +532,44 @@
 
   <script>
     let currentLanguage = localStorage.getItem("alokpoth_lang") || "en";
-    const rawSavedTheme = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "system";
-    const isDarkPers = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const savedTheme = (rawSavedTheme === "system") ? (isDarkPers ? "dark" : "light") : rawSavedTheme;
-    document.documentElement.setAttribute("data-theme", savedTheme);
-
     const customInstructions = document.getElementById("customInstructions");
     const charCountEl = document.getElementById("charCount");
 
-    // Load saved prompt
+    const PRESET_TEXTS = {
+      default: {
+        en: "",
+        bn: ""
+      },
+      coder: {
+        en: "Act as a Principal Software Engineer and Architect. Provide complete, production-ready, clean code with zero placeholders. Explain architectural trade-offs, time complexity, and security considerations directly.",
+        bn: "একজন অভিজ্ঞ প্রিন্সিপাল সফটওয়্যার ইঞ্জিনিয়ার ও আর্কিটেক্ট হিসেবে পরামর্শ দেবেন। কোডের ক্ষেত্রে কোনো প্লেসহোল্ডার ছাড়া সম্পূর্ণ প্রোডাকশন-রেডি কোড দেবেন এবং ট্রেড-অফ ও পারফরম্যান্স বুঝিয়ে বলবেন।"
+      },
+      concise: {
+        en: "Provide extremely concise, direct answers. Avoid conversational pleasantries, introductory fluff, and repetitive summaries. Use structured bullet points wherever possible.",
+        bn: "অপ্রয়োজনীয় কথা, ভূমিকা বা সমাপ্তি ছাড়া সরাসরি টু-দ্য-পয়েন্টে সংক্ষিপ্ত বুলেট আকারে উত্তর দেবেন। উত্তর হবে স্পষ্ট, দ্রুত ও কার্যকর।"
+      },
+      mentor: {
+        en: "Act as an empathetic, encouraging, and experienced mentor. Break down difficult concepts using relatable real-world analogies, step-by-step guidance, and thoughtful questions.",
+        bn: "একজন সহানুভূতিশীল, আন্তরিক ও অভিজ্ঞ মেন্টর হিসেবে বন্ধুভাবাপন্ন পরামর্শ দেবেন। বাস্তব জীবনের চমৎকার উদাহরণ দিয়ে জটিল বিষয়গুলো সহজে বুঝিয়ে দেবেন।"
+      },
+      researcher: {
+        en: "Adopt an academic research persona. Emphasize analytical rigor, empirical evidence, structured methodology, counterarguments, and objective, high-precision explanations.",
+        bn: "গভীর বিশ্লেষণধর্মী দৃষ্টিভঙ্গি, যৌক্তিক কারণ এবং গবেষণামূলক গভীর অন্তর্দৃষ্টি সহ উত্তর দেবেন। নিরপেক্ষতা ও একাডেমিক গভীরতা বজায় রাখবেন।"
+      },
+      creative: {
+        en: "Write with creative elegance, rich vocabulary, vivid imagery, and compelling narrative flow. Elevate ideas with expressive voice and storytelling finesse.",
+        bn: "সমৃদ্ধ শব্দভাণ্ডার, চমৎকার সাহিত্যিক নান্দনিকতা ও আকর্ষণীয় ভঙ্গিতে ক্রিয়েটিভ লেখা তৈরি করবেন। গল্প ও বর্ণনায় জীবন্ত ভাব বজায় রাখবেন।"
+      }
+    };
+
+    // Load initial
     if (customInstructions) {
       customInstructions.value = localStorage.getItem("alokpoth_custom_instructions") || "";
       updateCounter();
-      customInstructions.addEventListener("input", updateCounter);
+      customInstructions.addEventListener("input", () => {
+        updateCounter();
+        syncActivePresetUI();
+      });
     }
 
     function toBnNum(num) {
@@ -526,22 +589,47 @@
       }
     }
 
-    // Attach suggestion chips handlers
-    document.querySelectorAll(".sugg-chip").forEach(chip => {
-      chip.addEventListener("click", () => {
-        const text = currentLanguage === "bn" 
-          ? (chip.getAttribute("data-text-bn") || chip.getAttribute("data-text-en"))
-          : (chip.getAttribute("data-text-en") || chip.getAttribute("data-text-bn"));
-        if (!text || !customInstructions) return;
-        const cur = customInstructions.value.trim();
-        if (!cur) {
-          customInstructions.value = text;
-        } else if (!cur.includes(text)) {
-          customInstructions.value = cur + "\n\n" + text;
+    function syncActivePresetUI() {
+      const cur = (customInstructions ? customInstructions.value.trim() : "");
+      let matchedKey = null;
+      if (!cur) {
+        matchedKey = "default";
+      } else {
+        for (const [key, val] of Object.entries(PRESET_TEXTS)) {
+          if (key === "default") continue;
+          if (cur === val.en || cur === val.bn) {
+            matchedKey = key;
+            break;
+          }
         }
-        updateCounter();
-        customInstructions.focus();
-        showToast(currentLanguage === "bn" ? "পরামর্শ যুক্ত করা হয়েছে" : "Suggestion added");
+      }
+      document.querySelectorAll(".preset-card").forEach(card => {
+        const p = card.getAttribute("data-preset");
+        card.classList.toggle("active", p === matchedKey);
+      });
+    }
+
+    // Attach preset click handlers
+    document.querySelectorAll(".preset-card").forEach(card => {
+      card.addEventListener("click", () => {
+        const presetKey = card.getAttribute("data-preset");
+        if (!presetKey) return;
+        const text = (currentLanguage === "bn") 
+          ? PRESET_TEXTS[presetKey].bn 
+          : PRESET_TEXTS[presetKey].en;
+        if (customInstructions) {
+          customInstructions.value = text;
+          updateCounter();
+          syncActivePresetUI();
+          customInstructions.focus();
+        }
+        showToast(currentLanguage === "bn" ? "প্রিসেট সক্রিয় করা হয়েছে" : "Preset loaded");
+      });
+      card.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          card.click();
+        }
       });
     });
 
@@ -549,40 +637,52 @@
       bn: {
         back: "সেটিংস",
         pageTitle: "ব্যক্তিগতকরণ",
-        customPromptTitle: "কাস্টম প্রম্পট",
-        customPromptSubtitle: "Alora আপনার নির্দেশমতো ঠিক যেভাবে উত্তর দেবে ও আচরণ করবে, তা এখানে নিজের মতো করে লিখে দিন। Alora আপনার দেওয়া এই প্রম্পট সর্বোচ্চ অগ্রাধিকার দিয়ে অক্ষরে অক্ষরে পালন করবে।",
-        placeholder: "যেমন: 'তুমি একজন অভিজ্ঞ ফুলস্ট্যাক সফটওয়্যার ইঞ্জিনিয়ার। অপ্রয়োজনীয় কথা ছাড়া সবসময় সম্পূর্ণ কার্যকরী কোড দেবে। জটিল বিষয় বাস্তব উদাহরণ দিয়ে সহজ ভাষায় বুঝিয়ে বলবে।'\n\nআপনি যেভাবে চান Alora ঠিক সেভাবেই চলবে।",
+        customPromptTitle: "কাস্টম এআই নির্দেশনা",
+        customPromptSubtitle: "Alora আপনার নির্দেশমতো যেভাবে আচরণ করবে তা এখানে লিখে দিন। Alora আপনার দেওয়া এই প্রম্পট সর্বোচ্চ অগ্রাধিকার দিয়ে অক্ষরে অক্ষরে পালন করবে।",
+        placeholder: "যেমন: 'তুমি একজন অভিজ্ঞ ফুলস্ট্যাক সফটওয়্যার ইঞ্জিনিয়ার। অপ্রয়োজনীয় কথা ছাড়া সম্পূর্ণ প্রোডাকশন কোড দেবে। জটিল বিষয় বাস্তব উদাহরণ দিয়ে সহজ ভাষায় বুঝিয়ে বলবে।'\n\nআপনি যেভাবে চান Alora ঠিক সেভাবেই চলবে।",
         priorityBadge: "★ সর্বোচ্চ অগ্রাধিকার পাবে",
-        chipsLabel: "দ্রুত ব্যবহারের জন্য কিছু আইডিয়া:",
-        chip1: "সফটওয়্যার আর্কিটেক্ট",
-        chip2: "সংক্ষিপ্ত ও টু-দ্য-পয়েন্ট",
-        chip3: "সহজ বাস্তব উদাহরণ",
-        chip4: "সহানুভূতিশীল মেন্টর",
-        chip5: "গভীর বিশ্লেষণ",
-        chip6: "ক্রিয়েটিভ রাইটিং",
-        btnSave: "প্রম্পট সংরক্ষণ করুন",
-        btnClear: "মুছে ফেলুন",
-        saved: "কাস্টম প্রম্পট সফলভাবে সংরক্ষিত হয়েছে!",
-        cleared: "কাস্টম প্রম্পট মুছে ফেলা হয়েছে"
+        presetsHeading: "ব্যক্তিত্ব ও ভূমিকার প্রিসেটসমূহ:",
+        pNameDefault: "ডিফল্ট Alora",
+        pDescDefault: "ভারসাম্যপূর্ণ, বন্ধুভাবাপন্ন ও বহুভাষিক বুদ্ধিমত্তা",
+        pNameCoder: "সফটওয়্যার আর্কিটেক্ট",
+        pDescCoder: "পরিচ্ছন্ন প্রোডাকশন কোড ও স্থাপত্য বিশ্লেষণ",
+        pNameConcise: "সংক্ষিপ্ত ও সরাসরি",
+        pDescConcise: "ভূমিকা ছাড়া সংক্ষেপে টু-দ্য-পয়েন্টে উত্তর",
+        pNameMentor: "সহানুভূতিশীল মেন্টর",
+        pDescMentor: "ধৈর্যশীল শিক্ষক ও বাস্তব জীবনের সহজ উদাহরণ",
+        pNameResearcher: "গভীর গবেষক",
+        pDescResearcher: "গবেষণামূলক বিশ্লেষণধর্মী গভীর অন্তর্দৃষ্টি",
+        pNameCreative: "ক্রিয়েটিভ রাইটার",
+        pDescCreative: "সমৃদ্ধ সাহিত্যিক নান্দনিকতা ও আকর্ষণীয় গল্প",
+        btnSave: "নির্দেশনা সংরক্ষণ করুন",
+        btnReset: "ডিফল্টে রিসেট করুন",
+        saved: "কাস্টম নির্দেশনা সফলভাবে সংরক্ষিত হয়েছে!",
+        resetMsg: "ডিফল্ট নির্দেশনায় রিসেট করা হয়েছে"
       },
       en: {
         back: "Settings",
         pageTitle: "Personalization",
-        customPromptTitle: "Custom Prompt",
-        customPromptSubtitle: "Instruct Alora how to behave, talk, and assist you. Alora will strictly follow whatever instructions you provide here.",
-        placeholder: "e.g., 'You are a Senior Full-Stack Software Engineer. Always provide clean, production-ready code with concise explanations. Use simple real-world analogies.'\n\nAlora will adapt 100% to your needs.",
+        customPromptTitle: "Custom AI Instructions",
+        customPromptSubtitle: "Define how Alora should communicate and adapt to your preferred workflow. These instructions receive highest priority across every conversation.",
+        placeholder: "e.g. 'You are a Senior Full-Stack Engineer. Provide production-ready, clean code without conversational filler. Explain trade-offs directly.'",
         priorityBadge: "★ Highest Priority Applied",
-        chipsLabel: "Quick ideas to get started:",
-        chip1: "Software Architect",
-        chip2: "Concise & Direct",
-        chip3: "Simple Examples",
-        chip4: "Empathetic Mentor",
-        chip5: "Deep Analysis",
-        chip6: "Creative Writing",
-        btnSave: "Save Custom Prompt",
-        btnClear: "Clear",
-        saved: "Custom prompt saved successfully!",
-        cleared: "Custom prompt cleared"
+        presetsHeading: "Personality & Role Presets:",
+        pNameDefault: "Default Alora",
+        pDescDefault: "Balanced, friendly, highly versatile intelligence",
+        pNameCoder: "Software Architect",
+        pDescCoder: "Clean, production-grade code with architectural insights",
+        pNameConcise: "Concise & Direct",
+        pDescConcise: "Brief, to-the-point answers using clean bullet points",
+        pNameMentor: "Empathetic Mentor",
+        pDescMentor: "Patient, supportive teacher with intuitive analogies",
+        pNameResearcher: "Deep Researcher",
+        pDescResearcher: "Rigorous analytical depth, structured citations & logic",
+        pNameCreative: "Creative Writer",
+        pDescCreative: "Expressive literary style, captivating narrative flow",
+        btnSave: "Save Instructions",
+        btnReset: "Reset to Default",
+        saved: "Custom instructions saved successfully!",
+        resetMsg: "Reset to default instructions"
       }
     };
 
@@ -592,44 +692,76 @@
       el.textContent = msg;
       el.className = "toast success";
       el.style.display = "block";
-      setTimeout(() => { el.style.display = "none"; }, 2500);
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => { el.style.display = "none"; }, 2500);
     }
 
     function applyI18n() {
       const isEn = (currentLanguage === "en");
       const d = I18N[currentLanguage] || I18N.en;
 
-      document.getElementById("langBtnText").textContent = isEn ? "বাং" : "EN";
-      document.getElementById("backText").textContent = d.back;
-      document.getElementById("pageTitle").textContent = d.pageTitle;
-      document.getElementById("customPromptTitle").textContent = d.customPromptTitle;
-      document.getElementById("customPromptSubtitle").textContent = d.customPromptSubtitle;
-      document.getElementById("customInstructions").placeholder = d.placeholder;
-      document.getElementById("priorityBadge").textContent = d.priorityBadge;
-      document.getElementById("chipsLabel").textContent = d.chipsLabel;
-      for (let i = 1; i <= 6; i++) {
-        const ct = document.getElementById(`chipTxt${i}`);
-        if (ct && d[`chip${i}`]) ct.textContent = d[`chip${i}`];
-      }
-      document.getElementById("btnSaveText").textContent = d.btnSave;
-      document.getElementById("btnClearText").textContent = d.btnClear;
+      const langBtn = document.getElementById("langBtnText");
+      if (langBtn) langBtn.textContent = isEn ? "বাং" : "EN";
+
+      const backText = document.getElementById("backText");
+      if (backText) backText.textContent = d.back;
+
+      const pageTitle = document.getElementById("pageTitle");
+      if (pageTitle) pageTitle.textContent = d.pageTitle;
+
+      const promptTitle = document.getElementById("customPromptTitle");
+      if (promptTitle) promptTitle.textContent = d.customPromptTitle;
+
+      const promptSubtitle = document.getElementById("customPromptSubtitle");
+      if (promptSubtitle) promptSubtitle.textContent = d.customPromptSubtitle;
+
+      if (customInstructions) customInstructions.placeholder = d.placeholder;
+
+      const priorityBadge = document.getElementById("priorityBadge");
+      if (priorityBadge) priorityBadge.textContent = d.priorityBadge;
+
+      const presetsHeading = document.getElementById("presetsHeadingText");
+      if (presetsHeading) presetsHeading.textContent = d.presetsHeading;
+
+      const keys = ["Default", "Coder", "Concise", "Mentor", "Researcher", "Creative"];
+      keys.forEach(k => {
+        const nameEl = document.getElementById(`pName${k}`);
+        const descEl = document.getElementById(`pDesc${k}`);
+        if (nameEl && d[`pName${k}`]) nameEl.textContent = d[`pName${k}`];
+        if (descEl && d[`pDesc${k}`]) descEl.textContent = d[`pDesc${k}`];
+      });
+
+      const btnSaveText = document.getElementById("btnSaveText");
+      if (btnSaveText) btnSaveText.textContent = d.btnSave;
+
+      const btnResetText = document.getElementById("btnResetText");
+      if (btnResetText) btnResetText.textContent = d.btnReset;
+
       document.title = `${d.pageTitle} — Alora`;
       updateCounter();
+      syncActivePresetUI();
     }
 
+    // Save action
     document.getElementById("savePersonalizationBtn")?.addEventListener("click", () => {
       const val = customInstructions ? customInstructions.value.trim() : "";
-      localStorage.setItem("alokpoth_custom_instructions", val);
+      try {
+        localStorage.setItem("alokpoth_custom_instructions", val);
+      } catch(e) {}
       const d = I18N[currentLanguage] || I18N.en;
       showToast(d.saved);
     });
 
-    document.getElementById("clearPromptBtn")?.addEventListener("click", () => {
+    // Reset to default action
+    document.getElementById("resetDefaultBtn")?.addEventListener("click", () => {
       if (customInstructions) customInstructions.value = "";
-      localStorage.removeItem("alokpoth_custom_instructions");
+      try {
+        localStorage.removeItem("alokpoth_custom_instructions");
+      } catch(e) {}
       updateCounter();
+      syncActivePresetUI();
       const d = I18N[currentLanguage] || I18N.en;
-      showToast(d.cleared);
+      showToast(d.resetMsg);
     });
 
     // Back button navigation
@@ -643,11 +775,12 @@
     // Toggle Language
     document.getElementById("langToggleBtn")?.addEventListener("click", () => {
       currentLanguage = (currentLanguage === "en" ? "bn" : "en");
-      try { localStorage.setItem("alokpoth_lang", currentLanguage); } catch {}
+      try { localStorage.setItem("alokpoth_lang", currentLanguage); } catch(e) {}
       applyI18n();
     });
 
     applyI18n();
+    syncActivePresetUI();
   </script>
 </body>
 </html>
