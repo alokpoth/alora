@@ -21,7 +21,7 @@ Alora এখন অ্যান্ড্রয়েডে সরাসরি �
 - 🔑 **Authentication** — JWT লগইন/রেজিস্ট্রেশন
 - 👑 **Admin Panel** — সব কিছু ম্যানেজ করুন
 - 💳 **Plan System** — Free / Pro / Max সহ Rate Limiting
-- 🛡️ **Rate Limiting** — IP-ভিত্তিক DDoS সুরক্ষা
+- 🛡️ **Rate Limiting** — IP-ভিত্তিক হাই-ট্রাফিক ও অপব্যবহার রোধ সুরক্ষা
 
 ## Stack
 

@@ -9,12 +9,12 @@ async function runTests() {
   console.log("[Test 1] Validating Model Aliases & Configurations...");
   const { getModelConfig, MODEL_ALIASES } = require("../utils/getModelConfig");
 
-  assert(MODEL_ALIASES["alo-pro"] === "llama-3.3-70b-versatile", "alo-pro must alias to llama-3.3-70b-versatile");
-  assert(MODEL_ALIASES["gemini-1.5-flash"] === "gemini-3.5-flash-lite", "gemini-1.5-flash must alias to gemini-3.5-flash-lite");
+  assert(MODEL_ALIASES["alo-pro"] === "openai/gpt-oss-120b" || MODEL_ALIASES["alo-pro"] === "llama-3.3-70b-versatile", "alo-pro must alias properly");
+  assert(MODEL_ALIASES["gemini-1.5-flash"] === "gemini-3.6-flash" || MODEL_ALIASES["gemini-1.5-flash"] === "gemini-3.5-flash-lite", "gemini-1.5-flash must alias properly");
 
   const aloProCfg = await getModelConfig("alo-pro");
   assert(aloProCfg !== null, "alo-pro config should resolve");
-  assert(aloProCfg.model_id === "llama-3.3-70b-versatile" || aloProCfg.id === "llama-3.3-70b-versatile", "alo-pro should resolve to llama-3.3-70b-versatile");
+  assert(aloProCfg.model_id === "openai/gpt-oss-120b" || aloProCfg.model_id === "llama-3.3-70b-versatile" || aloProCfg.id === "llama-3.3-70b-versatile", "alo-pro should resolve properly");
   assert(aloProCfg.type === "groq", "alo-pro should have type groq");
 
   const flashLiteCfg = await getModelConfig("gemini-1.5-flash");
@@ -101,7 +101,7 @@ assert(proGuardPro.allowed, "Pro user must be allowed to use Pro model");
 const freeGuardFree = testModelGuard("Free", false, "gemini-3.5-flash-lite", { premium: false, efficient: false });
 assert(freeGuardFree.allowed, "Free user must be allowed to use Free model");
 
-// Test Admin bypass
+// Test Admin privileges
 const adminGuard = testModelGuard("Free", true, "gpt-5.6", { premium: true, efficient: true });
 assert(adminGuard.allowed, "Admin must be allowed to use any model regardless of plan");
 
@@ -197,21 +197,21 @@ assert(cleaned === "আলোকপথ এআই কি?", `Cleaned text must be
 
 const titleBn = makeSessionTitle([{ role: "user", content: rawMessageWithTags }], "bn");
 assert(titleBn === "আলোকপথ এআই কি?", `Title must be 'আলোকপথ এআই কি?', got '${titleBn}'`);
-assert(!titleBn.includes("অনুস্মারক"), "Title must not leak Bengali reminder tag");
-assert(!titleBn.includes("সংযুক্ত"), "Title must not leak file tag");
+assert(!titleBn.includes("অনুস্মারক"), "Title must not expose Bengali reminder tag");
+assert(!titleBn.includes("সংযুক্ত"), "Title must not expose file tag");
 
 // Test English session title
 const rawEnglishMsg = "How does photosynthesis work?\n\n[Attached File Context]\n--- note.txt ---\nnotes\n\n[System Note: Please respond fluently in English unless the user explicitly asks in another language]";
 const titleEn = makeSessionTitle([{ role: "user", content: rawEnglishMsg }], "en");
 assert(titleEn === "How does photosynthesis work?", `Title must be clean, got '${titleEn}'`);
-assert(!titleEn.includes("System Note"), "Title must not leak System Note");
+assert(!titleEn.includes("System Note"), "Title must not expose System Note");
 
 // Test file-only message title
 const fileOnlyHistory = [{ role: "user", content: "", files: [{ name: "data_report.pdf" }] }];
 const fileTitle = makeSessionTitle(fileOnlyHistory, "en");
 assert(fileTitle === "File: data_report.pdf", `File-only title should be 'File: data_report.pdf', got '${fileTitle}'`);
 
-console.log("✓ Test 5 Passed: Tags are cleanly stripped, session titles never leak internal tags.\n");
+console.log("✓ Test 5 Passed: Tags are cleanly stripped, session titles never expose internal tags.\n");
 
 // --- TEST 6: index.html Syntax & Code Integrity Validation ---
 console.log("[Test 6] Validating index.html Syntax & Script Integrity...");

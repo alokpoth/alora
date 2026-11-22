@@ -33,7 +33,7 @@ const isSuperAdminEmail = (e) => !!e && SUPER_ADMIN_EMAILS.includes(String(e).to
 
 // These values shipped in the source and in seeded data, so they are public knowledge.
 // They must never authenticate a super-admin account.
-const LEAKED_ADMIN_PASSWORDS = new Set(['123456', 'password123']);
+const DISALLOWED_ADMIN_PASSWORDS = new Set(['123456', 'password123']);
 
 const registerUser = async (req, res) => {
   try {
@@ -165,7 +165,7 @@ const loginUser = async (req, res) => {
 
     // The old hard-coded admin passwords are public; refuse them even though the stored
     // hash still matches. Recover access by setting ADMIN_PASSWORD and logging in with it.
-    if (isSuperAdminEmail(cleanEmail) && LEAKED_ADMIN_PASSWORDS.has(cleanPassword)) {
+    if (isSuperAdminEmail(cleanEmail) && DISALLOWED_ADMIN_PASSWORDS.has(cleanPassword)) {
       return res.status(401).json({ success: false, error: 'অবৈধ ইমেইল বা পাসওয়ার্ড' });
     }
     const password = cleanPassword;

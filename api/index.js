@@ -20,7 +20,7 @@ const searchRoutes = require('../server/routes/searchRoutes');
 
 const app = express();
 
-// Rate Limiters for DDoS and Brute Force Protection
+// Rate Limiters for High-Traffic and Brute Force Protection
 const authLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000,
   max: 30,

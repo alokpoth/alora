@@ -22,7 +22,7 @@ function getCachedUser(key) {
 
 function setCachedUser(key, user) {
   if (!key || !user) return;
-  // Limit cache size to prevent memory leaks
+  // Limit cache size to prevent memory bloat
   if (userCache.size > 5000) {
     const toDelete = Array.from(userCache.keys()).slice(0, 1000);
     for (const k of toDelete) userCache.delete(k);

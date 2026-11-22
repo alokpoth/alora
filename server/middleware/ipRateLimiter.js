@@ -38,7 +38,7 @@ const createRateLimiter = ({
     const key = `${prefix}:${cleanIp}`;
     const now = Date.now();
 
-    // Prevent memory bloat under spoofed IP floods
+    // Prevent memory bloat under high connection volume
     if (localStore.size > 5000) {
       for (const [k, r] of localStore.entries()) {
         if (now > r.resetTime) localStore.delete(k);

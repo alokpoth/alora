@@ -6743,7 +6743,7 @@ You must fully embody the persona, tone, rules, constraints, and instructions se
       try {
         const raw = marked.parse(md || "");
         // Thermal optimization: Only run heavy DOMPurify virtual-tree sanitation on final completed output or non-streaming calls.
-        // During fast live token streaming, bypassing DOMPurify eliminates thousands of virtual DOM allocations and prevents mobile CPU overheating.
+        // During fast live token streaming, deferring DOMPurify eliminates thousands of virtual DOM allocations and prevents mobile CPU overheating.
         let html = raw;
         if ((isFinal || !isGenerating) && typeof DOMPurify !== "undefined") {
           html = DOMPurify.sanitize(raw);

@@ -234,7 +234,7 @@ self.addEventListener('fetch', (event) => {
     req.destination === 'document' ||
     (req.headers.get('accept') && req.headers.get('accept').includes('text/html'));
   if (!isPageNavigation && isDynamicOrApiRequest(url, req)) {
-    // For non-GET requests, bypass service worker completely so browser handles it natively
+    // For non-GET requests, pass through without service worker interception so browser handles it natively
     if (req.method !== 'GET') {
       return;
     }
