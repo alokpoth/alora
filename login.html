@@ -29,7 +29,9 @@
       --social-btn-bg: transparent;
       --social-btn-hover: #2f2f2f;
       --danger: #ef4444;
-      --radius: 8px;
+      --radius: 28px;
+      --radius-input: 26px;
+      --radius-pill: 9999px;
     }
 
     [data-theme="light"] {
@@ -116,17 +118,18 @@
     .input-field {
       width: 100%;
       height: 52px;
-      padding: 0 16px;
+      padding: 0 20px;
       background: var(--input-bg);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
+      border-radius: var(--radius-input);
       color: var(--text-primary);
       font-size: 1rem;
       outline: none;
-      transition: border-color 0.15s ease;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
     .input-field:focus {
       border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(16, 163, 127, 0.2);
     }
     .input-field::placeholder {
       color: var(--text-muted);
@@ -134,7 +137,7 @@
 
     .password-toggle-btn {
       position: absolute;
-      right: 14px;
+      right: 18px;
       top: 50%;
       transform: translateY(-50%);
       background: none;
@@ -150,8 +153,8 @@
     }
 
     .error-alert {
-      padding: 10px 14px;
-      border-radius: var(--radius);
+      padding: 12px 18px;
+      border-radius: 18px;
       background: rgba(239, 68, 68, 0.12);
       border: 1px solid rgba(239, 68, 68, 0.3);
       color: var(--danger);
@@ -166,22 +169,24 @@
       background: var(--btn-primary);
       color: var(--btn-text);
       border: none;
-      border-radius: var(--radius);
+      border-radius: var(--radius-pill);
       font-size: 1rem;
       font-weight: 600;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: background-color 0.15s ease, opacity 0.15s ease;
+      transition: background-color 0.15s ease, opacity 0.15s ease, transform 0.1s ease;
       margin-top: 4px;
     }
     .continue-btn:hover {
       background: var(--btn-primary-hover);
+      transform: scale(1.01);
     }
     .continue-btn:disabled {
       opacity: 0.6;
       cursor: not-allowed;
+      transform: none;
     }
 
     .auth-toggle-row {
@@ -229,7 +234,7 @@
       height: 52px;
       background: var(--social-btn-bg);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
+      border-radius: var(--radius-pill);
       color: var(--text-primary);
       font-size: 0.95rem;
       font-weight: 500;
@@ -238,12 +243,13 @@
       justify-content: center;
       gap: 12px;
       cursor: pointer;
-      transition: background-color 0.15s ease;
+      transition: background-color 0.15s ease, transform 0.1s ease;
       text-decoration: none;
       margin-bottom: 10px;
     }
     .social-btn:hover {
       background: var(--social-btn-hover);
+      transform: scale(1.01);
     }
 
     .auth-footer {

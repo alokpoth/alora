@@ -48,10 +48,11 @@
       --sidebar-width: 260px;
       --header-height: 52px;
       --composer-width: 768px;
-      --radius-sm: 8px;
-      --radius-md: 12px;
-      --radius-lg: 18px;
-      --radius-pill: 26px;
+      --radius-sm: 14px;
+      --radius-md: 18px;
+      --radius-lg: 28px;
+      --radius-xl: 34px;
+      --radius-pill: 32px;
       --radius-full: 9999px;
       --transition-fast: 0.15s ease;
     }
@@ -659,8 +660,8 @@
       max-width: 70%;
       background: var(--user-bubble-bg);
       color: var(--user-bubble-text);
-      padding: 10px 18px;
-      border-radius: 22px;
+      padding: 12px 20px;
+      border-radius: 26px;
       font-size: 0.98rem;
       line-height: 1.55;
       word-break: break-word;
@@ -1225,8 +1226,8 @@
     }
     .auth-input {
       width: 100%;
-      padding: 11px 14px;
-      border-radius: var(--radius-sm);
+      padding: 12px 18px;
+      border-radius: var(--radius-pill);
       background: var(--composer-bg);
       border: 1px solid var(--border);
       color: var(--text-main);
@@ -1234,19 +1235,21 @@
     }
     .auth-input:focus {
       border-color: var(--brand-accent);
+      box-shadow: 0 0 0 3px rgba(16, 163, 127, 0.2);
     }
     .auth-submit-btn {
       width: 100%;
-      padding: 11px;
-      border-radius: var(--radius-sm);
+      padding: 12px;
+      border-radius: var(--radius-full);
       background: var(--brand-accent);
       color: #ffffff;
       font-weight: 600;
       font-size: 0.94rem;
-      transition: opacity var(--transition-fast);
+      transition: opacity var(--transition-fast), transform 0.1s ease;
     }
     .auth-submit-btn:hover {
       opacity: 0.9;
+      transform: scale(1.01);
     }
 
     /* Upgrade Plan Dialog (ChatGPT 1:1) */
@@ -1277,7 +1280,7 @@
     }
     .upgrade-plan-card {
       border: 1px solid var(--border);
-      border-radius: var(--radius-md);
+      border-radius: 24px;
       padding: 22px 20px;
       background: var(--composer-bg);
       display: flex;
@@ -1342,8 +1345,8 @@
     }
     .redeem-code-input {
       flex: 1;
-      padding: 10px 12px;
-      border-radius: var(--radius-sm);
+      padding: 10px 16px;
+      border-radius: var(--radius-pill);
       background: var(--canvas-bg);
       border: 1px solid var(--border);
       color: var(--text-main);
@@ -1353,10 +1356,11 @@
     }
     .redeem-code-input:focus {
       border-color: var(--brand-accent);
+      box-shadow: 0 0 0 2px rgba(16, 163, 127, 0.2);
     }
     .redeem-claim-btn {
-      padding: 10px 16px;
-      border-radius: var(--radius-sm);
+      padding: 10px 20px;
+      border-radius: var(--radius-full);
       background: var(--brand-accent);
       color: #ffffff;
       font-weight: 600;
@@ -1364,10 +1368,11 @@
       white-space: nowrap;
       cursor: pointer;
       border: none;
-      transition: opacity var(--transition-fast);
+      transition: opacity var(--transition-fast), transform 0.1s ease;
     }
     .redeem-claim-btn:hover {
       opacity: 0.9;
+      transform: scale(1.02);
     }
 
     /* Toast Pill */
