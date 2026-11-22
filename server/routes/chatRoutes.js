@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const { streamChatCompletions, generateImage } = require('../controllers/chatController');
-const { protect } = require('../middleware/authMiddleware');
+const { protect, optionalProtect } = require('../middleware/authMiddleware');
 const { checkRateLimit } = require('../middleware/rateLimitMiddleware');
 
-// Streaming completions and image generation strictly require authentication
+// Streaming completions supports authenticated users and up to 2 guest messages. Image generation requires authentication.
 // Note: Per user privacy requirements, chat sessions are stored 100% locally on the device (localStorage) and never on the database.
-router.post('/completions', protect, checkRateLimit, streamChatCompletions);
-router.post('/', protect, checkRateLimit, streamChatCompletions);
+router.post('/completions', optionalProtect, checkRateLimit, streamChatCompletions);
+router.post('/', optionalProtect, checkRateLimit, streamChatCompletions);
 router.post('/image', protect, checkRateLimit, generateImage);
 
 

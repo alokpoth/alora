@@ -8,6 +8,8 @@ const { memoryStore, debouncedSave } = require('../config/memoryStore');
 const { getModelConfig, getUserUsageDetails, getUserImageUsageDetails } = require('../../utils/getModelConfig');
 const { getCachedPlan, setCachedPlan, getCachedModel, setCachedModel, invalidateCachedUser } = require('../config/dbCache');
 
+const guestMessageTracker = new Map();
+
 const checkRateLimit = async (req, res, next) => {
   try {
     const user = req.user;
@@ -37,14 +39,32 @@ const checkRateLimit = async (req, res, next) => {
     const cleanIp = String(resolvedIp || '127.0.0.1').replace(/^::ffff:/, '').replace(/[^a-zA-Z0-9]/g, '_');
     const guestId = `guest_${cleanIp}`;
 
-    // 0. Guest User (Not logged in) — Strict Login Required
+    // 0. Guest User (Not logged in) — Allow up to 2 trial messages per IP
     if (!user) {
-      return res.status(401).json({
-        success: false,
-        error: isImageRoute 
-          ? 'ছবি তৈরি করতে অনুগ্রহ করে প্রথমে লগইন বা সাইন-আপ করুন।' 
-          : 'চ্যাট করতে অনুগ্রহ করে প্রথমে লগইন বা সাইন-আপ করুন।'
-      });
+      if (isImageRoute) {
+        return res.status(401).json({
+          success: false,
+          error: 'ছবি তৈরি করতে অনুগ্রহ করে প্রথমে লগইন বা সাইন-আপ করুন।'
+        });
+      }
+      const now = Date.now();
+      const guestData = guestMessageTracker.get(cleanIp) || { count: 0, resetAt: now + 24 * 60 * 60 * 1000 };
+      if (now > guestData.resetAt) {
+        guestData.count = 0;
+        guestData.resetAt = now + 24 * 60 * 60 * 1000;
+      }
+      if (guestData.count >= 2) {
+        return res.status(401).json({
+          success: false,
+          code: 'GUEST_LIMIT_REACHED',
+          error: 'আপনার ২টি ফ্রি বার্তা শেষ হয়েছে। চ্যাট চালিয়ে যেতে অনুগ্রহ করে লগইন বা সাইন-আপ করুন।'
+        });
+      }
+      guestData.count += 1;
+      guestMessageTracker.set(cleanIp, guestData);
+      req.guestId = guestId;
+      req.currentPlan = { name: 'Free', displayName: 'গেস্ট ট্রায়াল', message_limit: 2, image_limit: 0, window_hours: 24, allowed_models: ['*'] };
+      return next();
     }
 
     // 1. Check & Auto-Downgrade Expired Subscriptions
