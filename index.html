@@ -1502,7 +1502,7 @@
           </svg>
           <span>Upgrade plan</span>
         </button>
-        <a href="download" class="user-popover-item">
+        <a href="/download" class="user-popover-item">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
           </svg>
@@ -1543,7 +1543,7 @@
 
         <div class="header-right">
           <!-- Fast APK Download Button -->
-          <a href="download" class="header-pill-btn login" style="font-size:0.8rem; text-decoration:none;">
+          <a href="/download" class="header-pill-btn login" style="font-size:0.8rem; text-decoration:none;">
             <span>📱 APK</span>
           </a>
 
@@ -1595,7 +1595,7 @@
           
           <!-- ChatGPT Authentic Welcome / Empty State -->
           <div class="chatgpt-welcome-screen" id="welcomeScreen">
-            <img src="alokpath_icon_dark.png" alt="ChatGPT" class="chatgpt-brand-emblem" id="brandEmblemImg">
+            <img src="/alokpath_icon_dark.png" alt="ChatGPT" class="chatgpt-brand-emblem" id="brandEmblemImg">
             <h1 class="chatgpt-welcome-title" id="welcomeHeadline">What can I help with?</h1>
 
             <div class="prompt-suggestions-row">
@@ -2013,7 +2013,7 @@
       document.documentElement.setAttribute("data-theme", theme);
       localStorage.setItem(KEYS.THEME, theme);
       const isLight = theme === "light" || theme === "eyecare";
-      const iconPath = isLight ? "alokpath_icon_light.png" : "alokpath_icon_dark.png";
+      const iconPath = isLight ? "/alokpath_icon_light.png" : "/alokpath_icon_dark.png";
       const emblem = document.getElementById("brandEmblemImg");
       if (emblem) emblem.src = iconPath;
 
