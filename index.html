@@ -1678,26 +1678,104 @@
 
         <!-- Model Selection Dropdown -->
         <div class="model-dropdown-menu" id="modelDropdownMenu">
-          <div class="model-option-item selected" data-model="openrouter/free" data-label="Alora">
+          <div class="model-option-item selected" data-model="openrouter/free" data-label="Alo Go">
             <div style="flex:1;">
               <div style="display:flex; align-items:center; gap:8px;">
-                <span class="model-opt-title">Alora</span>
+                <span class="model-opt-title">Alo Go</span>
                 <span class="model-opt-badge" style="background:rgba(255,255,255,0.1); color:var(--text-main); font-size:0.7rem; padding:2px 8px; border-radius:9999px;">Free</span>
               </div>
-              <div class="model-opt-desc">Great for everyday tasks and fast answers</div>
+              <div class="model-opt-desc">Fast, responsive everyday model for tasks and general queries</div>
             </div>
             <div class="model-opt-check">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
             </div>
           </div>
 
-          <div class="model-option-item" data-model="openai/gpt-oss-120b" data-label="Alora Pro">
+          <div class="model-option-item" data-model="gemini-3.5-flash-lite" data-label="Alo Flash">
             <div style="flex:1;">
               <div style="display:flex; align-items:center; gap:8px;">
-                <span class="model-opt-title">Alora Pro</span>
+                <span class="model-opt-title">Alo Flash</span>
+                <span class="model-opt-badge" style="background:rgba(255,255,255,0.1); color:var(--text-main); font-size:0.7rem; padding:2px 8px; border-radius:9999px;">Free</span>
+              </div>
+              <div class="model-opt-desc">Lightning-fast reasoning & multimodal intelligence</div>
+            </div>
+            <div class="model-opt-check" style="display:none;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+          </div>
+
+          <div class="model-option-item" data-model="hy3" data-label="Alo HY3">
+            <div style="flex:1;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="model-opt-title">Alo HY3</span>
+                <span class="model-opt-badge" style="background:rgba(255,255,255,0.1); color:var(--text-main); font-size:0.7rem; padding:2px 8px; border-radius:9999px;">Free</span>
+              </div>
+              <div class="model-opt-desc">Balanced performance for conversation and study</div>
+            </div>
+            <div class="model-opt-check" style="display:none;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+          </div>
+
+          <div class="model-option-item" data-model="mimo-v2.5" data-label="Alo Mimo">
+            <div style="flex:1;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="model-opt-title">Alo Mimo</span>
+                <span class="model-opt-badge" style="background:rgba(255,255,255,0.1); color:var(--text-main); font-size:0.7rem; padding:2px 8px; border-radius:9999px;">Free</span>
+              </div>
+              <div class="model-opt-desc">Creative ideas, writing, and engaging explanations</div>
+            </div>
+            <div class="model-opt-check" style="display:none;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+          </div>
+
+          <div class="model-option-item" data-model="openai/gpt-oss-120b" data-label="Alo Pro">
+            <div style="flex:1;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="model-opt-title">Alo Pro</span>
                 <span class="model-opt-badge" style="background:#333333; color:#ffffff; font-size:0.7rem; padding:2px 8px; border-radius:9999px;">Pro</span>
               </div>
-              <div class="model-opt-desc">Our smartest model & deeper reasoning</div>
+              <div class="model-opt-desc">Deep reasoning, coding mastery, and analytical precision</div>
+            </div>
+            <div class="model-opt-check" style="display:none;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+          </div>
+
+          <div class="model-option-item" data-model="nemotron-ultra-550b" data-label="Alo Ultra">
+            <div style="flex:1;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="model-opt-title">Alo Ultra</span>
+                <span class="model-opt-badge" style="background:#333333; color:#ffffff; font-size:0.7rem; padding:2px 8px; border-radius:9999px;">Pro</span>
+              </div>
+              <div class="model-opt-desc">Ultra-scale 550B reasoning and heavy analytical workflows</div>
+            </div>
+            <div class="model-opt-check" style="display:none;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+          </div>
+
+          <div class="model-option-item" data-model="claude-sonnet-4-6" data-label="Alo Elite">
+            <div style="flex:1;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="model-opt-title">Alo Elite</span>
+                <span class="model-opt-badge" style="background:#333333; color:#ffffff; font-size:0.7rem; padding:2px 8px; border-radius:9999px;">Pro</span>
+              </div>
+              <div class="model-opt-desc">Elite architectural software engineering & nuanced writing</div>
+            </div>
+            <div class="model-opt-check" style="display:none;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+          </div>
+
+          <div class="model-option-item" data-model="gpt-5.6" data-label="Alo Max">
+            <div style="flex:1;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="model-opt-title">Alo Max</span>
+                <span class="model-opt-badge" style="background:#404040; color:#ffffff; font-size:0.7rem; padding:2px 8px; border-radius:9999px;">Pro Max</span>
+              </div>
+              <div class="model-opt-desc">Frontier agentic power & maximum multi-step thinking</div>
             </div>
             <div class="model-opt-check" style="display:none;">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
@@ -1738,9 +1816,9 @@
             <div class="composer-center-slot" id="composerSlotCenter"></div>
 
             <div class="prompt-suggestions-row" id="promptSuggestionsRow">
-              <button type="button" class="prompt-chip-btn" data-text="Create an illustration of a futuristic city with flying cars at sunset">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                <span>Create image</span>
+              <button type="button" class="prompt-chip-btn" data-text="Analyze the current trends and key breakthroughs in artificial intelligence">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                <span>Analyze trends</span>
               </button>
               <button type="button" class="prompt-chip-btn" data-text="Write a clean Python script to automate file organization">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
@@ -1771,11 +1849,6 @@
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
                 <span>Web Search</span>
                 <span class="mode-chip-close" id="closeWebSearchChip">&times;</span>
-              </div>
-              <div class="mode-chip" id="imageGenChip" style="display:none;">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                <span>Image Gen</span>
-                <span class="mode-chip-close" id="closeImageGenChip">&times;</span>
               </div>
             </div>
 
@@ -1824,12 +1897,6 @@
                 </svg>
                 <span>Search the web</span>
               </button>
-              <button type="button" class="attach-item-btn" id="attachImageGenOpt">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72Z"/>
-                </svg>
-                <span>Create image</span>
-              </button>
             </div>
 
             <!-- Hidden File Inputs -->
@@ -1861,6 +1928,8 @@
         <div class="settings-tabs-sidebar">
           <button type="button" class="settings-tab-btn active" data-tab="general">General</button>
           <button type="button" class="settings-tab-btn" data-tab="account">Account & Plan</button>
+          <button type="button" class="settings-tab-btn" data-tab="custom">Personalization</button>
+          <button type="button" class="settings-tab-btn" data-tab="security">Security & Truth</button>
           <button type="button" class="settings-tab-btn" data-tab="speech">Speech</button>
           <button type="button" class="settings-tab-btn" data-tab="data">Data Controls</button>
         </div>
@@ -1918,6 +1987,60 @@
             </div>
             <button type="button" class="header-pill-btn login" id="settingsAuthActionBtn">Log In</button>
           </div>
+
+          <div class="setting-row" style="flex-direction:column; align-items:flex-start; gap:10px;">
+            <div>
+              <div class="setting-label-title">Redeem Voucher / Gift Code</div>
+              <div class="setting-label-sub">Instantly activate Alora Pro with your access code</div>
+            </div>
+            <div style="display:flex; gap:8px; width:100%; max-width:440px;">
+              <input type="text" id="settingsRedeemCodeInput" placeholder="Enter voucher code (e.g. ALO-XXXX-XXXX)" style="flex:1; background:var(--composer-bg); border:1px solid var(--border-subtle); color:var(--text-main); border-radius:9999px; padding:8px 14px; font-size:0.85rem; outline:none;">
+              <button type="button" class="header-pill-btn signup" id="settingsRedeemCodeBtn" style="white-space:nowrap;">Redeem</button>
+            </div>
+            <div id="settingsRedeemFeedback" style="font-size:0.8rem; display:none;"></div>
+          </div>
+        </div>
+
+        <!-- Personalization Tab -->
+        <div class="settings-tab-content" id="tabCustomContent" style="display:none;">
+          <div class="setting-row" style="flex-direction:column; align-items:flex-start; gap:8px;">
+            <div>
+              <div class="setting-label-title">Custom Instructions</div>
+              <div class="setting-label-sub">What would you like Alora to know about you to provide better responses?</div>
+            </div>
+            <textarea id="customAboutUser" rows="3" style="width:100%; background:var(--composer-bg); border:1px solid var(--border-subtle); color:var(--text-main); border-radius:10px; padding:10px; font-size:0.85rem; resize:vertical; outline:none;" placeholder="e.g. I am a software engineer studying AI and web development."></textarea>
+          </div>
+
+          <div class="setting-row" style="flex-direction:column; align-items:flex-start; gap:8px;">
+            <div>
+              <div class="setting-label-title">Response Preferences</div>
+              <div class="setting-label-sub">How would you like Alora to respond? (tone, brevity, format)</div>
+            </div>
+            <textarea id="customResponsePref" rows="3" style="width:100%; background:var(--composer-bg); border:1px solid var(--border-subtle); color:var(--text-main); border-radius:10px; padding:10px; font-size:0.85rem; resize:vertical; outline:none;" placeholder="e.g. Be concise, write production-ready code with no placeholders, explain first principles."></textarea>
+          </div>
+
+          <div style="display:flex; justify-content:flex-end; margin-top:10px;">
+            <button type="button" class="header-pill-btn signup" id="saveCustomInstructionsBtn">Save Instructions</button>
+          </div>
+        </div>
+
+        <!-- Security & Truth Tab -->
+        <div class="settings-tab-content" id="tabSecurityContent" style="display:none;">
+          <div class="setting-row">
+            <div>
+              <div class="setting-label-title">Strict Factual Grounding</div>
+              <div class="setting-label-sub">Anti-hallucination directive: if AI lacks verified facts, it states so honestly rather than guessing</div>
+            </div>
+            <span style="font-size:0.82rem; color:var(--text-main); background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:9999px;">Enforced</span>
+          </div>
+
+          <div class="setting-row">
+            <div>
+              <div class="setting-label-title">Message Concurrency Guard</div>
+              <div class="setting-label-sub">Strict synchronous locks prevent multi-send race conditions and duplicate prompts</div>
+            </div>
+            <span style="font-size:0.82rem; color:var(--text-main); background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:9999px;">Active</span>
+          </div>
         </div>
 
         <!-- Speech Tab -->
@@ -1925,7 +2048,7 @@
           <div class="setting-row">
             <div>
               <div class="setting-label-title">Read Aloud Voice</div>
-              <div class="setting-label-sub">Bilingual voice for Bengali and English</div>
+              <div class="setting-label-sub">Bilingual voice engine for Bengali and English</div>
             </div>
             <span style="font-size:0.85rem; color:var(--brand-accent);">Active</span>
           </div>
@@ -1939,6 +2062,14 @@
               <div class="setting-label-sub">Delete all saved conversations from this browser</div>
             </div>
             <button type="button" class="theme-opt-chip" id="clearAllHistoryBtn" style="color:var(--danger); border-color:rgba(239,68,68,0.3);">Clear All</button>
+          </div>
+
+          <div class="setting-row">
+            <div>
+              <div class="setting-label-title">Export Chat Data</div>
+              <div class="setting-label-sub">Export your conversation history as a JSON file</div>
+            </div>
+            <button type="button" class="theme-opt-chip" id="exportAllDataBtn">Export JSON</button>
           </div>
         </div>
 
@@ -1968,7 +2099,9 @@
       THEME: "alokpoth_theme",
       LANG: "alokpoth_lang",
       SOUND: "alokpoth_sound_enabled",
-      SELECTED_MODEL: "alokpoth_selected_model"
+      SELECTED_MODEL: "alokpoth_selected_model",
+      CUSTOM_ABOUT: "alora_custom_about",
+      CUSTOM_PREF: "alora_custom_pref"
     };
 
     let currentLanguage = localStorage.getItem(KEYS.LANG) || "bn";
@@ -1978,10 +2111,11 @@
     let messagesHistory = [];
     let currentSessionId = null;
     let isGenerating = false;
+    let isSending = false;
+    let isUserScrolledUp = false;
     let currentAbortController = null;
 
     let isWebSearchActive = false;
-    let isImageGenActive = false;
     let pendingFiles = [];
 
     let authMode = "login"; // "login" or "signup"
@@ -2453,14 +2587,24 @@
 
     // Chat Send & Streaming Engine
     async function sendMessage() {
-      if (isGenerating) {
-        stopGeneration();
+      // 1. Strict synchronous lock against multi-message race conditions
+      if (isSending || isGenerating) {
+        if (isGenerating) stopGeneration();
         return;
       }
 
       const input = document.getElementById("messageInput");
       const text = input ? input.value.trim() : "";
       if (!text) return;
+
+      // Lock sending immediately
+      isSending = true;
+      if (input) {
+        input.value = "";
+        input.style.height = "auto";
+        input.readOnly = true;
+      }
+      updateSendButtonState();
 
       const token = getAuthToken();
 
@@ -2470,53 +2614,60 @@
         if (guestCount >= 2) {
           showToast("Guest limit reached (2/2). Redirecting to login...");
           window.location.href = "/login/?mode=signup";
+          isSending = false;
+          if (input) input.readOnly = false;
+          updateSendButtonState();
           return;
         }
       }
 
-      // Check Image Gen mode
-      if (isImageGenActive) {
-        handleImageGen(text);
-        return;
-      }
-
-      // Check Web Search
-      let webContext = "";
-      if (isWebSearchActive) {
-        webContext = await searchWeb(text);
-        isWebSearchActive = false;
-        updateChipsUI();
-      }
-
-      // Render user bubble and immediately dock composer
-      let fullPrompt = text;
-      if (webContext) fullPrompt += `\n\n[Live Search Context]:\n${webContext}`;
-      messagesHistory.push({ role: "user", content: fullPrompt });
-
-      renderUserBubble(text);
-      updateComposerPosition();
-      input.value = "";
-      input.style.height = "auto";
-      updateSendButtonState();
-      soundEngine.send();
-
-      if (!token) {
-        const c = incrementGuestCount();
-        if (c === 2) {
-          showToast("You've used your 2 free guest messages! Sign in to continue unlimited chatting.");
-        }
-      }
-
-      const { content, toolbar, row } = createAssistantRow();
-      isGenerating = true;
-      updateSendButtonState();
-
-      currentAbortController = new AbortController();
-      let streamBuffer = "";
+      let rowRef = null;
 
       try {
+        // Check Web Search
+        let webContext = "";
+        if (isWebSearchActive) {
+          webContext = await searchWeb(text);
+          isWebSearchActive = false;
+          updateChipsUI();
+        }
+
+        // Render user bubble and immediately dock composer
+        let fullPrompt = text;
+        if (webContext) fullPrompt += `\n\n[Live Search Context]:\n${webContext}`;
+        messagesHistory.push({ role: "user", content: fullPrompt });
+
+        renderUserBubble(text);
+        isUserScrolledUp = false;
+        scrollToBottom(true);
+        updateComposerPosition();
+        soundEngine.send();
+
+        if (!token) {
+          const c = incrementGuestCount();
+          if (c === 2) {
+            showToast("You've used your 2 free guest messages! Sign in to continue unlimited chatting.");
+          }
+        }
+
+        const { content, toolbar, row } = createAssistantRow();
+        rowRef = row;
+        isGenerating = true;
+        updateSendButtonState();
+
+        currentAbortController = new AbortController();
+        let streamBuffer = "";
+
         const headers = { "Content-Type": "application/json" };
         if (token) headers["Authorization"] = `Bearer ${token}`;
+
+        // Personalization & Custom Instructions
+        const customAbout = localStorage.getItem(KEYS.CUSTOM_ABOUT) || "";
+        const customPref = localStorage.getItem(KEYS.CUSTOM_PREF) || "";
+        let customInstructions = "";
+        if (customAbout || customPref) {
+          customInstructions = `About the user: ${customAbout}\nResponse preferences: ${customPref}`.trim();
+        }
 
         const res = await fetch(`${API_BASE}/chat/completions`, {
           method: "POST",
@@ -2525,7 +2676,8 @@
             model: selectedModel,
             messages: messagesHistory,
             stream: true,
-            thinking: true
+            thinking: true,
+            custom_instructions: customInstructions || undefined
           }),
           signal: currentAbortController.signal
         });
@@ -2581,7 +2733,8 @@
               }
 
               content.innerHTML = formatAssistantContent(streamBuffer, true);
-              scrollToBottom();
+              // Smart scroll: respects whether user scrolled up to read
+              scrollToBottom(false);
             } catch(e) {}
           }
         }
@@ -2609,16 +2762,23 @@
         soundEngine.receive();
       } catch (err) {
         if (err.name === "AbortError") {
-          content.innerHTML += `<div style="font-size:0.8rem; color:var(--text-muted); margin-top:6px;">Stopped</div>`;
+          const contentEl = rowRef?.querySelector(".bubble-content");
+          if (contentEl) contentEl.innerHTML += `<div style="font-size:0.8rem; color:var(--text-muted); margin-top:6px;">Stopped</div>`;
         } else {
-          content.innerHTML = `<span style="color:var(--danger);">${escapeHtml(err.message)}</span>`;
+          const contentEl = rowRef?.querySelector(".bubble-content");
+          if (contentEl) contentEl.innerHTML = `<span style="color:var(--danger);">${escapeHtml(err.message)}</span>`;
           soundEngine.error();
         }
       } finally {
+        isSending = false;
         isGenerating = false;
         currentAbortController = null;
+        if (input) {
+          input.readOnly = false;
+          input.focus();
+        }
         updateSendButtonState();
-        scrollToBottom();
+        scrollToBottom(false);
       }
     }
 
@@ -2628,6 +2788,7 @@
         currentAbortController = null;
       }
       isGenerating = false;
+      isSending = false;
       updateSendButtonState();
     }
 
@@ -2639,14 +2800,23 @@
       if (isGenerating) {
         btn.className = "chatgpt-send-btn stop";
         btn.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>`;
+        btn.title = "Stop generation";
+        btn.disabled = false;
+      } else if (isSending) {
+        btn.className = "chatgpt-send-btn active";
+        btn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`;
+        btn.title = "Sending...";
+        btn.disabled = true;
       } else {
         const hasContent = input && input.value.trim().length > 0;
         btn.className = `chatgpt-send-btn ${hasContent ? 'active' : ''}`;
         btn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg>`;
+        btn.title = "Send message";
+        btn.disabled = false;
       }
     }
 
-    // Web Search & Image Gen
+    // Web Search
     async function searchWeb(q) {
       try {
         const res = await fetch(`${API_BASE}/search?q=${encodeURIComponent(q)}`);
@@ -2656,55 +2826,6 @@
         }
       } catch(e) {}
       return "";
-    }
-
-    async function handleImageGen(prompt) {
-      const token = getAuthToken();
-      if (!token) {
-        showToast("Please sign in to generate images.");
-        window.location.href = "/login/?mode=signup";
-        return;
-      }
-
-      renderUserBubble(prompt);
-      const input = document.getElementById("messageInput");
-      input.value = "";
-      isImageGenActive = false;
-      updateChipsUI();
-
-      const { content, toolbar, row } = createAssistantRow();
-      content.innerHTML = `<span style="color:var(--text-muted);">Generating image...</span>`;
-      isGenerating = true;
-      updateSendButtonState();
-
-      try {
-        const res = await fetch(`${API_BASE}/chat/image`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-          body: JSON.stringify({ prompt, size: "1024x1024" })
-        });
-        const data = await res.json();
-        if (!res.ok || !data.success) throw new Error(data.error || "Failed to generate image.");
-
-        content.innerHTML = `
-          <div style="border-radius:12px; overflow:hidden; border:1px solid var(--border); max-width:440px; margin-top:8px;">
-            <img src="${data.url}" alt="${escapeHtml(prompt)}" style="width:100%; display:block; cursor:pointer;" onclick="window.open('${data.url}', '_blank')">
-            <div style="padding:10px 14px; display:flex; justify-content:space-between; font-size:0.8rem; background:var(--composer-bg);">
-              <span>1024px HD</span>
-              <a href="${data.url}" download target="_blank" style="color:var(--brand-accent); text-decoration:none; font-weight:600;">Download ↓</a>
-            </div>
-          </div>
-        `;
-        messagesHistory.push({ role: "assistant", content: `[Image generated: ${data.url}]` });
-        persistSession();
-        soundEngine.receive();
-      } catch(e) {
-        content.innerHTML = `<span style="color:var(--danger);">${escapeHtml(e.message)}</span>`;
-        soundEngine.error();
-      } finally {
-        isGenerating = false;
-        updateSendButtonState();
-      }
     }
 
     function readAloud(text) {
@@ -2723,17 +2844,19 @@
     function updateChipsUI() {
       const row = document.getElementById("composerChipRow");
       const webChip = document.getElementById("webSearchChip");
-      const imgChip = document.getElementById("imageGenChip");
       if (!row) return;
 
-      row.style.display = (isWebSearchActive || isImageGenActive) ? "flex" : "none";
+      row.style.display = isWebSearchActive ? "flex" : "none";
       if (webChip) webChip.style.display = isWebSearchActive ? "inline-flex" : "none";
-      if (imgChip) imgChip.style.display = isImageGenActive ? "inline-flex" : "none";
     }
 
-    function scrollToBottom() {
+    // Smart stick-to-bottom scroll: never forcibly drag user away if they scrolled up
+    function scrollToBottom(force = false) {
       const el = document.getElementById("chatScrollArea");
-      if (el) el.scrollTop = el.scrollHeight;
+      if (!el) return;
+      if (force || !isUserScrolledUp) {
+        el.scrollTop = el.scrollHeight;
+      }
     }
 
     function toggleSidebar() {
@@ -2823,6 +2946,23 @@
         document.addEventListener("click", (e) => {
           if (!modelMenu.contains(e.target)) modelMenu.classList.remove("open");
         });
+
+        // Sync selected model UI on load
+        const initialSelected = document.querySelector(`.model-option-item[data-model="${selectedModel}"]`) || document.querySelector(`.model-option-item[data-model="openrouter/free"]`);
+        if (initialSelected) {
+          document.querySelectorAll(".model-option-item[data-model]").forEach(i => {
+            i.classList.remove("selected");
+            const chk = i.querySelector(".model-opt-check");
+            if (chk) chk.style.display = "none";
+          });
+          initialSelected.classList.add("selected");
+          const activeChk = initialSelected.querySelector(".model-opt-check");
+          if (activeChk) activeChk.style.display = "block";
+          const label = initialSelected.getAttribute("data-label") || "Alo Go";
+          const hl = document.getElementById("headerModelLabel");
+          if (hl) hl.textContent = isTemporaryChat ? `${label} (Temp)` : label;
+        }
+
         document.querySelectorAll(".model-option-item[data-model]").forEach(item => {
           item.addEventListener("click", () => {
             selectedModel = item.getAttribute("data-model");
@@ -2836,7 +2976,7 @@
             const activeChk = item.querySelector(".model-opt-check");
             if (activeChk) activeChk.style.display = "block";
 
-            const label = item.getAttribute("data-label") || "Alora";
+            const label = item.getAttribute("data-label") || "Alo Go";
             document.getElementById("headerModelLabel").textContent = isTemporaryChat ? `${label} (Temp)` : label;
             modelMenu.classList.remove("open");
             showToast(`${label} selected`);
@@ -2922,6 +3062,8 @@
           document.querySelectorAll(".settings-tab-content").forEach(c => c.style.display = "none");
           if (tab === "general") document.getElementById("tabGeneralContent").style.display = "flex";
           if (tab === "account") document.getElementById("tabAccountContent").style.display = "flex";
+          if (tab === "custom") document.getElementById("tabCustomContent").style.display = "flex";
+          if (tab === "security") document.getElementById("tabSecurityContent").style.display = "flex";
           if (tab === "speech") document.getElementById("tabSpeechContent").style.display = "flex";
           if (tab === "data") document.getElementById("tabDataContent").style.display = "flex";
         });
@@ -2956,11 +3098,97 @@
         });
       }
 
+      // Personalization: Custom Instructions
+      const aboutEl = document.getElementById("customAboutUser");
+      const prefEl = document.getElementById("customResponsePref");
+      if (aboutEl) aboutEl.value = localStorage.getItem(KEYS.CUSTOM_ABOUT) || "";
+      if (prefEl) prefEl.value = localStorage.getItem(KEYS.CUSTOM_PREF) || "";
+
+      document.getElementById("saveCustomInstructionsBtn")?.addEventListener("click", () => {
+        if (aboutEl) localStorage.setItem(KEYS.CUSTOM_ABOUT, aboutEl.value.trim());
+        if (prefEl) localStorage.setItem(KEYS.CUSTOM_PREF, prefEl.value.trim());
+        showToast("Custom instructions saved successfully");
+      });
+
+      // Account Tab: Direct Voucher Redemption
+      const redeemInput = document.getElementById("settingsRedeemCodeInput");
+      const redeemBtn = document.getElementById("settingsRedeemCodeBtn");
+      const redeemFb = document.getElementById("settingsRedeemFeedback");
+
+      if (redeemBtn && redeemInput) {
+        redeemBtn.addEventListener("click", async () => {
+          const code = redeemInput.value.trim();
+          if (!code) {
+            showToast("Please enter a voucher code");
+            return;
+          }
+          const token = getAuthToken();
+          if (!token) {
+            showToast("Please log in first to redeem a voucher code");
+            window.location.href = "/login/";
+            return;
+          }
+          redeemBtn.disabled = true;
+          redeemBtn.textContent = "Verifying...";
+          if (redeemFb) { redeemFb.style.display = "none"; }
+
+          try {
+            const res = await fetch(`${API_BASE}/redeem/claim`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+              body: JSON.stringify({ code })
+            });
+            const data = await res.json();
+            if (!res.ok || !data.success) {
+              throw new Error(data.error || "Invalid or expired code");
+            }
+            if (redeemFb) {
+              redeemFb.style.display = "block";
+              redeemFb.style.color = "var(--brand-accent)";
+              redeemFb.textContent = `Success: Plan upgraded to ${data.plan || "Pro"}!`;
+            }
+            showToast(`Code redeemed! Plan upgraded to ${data.plan || "Pro"}`);
+            redeemInput.value = "";
+            checkAuthAndPlan();
+          } catch (err) {
+            if (redeemFb) {
+              redeemFb.style.display = "block";
+              redeemFb.style.color = "var(--danger)";
+              redeemFb.textContent = err.message;
+            }
+            showToast(err.message);
+          } finally {
+            redeemBtn.disabled = false;
+            redeemBtn.textContent = "Redeem";
+          }
+        });
+      }
+
       // Clear all history
       document.getElementById("clearAllHistoryBtn")?.addEventListener("click", () => {
         localStorage.removeItem(KEYS.SESSIONS);
         startNewChat();
         showToast("All chat history cleared");
+      });
+
+      // Export JSON
+      document.getElementById("exportAllDataBtn")?.addEventListener("click", () => {
+        const rawSessions = localStorage.getItem(KEYS.SESSIONS);
+        const sessions = rawSessions ? JSON.parse(rawSessions) : [];
+        const exportObj = {
+          exportDate: new Date().toISOString(),
+          version: "2.0",
+          currentPlan: localStorage.getItem(KEYS.PLAN) || "Free",
+          sessions
+        };
+        const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `alora-chat-export-${new Date().toISOString().slice(0, 10)}.json`;
+        a.click();
+        URL.revokeObjectURL(a);
+        showToast("Chat data exported successfully");
       });
 
       // Popover Auth Action
@@ -2991,6 +3219,15 @@
         if (e.target.id === "settingsDialogBackdrop") settingsDialog.classList.remove("open");
       });
 
+      // Chat Scroll Area Listener: Smart stick-to-bottom scroll
+      const chatScrollArea = document.getElementById("chatScrollArea");
+      if (chatScrollArea) {
+        chatScrollArea.addEventListener("scroll", () => {
+          const distanceFromBottom = chatScrollArea.scrollHeight - chatScrollArea.scrollTop - chatScrollArea.clientHeight;
+          isUserScrolledUp = distanceFromBottom > 60;
+        }, { passive: true });
+      }
+
       // Composer Input and Send
       const input = document.getElementById("messageInput");
       const sendBtn = document.getElementById("sendBtn");
@@ -3003,11 +3240,21 @@
         input.addEventListener("keydown", (e) => {
           if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
+            if (!isSending && !isGenerating) {
+              sendMessage();
+            }
+          }
+        });
+      }
+      if (sendBtn) {
+        sendBtn.addEventListener("click", () => {
+          if (isGenerating) {
+            stopGeneration();
+          } else if (!isSending) {
             sendMessage();
           }
         });
       }
-      if (sendBtn) sendBtn.addEventListener("click", sendMessage);
 
       // Attach Menu
       const attachBtn = document.getElementById("attachBtn");
@@ -3028,18 +3275,8 @@
         updateChipsUI();
         showToast(isWebSearchActive ? "Web search enabled" : "Web search disabled");
       });
-      document.getElementById("attachImageGenOpt")?.addEventListener("click", () => {
-        attachMenu.classList.remove("open");
-        isImageGenActive = !isImageGenActive;
-        updateChipsUI();
-        showToast(isImageGenActive ? "Image generation mode enabled" : "Image generation mode disabled");
-      });
       document.getElementById("closeWebSearchChip")?.addEventListener("click", () => {
         isWebSearchActive = false;
-        updateChipsUI();
-      });
-      document.getElementById("closeImageGenChip")?.addEventListener("click", () => {
-        isImageGenActive = false;
         updateChipsUI();
       });
 

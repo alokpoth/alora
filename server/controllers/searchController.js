@@ -32,6 +32,60 @@ async function runDuckDuckGoSearch(query, maxSnippets = 3) {
   return snippets.slice(0, maxSnippets).join('\n\n');
 }
 
+// Free Fallback: Wikipedia Search API (Zero API key, real-time knowledge)
+async function runWikipediaSearch(query, maxResults = 2) {
+  try {
+    const res = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&utf8=&format=json`, {
+      headers: { 'User-Agent': 'AloraAI-SearchEngine/2.0' },
+      signal: AbortSignal.timeout(6000)
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data.query?.search && data.query.search.length > 0) {
+      const items = data.query.search.slice(0, maxResults).map(item => {
+        const snippet = item.snippet
+          .replace(/<[^>]*>/g, '')
+          .replace(/&quot;/g, '"')
+          .replace(/&#39;/g, "'")
+          .replace(/&amp;/g, '&')
+          .trim();
+        return `[Wikipedia: ${item.title}]: ${snippet}`;
+      });
+      return items.join('\n\n');
+    }
+  } catch (e) {
+    console.warn('[Wikipedia Search Exception]:', e.message);
+  }
+  return null;
+}
+
+// Free Fallback: Google News RSS (Zero API key, real-time world events)
+async function runGoogleNewsSearch(query, maxResults = 3) {
+  try {
+    const res = await fetch(`https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
+      signal: AbortSignal.timeout(6000)
+    });
+    if (!res.ok) return null;
+    const xml = await res.text();
+    const items = xml.match(/<item>[\s\S]*?<\/item>/g) || [];
+    if (items.length > 0) {
+      const results = [];
+      items.slice(0, maxResults).forEach((item, idx) => {
+        const titleMatch = item.match(/<title>([\s\S]*?)<\/title>/);
+        const dateMatch = item.match(/<pubDate>([\s\S]*?)<\/pubDate>/);
+        const title = titleMatch ? titleMatch[1].replace(/&amp;/g, '&').replace(/&quot;/g, '"') : '';
+        const date = dateMatch ? ` (${dateMatch[1].split(' ').slice(0, 4).join(' ')})` : '';
+        if (title) results.push(`[News ${idx + 1}]: ${title}${date}`);
+      });
+      return results.join('\n\n');
+    }
+  } catch (e) {
+    console.warn('[Google News Search Exception]:', e.message);
+  }
+  return null;
+}
+
 // Unified search execution function with API provider routing & DuckDuckGo fallback
 async function executeSearch(query, forcedSettings = null) {
   const settings = forcedSettings || await getSystemSettings();
@@ -166,7 +220,7 @@ async function executeSearch(query, forcedSettings = null) {
     }
   }
 
-  // 5. Default Fallback: DuckDuckGo HTML Scraper
+  // 5. Default Fallbacks: DuckDuckGo -> Google News RSS & Wikipedia
   try {
     const ddgResults = await runDuckDuckGoSearch(query, maxResults);
     if (ddgResults) {
@@ -174,6 +228,18 @@ async function executeSearch(query, forcedSettings = null) {
     }
   } catch (ddgErr) {
     console.warn('[DuckDuckGo Search Exception]:', ddgErr.message);
+  }
+
+  // 6. Free Zero-Key Realtime Fallback (Google News RSS + Wikipedia)
+  try {
+    const newsResults = await runGoogleNewsSearch(query, maxResults);
+    const wikiResults = await runWikipediaSearch(query, 2);
+    const combined = [newsResults, wikiResults].filter(Boolean).join('\n\n');
+    if (combined) {
+      return { results: combined, provider: 'live_web_feed' };
+    }
+  } catch (fallbackErr) {
+    console.warn('[Realtime Web Fallback Exception]:', fallbackErr.message);
   }
 
   return { results: "No direct web search results found.", provider: 'none' };
