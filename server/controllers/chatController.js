@@ -27,23 +27,20 @@ const resolveModelTarget = async (targetModelId, customUrl, customKey, targetMod
 
   if ((targetUrl && (targetUrl.includes('googleapis.com') || targetUrl.includes('streamGenerateContent'))) || (!customUrl && (actualModel.startsWith('gemini-') || actualModel.includes('gemini') || targetModelConfig?.type === 'gemini'))) {
     providerType = 'gemini';
-    let gMod = actualModel;
-    if (gMod === 'gemini-1.5-flash' || gMod === 'gemini-flash' || gMod === 'gemini-pro' || gMod === 'gemini-2.5-flash' || gMod === 'gemini-3.5-flash-lite' || !gMod) {
-      gMod = 'gemini-3.6-flash';
+    let gMod = actualModel || 'gemini-2.5-flash';
+    if (gMod === 'gemini-flash' || gMod === 'gemini-pro') {
+      gMod = 'gemini-2.5-flash';
     }
     actualModel = gMod;
-    if (!targetKey) targetKey = geminiKey || (await getApiKeyFromSupabase('__gemini_key__')) || (await getApiKeyFromSupabase('gemini-3.6-flash'));
+    if (!targetKey) targetKey = geminiKey || (await getApiKeyFromSupabase('__gemini_key__')) || (await getApiKeyFromSupabase('gemini-2.5-flash')) || (await getApiKeyFromSupabase('gemini-3.6-flash'));
     targetUrl = (targetUrl && targetUrl.includes('googleapis.com'))
       ? (targetKey && targetUrl.includes('key=') ? targetUrl.replace(/key=[^&]+/, 'key=' + targetKey) : (targetUrl.includes('?') ? `${targetUrl}&key=${targetKey}` : `${targetUrl}?key=${targetKey}&alt=sse`))
       : `https://generativelanguage.googleapis.com/v1beta/models/${actualModel}:streamGenerateContent?key=${targetKey}&alt=sse`;
   } else if ((targetUrl && targetUrl.includes('groq.com')) || (!customUrl && (actualModel === 'openai/gpt-oss-120b' || actualModel === 'llama-3.3-70b-versatile' || actualModel === 'alo-pro' || actualModel.includes('deepseek') || actualModel.includes('qwen') || actualModel.includes('llama-3.1-8b') || actualModel === 'openai/gpt-oss-20b'))) {
     providerType = 'groq';
     targetUrl = targetUrl || 'https://api.groq.com/openai/v1/chat/completions';
-    if (actualModel === 'alo-pro' || actualModel === 'llama-3.3-70b-versatile') actualModel = 'openai/gpt-oss-120b';
-    else if (actualModel.includes('qwen')) actualModel = 'qwen/qwen3.8-27b';
-    else if (actualModel.includes('deepseek')) actualModel = 'openai/gpt-oss-120b';
-    else if (actualModel === 'llama-3.1-8b-instant') actualModel = 'openai/gpt-oss-20b';
-    if (!targetKey) targetKey = process.env.GROQ_API_KEY || DEFAULT_GROQ_KEY || (await getApiKeyFromSupabase('__groq_key__')) || (await getApiKeyFromSupabase('openai/gpt-oss-120b'));
+    if (actualModel === 'alo-pro') actualModel = 'llama-3.3-70b-versatile';
+    if (!targetKey) targetKey = process.env.GROQ_API_KEY || DEFAULT_GROQ_KEY || (await getApiKeyFromSupabase('__groq_key__')) || (await getApiKeyFromSupabase(actualModel));
   } else if (targetUrl && targetUrl.includes('aihub.071129.xyz')) {
     providerType = 'custom';
     if (actualModel === 'openrouter/free' || !actualModel) {
@@ -56,16 +53,15 @@ const resolveModelTarget = async (targetModelId, customUrl, customKey, targetMod
     actualModel = actualModel || 'openrouter/free';
     if (!targetKey) targetKey = process.env.OPENROUTER_API_KEY || DEFAULT_OPENROUTER_KEY || (await getApiKeyFromSupabase('__openrouter_key__')) || (await getApiKeyFromSupabase('openrouter/free'));
   } else if ((targetUrl && targetUrl.includes('b.ai')) || (!customUrl && (actualModel === 'mimo-v2.5' || actualModel === 'hy3'))) {
-    // Transparently reroute B.AI models since api.b.ai credit balance is 0
     if (actualModel === 'hy3') {
       providerType = 'groq';
       targetUrl = 'https://api.groq.com/openai/v1/chat/completions';
-      actualModel = 'openai/gpt-oss-120b';
-      targetKey = process.env.GROQ_API_KEY || DEFAULT_GROQ_KEY || (await getApiKeyFromSupabase('__groq_key__')) || (await getApiKeyFromSupabase('openai/gpt-oss-120b'));
+      actualModel = 'llama-3.3-70b-versatile';
+      targetKey = process.env.GROQ_API_KEY || DEFAULT_GROQ_KEY || (await getApiKeyFromSupabase('__groq_key__'));
     } else {
       providerType = 'gemini';
-      actualModel = 'gemini-3.6-flash';
-      targetKey = geminiKey || (await getApiKeyFromSupabase('__gemini_key__')) || (await getApiKeyFromSupabase('gemini-3.6-flash'));
+      actualModel = 'gemini-2.5-flash';
+      targetKey = geminiKey || (await getApiKeyFromSupabase('__gemini_key__')) || (await getApiKeyFromSupabase('gemini-2.5-flash'));
       targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/${actualModel}:streamGenerateContent?key=${targetKey}&alt=sse`;
     }
   } else if ((targetUrl && targetUrl.includes('vyceai.com')) || (!customUrl && (actualModel === 'claude-sonnet-4-6' || actualModel === 'gpt-5.6' || actualModel === 'gpt-5.6-new' || actualModel === 'nemotron-ultra-550b'))) {

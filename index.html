@@ -1676,44 +1676,47 @@
           </div>
         </div>
 
-        <!-- Model Selection Dropdown (Exactly 3 Admin Models) -->
+        <!-- Model Selection Dropdown (Dynamically Loaded from Admin API) -->
         <div class="model-dropdown-menu" id="modelDropdownMenu">
-          <div class="model-option-item selected" data-model="openrouter/free" data-label="Alora">
-            <div style="flex:1;">
-              <div style="display:flex; align-items:center; gap:8px;">
-                <span class="model-opt-title">Alora</span>
-                <span class="model-opt-badge" style="background:rgba(255,255,255,0.1); color:var(--text-main); font-size:0.7rem; padding:2px 8px; border-radius:9999px;">Free</span>
+          <div id="dynamicModelList">
+            <!-- Populated dynamically via loadDynamicModels() from /api/chat/models -->
+            <div class="model-option-item selected" data-model="openrouter/free" data-label="Alora">
+              <div style="flex:1;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span class="model-opt-title">Alora</span>
+                  <span class="model-opt-badge" style="background:rgba(255,255,255,0.1); color:var(--text-main); font-size:0.7rem; padding:2px 8px; border-radius:9999px;">Free</span>
+                </div>
+                <div class="model-opt-desc">Great for everyday tasks and fast answers</div>
               </div>
-              <div class="model-opt-desc">Great for everyday tasks and fast answers</div>
+              <div class="model-opt-check">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
             </div>
-            <div class="model-opt-check">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            </div>
-          </div>
 
-          <div class="model-option-item" data-model="openai/gpt-oss-120b" data-label="Alora Pro">
-            <div style="flex:1;">
-              <div style="display:flex; align-items:center; gap:8px;">
-                <span class="model-opt-title">Alora Pro</span>
-                <span class="model-opt-badge" style="background:#333333; color:#ffffff; font-size:0.7rem; padding:2px 8px; border-radius:9999px;">Pro</span>
+            <div class="model-option-item" data-model="openai/gpt-oss-120b" data-label="Alora Pro">
+              <div style="flex:1;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span class="model-opt-title">Alora Pro</span>
+                  <span class="model-opt-badge" style="background:#333333; color:#ffffff; font-size:0.7rem; padding:2px 8px; border-radius:9999px;">Pro</span>
+                </div>
+                <div class="model-opt-desc">Our smartest model & deeper reasoning</div>
               </div>
-              <div class="model-opt-desc">Our smartest model & deeper reasoning</div>
+              <div class="model-opt-check" style="display:none;">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
             </div>
-            <div class="model-opt-check" style="display:none;">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            </div>
-          </div>
 
-          <div class="model-option-item" data-model="gpt-5.6" data-label="Alora Max">
-            <div style="flex:1;">
-              <div style="display:flex; align-items:center; gap:8px;">
-                <span class="model-opt-title">Alora Max</span>
-                <span class="model-opt-badge" style="background:#404040; color:#ffffff; font-size:0.7rem; padding:2px 8px; border-radius:9999px;">Pro Max</span>
+            <div class="model-option-item" data-model="gpt-5.6" data-label="Alora Max">
+              <div style="flex:1;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span class="model-opt-title">Alora Max</span>
+                  <span class="model-opt-badge" style="background:#404040; color:#ffffff; font-size:0.7rem; padding:2px 8px; border-radius:9999px;">Pro Max</span>
+                </div>
+                <div class="model-opt-desc">Frontier intelligence & complex analytical workflows</div>
               </div>
-              <div class="model-opt-desc">Frontier intelligence & complex analytical workflows</div>
-            </div>
-            <div class="model-opt-check" style="display:none;">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <div class="model-opt-check" style="display:none;">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
             </div>
           </div>
 
@@ -2876,47 +2879,124 @@
       if (modelBtn && modelMenu) {
         modelBtn.addEventListener("click", (e) => {
           e.stopPropagation();
+          const willOpen = !modelMenu.classList.contains("open");
           modelMenu.classList.toggle("open");
+          if (willOpen) {
+            loadDynamicModels(true);
+          }
         });
         document.addEventListener("click", (e) => {
           if (!modelMenu.contains(e.target)) modelMenu.classList.remove("open");
         });
 
-        // Sync selected model UI on load
-        const initialSelected = document.querySelector(`.model-option-item[data-model="${selectedModel}"]`) || document.querySelector(`.model-option-item[data-model="openrouter/free"]`);
-        if (initialSelected) {
-          document.querySelectorAll(".model-option-item[data-model]").forEach(i => {
-            i.classList.remove("selected");
-            const chk = i.querySelector(".model-opt-check");
-            if (chk) chk.style.display = "none";
-          });
-          initialSelected.classList.add("selected");
-          const activeChk = initialSelected.querySelector(".model-opt-check");
-          if (activeChk) activeChk.style.display = "block";
-          const label = initialSelected.getAttribute("data-label") || "Alora";
-          const hl = document.getElementById("headerModelLabel");
-          if (hl) hl.textContent = isTemporaryChat ? `${label} (Temp)` : label;
+        // Dynamic model loader & renderer (100% data-driven from Admin Panel & Database)
+        let cachedDynamicModels = [];
+        let lastModelFetchTime = 0;
+
+        async function loadDynamicModels(force = false) {
+          const now = Date.now();
+          if (!force && cachedDynamicModels.length > 0 && (now - lastModelFetchTime) < 15000) {
+            renderDynamicModels(cachedDynamicModels);
+            return;
+          }
+
+          try {
+            const res = await fetch(`${API_BASE}/chat/models?_t=${now}`);
+            const data = await res.json();
+            if (data && data.success && Array.isArray(data.models) && data.models.length > 0) {
+              cachedDynamicModels = data.models;
+              lastModelFetchTime = now;
+              renderDynamicModels(data.models);
+            } else if (cachedDynamicModels.length > 0) {
+              renderDynamicModels(cachedDynamicModels);
+            }
+          } catch (e) {
+            console.warn('[Model Fetch Warning]:', e.message);
+            if (cachedDynamicModels.length > 0) {
+              renderDynamicModels(cachedDynamicModels);
+            }
+          }
         }
 
-        document.querySelectorAll(".model-option-item[data-model]").forEach(item => {
-          item.addEventListener("click", () => {
-            selectedModel = item.getAttribute("data-model");
-            localStorage.setItem(KEYS.SELECTED_MODEL, selectedModel);
-            document.querySelectorAll(".model-option-item[data-model]").forEach(i => {
-              i.classList.remove("selected");
-              const chk = i.querySelector(".model-opt-check");
-              if (chk) chk.style.display = "none";
-            });
-            item.classList.add("selected");
-            const activeChk = item.querySelector(".model-opt-check");
-            if (activeChk) activeChk.style.display = "block";
+        function renderDynamicModels(models) {
+          const container = document.getElementById("dynamicModelList");
+          if (!container) return;
+          container.innerHTML = "";
 
-            const label = item.getAttribute("data-label") || "Alora";
-            document.getElementById("headerModelLabel").textContent = isTemporaryChat ? `${label} (Temp)` : label;
-            modelMenu.classList.remove("open");
-            showToast(`${label} selected`);
+          // Check if selectedModel exists in current models
+          let matched = models.find(m => (m.id === selectedModel || m.model_id === selectedModel));
+          if (!matched && models.length > 0) {
+            matched = models[0];
+            selectedModel = matched.id || matched.model_id;
+            localStorage.setItem(KEYS.SELECTED_MODEL, selectedModel);
+          }
+
+          models.forEach(m => {
+            const mId = m.id || m.model_id;
+            const name = (typeof m.name === 'string' && m.name.trim()) ? m.name.trim() : mId;
+            const isSelected = matched && (matched.id === mId || matched.model_id === mId);
+
+            let badgeText = "Free";
+            let badgeStyle = "background:rgba(255,255,255,0.1); color:var(--text-main); font-size:0.7rem; padding:2px 8px; border-radius:9999px;";
+            let defaultDesc = "Great for everyday tasks and fast answers";
+
+            if (m.efficient) {
+              badgeText = "Pro Max";
+              badgeStyle = "background:#404040; color:#ffffff; font-size:0.7rem; padding:2px 8px; border-radius:9999px;";
+              defaultDesc = "Frontier intelligence & complex analytical workflows";
+            } else if (m.premium) {
+              badgeText = "Pro";
+              badgeStyle = "background:#333333; color:#ffffff; font-size:0.7rem; padding:2px 8px; border-radius:9999px;";
+              defaultDesc = "Our smartest model & deeper reasoning";
+            }
+
+            const desc = m.description || defaultDesc;
+
+            const item = document.createElement("div");
+            item.className = `model-option-item ${isSelected ? 'selected' : ''}`;
+            item.setAttribute("data-model", mId);
+            item.setAttribute("data-label", name);
+            item.innerHTML = `
+              <div style="flex:1;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span class="model-opt-title">${escapeHtml(name)}</span>
+                  <span class="model-opt-badge" style="${badgeStyle}">${badgeText}</span>
+                </div>
+                <div class="model-opt-desc">${escapeHtml(desc)}</div>
+              </div>
+              <div class="model-opt-check" style="${isSelected ? 'display:block;' : 'display:none;'}">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+            `;
+
+            item.addEventListener("click", () => {
+              selectedModel = mId;
+              localStorage.setItem(KEYS.SELECTED_MODEL, selectedModel);
+              document.querySelectorAll("#dynamicModelList .model-option-item").forEach(i => {
+                i.classList.remove("selected");
+                const chk = i.querySelector(".model-opt-check");
+                if (chk) chk.style.display = "none";
+              });
+              item.classList.add("selected");
+              const activeChk = item.querySelector(".model-opt-check");
+              if (activeChk) activeChk.style.display = "block";
+
+              const hl = document.getElementById("headerModelLabel");
+              if (hl) hl.textContent = isTemporaryChat ? `${name} (Temp)` : name;
+              modelMenu.classList.remove("open");
+              showToast(`${name} selected`);
+            });
+
+            container.appendChild(item);
           });
-        });
+
+          const activeName = matched ? (matched.name || matched.id) : (models[0]?.name || "Alora");
+          const hl = document.getElementById("headerModelLabel");
+          if (hl) hl.textContent = isTemporaryChat ? `${activeName} (Temp)` : activeName;
+        }
+
+        // Initial dynamic load
+        loadDynamicModels();
 
         // Temporary Chat Toggle
         document.getElementById("tempChatToggleItem")?.addEventListener("click", (e) => {

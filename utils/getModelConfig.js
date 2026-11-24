@@ -7,6 +7,13 @@ const { memoryStore, debouncedSave } = require('../server/config/memoryStore');
 const keyCache = new Map(); // model_id -> { api_key, ts }
 const CACHE_TTL = 60 * 1000; // 1 minute
 
+const withTimeout = (promise, ms = 1500) => {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error('Supabase query timeout')), ms))
+  ]);
+};
+
 async function getApiKeyFromSupabase(modelId) {
   const now = Date.now();
   const cached = keyCache.get(modelId);
@@ -17,18 +24,21 @@ async function getApiKeyFromSupabase(modelId) {
   if (!supabase) return null;
 
   try {
-    const { data, error } = await supabase
-      .from('api_keys')
-      .select('api_key')
-      .eq('model_id', modelId)
-      .single();
+    const { data, error } = await withTimeout(
+      supabase
+        .from('api_keys')
+        .select('api_key')
+        .eq('model_id', modelId)
+        .single(),
+      1500
+    );
 
     if (!error && data && data.api_key) {
       keyCache.set(modelId, { api_key: data.api_key, ts: now });
       return data.api_key;
     }
   } catch (e) {
-    console.warn('[Supabase] api_key fetch failed for', modelId, e.message);
+    // Fallback quietly if offline or timed out
   }
   return null;
 }
@@ -56,32 +66,50 @@ function resolveModelAlias(rawId) {
 }
 
 async function getModelConfig(rawId) {
-  const modelId = resolveModelAlias(rawId);
-
   // Check if model was deleted by admin
   const deletedSet = await getDeletedModelIds();
   const cleanRaw = String(rawId || '').toLowerCase().trim();
-  const cleanAlias = String(modelId || '').toLowerCase().trim();
-  if (deletedSet.has(cleanRaw) || deletedSet.has(cleanAlias)) {
+  if (deletedSet.has(cleanRaw)) {
     return null;
   }
 
-  // 1. Check persisted models (from Supabase / merged)
+  // 1. Direct match in persisted models (from Supabase / merged / memoryStore)
   const allModels = await getPersistedModels();
   let model = allModels.find(
-    m => m.id === modelId || m.model_id === modelId || m.id === rawId || m.model_id === rawId
+    m => m && (m.id === rawId || m.model_id === rawId)
   );
 
   // Fallback to memoryStore.models if not found in allModels
   if (!model && Array.isArray(memoryStore?.models)) {
     model = memoryStore.models.find(
-      m => m.id === modelId || m.model_id === modelId || m.id === rawId || m.model_id === rawId
+      m => m && (m.id === rawId || m.model_id === rawId)
     );
   }
 
-  // 2. Load API key from Supabase
-  let apiKey = await getApiKeyFromSupabase(modelId);
-  if (!apiKey && rawId !== modelId) {
+  // 2. Only resolve alias if no direct match was found
+  if (!model) {
+    const modelId = resolveModelAlias(rawId);
+    const cleanAlias = String(modelId || '').toLowerCase().trim();
+    if (deletedSet.has(cleanAlias)) {
+      return null;
+    }
+
+    model = allModels.find(
+      m => m && (m.id === modelId || m.model_id === modelId)
+    );
+
+    if (!model && Array.isArray(memoryStore?.models)) {
+      model = memoryStore.models.find(
+        m => m && (m.id === modelId || m.model_id === modelId)
+      );
+    }
+  }
+
+  const effectiveId = model ? (model.id || model.model_id) : rawId;
+
+  // 3. Load API key from Supabase if not on model
+  let apiKey = await getApiKeyFromSupabase(effectiveId);
+  if (!apiKey && rawId !== effectiveId) {
     apiKey = await getApiKeyFromSupabase(rawId);
   }
 
@@ -138,11 +166,14 @@ async function getDeletedModelIds() {
   }
   if (supabase) {
     try {
-      const { data, error } = await supabase
-        .from('api_keys')
-        .select('api_key')
-        .eq('model_id', '__deleted_models__')
-        .limit(1);
+      const { data, error } = await withTimeout(
+        supabase
+          .from('api_keys')
+          .select('api_key')
+          .eq('model_id', '__deleted_models__')
+          .limit(1),
+        1500
+      );
       if (!error && data && data.length > 0 && data[0].api_key) {
         const parsed = JSON.parse(data[0].api_key);
         if (Array.isArray(parsed)) {
@@ -239,11 +270,14 @@ async function getPersistedModels() {
 
   if (supabase) {
     try {
-      const { data, error } = await supabase
-        .from('api_keys')
-        .select('api_key')
-        .eq('model_id', '__models_metadata__')
-        .limit(1);
+      const { data, error } = await withTimeout(
+        supabase
+          .from('api_keys')
+          .select('api_key')
+          .eq('model_id', '__models_metadata__')
+          .limit(1),
+        1500
+      );
 
       if (!error && data && data.length > 0 && data[0].api_key) {
         const parsed = JSON.parse(data[0].api_key);
