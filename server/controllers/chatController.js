@@ -506,13 +506,13 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
     if (!response || !response.ok) {
       const status = response ? response.status : 504;
       const modelDisplayName = (aiModelConfig && (aiModelConfig.name || aiModelConfig.id)) || model || 'AI Model';
-      let userSafeError = `AI মডেল প্রোভাইডার সার্ভারে ত্রুটি হয়েছে (${modelDisplayName})। অনুগ্রহ করে আবার চেষ্টা করুন।`;
+      let userSafeError = `মডেলটি বর্তমানে ব্যস্ত আছে (${modelDisplayName})। অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন বা অন্য মডেল নির্বাচন করুন।`;
       if (status === 429) {
-        userSafeError = `মডেল প্রোভাইডার সার্ভারের অনুরোধের সীমা শেষ হয়েছে (${modelDisplayName})। অনুগ্রহ করে কিছুক্ষণ পর চেষ্টা করুন বা অন্য কোনো মডেল নির্বাচন করুন।`;
+        userSafeError = `মডেলটি বর্তমানে অনুরোধের আধিক্যের কারণে ব্যস্ত আছে (${modelDisplayName})। অনুগ্রহ করে কিছুক্ষণ পর চেষ্টা করুন বা অন্য কোনো মডেল নির্বাচন করুন।`;
       } else if (status === 401 || status === 403) {
-        userSafeError = `AI মডেল প্রোভাইডারের কী বা সার্ভার সংযোগে সমস্যা দেখা দিয়েছে (${modelDisplayName})। অনুগ্রহ করে অ্যাডমিনের সাথে যোগাযোগ করুন অথবা অন্য মডেল নির্বাচন করুন।`;
+        userSafeError = `মডেলটি বর্তমানে ব্যস্ত আছে (${modelDisplayName})। অনুগ্রহ করে অন্য মডেল নির্বাচন করুন বা কিছুক্ষণ পর চেষ্টা করুন।`;
       } else if (status === 502 || status === 503 || status === 504) {
-        userSafeError = `AI মডেল প্রোভাইডার সার্ভার (${modelDisplayName}) সাময়িকভাবে ডাউন বা রেসপন্স করতে ব্যর্থ হয়েছে।`;
+        userSafeError = `মডেলটি বর্তমানে ব্যস্ত আছে (${modelDisplayName})। অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন বা অন্য মডেল নির্বাচন করুন।`;
       }
       return res.status(status >= 400 && status < 600 ? status : 503).json({ success: false, error: userSafeError });
     }

@@ -719,6 +719,116 @@
       word-break: break-word;
     }
 
+    /* Thinking / Waiting Breathing Bubble (হালকা বড় হয়, হালকা ছোট হয়) */
+    .chatgpt-thinking-bubble {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background-color: var(--text-main, #ececec);
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.35);
+      animation: bubbleBreathe 1.5s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+      vertical-align: middle;
+      margin: 4px 0;
+    }
+
+    [data-theme="light"] .chatgpt-thinking-bubble {
+      background-color: #111111;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    }
+
+    @keyframes bubbleBreathe {
+      0% {
+        transform: scale(0.72);
+        opacity: 0.35;
+      }
+      50% {
+        transform: scale(1.3);
+        opacity: 1;
+        box-shadow: 0 0 18px rgba(255, 255, 255, 0.65);
+      }
+      100% {
+        transform: scale(0.72);
+        opacity: 0.35;
+      }
+    }
+
+    /* Streaming Cursor */
+    .streaming-cursor {
+      display: inline-block;
+      width: 5px;
+      height: 15px;
+      margin-left: 3px;
+      vertical-align: -2px;
+      background-color: var(--text-main);
+      border-radius: 2px;
+      animation: cursorPulse 0.8s ease-in-out infinite;
+    }
+    @keyframes cursorPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    /* Model Busy Notice Card */
+    .chat-model-busy-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 16px;
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px solid rgba(245, 158, 11, 0.22);
+      border-radius: 16px;
+      margin: 8px 0;
+      color: var(--text-main);
+      max-width: 580px;
+    }
+    .chat-model-busy-card .busy-icon {
+      color: #f59e0b;
+      flex-shrink: 0;
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .chat-model-busy-card .busy-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .chat-model-busy-card .busy-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #f59e0b;
+    }
+    .chat-model-busy-card .busy-desc {
+      font-size: 0.85rem;
+      color: var(--text-sub, #a1a1aa);
+      line-height: 1.5;
+    }
+    .chat-model-busy-card .busy-retry-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+      align-self: flex-start;
+      padding: 6px 14px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 9999px;
+      color: var(--text-main);
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .chat-model-busy-card .busy-retry-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
     .assistant-markdown p {
       margin-bottom: 1em;
     }
@@ -2455,7 +2565,7 @@
 
       const content = document.createElement("div");
       content.className = "assistant-markdown";
-      content.innerHTML = `<span style="opacity:0.6;">●</span>`;
+      content.innerHTML = `<span class="chatgpt-thinking-bubble" aria-label="Thinking..."></span>`;
 
       const toolbar = document.createElement("div");
       toolbar.className = "assistant-toolbar";
@@ -2500,8 +2610,11 @@
 
       if (cleanText) {
         html += parseMarkdown(cleanText, !isStreaming);
+        if (isStreaming) {
+          html += `<span class="streaming-cursor"></span>`;
+        }
       } else if (isStreaming) {
-        html += `<span style="opacity:0.6;">●</span>`;
+        html += `<span class="chatgpt-thinking-bubble" aria-label="Thinking..."></span>`;
       }
 
       return html;
@@ -2546,11 +2659,11 @@
 
       const token = getAuthToken();
 
-      // Check Guest Limit: strictly 2 messages allowed without login
+      // Check Guest Limit: 10 messages allowed without login
       if (!token) {
         const guestCount = getGuestCount();
-        if (guestCount >= 2) {
-          showToast("Guest limit reached (2/2). Redirecting to login...");
+        if (guestCount >= 10) {
+          showToast("১০টি ফ্রি বার্তা শেষ হয়েছে। অনুগ্রহ করে লগইন বা সাইন-আপ করুন।");
           window.location.href = "/login/?mode=signup";
           isSending = false;
           if (input) input.readOnly = false;
@@ -2583,8 +2696,8 @@
 
         if (!token) {
           const c = incrementGuestCount();
-          if (c === 2) {
-            showToast("You've used your 2 free guest messages! Sign in to continue unlimited chatting.");
+          if (c === 10) {
+            showToast("আপনার ১০টি ফ্রি বার্তা শেষ হয়েছে! আনলিমিটেড চ্যাট করতে সাইন-ইন করুন।");
           }
         }
 
@@ -2624,7 +2737,7 @@
           const errData = await res.json().catch(() => ({}));
           if (res.status === 401 && (errData.code === "GUEST_LIMIT_REACHED" || (errData.error && errData.error.includes("বার্তা শেষ")))) {
             if (row) row.remove();
-            showToast("২টি ফ্রি বার্তা শেষ হয়েছে। অনুগ্রহ করে লগইন বা সাইন-আপ করুন।");
+            showToast("১০টি ফ্রি বার্তা শেষ হয়েছে। অনুগ্রহ করে লগইন বা সাইন-আপ করুন।");
             window.location.href = "/login/?mode=signup";
             return;
           }
@@ -2700,11 +2813,36 @@
         soundEngine.receive();
       } catch (err) {
         if (err.name === "AbortError") {
-          const contentEl = rowRef?.querySelector(".bubble-content");
+          const contentEl = rowRef?.querySelector(".assistant-markdown");
           if (contentEl) contentEl.innerHTML += `<div style="font-size:0.8rem; color:var(--text-muted); margin-top:6px;">Stopped</div>`;
         } else {
-          const contentEl = rowRef?.querySelector(".bubble-content");
-          if (contentEl) contentEl.innerHTML = `<span style="color:var(--danger);">${escapeHtml(err.message)}</span>`;
+          const contentEl = rowRef?.querySelector(".assistant-markdown");
+          if (contentEl) {
+            const isBusy = !err.message || err.message.includes("ব্যস্ত") || err.message.includes("busy") || err.message.includes("503") || err.message.includes("504") || err.message.includes("502") || err.message.includes("429") || err.message.includes("Server error") || err.message.includes("Failed to fetch");
+            const errorTitle = "মডেলটি বর্তমানে ব্যস্ত আছে";
+            const errorText = isBusy 
+              ? "মডেলটি বর্তমানে ব্যস্ত আছে। অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন বা অন্য মডেল নির্বাচন করুন।" 
+              : err.message;
+            contentEl.innerHTML = `
+              <div class="chat-model-busy-card">
+                <div class="busy-icon">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                  </svg>
+                </div>
+                <div class="busy-body">
+                  <div class="busy-title">${escapeHtml(errorTitle)}</div>
+                  <div class="busy-desc">${escapeHtml(errorText)}</div>
+                  <button type="button" class="busy-retry-btn" onclick="retryLastMessage()">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/>
+                    </svg>
+                    পুনরায় চেষ্টা করুন
+                  </button>
+                </div>
+              </div>
+            `;
+          }
           soundEngine.error();
         }
       } finally {
@@ -2717,6 +2855,24 @@
         }
         updateSendButtonState();
         scrollToBottom(false);
+      }
+    }
+
+    function retryLastMessage() {
+      const feed = document.getElementById("chatFeed");
+      const lastRow = feed?.querySelector(".chatgpt-row.assistant:last-child");
+      if (lastRow && lastRow.querySelector(".chat-model-busy-card")) {
+        lastRow.remove();
+      }
+      const lastUserMsg = [...messagesHistory].reverse().find(m => m.role === "user");
+      if (lastUserMsg && lastUserMsg.content) {
+        const idx = messagesHistory.lastIndexOf(lastUserMsg);
+        if (idx !== -1) messagesHistory.splice(idx, 1);
+        const input = document.getElementById("messageInput");
+        if (input) {
+          input.value = lastUserMsg.content;
+          sendMessage();
+        }
       }
     }
 
