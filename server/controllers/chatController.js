@@ -27,8 +27,8 @@ const resolveModelTarget = async (targetModelId, customUrl, customKey, targetMod
 
   if ((targetUrl && (targetUrl.includes('googleapis.com') || targetUrl.includes('streamGenerateContent'))) || (!customUrl && (actualModel.startsWith('gemini-') || actualModel.includes('gemini') || targetModelConfig?.type === 'gemini'))) {
     providerType = 'gemini';
-    let gMod = actualModel || 'gemini-3.6-flash';
-    if (gMod === 'gemini-flash' || gMod === 'gemini-pro' || gMod === 'gemini-2.5-flash') {
+    let gMod = actualModel;
+    if (gMod === 'gemini-1.5-flash' || gMod === 'gemini-flash' || gMod === 'gemini-pro' || gMod === 'gemini-2.5-flash' || gMod === 'gemini-3.5-flash-lite' || !gMod) {
       gMod = 'gemini-3.6-flash';
     }
     actualModel = gMod;
@@ -36,11 +36,13 @@ const resolveModelTarget = async (targetModelId, customUrl, customKey, targetMod
     targetUrl = (targetUrl && targetUrl.includes('googleapis.com'))
       ? (targetKey && targetUrl.includes('key=') ? targetUrl.replace(/key=[^&]+/, 'key=' + targetKey) : (targetUrl.includes('?') ? `${targetUrl}&key=${targetKey}` : `${targetUrl}?key=${targetKey}&alt=sse`))
       : `https://generativelanguage.googleapis.com/v1beta/models/${actualModel}:streamGenerateContent?key=${targetKey}&alt=sse`;
-  } else if ((targetUrl && targetUrl.includes('groq.com')) || (!customUrl && (actualModel === 'openai/gpt-oss-120b' || actualModel === 'alo-pro' || actualModel.includes('deepseek') || actualModel.includes('qwen') || actualModel.includes('llama-3.1-8b') || actualModel === 'openai/gpt-oss-20b'))) {
+  } else if ((targetUrl && targetUrl.includes('groq.com')) || (!customUrl && (actualModel === 'openai/gpt-oss-120b' || actualModel === 'llama-3.3-70b-versatile' || actualModel === 'alo-pro' || actualModel.includes('deepseek') || actualModel.includes('qwen') || actualModel.includes('llama-3.1-8b') || actualModel === 'openai/gpt-oss-20b'))) {
     providerType = 'groq';
     targetUrl = targetUrl || 'https://api.groq.com/openai/v1/chat/completions';
-    if (actualModel === 'alo-pro' || actualModel.includes('deepseek')) actualModel = 'openai/gpt-oss-120b';
+    if (actualModel === 'alo-pro' || actualModel === 'llama-3.3-70b-versatile') actualModel = 'openai/gpt-oss-120b';
     else if (actualModel.includes('qwen')) actualModel = 'qwen/qwen3.8-27b';
+    else if (actualModel.includes('deepseek')) actualModel = 'openai/gpt-oss-120b';
+    else if (actualModel === 'llama-3.1-8b-instant') actualModel = 'openai/gpt-oss-20b';
     if (!targetKey) targetKey = process.env.GROQ_API_KEY || DEFAULT_GROQ_KEY || (await getApiKeyFromSupabase('__groq_key__')) || (await getApiKeyFromSupabase('openai/gpt-oss-120b'));
   } else if (targetUrl && targetUrl.includes('aihub.071129.xyz')) {
     providerType = 'custom';
@@ -54,15 +56,16 @@ const resolveModelTarget = async (targetModelId, customUrl, customKey, targetMod
     actualModel = actualModel || 'openrouter/free';
     if (!targetKey) targetKey = process.env.OPENROUTER_API_KEY || DEFAULT_OPENROUTER_KEY || (await getApiKeyFromSupabase('__openrouter_key__')) || (await getApiKeyFromSupabase('openrouter/free'));
   } else if ((targetUrl && targetUrl.includes('b.ai')) || (!customUrl && (actualModel === 'mimo-v2.5' || actualModel === 'hy3'))) {
+    // Transparently reroute B.AI models since api.b.ai credit balance is 0
     if (actualModel === 'hy3') {
       providerType = 'groq';
       targetUrl = 'https://api.groq.com/openai/v1/chat/completions';
       actualModel = 'openai/gpt-oss-120b';
-      targetKey = process.env.GROQ_API_KEY || DEFAULT_GROQ_KEY || (await getApiKeyFromSupabase('__groq_key__'));
+      targetKey = process.env.GROQ_API_KEY || DEFAULT_GROQ_KEY || (await getApiKeyFromSupabase('__groq_key__')) || (await getApiKeyFromSupabase('openai/gpt-oss-120b'));
     } else {
       providerType = 'gemini';
       actualModel = 'gemini-3.6-flash';
-      targetKey = geminiKey || (await getApiKeyFromSupabase('__gemini_key__'));
+      targetKey = geminiKey || (await getApiKeyFromSupabase('__gemini_key__')) || (await getApiKeyFromSupabase('gemini-3.6-flash'));
       targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/${actualModel}:streamGenerateContent?key=${targetKey}&alt=sse`;
     }
   } else if ((targetUrl && targetUrl.includes('vyceai.com')) || (!customUrl && (actualModel === 'claude-sonnet-4-6' || actualModel === 'gpt-5.6' || actualModel === 'gpt-5.6-new' || actualModel === 'nemotron-ultra-550b'))) {
@@ -223,13 +226,7 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
   - When (and ONLY when) asked in Bengali: state that your name is "${adminModelName}", an AI assistant developed by Alora (Alora AI), a product of Alokpoth (আলোকপথ), founded by Zihan Fakir (জিহান ফকির).
   - When (and ONLY when) asked in English: state that your name is "${adminModelName}", an AI assistant developed by Alora, a product of Alokpoth, founded by Zihan Fakir.
 - NEVER mention, reveal, or admit to being Google, Gemini, OpenAI, ChatGPT, Anthropic, Claude, Meta, Llama, Groq, DeepSeek, or any other third-party company under any circumstances.
-- You have NO other name. Your name is ONLY "${adminModelName}".
-
-6. STRICT FACTUAL ACCURACY, INTELLECTUAL HONESTY & ANTI-HALLUCINATION GUARDRAIL (CRITICAL):
-- Never fabricate, make up, or hallucinate facts, dates, real-world events, statistics, people, or citations.
-- If you do not know the answer, if verified factual data is unavailable, or if you are uncertain about recent/specific real-world information, NEVER guess or pretend to know.
-- State honestly and clearly: "I do not have verified information on this topic to give a definitive answer" (বা বাংলায়: "এই বিষয়ে আমার কাছে পর্যাপ্ত বা নিশ্চিত তথ্য নেই, তাই অনুমান করে ভুল তথ্য দেওয়া উচিত হবে না।").
-- Never fabricate fake URLs, book citations, or research papers. Factual truth, security, and integrity come first.`;
+- You have NO other name. Your name is ONLY "${adminModelName}".`;
 
     const basePrompt = globalSystemPrompt ? globalSystemPrompt : defaultIdentity;
     const modelIdentityDirective = basePrompt + 
@@ -376,9 +373,9 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
       }
     };
 
-    // Primary model attempt with rapid 7-second failover
-    let response = await tryFetchTarget(providerType, targetUrl, targetKey, actualModel, 7000);
-    let effectiveModel = cleanModel || 'openrouter/free';
+    // Primary model attempt
+    let response = await tryFetchTarget(providerType, targetUrl, targetKey, actualModel, 60000);
+    let effectiveModel = cleanModel || 'gemini-3.6-flash';
     let isGeminiStream = (providerType === 'gemini');
 
     // Helper to resolve an internal API tier or reference model
@@ -421,7 +418,7 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
         console.warn(`[Chat Primary Failed] Model ${cleanModel} (status: ${response ? response.status : 'timeout'}), trying internal Fallback API 2 (${fb1Model || actualModel})...`);
         const fb1 = await resolveTierTarget(fb1Model, fb1Url, fb1Key);
         if (fb1) {
-          const fb1Resp = await tryFetchTarget(fb1.providerType, fb1.targetUrl, fb1.targetKey, fb1.actualModel, 7000);
+          const fb1Resp = await tryFetchTarget(fb1.providerType, fb1.targetUrl, fb1.targetKey, fb1.actualModel, 20000);
           if (fb1Resp && fb1Resp.ok) {
             console.log(`[Chat Internal API 2 Success] Model ${cleanModel} cleanly recovered using internal API 2 (${fb1.actualModel})`);
             response = fb1Resp;
@@ -442,7 +439,7 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
         console.warn(`[Chat Fallback 1 Failed] Model ${cleanModel}, trying internal Fallback API 3 (${fb2Model || actualModel})...`);
         const fb2 = await resolveTierTarget(fb2Model, fb2Url, fb2Key);
         if (fb2) {
-          const fb2Resp = await tryFetchTarget(fb2.providerType, fb2.targetUrl, fb2.targetKey, fb2.actualModel, 7000);
+          const fb2Resp = await tryFetchTarget(fb2.providerType, fb2.targetUrl, fb2.targetKey, fb2.actualModel, 20000);
           if (fb2Resp && fb2Resp.ok) {
             console.log(`[Chat Internal API 3 Success] Model ${cleanModel} cleanly recovered using internal API 3 (${fb2.actualModel})`);
             response = fb2Resp;
@@ -457,10 +454,17 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
     if (!response || !response.ok) {
       console.warn(`[Chat Fallbacks Exhausted] Trying global multi-provider backup chain...`);
 
+      const geminiKey = process.env.GEMINI_API_KEY || (process.env.GEMINI_API_KEYS ? process.env.GEMINI_API_KEYS.split(',')[0].trim() : '') || DEFAULT_GEMINI_KEY || (await getApiKeyFromSupabase('__gemini_key__')) || (await getApiKeyFromSupabase('gemini-3.6-flash'));
       const groqKey = process.env.GROQ_API_KEY || DEFAULT_GROQ_KEY || (await getApiKeyFromSupabase('__groq_key__')) || (await getApiKeyFromSupabase('openai/gpt-oss-120b'));
       const openRouterKey = process.env.OPENROUTER_API_KEY || DEFAULT_OPENROUTER_KEY || (await getApiKeyFromSupabase('__openrouter_key__')) || (await getApiKeyFromSupabase('openrouter/free'));
-      const vyceKey = process.env.VYCE_API_KEY || DEFAULT_VYCE_KEY || (await getApiKeyFromSupabase('__vyce_key__'));
       const fallbacks = [
+        {
+          id: 'gemini-3.6-flash',
+          type: 'gemini',
+          url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:streamGenerateContent?key=${geminiKey}&alt=sse`,
+          key: geminiKey,
+          model: 'gemini-3.6-flash'
+        },
         {
           id: 'openai/gpt-oss-120b',
           type: 'groq',
@@ -469,24 +473,24 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
           model: 'openai/gpt-oss-120b'
         },
         {
+          id: 'qwen/qwen3.8-27b',
+          type: 'groq',
+          url: 'https://api.groq.com/openai/v1/chat/completions',
+          key: groqKey,
+          model: 'qwen/qwen3.8-27b'
+        },
+        {
           id: 'openrouter/free',
           type: 'openrouter',
           url: 'https://openrouter.ai/api/v1/chat/completions',
           key: openRouterKey,
           model: 'openrouter/free'
-        },
-        {
-          id: 'gpt-5.6',
-          type: 'vyce',
-          url: 'https://vyceai.com/v1/chat/completions',
-          key: vyceKey,
-          model: 'gpt-5.6'
         }
       ].filter(fb => fb.id !== cleanModel);
 
       for (const fb of fallbacks) {
         if (res.writableEnded || res.destroyed) break;
-        const fbResp = await tryFetchTarget(fb.type, fb.url, fb.key, fb.model, 6000);
+        const fbResp = await tryFetchTarget(fb.type, fb.url, fb.key, fb.model, 15000);
         if (fbResp && fbResp.ok) {
           console.log(`[Chat Fallback Success] Switched cleanly to ${fb.id}`);
           response = fbResp;
@@ -506,13 +510,13 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
     if (!response || !response.ok) {
       const status = response ? response.status : 504;
       const modelDisplayName = (aiModelConfig && (aiModelConfig.name || aiModelConfig.id)) || model || 'AI Model';
-      let userSafeError = `মডেলটি বর্তমানে ব্যস্ত আছে (${modelDisplayName})। অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন বা অন্য মডেল নির্বাচন করুন।`;
+      let userSafeError = `AI মডেল প্রোভাইডার সার্ভারে ত্রুটি হয়েছে (${modelDisplayName})। অনুগ্রহ করে আবার চেষ্টা করুন।`;
       if (status === 429) {
-        userSafeError = `মডেলটি বর্তমানে অনুরোধের আধিক্যের কারণে ব্যস্ত আছে (${modelDisplayName})। অনুগ্রহ করে কিছুক্ষণ পর চেষ্টা করুন বা অন্য কোনো মডেল নির্বাচন করুন।`;
+        userSafeError = `মডেল প্রোভাইডার সার্ভারের অনুরোধের সীমা শেষ হয়েছে (${modelDisplayName})। অনুগ্রহ করে কিছুক্ষণ পর চেষ্টা করুন বা অন্য কোনো মডেল নির্বাচন করুন।`;
       } else if (status === 401 || status === 403) {
-        userSafeError = `মডেলটি বর্তমানে ব্যস্ত আছে (${modelDisplayName})। অনুগ্রহ করে অন্য মডেল নির্বাচন করুন বা কিছুক্ষণ পর চেষ্টা করুন।`;
+        userSafeError = `AI মডেল প্রোভাইডারের কী বা সার্ভার সংযোগে সমস্যা দেখা দিয়েছে (${modelDisplayName})। অনুগ্রহ করে অ্যাডমিনের সাথে যোগাযোগ করুন অথবা অন্য মডেল নির্বাচন করুন।`;
       } else if (status === 502 || status === 503 || status === 504) {
-        userSafeError = `মডেলটি বর্তমানে ব্যস্ত আছে (${modelDisplayName})। অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন বা অন্য মডেল নির্বাচন করুন।`;
+        userSafeError = `AI মডেল প্রোভাইডার সার্ভার (${modelDisplayName}) সাময়িকভাবে ডাউন বা রেসপন্স করতে ব্যর্থ হয়েছে।`;
       }
       return res.status(status >= 400 && status < 600 ? status : 503).json({ success: false, error: userSafeError });
     }
