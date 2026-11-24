@@ -1676,106 +1676,41 @@
           </div>
         </div>
 
-        <!-- Model Selection Dropdown -->
+        <!-- Model Selection Dropdown (Exactly 3 Admin Models) -->
         <div class="model-dropdown-menu" id="modelDropdownMenu">
-          <div class="model-option-item selected" data-model="openrouter/free" data-label="Alo Go">
+          <div class="model-option-item selected" data-model="openrouter/free" data-label="Alora">
             <div style="flex:1;">
               <div style="display:flex; align-items:center; gap:8px;">
-                <span class="model-opt-title">Alo Go</span>
+                <span class="model-opt-title">Alora</span>
                 <span class="model-opt-badge" style="background:rgba(255,255,255,0.1); color:var(--text-main); font-size:0.7rem; padding:2px 8px; border-radius:9999px;">Free</span>
               </div>
-              <div class="model-opt-desc">Fast, responsive everyday model for tasks and general queries</div>
+              <div class="model-opt-desc">Great for everyday tasks and fast answers</div>
             </div>
             <div class="model-opt-check">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
             </div>
           </div>
 
-          <div class="model-option-item" data-model="gemini-3.5-flash-lite" data-label="Alo Flash">
+          <div class="model-option-item" data-model="openai/gpt-oss-120b" data-label="Alora Pro">
             <div style="flex:1;">
               <div style="display:flex; align-items:center; gap:8px;">
-                <span class="model-opt-title">Alo Flash</span>
-                <span class="model-opt-badge" style="background:rgba(255,255,255,0.1); color:var(--text-main); font-size:0.7rem; padding:2px 8px; border-radius:9999px;">Free</span>
-              </div>
-              <div class="model-opt-desc">Lightning-fast reasoning & multimodal intelligence</div>
-            </div>
-            <div class="model-opt-check" style="display:none;">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            </div>
-          </div>
-
-          <div class="model-option-item" data-model="hy3" data-label="Alo HY3">
-            <div style="flex:1;">
-              <div style="display:flex; align-items:center; gap:8px;">
-                <span class="model-opt-title">Alo HY3</span>
-                <span class="model-opt-badge" style="background:rgba(255,255,255,0.1); color:var(--text-main); font-size:0.7rem; padding:2px 8px; border-radius:9999px;">Free</span>
-              </div>
-              <div class="model-opt-desc">Balanced performance for conversation and study</div>
-            </div>
-            <div class="model-opt-check" style="display:none;">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            </div>
-          </div>
-
-          <div class="model-option-item" data-model="mimo-v2.5" data-label="Alo Mimo">
-            <div style="flex:1;">
-              <div style="display:flex; align-items:center; gap:8px;">
-                <span class="model-opt-title">Alo Mimo</span>
-                <span class="model-opt-badge" style="background:rgba(255,255,255,0.1); color:var(--text-main); font-size:0.7rem; padding:2px 8px; border-radius:9999px;">Free</span>
-              </div>
-              <div class="model-opt-desc">Creative ideas, writing, and engaging explanations</div>
-            </div>
-            <div class="model-opt-check" style="display:none;">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            </div>
-          </div>
-
-          <div class="model-option-item" data-model="openai/gpt-oss-120b" data-label="Alo Pro">
-            <div style="flex:1;">
-              <div style="display:flex; align-items:center; gap:8px;">
-                <span class="model-opt-title">Alo Pro</span>
+                <span class="model-opt-title">Alora Pro</span>
                 <span class="model-opt-badge" style="background:#333333; color:#ffffff; font-size:0.7rem; padding:2px 8px; border-radius:9999px;">Pro</span>
               </div>
-              <div class="model-opt-desc">Deep reasoning, coding mastery, and analytical precision</div>
+              <div class="model-opt-desc">Our smartest model & deeper reasoning</div>
             </div>
             <div class="model-opt-check" style="display:none;">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
             </div>
           </div>
 
-          <div class="model-option-item" data-model="nemotron-ultra-550b" data-label="Alo Ultra">
+          <div class="model-option-item" data-model="gpt-5.6" data-label="Alora Max">
             <div style="flex:1;">
               <div style="display:flex; align-items:center; gap:8px;">
-                <span class="model-opt-title">Alo Ultra</span>
-                <span class="model-opt-badge" style="background:#333333; color:#ffffff; font-size:0.7rem; padding:2px 8px; border-radius:9999px;">Pro</span>
-              </div>
-              <div class="model-opt-desc">Ultra-scale 550B reasoning and heavy analytical workflows</div>
-            </div>
-            <div class="model-opt-check" style="display:none;">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            </div>
-          </div>
-
-          <div class="model-option-item" data-model="claude-sonnet-4-6" data-label="Alo Elite">
-            <div style="flex:1;">
-              <div style="display:flex; align-items:center; gap:8px;">
-                <span class="model-opt-title">Alo Elite</span>
-                <span class="model-opt-badge" style="background:#333333; color:#ffffff; font-size:0.7rem; padding:2px 8px; border-radius:9999px;">Pro</span>
-              </div>
-              <div class="model-opt-desc">Elite architectural software engineering & nuanced writing</div>
-            </div>
-            <div class="model-opt-check" style="display:none;">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            </div>
-          </div>
-
-          <div class="model-option-item" data-model="gpt-5.6" data-label="Alo Max">
-            <div style="flex:1;">
-              <div style="display:flex; align-items:center; gap:8px;">
-                <span class="model-opt-title">Alo Max</span>
+                <span class="model-opt-title">Alora Max</span>
                 <span class="model-opt-badge" style="background:#404040; color:#ffffff; font-size:0.7rem; padding:2px 8px; border-radius:9999px;">Pro Max</span>
               </div>
-              <div class="model-opt-desc">Frontier agentic power & maximum multi-step thinking</div>
+              <div class="model-opt-desc">Frontier intelligence & complex analytical workflows</div>
             </div>
             <div class="model-opt-check" style="display:none;">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
@@ -2958,7 +2893,7 @@
           initialSelected.classList.add("selected");
           const activeChk = initialSelected.querySelector(".model-opt-check");
           if (activeChk) activeChk.style.display = "block";
-          const label = initialSelected.getAttribute("data-label") || "Alo Go";
+          const label = initialSelected.getAttribute("data-label") || "Alora";
           const hl = document.getElementById("headerModelLabel");
           if (hl) hl.textContent = isTemporaryChat ? `${label} (Temp)` : label;
         }
@@ -2976,7 +2911,7 @@
             const activeChk = item.querySelector(".model-opt-check");
             if (activeChk) activeChk.style.display = "block";
 
-            const label = item.getAttribute("data-label") || "Alo Go";
+            const label = item.getAttribute("data-label") || "Alora";
             document.getElementById("headerModelLabel").textContent = isTemporaryChat ? `${label} (Temp)` : label;
             modelMenu.classList.remove("open");
             showToast(`${label} selected`);
@@ -2990,7 +2925,8 @@
           const ind = document.getElementById("tempToggleIndicator");
           const circle = document.getElementById("tempToggleCircle");
           const headerLabel = document.getElementById("headerModelLabel");
-          const baseLabel = selectedModel === "openai/gpt-oss-120b" ? "Alora Pro" : "Alora";
+          const activeOpt = document.querySelector(`.model-option-item.selected`);
+          const baseLabel = activeOpt ? (activeOpt.getAttribute("data-label") || "Alora") : "Alora";
 
           if (isTemporaryChat) {
             if (ind) ind.style.background = "#ffffff";

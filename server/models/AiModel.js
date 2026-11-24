@@ -32,14 +32,9 @@ AiModelSchema.statics.seedDefaultModels = async function() {
   const count = await this.countDocuments();
   if (count === 0) {
     await this.create([
-      { model_id: "openrouter/free", name: "Alo Go", provider: "Alora", type: "openrouter", premium: false, efficient: false, order: 1 },
-      { model_id: "gemini-3.5-flash-lite", name: "Alo Flash", provider: "Alora", type: "gemini", premium: false, efficient: false, order: 2 },
-      { model_id: "hy3", name: "Alo HY3", provider: "Alora", type: "bai", premium: false, efficient: false, order: 3 },
-      { model_id: "mimo-v2.5", name: "Alo Mimo", provider: "Alora", type: "bai", premium: false, efficient: false, order: 4 },
-      { model_id: "openai/gpt-oss-120b", name: "Alo Pro", provider: "Alora", type: "groq", premium: true, efficient: false, order: 5 },
-      { model_id: "nemotron-ultra-550b", name: "Alo Ultra", provider: "Alora", type: "vyce", premium: true, efficient: false, order: 6 },
-      { model_id: "claude-sonnet-4-6", name: "Alo Elite", provider: "Alora", type: "vyce", premium: true, efficient: false, order: 7 },
-      { model_id: "gpt-5.6", name: "Alo Max", provider: "Alora", type: "vyce", premium: true, efficient: true, order: 8 }
+      { model_id: "openrouter/free", name: "Alora", provider: "Alora", type: "openrouter", premium: false, efficient: false, order: 1 },
+      { model_id: "openai/gpt-oss-120b", name: "Alora Pro", provider: "Alora", type: "groq", premium: true, efficient: false, order: 2 },
+      { model_id: "gpt-5.6", name: "Alora Max", provider: "Alora", type: "vyce", premium: true, efficient: true, order: 3 }
     ]);
     console.log('[Database Seed] Default AI Models created.');
   }
