@@ -43,7 +43,7 @@ const checkRateLimit = async (req, res, next) => {
     const cleanIp = String(resolvedIp || '127.0.0.1').replace(/^::ffff:/, '').replace(/[^a-zA-Z0-9]/g, '_');
     const guestId = `guest_${cleanIp}`;
 
-    // 0. Guest User (Not logged in) — Allow up to 2 trial messages per IP
+    // 0. Guest User (Not logged in) — Allow up to 10 trial messages per 3 hours
     if (!user) {
       if (isImageRoute) {
         return res.status(401).json({
@@ -51,23 +51,30 @@ const checkRateLimit = async (req, res, next) => {
           error: 'ছবি তৈরি করতে অনুগ্রহ করে প্রথমে লগইন বা সাইন-আপ করুন।'
         });
       }
+      // Never block localhost testing
+      if (cleanIp === '127_0_0_1' || cleanIp === 'localhost' || cleanIp === '_1') {
+        req.guestId = guestId;
+        req.currentPlan = { name: 'Free', displayName: 'গেস্ট ট্রায়াল', message_limit: 99999, image_limit: 0, window_hours: 3, allowed_models: ['*'] };
+        return next();
+      }
+
       const now = Date.now();
-      const guestData = guestMessageTracker.get(cleanIp) || { count: 0, resetAt: now + 24 * 60 * 60 * 1000 };
+      const guestData = guestMessageTracker.get(cleanIp) || { count: 0, resetAt: now + 3 * 60 * 60 * 1000 };
       if (now > guestData.resetAt) {
         guestData.count = 0;
-        guestData.resetAt = now + 24 * 60 * 60 * 1000;
+        guestData.resetAt = now + 3 * 60 * 60 * 1000;
       }
-      if (guestData.count >= 2) {
+      if (guestData.count >= 10) {
         return res.status(401).json({
           success: false,
           code: 'GUEST_LIMIT_REACHED',
-          error: 'আপনার ২টি ফ্রি বার্তা শেষ হয়েছে। চ্যাট চালিয়ে যেতে অনুগ্রহ করে লগইন বা সাইন-আপ করুন।'
+          error: 'আপনার ১০টি ফ্রি বার্তা শেষ হয়েছে। চ্যাট চালিয়ে যেতে অনুগ্রহ করে লগইন বা সাইন-আপ করুন।'
         });
       }
       guestData.count += 1;
       guestMessageTracker.set(cleanIp, guestData);
       req.guestId = guestId;
-      req.currentPlan = { name: 'Free', displayName: 'গেস্ট ট্রায়াল', message_limit: 2, image_limit: 0, window_hours: 24, allowed_models: ['*'] };
+      req.currentPlan = { name: 'Free', displayName: 'গেস্ট ট্রায়াল', message_limit: 10, image_limit: 0, window_hours: 3, allowed_models: ['*'] };
       return next();
     }
 
