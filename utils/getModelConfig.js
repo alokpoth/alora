@@ -7,7 +7,18 @@ const { memoryStore, debouncedSave } = require('../server/config/memoryStore');
 const keyCache = new Map(); // model_id -> { api_key, ts }
 const CACHE_TTL = 60 * 1000; // 1 minute
 
-const withTimeout = (promise, ms = 1500) => {
+let supabaseOfflineUntil = 0;
+function isSupabaseAvailable() {
+  if (!supabase) return false;
+  if (Date.now() < supabaseOfflineUntil) return false;
+  return true;
+}
+function markSupabaseOffline(err) {
+  supabaseOfflineUntil = Date.now() + 5 * 60 * 1000; // 5 min cooldown
+  console.warn('[Supabase Connection Paused]:', err?.message || 'Unreachable');
+}
+
+const withTimeout = (promise, ms = 1000) => {
   return Promise.race([
     promise,
     new Promise((_, reject) => setTimeout(() => reject(new Error('Supabase query timeout')), ms))
@@ -21,7 +32,7 @@ async function getApiKeyFromSupabase(modelId) {
     return cached.api_key;
   }
 
-  if (!supabase) return null;
+  if (!isSupabaseAvailable()) return null;
 
   try {
     const { data, error } = await withTimeout(
@@ -30,7 +41,7 @@ async function getApiKeyFromSupabase(modelId) {
         .select('api_key')
         .eq('model_id', modelId)
         .single(),
-      1500
+      1000
     );
 
     if (!error && data && data.api_key) {
@@ -38,7 +49,7 @@ async function getApiKeyFromSupabase(modelId) {
       return data.api_key;
     }
   } catch (e) {
-    // Fallback quietly if offline or timed out
+    markSupabaseOffline(e);
   }
   return null;
 }
@@ -164,7 +175,7 @@ async function getDeletedModelIds() {
       if (id) set.add(String(id).toLowerCase().trim());
     });
   }
-  if (supabase) {
+  if (isSupabaseAvailable()) {
     try {
       const { data, error } = await withTimeout(
         supabase
@@ -172,7 +183,7 @@ async function getDeletedModelIds() {
           .select('api_key')
           .eq('model_id', '__deleted_models__')
           .limit(1),
-        1500
+        1000
       );
       if (!error && data && data.length > 0 && data[0].api_key) {
         const parsed = JSON.parse(data[0].api_key);
@@ -182,7 +193,9 @@ async function getDeletedModelIds() {
           });
         }
       }
-    } catch (e) {}
+    } catch (e) {
+      markSupabaseOffline(e);
+    }
   }
   deletedModelIdsCache = set;
   deletedModelIdsTs = now;
@@ -268,7 +281,7 @@ async function getPersistedModels() {
     });
   };
 
-  if (supabase) {
+  if (isSupabaseAvailable()) {
     try {
       const { data, error } = await withTimeout(
         supabase
@@ -276,7 +289,7 @@ async function getPersistedModels() {
           .select('api_key')
           .eq('model_id', '__models_metadata__')
           .limit(1),
-        1500
+        1000
       );
 
       if (!error && data && data.length > 0 && data[0].api_key) {
@@ -290,7 +303,7 @@ async function getPersistedModels() {
         }
       }
     } catch (e) {
-      console.warn('[Supabase] __models_metadata__ fetch failed:', e.message);
+      markSupabaseOffline(e);
     }
   }
 
@@ -353,13 +366,16 @@ async function getUserUsageDetails(userId, windowHours) {
   if (cached && (now - cached.ts) < USAGE_CACHE_TTL && (now - cached.start) < windowMs) {
     count = cached.count || 0;
     start = cached.start;
-  } else if (supabase) {
+  } else if (isSupabaseAvailable()) {
     try {
-      const { data } = await supabase
-        .from('api_keys')
-        .select('api_key')
-        .eq('model_id', '__usage_' + userId + '__')
-        .limit(1);
+      const { data } = await withTimeout(
+        supabase
+          .from('api_keys')
+          .select('api_key')
+          .eq('model_id', '__usage_' + userId + '__')
+          .limit(1),
+        1000
+      );
 
       if (data && data.length > 0 && data[0].api_key) {
         const usage = JSON.parse(data[0].api_key);
@@ -369,7 +385,9 @@ async function getUserUsageDetails(userId, windowHours) {
         }
       }
       userUsageCache.set(String(userId), { count, start, ts: now });
-    } catch (e) {}
+    } catch (e) {
+      markSupabaseOffline(e);
+    }
   }
 
   // Also check memoryStore to get true count
@@ -406,13 +424,16 @@ async function getUserImageUsageDetails(userId, windowHours) {
   if (cached && (now - cached.ts) < USAGE_CACHE_TTL && (now - cached.start) < windowMs) {
     count = cached.count || 0;
     start = cached.start;
-  } else if (supabase) {
+  } else if (isSupabaseAvailable()) {
     try {
-      const { data } = await supabase
-        .from('api_keys')
-        .select('api_key')
-        .eq('model_id', '__img_usage_' + userId + '__')
-        .limit(1);
+      const { data } = await withTimeout(
+        supabase
+          .from('api_keys')
+          .select('api_key')
+          .eq('model_id', '__img_usage_' + userId + '__')
+          .limit(1),
+        1000
+      );
 
       if (data && data.length > 0 && data[0].api_key) {
         const usage = JSON.parse(data[0].api_key);
@@ -422,7 +443,9 @@ async function getUserImageUsageDetails(userId, windowHours) {
         }
       }
       userImgUsageCache.set(String(userId), { count, start, ts: now });
-    } catch (e) {}
+    } catch (e) {
+      markSupabaseOffline(e);
+    }
   }
 
   // Also check memoryStore to get true count for image generations
@@ -800,13 +823,16 @@ async function getSystemSettings() {
     web_search_max_results: 4
   };
 
-  if (supabase) {
+  if (isSupabaseAvailable()) {
     try {
-      const { data, error } = await supabase
-        .from('api_keys')
-        .select('api_key')
-        .eq('model_id', '__system_settings__')
-        .limit(1);
+      const { data, error } = await withTimeout(
+        supabase
+          .from('api_keys')
+          .select('api_key')
+          .eq('model_id', '__system_settings__')
+          .limit(1),
+        1000
+      );
 
       if (!error && data && data.length > 0 && data[0].api_key) {
         let parsed = null;
@@ -821,7 +847,7 @@ async function getSystemSettings() {
         }
       }
     } catch (e) {
-      console.warn('[Supabase] __system_settings__ fetch failed:', e.message);
+      markSupabaseOffline(e);
     }
   }
 
@@ -938,7 +964,7 @@ async function autoPurgeOrphanedDatabaseCaches() {
   }
 
   // 4. Purge orphaned usage and image usage rows from Supabase
-  if (supabase) {
+  if (isSupabaseAvailable()) {
     try {
       const currentUsers = await getPersistedUsers();
       const validUserIds = new Set(currentUsers.map(u => String(u._id || u.id)));
@@ -957,12 +983,12 @@ async function autoPurgeOrphanedDatabaseCaches() {
         }
       }
     } catch (e) {
-      console.warn('[AutoPurge] Usage row cleanup warning:', e.message);
+      markSupabaseOffline(e);
     }
   }
 
   // 5. Purge orphaned individual model API key rows from Supabase
-  if (supabase) {
+  if (isSupabaseAvailable()) {
     try {
       const currentModels = await getPersistedModels();
       const validModelIds = new Set(currentModels.map(m => String(m.id || m.model_id || '')));

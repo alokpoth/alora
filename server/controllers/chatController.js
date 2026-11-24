@@ -27,20 +27,21 @@ const resolveModelTarget = async (targetModelId, customUrl, customKey, targetMod
 
   if ((targetUrl && (targetUrl.includes('googleapis.com') || targetUrl.includes('streamGenerateContent'))) || (!customUrl && (actualModel.startsWith('gemini-') || actualModel.includes('gemini') || targetModelConfig?.type === 'gemini'))) {
     providerType = 'gemini';
-    let gMod = actualModel || 'gemini-2.5-flash';
-    if (gMod === 'gemini-flash' || gMod === 'gemini-pro') {
-      gMod = 'gemini-2.5-flash';
+    let gMod = actualModel || 'gemini-3.6-flash';
+    if (gMod === 'gemini-flash' || gMod === 'gemini-pro' || gMod === 'gemini-2.5-flash') {
+      gMod = 'gemini-3.6-flash';
     }
     actualModel = gMod;
-    if (!targetKey) targetKey = geminiKey || (await getApiKeyFromSupabase('__gemini_key__')) || (await getApiKeyFromSupabase('gemini-2.5-flash')) || (await getApiKeyFromSupabase('gemini-3.6-flash'));
+    if (!targetKey) targetKey = geminiKey || (await getApiKeyFromSupabase('__gemini_key__')) || (await getApiKeyFromSupabase('gemini-3.6-flash'));
     targetUrl = (targetUrl && targetUrl.includes('googleapis.com'))
       ? (targetKey && targetUrl.includes('key=') ? targetUrl.replace(/key=[^&]+/, 'key=' + targetKey) : (targetUrl.includes('?') ? `${targetUrl}&key=${targetKey}` : `${targetUrl}?key=${targetKey}&alt=sse`))
       : `https://generativelanguage.googleapis.com/v1beta/models/${actualModel}:streamGenerateContent?key=${targetKey}&alt=sse`;
-  } else if ((targetUrl && targetUrl.includes('groq.com')) || (!customUrl && (actualModel === 'openai/gpt-oss-120b' || actualModel === 'llama-3.3-70b-versatile' || actualModel === 'alo-pro' || actualModel.includes('deepseek') || actualModel.includes('qwen') || actualModel.includes('llama-3.1-8b') || actualModel === 'openai/gpt-oss-20b'))) {
+  } else if ((targetUrl && targetUrl.includes('groq.com')) || (!customUrl && (actualModel === 'openai/gpt-oss-120b' || actualModel === 'alo-pro' || actualModel.includes('deepseek') || actualModel.includes('qwen') || actualModel.includes('llama-3.1-8b') || actualModel === 'openai/gpt-oss-20b'))) {
     providerType = 'groq';
     targetUrl = targetUrl || 'https://api.groq.com/openai/v1/chat/completions';
-    if (actualModel === 'alo-pro') actualModel = 'llama-3.3-70b-versatile';
-    if (!targetKey) targetKey = process.env.GROQ_API_KEY || DEFAULT_GROQ_KEY || (await getApiKeyFromSupabase('__groq_key__')) || (await getApiKeyFromSupabase(actualModel));
+    if (actualModel === 'alo-pro' || actualModel.includes('deepseek')) actualModel = 'openai/gpt-oss-120b';
+    else if (actualModel.includes('qwen')) actualModel = 'qwen/qwen3.8-27b';
+    if (!targetKey) targetKey = process.env.GROQ_API_KEY || DEFAULT_GROQ_KEY || (await getApiKeyFromSupabase('__groq_key__')) || (await getApiKeyFromSupabase('openai/gpt-oss-120b'));
   } else if (targetUrl && targetUrl.includes('aihub.071129.xyz')) {
     providerType = 'custom';
     if (actualModel === 'openrouter/free' || !actualModel) {
@@ -56,12 +57,12 @@ const resolveModelTarget = async (targetModelId, customUrl, customKey, targetMod
     if (actualModel === 'hy3') {
       providerType = 'groq';
       targetUrl = 'https://api.groq.com/openai/v1/chat/completions';
-      actualModel = 'llama-3.3-70b-versatile';
+      actualModel = 'openai/gpt-oss-120b';
       targetKey = process.env.GROQ_API_KEY || DEFAULT_GROQ_KEY || (await getApiKeyFromSupabase('__groq_key__'));
     } else {
       providerType = 'gemini';
-      actualModel = 'gemini-2.5-flash';
-      targetKey = geminiKey || (await getApiKeyFromSupabase('__gemini_key__')) || (await getApiKeyFromSupabase('gemini-2.5-flash'));
+      actualModel = 'gemini-3.6-flash';
+      targetKey = geminiKey || (await getApiKeyFromSupabase('__gemini_key__'));
       targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/${actualModel}:streamGenerateContent?key=${targetKey}&alt=sse`;
     }
   } else if ((targetUrl && targetUrl.includes('vyceai.com')) || (!customUrl && (actualModel === 'claude-sonnet-4-6' || actualModel === 'gpt-5.6' || actualModel === 'gpt-5.6-new' || actualModel === 'nemotron-ultra-550b'))) {
@@ -375,9 +376,9 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
       }
     };
 
-    // Primary model attempt
-    let response = await tryFetchTarget(providerType, targetUrl, targetKey, actualModel, 60000);
-    let effectiveModel = cleanModel || 'gemini-3.6-flash';
+    // Primary model attempt with rapid 7-second failover
+    let response = await tryFetchTarget(providerType, targetUrl, targetKey, actualModel, 7000);
+    let effectiveModel = cleanModel || 'openrouter/free';
     let isGeminiStream = (providerType === 'gemini');
 
     // Helper to resolve an internal API tier or reference model
@@ -420,7 +421,7 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
         console.warn(`[Chat Primary Failed] Model ${cleanModel} (status: ${response ? response.status : 'timeout'}), trying internal Fallback API 2 (${fb1Model || actualModel})...`);
         const fb1 = await resolveTierTarget(fb1Model, fb1Url, fb1Key);
         if (fb1) {
-          const fb1Resp = await tryFetchTarget(fb1.providerType, fb1.targetUrl, fb1.targetKey, fb1.actualModel, 20000);
+          const fb1Resp = await tryFetchTarget(fb1.providerType, fb1.targetUrl, fb1.targetKey, fb1.actualModel, 7000);
           if (fb1Resp && fb1Resp.ok) {
             console.log(`[Chat Internal API 2 Success] Model ${cleanModel} cleanly recovered using internal API 2 (${fb1.actualModel})`);
             response = fb1Resp;
@@ -441,7 +442,7 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
         console.warn(`[Chat Fallback 1 Failed] Model ${cleanModel}, trying internal Fallback API 3 (${fb2Model || actualModel})...`);
         const fb2 = await resolveTierTarget(fb2Model, fb2Url, fb2Key);
         if (fb2) {
-          const fb2Resp = await tryFetchTarget(fb2.providerType, fb2.targetUrl, fb2.targetKey, fb2.actualModel, 20000);
+          const fb2Resp = await tryFetchTarget(fb2.providerType, fb2.targetUrl, fb2.targetKey, fb2.actualModel, 7000);
           if (fb2Resp && fb2Resp.ok) {
             console.log(`[Chat Internal API 3 Success] Model ${cleanModel} cleanly recovered using internal API 3 (${fb2.actualModel})`);
             response = fb2Resp;
@@ -456,17 +457,10 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
     if (!response || !response.ok) {
       console.warn(`[Chat Fallbacks Exhausted] Trying global multi-provider backup chain...`);
 
-      const geminiKey = process.env.GEMINI_API_KEY || (process.env.GEMINI_API_KEYS ? process.env.GEMINI_API_KEYS.split(',')[0].trim() : '') || DEFAULT_GEMINI_KEY || (await getApiKeyFromSupabase('__gemini_key__')) || (await getApiKeyFromSupabase('gemini-3.6-flash'));
       const groqKey = process.env.GROQ_API_KEY || DEFAULT_GROQ_KEY || (await getApiKeyFromSupabase('__groq_key__')) || (await getApiKeyFromSupabase('openai/gpt-oss-120b'));
       const openRouterKey = process.env.OPENROUTER_API_KEY || DEFAULT_OPENROUTER_KEY || (await getApiKeyFromSupabase('__openrouter_key__')) || (await getApiKeyFromSupabase('openrouter/free'));
+      const vyceKey = process.env.VYCE_API_KEY || DEFAULT_VYCE_KEY || (await getApiKeyFromSupabase('__vyce_key__'));
       const fallbacks = [
-        {
-          id: 'gemini-3.6-flash',
-          type: 'gemini',
-          url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:streamGenerateContent?key=${geminiKey}&alt=sse`,
-          key: geminiKey,
-          model: 'gemini-3.6-flash'
-        },
         {
           id: 'openai/gpt-oss-120b',
           type: 'groq',
@@ -475,24 +469,24 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
           model: 'openai/gpt-oss-120b'
         },
         {
-          id: 'qwen/qwen3.8-27b',
-          type: 'groq',
-          url: 'https://api.groq.com/openai/v1/chat/completions',
-          key: groqKey,
-          model: 'qwen/qwen3.8-27b'
-        },
-        {
           id: 'openrouter/free',
           type: 'openrouter',
           url: 'https://openrouter.ai/api/v1/chat/completions',
           key: openRouterKey,
           model: 'openrouter/free'
+        },
+        {
+          id: 'gpt-5.6',
+          type: 'vyce',
+          url: 'https://vyceai.com/v1/chat/completions',
+          key: vyceKey,
+          model: 'gpt-5.6'
         }
       ].filter(fb => fb.id !== cleanModel);
 
       for (const fb of fallbacks) {
         if (res.writableEnded || res.destroyed) break;
-        const fbResp = await tryFetchTarget(fb.type, fb.url, fb.key, fb.model, 15000);
+        const fbResp = await tryFetchTarget(fb.type, fb.url, fb.key, fb.model, 6000);
         if (fbResp && fbResp.ok) {
           console.log(`[Chat Fallback Success] Switched cleanly to ${fb.id}`);
           response = fbResp;
