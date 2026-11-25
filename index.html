@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="bn" data-theme="dark">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#212121">
 
-  <title>Alora AI (আলোকপথ)</title>
+  <title>Alora</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -45,7 +45,7 @@
           else if (t === "sapphire") meta.content = "#090f1d";
           else meta.content = "#212121";
         }
-        var lang = localStorage.getItem("alokpoth_lang") || "bn";
+        var lang = localStorage.getItem("alokpoth_lang") || "en";
         document.documentElement.setAttribute("lang", lang);
       } catch(e) {}
     })();
@@ -99,7 +99,7 @@
       --send-btn-active-icon: #000000;
       --brand-accent: #ffffff;
       --danger: #ef4444;
-      --shadow-dropdown: 0 10px 30px rgba(0, 0, 0, 0.5);
+      --shadow-dropdown: none;
     }
 
     /* OLED Pure Black Theme */
@@ -130,7 +130,7 @@
       --send-btn-active-icon: #000000;
       --brand-accent: #ffffff;
       --danger: #ef4444;
-      --shadow-dropdown: 0 12px 36px rgba(0, 0, 0, 0.8);
+      --shadow-dropdown: none;
     }
 
     /* Alora Light Theme */
@@ -161,7 +161,7 @@
       --send-btn-active-icon: #ffffff;
       --brand-accent: #000000;
       --danger: #dc2626;
-      --shadow-dropdown: 0 8px 24px rgba(0, 0, 0, 0.12);
+      --shadow-dropdown: none;
     }
 
     /* Sapphire Theme */
@@ -192,7 +192,7 @@
       --send-btn-active-icon: #ffffff;
       --brand-accent: #3b82f6;
       --danger: #ef4444;
-      --shadow-dropdown: 0 10px 30px rgba(0, 0, 0, 0.6);
+      --shadow-dropdown: none;
     }
 
     /* Eye Care Sepia Theme */
@@ -223,7 +223,7 @@
       --send-btn-active-icon: #ffffff;
       --brand-accent: #92400e;
       --danger: #b91c1c;
-      --shadow-dropdown: 0 8px 24px rgba(107, 78, 51, 0.15);
+      --shadow-dropdown: none;
     }
 
     /* ==========================================================================
@@ -497,7 +497,7 @@
       position: fixed;
       inset: 0;
       background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(2px);
+      backdrop-filter: none;
       z-index: 45;
       display: none;
       opacity: 0;
@@ -736,39 +736,33 @@
       word-break: break-word;
     }
 
-    /* Thinking / Waiting Breathing Bubble (হালকা বড় হয়, হালকা ছোট হয়) */
+    /* Thinking / Waiting Breathing Bubble (no glow) */
     .chatgpt-thinking-bubble {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 14px;
-      height: 14px;
+      width: 12px;
+      height: 12px;
       border-radius: 50%;
       background-color: var(--text-main, #ececec);
-      box-shadow: 0 0 10px rgba(255, 255, 255, 0.35);
-      animation: bubbleBreathe 1.5s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+      animation: bubbleBreathe 1.4s ease-in-out infinite;
       vertical-align: middle;
       margin: 4px 0;
     }
 
-    [data-theme="light"] .chatgpt-thinking-bubble {
+    [data-theme="light"] .chatgpt-thinking-bubble,
+    [data-theme="eyecare"] .chatgpt-thinking-bubble {
       background-color: #111111;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
     }
 
     @keyframes bubbleBreathe {
-      0% {
-        transform: scale(0.72);
-        opacity: 0.35;
+      0%, 100% {
+        transform: scale(0.76);
+        opacity: 0.4;
       }
       50% {
-        transform: scale(1.3);
+        transform: scale(1.22);
         opacity: 1;
-        box-shadow: 0 0 18px rgba(255, 255, 255, 0.65);
-      }
-      100% {
-        transform: scale(0.72);
-        opacity: 0.35;
       }
     }
 
@@ -990,7 +984,7 @@
       display: flex;
       flex-direction: column;
       gap: 4px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      box-shadow: none;
       transition: border-color var(--transition-fast);
       position: relative;
     }
@@ -1122,7 +1116,7 @@
       display: none;
       flex-direction: column;
       gap: 2px;
-      box-shadow: var(--shadow-dropdown);
+      box-shadow: none;
       z-index: 60;
       min-width: 230px;
     }
@@ -1159,7 +1153,7 @@
       display: none;
       flex-direction: column;
       gap: 2px;
-      box-shadow: var(--shadow-dropdown);
+      box-shadow: none;
       z-index: 80;
     }
     .chatgpt-user-popover.open {
@@ -1200,7 +1194,7 @@
       display: none;
       flex-direction: column;
       gap: 3px;
-      box-shadow: var(--shadow-dropdown);
+      box-shadow: none;
       z-index: 70;
       min-width: 270px;
     }
@@ -1239,7 +1233,7 @@
       position: fixed;
       inset: 0;
       background: rgba(0, 0, 0, 0.65);
-      backdrop-filter: blur(4px);
+      backdrop-filter: none;
       z-index: 100;
       display: none;
       align-items: center;
@@ -1258,7 +1252,7 @@
       background: var(--modal-bg);
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-dropdown);
+      box-shadow: none;
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -1369,7 +1363,7 @@
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
       padding: 24px;
-      box-shadow: var(--shadow-dropdown);
+      box-shadow: none;
       display: flex;
       flex-direction: column;
       gap: 16px;
@@ -1398,7 +1392,7 @@
     }
     .auth-input:focus {
       border-color: var(--send-btn-active);
-      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.15);
+      box-shadow: none;
     }
     .auth-submit-btn {
       width: 100%;
@@ -1423,7 +1417,7 @@
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
       padding: 24px;
-      box-shadow: var(--shadow-dropdown);
+      box-shadow: none;
       display: flex;
       flex-direction: column;
       gap: 20px;
@@ -1519,7 +1513,7 @@
     }
     .redeem-code-input:focus {
       border-color: var(--send-btn-active);
-      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.15);
+      box-shadow: none;
     }
     .redeem-claim-btn {
       padding: 10px 20px;
@@ -1558,7 +1552,7 @@
       color: var(--text-main);
       font-size: 0.86rem;
       font-weight: 500;
-      box-shadow: var(--shadow-dropdown);
+      box-shadow: none;
     }
 
     /* Responsive */
@@ -1570,7 +1564,7 @@
         bottom: 0;
         transform: translateX(-100%);
         margin-left: 0 !important;
-        box-shadow: var(--shadow-dropdown);
+        box-shadow: none;
       }
       .chatgpt-sidebar.open {
         transform: translateX(0);
@@ -1761,7 +1755,7 @@
       border: 1px solid var(--border);
       border-radius: 14px;
       padding: 6px;
-      box-shadow: var(--shadow-dropdown);
+      box-shadow: none;
       display: none;
       flex-direction: column;
       gap: 2px;
@@ -1987,7 +1981,7 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 5px;
-      box-shadow: var(--shadow-dropdown);
+      box-shadow: none;
       z-index: 600;
       display: none;
       flex-direction: column;
@@ -2057,7 +2051,7 @@
       display: none;
       align-items: center;
       justify-content: center;
-      box-shadow: var(--shadow-dropdown);
+      box-shadow: none;
       z-index: 40;
       cursor: pointer;
       transition: transform 0.15s ease, background 0.15s ease;
@@ -2117,7 +2111,7 @@
       position: fixed;
       inset: 0;
       background: rgba(0, 0, 0, 0.72);
-      backdrop-filter: blur(4px);
+      backdrop-filter: none;
       z-index: 980;
       display: none;
       align-items: center;
@@ -2146,7 +2140,7 @@
       background: var(--modal-bg);
       border: 1px solid var(--border);
       border-radius: 18px;
-      box-shadow: var(--shadow-dropdown);
+      box-shadow: none;
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -2611,7 +2605,7 @@
         </div>
 
         <div class="composer-legal-note" id="legalDisclaimer">
-          Alora can make mistakes. Check important info. • আলোকপথ
+          Alora can make mistakes. Check important info.
         </div>
       </div>
 
@@ -2686,41 +2680,41 @@
   <div class="chatgpt-dialog-backdrop" id="settingsDialogBackdrop">
     <div class="chatgpt-settings-dialog">
       <div class="settings-dialog-header">
-        <h2 class="settings-dialog-title" id="settingsModalHeading">Settings</h2>
+        <h2 class="settings-dialog-title" id="settingsModalHeading" data-i18n="settingsTitle">Settings</h2>
         <button type="button" class="sidebar-icon-btn" id="closeSettingsDialogBtn">&times;</button>
       </div>
 
       <div class="settings-dialog-body">
         <div class="settings-tabs-sidebar">
-          <button type="button" class="settings-tab-btn active" data-tab="general">General</button>
-          <button type="button" class="settings-tab-btn" data-tab="account">Account</button>
-          <button type="button" class="settings-tab-btn" data-tab="custom">Personalization</button>
-          <button type="button" class="settings-tab-btn" data-tab="security">Security</button>
-          <button type="button" class="settings-tab-btn" data-tab="speech">Speech</button>
-          <button type="button" class="settings-tab-btn" data-tab="data">Data controls</button>
+          <button type="button" class="settings-tab-btn active" data-tab="general" data-i18n="tabGeneral">General</button>
+          <button type="button" class="settings-tab-btn" data-tab="account" data-i18n="tabAccount">Account</button>
+          <button type="button" class="settings-tab-btn" data-tab="custom" data-i18n="tabCustom">Personalization</button>
+          <button type="button" class="settings-tab-btn" data-tab="security" data-i18n="tabSecurity">Security</button>
+          <button type="button" class="settings-tab-btn" data-tab="speech" data-i18n="tabSpeech">Speech</button>
+          <button type="button" class="settings-tab-btn" data-tab="data" data-i18n="tabData">Data controls</button>
         </div>
 
         <!-- General Tab -->
         <div class="settings-tab-content" id="tabGeneralContent">
           <div class="setting-row">
             <div>
-              <div class="setting-label-title">Theme</div>
-              <div class="setting-label-sub">Customize Alora appearance</div>
+              <div class="setting-label-title" data-i18n="themeTitle">Theme</div>
+              <div class="setting-label-sub" data-i18n="themeSub">Customize Alora appearance</div>
             </div>
             <div class="theme-select-chips">
-              <button type="button" class="theme-opt-chip" data-theme="system">System</button>
-              <button type="button" class="theme-opt-chip" data-theme="dark">Dark</button>
-              <button type="button" class="theme-opt-chip" data-theme="oled">OLED</button>
-              <button type="button" class="theme-opt-chip" data-theme="light">Light</button>
-              <button type="button" class="theme-opt-chip" data-theme="sapphire">Sapphire</button>
-              <button type="button" class="theme-opt-chip" data-theme="eyecare">Sepia</button>
+              <button type="button" class="theme-opt-chip" data-theme="system" data-i18n="themeSystem">System</button>
+              <button type="button" class="theme-opt-chip" data-theme="dark" data-i18n="themeDark">Dark</button>
+              <button type="button" class="theme-opt-chip" data-theme="oled" data-i18n="themeOled">OLED</button>
+              <button type="button" class="theme-opt-chip" data-theme="light" data-i18n="themeLight">Light</button>
+              <button type="button" class="theme-opt-chip" data-theme="sapphire" data-i18n="themeSapphire">Sapphire</button>
+              <button type="button" class="theme-opt-chip" data-theme="eyecare" data-i18n="themeEyecare">Sepia</button>
             </div>
           </div>
 
           <div class="setting-row">
             <div>
-              <div class="setting-label-title">Language</div>
-              <div class="setting-label-sub">Interface & dictation language</div>
+              <div class="setting-label-title" data-i18n="langTitle">Language</div>
+              <div class="setting-label-sub" data-i18n="langSub">Interface & dictation language</div>
             </div>
             <div style="display:flex; gap:8px;">
               <button type="button" class="theme-opt-chip" id="langBnBtn">বাংলা</button>
@@ -2730,12 +2724,12 @@
 
           <div class="setting-row">
             <div>
-              <div class="setting-label-title">Sound effects</div>
-              <div class="setting-label-sub">Play subtle tones on send and receive</div>
+              <div class="setting-label-title" data-i18n="soundTitle">Sound effects</div>
+              <div class="setting-label-sub" data-i18n="soundSub">Play subtle tones on send and receive</div>
             </div>
             <div style="display:flex; gap:8px;">
               <button type="button" class="theme-opt-chip" id="soundToggleChip">Mute Audio</button>
-              <a href="/sound" class="theme-opt-chip" style="text-decoration:none;">Customize</a>
+              <a href="/sound" class="theme-opt-chip" style="text-decoration:none;" data-i18n="customizeBtn">Customize</a>
             </div>
           </div>
         </div>
@@ -2744,51 +2738,51 @@
         <div class="settings-tab-content" id="tabAccountContent" style="display:none;">
           <div class="setting-row">
             <div>
-              <div class="setting-label-title">Current Plan</div>
+              <div class="setting-label-title" data-i18n="currentPlanTitle">Current Plan</div>
               <div class="setting-label-sub" id="settingsCurrentPlanLabel">Free Plan</div>
             </div>
-            <button type="button" class="header-pill-btn signup" id="settingsUpgradeBtn">Upgrade Plan</button>
+            <button type="button" class="header-pill-btn signup" id="settingsUpgradeBtn" data-i18n="upgradePlan">Upgrade Plan</button>
           </div>
 
           <div class="settings-quota-box" id="settingsQuotaBox">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-              <span style="font-size:0.84rem; font-weight:600; color:var(--text-main);">Usage Quota</span>
+              <span style="font-size:0.84rem; font-weight:600; color:var(--text-main);" data-i18n="usageQuotaTitle">Usage Quota</span>
               <span style="font-size:0.78rem; color:var(--text-sub);" id="settingsQuotaSummary">-- / --</span>
             </div>
             <div class="settings-quota-track"><div class="settings-quota-fill" id="settingsQuotaBar" style="width:100%;"></div></div>
             <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.76rem; color:var(--text-muted);">
               <span id="settingsImgQuotaSummary">Images: -- / --</span>
-              <span id="settingsQuotaResetLabel">Resets periodically</span>
+              <span id="settingsQuotaResetLabel" data-i18n="resetsPeriodically">Resets periodically</span>
             </div>
           </div>
 
           <div class="setting-row">
             <div>
-              <div class="setting-label-title">Account Status</div>
+              <div class="setting-label-title" data-i18n="accountStatusTitle">Account Status</div>
               <div class="setting-label-sub" id="settingsEmailLabel">Guest (Not logged in)</div>
             </div>
             <div style="display:flex; gap:8px; align-items:center;">
-              <a href="/account" class="theme-opt-chip" id="settingsAccountPortalLink" style="text-decoration:none; display:none;">Manage Profile</a>
+              <a href="/account" class="theme-opt-chip" id="settingsAccountPortalLink" style="text-decoration:none; display:none;" data-i18n="manageProfileBtn">Manage Profile</a>
               <button type="button" class="header-pill-btn login" id="settingsAuthActionBtn">Log in</button>
             </div>
           </div>
 
           <div class="setting-row" id="settingsProfileEditRow" style="display:none; flex-direction:column; align-items:flex-start; gap:10px;">
-            <div class="setting-label-title">Display Name</div>
+            <div class="setting-label-title" data-i18n="displayNameTitle">Display Name</div>
             <div style="display:flex; gap:8px; width:100%; max-width:440px;">
-              <input type="text" id="settingsNameInput" placeholder="Your name" style="flex:1; background:var(--composer-bg); border:1px solid var(--border-subtle); color:var(--text-main); border-radius:9999px; padding:8px 14px; font-size:0.85rem; outline:none;">
-              <button type="button" class="header-pill-btn signup" id="settingsSaveNameBtn" style="white-space:nowrap;">Save</button>
+              <input type="text" id="settingsNameInput" placeholder="Your name" data-i18n-placeholder="yourNamePlaceholder" style="flex:1; background:var(--composer-bg); border:1px solid var(--border-subtle); color:var(--text-main); border-radius:9999px; padding:8px 14px; font-size:0.85rem; outline:none;">
+              <button type="button" class="header-pill-btn signup" id="settingsSaveNameBtn" style="white-space:nowrap;" data-i18n="saveBtn">Save</button>
             </div>
           </div>
 
           <div class="setting-row" style="flex-direction:column; align-items:flex-start; gap:10px;">
             <div>
-              <div class="setting-label-title">Redeem Voucher / Gift Code</div>
-              <div class="setting-label-sub">Instantly activate Alora Pro or Max with your access code</div>
+              <div class="setting-label-title" data-i18n="redeemVoucherTitle">Redeem Voucher / Gift Code</div>
+              <div class="setting-label-sub" data-i18n="redeemVoucherSub">Instantly activate Alora Pro or Max with your access code</div>
             </div>
             <div style="display:flex; gap:8px; width:100%; max-width:440px;">
-              <input type="text" id="settingsRedeemCodeInput" placeholder="Enter voucher code (e.g. ALO-PRO-XXXX)" style="flex:1; background:var(--composer-bg); border:1px solid var(--border-subtle); color:var(--text-main); border-radius:9999px; padding:8px 14px; font-size:0.85rem; outline:none; text-transform:uppercase;">
-              <button type="button" class="header-pill-btn signup" id="settingsRedeemCodeBtn" style="white-space:nowrap;">Redeem</button>
+              <input type="text" id="settingsRedeemCodeInput" placeholder="Enter voucher code (e.g. ALO-PRO-XXXX)" data-i18n-placeholder="redeemPlaceholder" style="flex:1; background:var(--composer-bg); border:1px solid var(--border-subtle); color:var(--text-main); border-radius:9999px; padding:8px 14px; font-size:0.85rem; outline:none; text-transform:uppercase;">
+              <button type="button" class="header-pill-btn signup" id="settingsRedeemCodeBtn" style="white-space:nowrap;" data-i18n="redeemBtn">Redeem</button>
             </div>
             <div id="settingsRedeemFeedback" style="font-size:0.8rem; display:none;"></div>
           </div>
@@ -2798,35 +2792,35 @@
         <div class="settings-tab-content" id="tabCustomContent" style="display:none;">
           <div class="setting-row" style="flex-direction:column; align-items:flex-start; gap:8px;">
             <div>
-              <div class="setting-label-title">Custom Instructions — About you</div>
-              <div class="setting-label-sub">What would you like Alora to know about you to provide better responses?</div>
+              <div class="setting-label-title" data-i18n="customAboutTitle">Custom Instructions — About you</div>
+              <div class="setting-label-sub" data-i18n="customAboutSub">What would you like Alora to know about you to provide better responses?</div>
             </div>
-            <textarea id="customAboutUser" rows="2" style="width:100%; background:var(--composer-bg); border:1px solid var(--border-subtle); color:var(--text-main); border-radius:10px; padding:10px; font-size:0.85rem; resize:vertical; outline:none;" placeholder="e.g. I am a software engineer studying AI and web development."></textarea>
+            <textarea id="customAboutUser" rows="2" style="width:100%; background:var(--composer-bg); border:1px solid var(--border-subtle); color:var(--text-main); border-radius:10px; padding:10px; font-size:0.85rem; resize:vertical; outline:none;" placeholder="e.g. I am a software engineer studying AI and web development." data-i18n-placeholder="customAboutPlaceholder"></textarea>
           </div>
 
           <div class="setting-row" style="flex-direction:column; align-items:flex-start; gap:8px;">
             <div>
-              <div class="setting-label-title">Response Preferences</div>
-              <div class="setting-label-sub">How would you like Alora to respond? (tone, brevity, format)</div>
+              <div class="setting-label-title" data-i18n="customPrefTitle">Response Preferences</div>
+              <div class="setting-label-sub" data-i18n="customPrefSub">How would you like Alora to respond? (tone, brevity, format)</div>
             </div>
-            <textarea id="customResponsePref" rows="3" style="width:100%; background:var(--composer-bg); border:1px solid var(--border-subtle); color:var(--text-main); border-radius:10px; padding:10px; font-size:0.85rem; resize:vertical; outline:none;" placeholder="e.g. Be concise, write production-ready code with no placeholders."></textarea>
+            <textarea id="customResponsePref" rows="3" style="width:100%; background:var(--composer-bg); border:1px solid var(--border-subtle); color:var(--text-main); border-radius:10px; padding:10px; font-size:0.85rem; resize:vertical; outline:none;" placeholder="e.g. Be concise, write production-ready code with no placeholders." data-i18n-placeholder="customPrefPlaceholder"></textarea>
           </div>
 
           <div class="setting-row" style="flex-direction:column; align-items:flex-start; gap:8px;">
             <div>
-              <div class="setting-label-title">Saved Memories</div>
-              <div class="setting-label-sub">Facts Alora remembers across conversations</div>
+              <div class="setting-label-title" data-i18n="memoriesTitle">Saved Memories</div>
+              <div class="setting-label-sub" data-i18n="memoriesSub">Facts Alora remembers across conversations</div>
             </div>
             <div style="display:flex; gap:8px; width:100%;">
-              <input type="text" id="newMemoryInput" placeholder="Add a fact to remember..." style="flex:1; background:var(--composer-bg); border:1px solid var(--border-subtle); color:var(--text-main); border-radius:10px; padding:8px 12px; font-size:0.84rem; outline:none;">
-              <button type="button" class="theme-opt-chip" id="addMemoryBtn">Add</button>
+              <input type="text" id="newMemoryInput" placeholder="Add a fact to remember..." data-i18n-placeholder="newMemoryPlaceholder" style="flex:1; background:var(--composer-bg); border:1px solid var(--border-subtle); color:var(--text-main); border-radius:10px; padding:8px 12px; font-size:0.84rem; outline:none;">
+              <button type="button" class="theme-opt-chip" id="addMemoryBtn" data-i18n="addBtn">Add</button>
             </div>
             <div id="savedMemoriesList" style="width:100%; display:flex; flex-direction:column; gap:6px; margin-top:4px;"></div>
           </div>
 
           <div style="display:flex; justify-content:space-between; align-items:center;">
-            <a href="/personalization" style="font-size:0.8rem; color:var(--text-sub); text-decoration:underline;">Open Presets Page</a>
-            <button type="button" class="header-pill-btn signup" id="saveCustomInstructionsBtn">Save Instructions</button>
+            <a href="/personalization" style="font-size:0.8rem; color:var(--text-sub); text-decoration:underline;" data-i18n="openPresetsBtn">Open Presets Page</a>
+            <button type="button" class="header-pill-btn signup" id="saveCustomInstructionsBtn" data-i18n="saveInstructionsBtn">Save Instructions</button>
           </div>
         </div>
 
@@ -2834,26 +2828,26 @@
         <div class="settings-tab-content" id="tabSecurityContent" style="display:none;">
           <div class="setting-row">
             <div>
-              <div class="setting-label-title">Strict Factual Grounding</div>
-              <div class="setting-label-sub">Alora checks models cleanly without faking citations or capabilities</div>
+              <div class="setting-label-title" data-i18n="securityGroundingTitle">Strict Factual Grounding</div>
+              <div class="setting-label-sub" data-i18n="securityGroundingSub">Alora checks models cleanly without faking citations or capabilities</div>
             </div>
-            <span style="font-size:0.82rem; color:var(--text-main); background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:9999px;">Enforced</span>
+            <span style="font-size:0.82rem; color:var(--text-main); background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:9999px;" data-i18n="enforcedBadge">Enforced</span>
           </div>
 
           <div class="setting-row">
             <div>
-              <div class="setting-label-title">Password & Security</div>
-              <div class="setting-label-sub">Update password or review active login session</div>
+              <div class="setting-label-title" data-i18n="securityPassTitle">Password & Security</div>
+              <div class="setting-label-sub" data-i18n="securityPassSub">Update password or review active login session</div>
             </div>
-            <a href="/security" class="theme-opt-chip" style="text-decoration:none;">Open Security</a>
+            <a href="/security" class="theme-opt-chip" style="text-decoration:none;" data-i18n="openSecurityBtn">Open Security</a>
           </div>
 
           <div class="setting-row" id="settingsDeleteAccountRow" style="display:none;">
             <div>
-              <div class="setting-label-title" style="color:var(--danger);">Delete Account</div>
-              <div class="setting-label-sub">Permanently erase your account and credentials</div>
+              <div class="setting-label-title" style="color:var(--danger);" data-i18n="deleteAccountTitle">Delete Account</div>
+              <div class="setting-label-sub" data-i18n="deleteAccountSub">Permanently erase your account and credentials</div>
             </div>
-            <button type="button" class="theme-opt-chip" id="settingsDeleteAccountBtn" style="color:var(--danger); border-color:rgba(239,68,68,0.35);">Delete</button>
+            <button type="button" class="theme-opt-chip" id="settingsDeleteAccountBtn" style="color:var(--danger); border-color:rgba(239,68,68,0.35);" data-i18n="deleteBtn">Delete</button>
           </div>
         </div>
 
@@ -2861,20 +2855,20 @@
         <div class="settings-tab-content" id="tabSpeechContent" style="display:none;">
           <div class="setting-row">
             <div>
-              <div class="setting-label-title">Read Aloud Voice</div>
-              <div class="setting-label-sub">Select Web Speech voice for reading replies</div>
+              <div class="setting-label-title" data-i18n="speechVoiceTitle">Read Aloud Voice</div>
+              <div class="setting-label-sub" data-i18n="speechVoiceSub">Select Web Speech voice for reading replies</div>
             </div>
             <select id="speechVoiceSelect" style="max-width:220px; background:var(--composer-bg); border:1px solid var(--border); color:var(--text-main); border-radius:10px; padding:6px 10px; font-size:0.82rem; outline:none;">
-              <option value="">System Default (Auto BN/EN)</option>
+              <option value="" data-i18n="speechDefaultOption">System Default (Auto EN/BN)</option>
             </select>
           </div>
 
           <div class="setting-row">
             <div>
-              <div class="setting-label-title">Preview Speech</div>
-              <div class="setting-label-sub">Test currently selected voice</div>
+              <div class="setting-label-title" data-i18n="speechPreviewTitle">Preview Speech</div>
+              <div class="setting-label-sub" data-i18n="speechPreviewSub">Test currently selected voice</div>
             </div>
-            <button type="button" class="theme-opt-chip" id="testSpeechVoiceBtn">Speak Sample</button>
+            <button type="button" class="theme-opt-chip" id="testSpeechVoiceBtn" data-i18n="speakSampleBtn">Speak Sample</button>
           </div>
         </div>
 
@@ -2882,29 +2876,29 @@
         <div class="settings-tab-content" id="tabDataContent" style="display:none;">
           <div class="setting-row" style="flex-direction:column; align-items:flex-start; gap:8px;">
             <div>
-              <div class="setting-label-title">Archived Chats</div>
-              <div class="setting-label-sub">Restore or remove chats archived from the sidebar</div>
+              <div class="setting-label-title" data-i18n="archivedChatsTitle">Archived Chats</div>
+              <div class="setting-label-sub" data-i18n="archivedChatsSub">Restore or remove chats archived from the sidebar</div>
             </div>
             <div id="archivedChatsList" style="width:100%; display:flex; flex-direction:column; gap:6px;"></div>
           </div>
 
           <div class="setting-row">
             <div>
-              <div class="setting-label-title">Export Chat Data</div>
-              <div class="setting-label-sub">Download conversations as JSON or Markdown</div>
+              <div class="setting-label-title" data-i18n="exportDataTitle">Export Chat Data</div>
+              <div class="setting-label-sub" data-i18n="exportDataSub">Download conversations as JSON or Markdown</div>
             </div>
             <div style="display:flex; gap:8px;">
-              <button type="button" class="theme-opt-chip" id="exportAllDataBtn">Export JSON</button>
-              <button type="button" class="theme-opt-chip" id="exportMarkdownBtn">Export MD</button>
+              <button type="button" class="theme-opt-chip" id="exportAllDataBtn" data-i18n="exportJsonBtn">Export JSON</button>
+              <button type="button" class="theme-opt-chip" id="exportMarkdownBtn" data-i18n="exportMdBtn">Export MD</button>
             </div>
           </div>
 
           <div class="setting-row">
             <div>
-              <div class="setting-label-title">Clear All Chats</div>
-              <div class="setting-label-sub">Delete all saved conversations from this browser</div>
+              <div class="setting-label-title" data-i18n="clearChatsTitle">Clear All Chats</div>
+              <div class="setting-label-sub" data-i18n="clearChatsSub">Delete all saved conversations from this browser</div>
             </div>
-            <button type="button" class="theme-opt-chip" id="clearAllHistoryBtn" style="color:var(--danger); border-color:rgba(239,68,68,0.35);">Clear All</button>
+            <button type="button" class="theme-opt-chip" id="clearAllHistoryBtn" style="color:var(--danger); border-color:rgba(239,68,68,0.35);" data-i18n="clearAllBtn">Clear All</button>
           </div>
         </div>
 
@@ -2963,7 +2957,7 @@
         tempOptDesc: "Won't appear in history or use memories",
         askPlaceholder: "Ask anything...",
         imagePlaceholder: "Describe the image you want to create...",
-        legal: "Alora can make mistakes. Check important info. • আলোকপথ",
+        legal: "Alora can make mistakes. Check important info.",
         attachFile: "Add photos & files",
         createImage: "Create image",
         thinkOpt: "Think (Deep reasoning)",
@@ -3006,8 +3000,92 @@
         busyDesc: "This model is experiencing high demand. Please retry or switch to another model.",
         retryBtn: "Try again",
         upgradeCardTitle: "Upgrade your plan",
+        upgradeCardDesc: "Access to this model or quota requires a Pro or Max plan. Upgrade your plan or redeem a voucher code.",
         upgradeCardBtn: "View Plans",
-        redeemCardBtn: "Redeem Code"
+        redeemCardBtn: "Redeem Code",
+        settingsTitle: "Settings",
+        tabGeneral: "General",
+        tabAccount: "Account",
+        tabCustom: "Personalization",
+        tabSecurity: "Security",
+        tabSpeech: "Speech",
+        tabData: "Data controls",
+        themeTitle: "Theme",
+        themeSub: "Customize Alora appearance",
+        themeSystem: "System",
+        themeDark: "Dark",
+        themeOled: "OLED",
+        themeLight: "Light",
+        themeSapphire: "Sapphire",
+        themeEyecare: "Sepia",
+        langTitle: "Language",
+        langSub: "Interface & dictation language",
+        soundTitle: "Sound effects",
+        soundSub: "Play subtle tones on send and receive",
+        soundMute: "Mute Audio",
+        soundEnable: "Enable Audio",
+        customizeBtn: "Customize",
+        currentPlanTitle: "Current Plan",
+        usageQuotaTitle: "Usage Quota",
+        resetsPeriodically: "Resets periodically",
+        accountStatusTitle: "Account Status",
+        manageProfileBtn: "Manage Profile",
+        displayNameTitle: "Display Name",
+        yourNamePlaceholder: "Your name",
+        saveBtn: "Save",
+        redeemVoucherTitle: "Redeem Voucher / Gift Code",
+        redeemVoucherSub: "Instantly activate Alora Pro or Max with your access code",
+        redeemPlaceholder: "Enter voucher code (e.g. ALO-PRO-XXXX)",
+        redeemBtn: "Redeem",
+        customAboutTitle: "Custom Instructions — About you",
+        customAboutSub: "What would you like Alora to know about you to provide better responses?",
+        customAboutPlaceholder: "e.g. I am a software engineer studying AI and web development.",
+        customPrefTitle: "Response Preferences",
+        customPrefSub: "How would you like Alora to respond? (tone, brevity, format)",
+        customPrefPlaceholder: "e.g. Be concise, write production-ready code with no placeholders.",
+        memoriesTitle: "Saved Memories",
+        memoriesSub: "Facts Alora remembers across conversations",
+        newMemoryPlaceholder: "Add a fact to remember...",
+        addBtn: "Add",
+        openPresetsBtn: "Open Presets Page",
+        saveInstructionsBtn: "Save Instructions",
+        securityGroundingTitle: "Strict Factual Grounding",
+        securityGroundingSub: "Alora checks models cleanly without faking citations or capabilities",
+        enforcedBadge: "Enforced",
+        securityPassTitle: "Password & Security",
+        securityPassSub: "Update password or review active login session",
+        openSecurityBtn: "Open Security",
+        deleteAccountTitle: "Delete Account",
+        deleteAccountSub: "Permanently erase your account and credentials",
+        deleteBtn: "Delete",
+        speechVoiceTitle: "Read Aloud Voice",
+        speechVoiceSub: "Select Web Speech voice for reading replies",
+        speechDefaultOption: "System Default (Auto EN/BN)",
+        speechPreviewTitle: "Preview Speech",
+        speechPreviewSub: "Test currently selected voice",
+        speakSampleBtn: "Speak Sample",
+        archivedChatsTitle: "Archived Chats",
+        archivedChatsSub: "Restore or remove chats archived from the sidebar",
+        exportDataTitle: "Export Chat Data",
+        exportDataSub: "Download conversations as JSON or Markdown",
+        exportJsonBtn: "Export JSON",
+        exportMdBtn: "Export MD",
+        clearChatsTitle: "Clear All Chats",
+        clearChatsSub: "Delete all saved conversations from this browser",
+        clearAllBtn: "Clear All",
+        planSuffix: "Plan",
+        adminUnlimited: "Admin (Unlimited)",
+        activeUser: "Active User",
+        guestTrialPlan: "Guest Trial (10 messages)",
+        guestStatus: "Guest (Not logged in)",
+        remainingWord: "remaining",
+        leftWord: "left",
+        imagesPrefix: "Images",
+        imagesLoginRequired: "Images: Login required",
+        guestQuotaLabel: "Guest quota",
+        unlimitedWord: "Unlimited",
+        adminAccessLabel: "Admin unrestricted access",
+        resetsInPrefix: "Resets in"
       },
       bn: {
         newChat: "নতুন চ্যাট",
@@ -3029,7 +3107,7 @@
         tempOptDesc: "ইতিহাসে সেভ হবে না বা মেমোরি ব্যবহার করবে না",
         askPlaceholder: "যা খুশি জিজ্ঞাসা করুন...",
         imagePlaceholder: "আপনি কেমন ছবি তৈরি করতে চান বর্ণনা করুন...",
-        legal: "Alora ভুল করতে পারে। গুরুত্বপূর্ণ তথ্য যাচাই করুন। • আলোকপথ",
+        legal: "Alora ভুল করতে পারে। গুরুত্বপূর্ণ তথ্য যাচাই করুন।",
         attachFile: "ছবি ও ফাইল যোগ করুন",
         createImage: "ছবি তৈরি করুন",
         thinkOpt: "গভীর চিন্তা (Reasoning)",
@@ -3072,12 +3150,96 @@
         busyDesc: "মডেলটি বর্তমানে ব্যস্ত রয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন বা অন্য মডেল নির্বাচন করুন।",
         retryBtn: "পুনরায় চেষ্টা করুন",
         upgradeCardTitle: "প্ল্যান আপগ্রেড প্রয়োজন",
+        upgradeCardDesc: "এই মডেল বা কোটা ব্যবহারের জন্য Pro অথবা Max প্ল্যান প্রয়োজন। প্ল্যান আপগ্রেড করুন অথবা ভাউচার কোড রিডিম করুন।",
         upgradeCardBtn: "প্ল্যান দেখুন",
-        redeemCardBtn: "কোড রিডিম"
+        redeemCardBtn: "কোড রিডিম",
+        settingsTitle: "সেটিংস",
+        tabGeneral: "সাধারণ",
+        tabAccount: "অ্যাকাউন্ট",
+        tabCustom: "পার্সোনালাইজেশন",
+        tabSecurity: "নিরাপত্তা",
+        tabSpeech: "স্পিচ",
+        tabData: "ডাটা নিয়ন্ত্রণ",
+        themeTitle: "থিম",
+        themeSub: "Alora-র রঙ ও রূপ নির্বাচন করুন",
+        themeSystem: "সিস্টেম",
+        themeDark: "ডার্ক",
+        themeOled: "ওলেড",
+        themeLight: "লাইট",
+        themeSapphire: "স্যাফায়ার",
+        themeEyecare: "সেপিয়া",
+        langTitle: "ভাষা",
+        langSub: "ইন্টারফেস ও ভয়েস ভাষা",
+        soundTitle: "সাউন্ড এফেক্ট",
+        soundSub: "বার্তা পাঠানো ও পাওয়ার সময় হালকা শব্দ",
+        soundMute: "শব্দ বন্ধ করুন",
+        soundEnable: "শব্দ চালু করুন",
+        customizeBtn: "কাস্টমাইজ",
+        currentPlanTitle: "বর্তমান প্ল্যান",
+        usageQuotaTitle: "ব্যবহারের সীমা",
+        resetsPeriodically: "নির্দিষ্ট সময় পর রিসেট হয়",
+        accountStatusTitle: "অ্যাকাউন্টের অবস্থা",
+        manageProfileBtn: "প্রোফাইল পরিচালনা",
+        displayNameTitle: "প্রদর্শিত নাম",
+        yourNamePlaceholder: "আপনার নাম",
+        saveBtn: "সংরক্ষণ",
+        redeemVoucherTitle: "ভাউচার / গিফট কোড রিডিম করুন",
+        redeemVoucherSub: "অ্যাক্সেস কোড দিয়ে তাৎক্ষণিকভাবে Pro বা Max সক্রিয় করুন",
+        redeemPlaceholder: "ভাউচার কোড লিখুন (যেমন ALO-PRO-XXXX)",
+        redeemBtn: "রিডিম",
+        customAboutTitle: "কাস্টম নির্দেশনা — আপনার সম্পর্কে",
+        customAboutSub: "আরো ভালো উত্তরের জন্য Alora আপনার সম্পর্কে কী জানা উচিত?",
+        customAboutPlaceholder: "যেমন: আমি একজন সফটওয়্যার ইঞ্জিনিয়ার, AI এবং ওয়েব ডেভেলপমেন্ট নিয়ে কাজ করি।",
+        customPrefTitle: "উত্তরের ধরন",
+        customPrefSub: "Alora কীভাবে উত্তর দিক তা নির্ধারণ করুন (টোন, সংক্ষিপ্ততা, ফরম্যাট)",
+        customPrefPlaceholder: "যেমন: সংক্ষেপে ও পরিচ্ছন্ন প্রোডাকশন কোড সহ উত্তর দাও।",
+        memoriesTitle: "সংরক্ষিত মেমোরি",
+        memoriesSub: "সব কথোপকথনে Alora যে তথ্যগুলো মনে রাখবে",
+        newMemoryPlaceholder: "মনে রাখার মতো একটি তথ্য যোগ করুন...",
+        addBtn: "যোগ করুন",
+        openPresetsBtn: "প্রিসেট পেজ খুলুন",
+        saveInstructionsBtn: "নির্দেশনা সংরক্ষণ",
+        securityGroundingTitle: "সঠিক তথ্য যাচাই",
+        securityGroundingSub: "Alora ভুয়া তথ্য বা রেফারেন্স ছাড়া সঠিকভাবে মডেল যাচাই করে",
+        enforcedBadge: "সক্রিয়",
+        securityPassTitle: "পাসওয়ার্ড ও নিরাপত্তা",
+        securityPassSub: "পাসওয়ার্ড পরিবর্তন বা সক্রিয় সেশন দেখুন",
+        openSecurityBtn: "নিরাপত্তা পেজ",
+        deleteAccountTitle: "অ্যাকাউন্ট মুছুন",
+        deleteAccountSub: "আপনার অ্যাকাউন্ট ও সকল তথ্য স্থায়ীভাবে মুছে ফেলুন",
+        deleteBtn: "মুছুন",
+        speechVoiceTitle: "উচ্চারণ ভয়েস",
+        speechVoiceSub: "উত্তর পড়ার জন্য পছন্দের ভয়েস নির্বাচন করুন",
+        speechDefaultOption: "সিস্টেম ডিফল্ট (অটো EN/BN)",
+        speechPreviewTitle: "ভয়েস পরীক্ষা",
+        speechPreviewSub: "নির্বাচিত ভয়েস শুনে দেখুন",
+        speakSampleBtn: "নমুনা শুনুন",
+        archivedChatsTitle: "আর্কাইভ করা চ্যাট",
+        archivedChatsSub: "আর্কাইভ থেকে চ্যাট পুনরুদ্ধার বা স্থায়ীভাবে মুছুন",
+        exportDataTitle: "চ্যাট ডাটা এক্সপোর্ট",
+        exportDataSub: "কথোপকথন JSON বা Markdown হিসেবে ডাউনলোড করুন",
+        exportJsonBtn: "JSON ডাউনলোড",
+        exportMdBtn: "MD ডাউনলোড",
+        clearChatsTitle: "সব চ্যাট মুছুন",
+        clearChatsSub: "এই ব্রাউজারে সংরক্ষিত সকল কথোপকথন মুছে ফেলুন",
+        clearAllBtn: "সব মুছুন",
+        planSuffix: "প্ল্যান",
+        adminUnlimited: "অ্যাডমিন (আনলিমিটেড)",
+        activeUser: "সক্রিয় সদস্য",
+        guestTrialPlan: "গেস্ট ট্রায়াল (১০টি বার্তা)",
+        guestStatus: "গেস্ট (লগইন করা নেই)",
+        remainingWord: "বাকি",
+        leftWord: "বাকি",
+        imagesPrefix: "ছবি",
+        imagesLoginRequired: "ছবি: লগইন প্রয়োজন",
+        guestQuotaLabel: "গেস্ট সীমা",
+        unlimitedWord: "আনলিমিটেড",
+        adminAccessLabel: "অ্যাডমিন সীমাহীন অ্যাক্সেস",
+        resetsInPrefix: "রিসেট হবে"
       }
     };
 
-    let currentLanguage = localStorage.getItem(KEYS.LANG) || "bn";
+    let currentLanguage = localStorage.getItem(KEYS.LANG) || "en";
     let isSoundMuted = localStorage.getItem(KEYS.SOUND) === "false";
     let selectedModel = localStorage.getItem(KEYS.SELECTED_MODEL) || "";
     let pendingRouteModel = null;
@@ -3132,6 +3294,18 @@
 
     function t(key) {
       return (I18N_UI[currentLanguage] && I18N_UI[currentLanguage][key]) || I18N_UI.en[key] || key;
+    }
+
+    function localizeServerError(msg, fallbackKey) {
+      const text = typeof msg === "string" ? msg.trim() : "";
+      if (!text) return t(fallbackKey || "busyDesc");
+      if (currentLanguage === "en" && /[\u0980-\u09FF]/.test(text)) {
+        if (/আপগ্রেড|Pro|Max|অ্যাক্সেস|প্ল্যান|ফিচার/i.test(text)) return t("upgradeCardDesc");
+        if (/লিমিট|শেষ|কোটা|limit|quota/i.test(text)) return "Usage limit reached. Please upgrade your plan or try again later.";
+        if (/লগইন|সেশন|অনুমতি/i.test(text)) return "Please log in to continue.";
+        return t(fallbackKey || "busyDesc");
+      }
+      return text;
     }
 
     function generateUuid() {
@@ -3238,6 +3412,9 @@
 
     function applyLiveI18n() {
       document.documentElement.setAttribute("lang", currentLanguage);
+      if (!currentSessionId) {
+        document.title = currentLanguage === "bn" ? "Alora (অ্যালোরা)" : "Alora";
+      }
       const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
       setEl("newChatLabel", t("newChat"));
       setEl("searchChatsLabel", t("searchChats"));
@@ -3266,6 +3443,18 @@
       setEl("ctxDeleteText", t("ctxDelete"));
       setEl("shareModalTitle", t("shareTitle"));
       setEl("shareModalDesc", t("shareDesc"));
+
+      document.querySelectorAll("[data-i18n]").forEach(el => {
+        const key = el.getAttribute("data-i18n");
+        if (key) el.textContent = t(key);
+      });
+      document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+        const key = el.getAttribute("data-i18n-placeholder");
+        if (key) el.placeholder = t(key);
+      });
+
+      const soundChip = document.getElementById("soundToggleChip");
+      if (soundChip) soundChip.textContent = isSoundMuted ? t("soundEnable") : t("soundMute");
 
       const loadEl = document.getElementById("modelLoadingPlaceholder");
       if (loadEl) loadEl.textContent = t("loadingModels");
@@ -3345,7 +3534,7 @@
             userAvatar.textContent = displayName.trim().charAt(0).toUpperCase() || "U";
           }
         }
-        if (planLabel) planLabel.textContent = isAdmin ? "Admin (Unlimited)" : `${plan} Plan`;
+        if (planLabel) planLabel.textContent = isAdmin ? t("adminUnlimited") : `${plan} ${t("planSuffix")}`;
         if (guestActions) guestActions.style.display = "none";
         if (popoverAuthText) popoverAuthText.textContent = t("logOut");
         if (popoverEmail) {
@@ -3353,8 +3542,8 @@
           popoverEmail.style.display = user.email ? "block" : "none";
         }
         if (popoverAccountLink) popoverAccountLink.style.display = "flex";
-        if (settingsPlan) settingsPlan.textContent = isAdmin ? "Admin (Unlimited)" : `${plan} Plan`;
-        if (settingsEmail) settingsEmail.textContent = user.email || "Active User";
+        if (settingsPlan) settingsPlan.textContent = isAdmin ? t("adminUnlimited") : `${plan} ${t("planSuffix")}`;
+        if (settingsEmail) settingsEmail.textContent = user.email || t("activeUser");
         if (settingsAuthBtn) settingsAuthBtn.textContent = t("logOut");
         if (settingsAccountPortalLink) settingsAccountPortalLink.style.display = "inline-flex";
         if (settingsProfileEditRow) settingsProfileEditRow.style.display = "flex";
@@ -3370,8 +3559,8 @@
         if (popoverAuthText) popoverAuthText.textContent = t("logIn");
         if (popoverEmail) popoverEmail.style.display = "none";
         if (popoverAccountLink) popoverAccountLink.style.display = "none";
-        if (settingsPlan) settingsPlan.textContent = "Guest Trial (10 messages)";
-        if (settingsEmail) settingsEmail.textContent = "Guest (Not logged in)";
+        if (settingsPlan) settingsPlan.textContent = t("guestTrialPlan");
+        if (settingsEmail) settingsEmail.textContent = t("guestStatus");
         if (settingsAuthBtn) settingsAuthBtn.textContent = t("logIn");
         if (settingsAccountPortalLink) settingsAccountPortalLink.style.display = "none";
         if (settingsProfileEditRow) settingsProfileEditRow.style.display = "none";
@@ -3383,10 +3572,10 @@
         const barEl = document.getElementById("settingsQuotaBar");
         const imgEl = document.getElementById("settingsImgQuotaSummary");
         const rstEl = document.getElementById("settingsQuotaResetLabel");
-        if (sumEl) sumEl.textContent = `${gRem} / 10 remaining`;
+        if (sumEl) sumEl.textContent = `${gRem} / 10 ${t("remainingWord")}`;
         if (barEl) barEl.style.width = `${Math.round((gRem / 10) * 100)}%`;
-        if (imgEl) imgEl.textContent = "Images: Login required";
-        if (rstEl) rstEl.textContent = "Guest quota";
+        if (imgEl) imgEl.textContent = t("imagesLoginRequired");
+        if (rstEl) rstEl.textContent = t("guestQuotaLabel");
       }
     }
 
@@ -3397,10 +3586,10 @@
       const rstEl = document.getElementById("settingsQuotaResetLabel");
       if (!sumEl) return;
       if (isAdmin) {
-        sumEl.textContent = "Unlimited";
+        sumEl.textContent = t("unlimitedWord");
         if (barEl) barEl.style.width = "100%";
-        if (imgEl) imgEl.textContent = "Images: Unlimited";
-        if (rstEl) rstEl.textContent = "Admin unrestricted access";
+        if (imgEl) imgEl.textContent = `${t("imagesPrefix")}: ${t("unlimitedWord")}`;
+        if (rstEl) rstEl.textContent = t("adminAccessLabel");
         return;
       }
       const pInfo = cachedPlanLimits[planName] || cachedPlanLimits.Free;
@@ -3414,10 +3603,10 @@
       const h = Math.floor(resetMins / 60);
       const m = resetMins % 60;
 
-      sumEl.textContent = `${rem} / ${limit} remaining`;
+      sumEl.textContent = `${rem} / ${limit} ${t("remainingWord")}`;
       if (barEl) barEl.style.width = `${limit > 0 ? Math.max(0, Math.min(100, Math.round((rem / limit) * 100))) : 0}%`;
-      if (imgEl) imgEl.textContent = `Images: ${imgRem} / ${imgLimit} left`;
-      if (rstEl) rstEl.textContent = h > 0 ? `Resets in ${h}h ${m}m` : `Resets in ${m}m`;
+      if (imgEl) imgEl.textContent = `${t("imagesPrefix")}: ${imgRem} / ${imgLimit} ${t("leftWord")}`;
+      if (rstEl) rstEl.textContent = h > 0 ? `${t("resetsInPrefix")} ${h}h ${m}m` : `${t("resetsInPrefix")} ${m}m`;
     }
 
     async function fetchPlanLimits() {
@@ -4490,7 +4679,7 @@
       contentEl.innerHTML = `
         <div class="chat-upgrade-card">
           <div style="font-weight:600; font-size:0.98rem; color:var(--text-main);">${escapeHtml(t("upgradeCardTitle"))}</div>
-          <div style="font-size:0.86rem; color:var(--text-sub); line-height:1.5;">${escapeHtml(errMessage || "This model or quota requires a Pro or Max subscription.")}</div>
+          <div style="font-size:0.86rem; color:var(--text-sub); line-height:1.5;">${escapeHtml(localizeServerError(errMessage, "upgradeCardDesc"))}</div>
           <div class="chat-upgrade-actions">
             <a href="/pricing" class="btn-mono-primary" style="text-decoration:none;">${escapeHtml(t("upgradeCardBtn"))}</a>
             <a href="/redeem" class="btn-mono-secondary" style="text-decoration:none;">${escapeHtml(t("redeemCardBtn"))}</a>
@@ -4715,7 +4904,7 @@
             return;
           }
           if (!res.ok || !data.success || !data.url) {
-            throw new Error(data.error || t("busyDesc"));
+            throw new Error(localizeServerError(data.error, "busyDesc"));
           }
           renderGeneratedImageContent(content, data.url, data.model || "Alora Image");
           const assistantMsg = {
@@ -4730,7 +4919,7 @@
           wireAssistantToolbar(toolbar, row, assistantMsg, messagesHistory.length - 1);
           soundEngine.receive();
         } catch(err) {
-          renderModelBusyCard(content, t("busyTitle"), err.message || t("busyDesc"));
+          renderModelBusyCard(content, t("busyTitle"), localizeServerError(err.message, "busyDesc"));
           soundEngine.error();
         } finally {
           isSending = false;
@@ -4872,7 +5061,7 @@
             soundEngine.error();
             return;
           }
-          const busyErr = new Error(errData.error || `Server error (${res.status})`);
+          const busyErr = new Error(localizeServerError(errData.error, "busyDesc") || `Server error (${res.status})`);
           busyErr.code = errData.code || (res.status >= 500 || res.status === 429 ? "MODEL_BUSY" : "");
           throw busyErr;
         }
@@ -4992,7 +5181,7 @@
           renderModelBusyCard(
             content,
             t("busyTitle"),
-            isBusy ? t("busyDesc") : err.message
+            isBusy ? t("busyDesc") : localizeServerError(err.message, "busyDesc")
           );
           soundEngine.error();
         }
@@ -5609,12 +5798,12 @@
 
       const soundChip = document.getElementById("soundToggleChip");
       if (soundChip) {
-        soundChip.textContent = isSoundMuted ? "Enable Audio" : "Mute Audio";
+        soundChip.textContent = isSoundMuted ? t("soundEnable") : t("soundMute");
         soundChip.addEventListener("click", () => {
           isSoundMuted = !isSoundMuted;
           localStorage.setItem(KEYS.SOUND, isSoundMuted ? "false" : "true");
-          soundChip.textContent = isSoundMuted ? "Enable Audio" : "Mute Audio";
-          showToast(isSoundMuted ? "Audio muted" : "Audio enabled");
+          soundChip.textContent = isSoundMuted ? t("soundEnable") : t("soundMute");
+          showToast(currentLanguage === "bn" ? (isSoundMuted ? "শব্দ বন্ধ করা হয়েছে" : "শব্দ চালু করা হয়েছে") : (isSoundMuted ? "Audio muted" : "Audio enabled"));
         });
       }
 

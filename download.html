@@ -132,8 +132,8 @@
       padding-bottom: 0;
       padding-left: max(18px, env(safe-area-inset-left, 18px));
       padding-right: max(18px, env(safe-area-inset-right, 18px));
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
     }
 
     .back-btn {
@@ -207,18 +207,6 @@
       position: relative;
     }
 
-    .hero-glow {
-      position: absolute;
-      width: 180px;
-      height: 180px;
-      top: 15px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.15) 50%, transparent 75%);
-      filter: blur(28px);
-      z-index: 0;
-      pointer-events: none;
-    }
-
     .app-icon-wrap {
       position: relative;
       z-index: 1;
@@ -227,7 +215,7 @@
       border-radius: 24px;
       background: #07080a;
       padding: 4px;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.12);
+      box-shadow: none;
       margin-bottom: 20px;
       transition: transform 0.25s ease;
     }
@@ -297,7 +285,7 @@
       border: 1px solid var(--border-card);
       border-radius: 20px;
       padding: 24px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+      box-shadow: none;
       position: relative;
       overflow: hidden;
       transition: transform 0.2s, border-color 0.2s;
@@ -423,13 +411,13 @@
       gap: 10px;
       cursor: pointer;
       text-decoration: none;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+      box-shadow: none;
       transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .btn-download-primary:hover {
       background: var(--accent-blue-hover);
       transform: none !important;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+      box-shadow: none;
     }
     .btn-download-primary:active {
       transform: scale(0.98);
@@ -460,7 +448,7 @@
       gap: 14px;
       cursor: pointer;
       text-decoration: none !important;
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
+      box-shadow: none;
       transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       box-sizing: border-box;
     }
@@ -468,7 +456,7 @@
       background: linear-gradient(135deg, #27272a 0%, #18181b 100%);
       border-color: rgba(255, 255, 255, 0.28);
       transform: none !important;
-      box-shadow: 0 6px 22px rgba(0, 0, 0, 0.55);
+      box-shadow: none;
     }
     .btn-download-ios:active {
       transform: scale(0.98);
@@ -509,12 +497,12 @@
       background: #000000;
       color: #ffffff !important;
       border: 1px solid #000000;
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+      box-shadow: none;
     }
     [data-theme="light"] .btn-download-ios:hover,
     [data-theme="eyecare"] .btn-download-ios:hover {
       background: #18181b;
-      box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35);
+      box-shadow: none;
     }
     [data-theme="light"] .btn-main-title,
     [data-theme="eyecare"] .btn-main-title {
@@ -556,7 +544,7 @@
     [data-theme="light"] .app-icon-wrap,
     [data-theme="eyecare"] .app-icon-wrap {
       background: #ffffff;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.08);
+      box-shadow: none;
     }
     [data-theme="light"] .lang-pill-btn,
     [data-theme="eyecare"] .lang-pill-btn {
@@ -574,7 +562,7 @@
     }
     [data-theme="light"] .platform-card,
     [data-theme="eyecare"] .platform-card {
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+      box-shadow: none;
     }
     [data-theme="light"] .platform-card.featured,
     [data-theme="eyecare"] .platform-card.featured {
@@ -737,7 +725,7 @@
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      box-shadow: none;
     }
     .qr-box img {
       width: 100%;
@@ -783,9 +771,9 @@
       border: 1px solid rgba(255, 255, 255, 0.16);
       border-radius: 18px;
       padding: 12px 16px;
-      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
+      box-shadow: none;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
       display: none;
       align-items: center;
       justify-content: space-between;
@@ -867,7 +855,7 @@
     [data-theme="eyecare"] .pwa-install-banner {
       background: rgba(255, 255, 255, 0.95);
       border-color: rgba(0, 0, 0, 0.12);
-      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.15);
+      box-shadow: none;
     }
     [data-theme="light"] .pwa-banner-title,
     [data-theme="eyecare"] .pwa-banner-title {
@@ -886,8 +874,8 @@
       right: 0;
       bottom: 0;
       background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
       z-index: 200;
       display: flex;
       align-items: center;
@@ -902,7 +890,7 @@
       width: 100%;
       max-width: 440px;
       padding: 24px;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+      box-shadow: none;
     }
     .ios-guide-header {
       display: flex;
@@ -971,7 +959,7 @@
     }
     button:hover, .btn:hover, .btn-primary:hover, .btn-secondary:hover, .page-back-btn:hover, .option-card:hover, .btn-test-sound:hover, .auth-btn:hover, .download-btn:hover {
       transform: none !important;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18) !important;
+      box-shadow: none;
     }
     button:active, .btn:active, .btn-primary:active, .btn-secondary:active, .page-back-btn:active, .option-card:active, .btn-test-sound:active, .auth-btn:active, .download-btn:active {
       transform: scale(0.975) !important;
@@ -1037,15 +1025,14 @@
 
     <!-- HERO SECTION -->
     <section class="hero-card">
-      <div class="hero-glow"></div>
       <div class="app-icon-wrap">
         <img src="/logo_icon_white.png" alt="Alora App Logo" width="96" height="96">
       </div>
       <div style="display: flex; justify-content: center; margin-bottom: 12px;">
         <div style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; border-radius: 9999px; background: rgba(255,255,255,0.06); border: 1px solid var(--border-color); font-size: 0.82rem; font-weight: 500; color: var(--text-muted);">
-          <span>An Alokpath Product</span>
+          <span>Alora AI</span>
           <span>•</span>
-          <span>আলোকপথ</span>
+          <span>An Alokpath Product</span>
         </div>
       </div>
       <h1 class="hero-title" id="heroTitle">Alora for Android & iOS</h1>
@@ -1331,8 +1318,8 @@
       <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; margin-bottom: 12px;">
         <span style="font-size: 0.72rem; color: var(--text-muted); letter-spacing: 0.8px; text-transform: lowercase;">from</span>
         <div style="display: flex; align-items: center; gap: 8px;">
-          <img src="/logo_icon_white.png" alt="আলোকপথ" class="alokpath-theme-logo-dark" style="height: 24px; width: auto; object-fit: contain;">
-          <img src="/logo_icon_black.png" alt="আলোকপথ" class="alokpath-theme-logo-light" style="height: 24px; width: auto; object-fit: contain;">
+          <img src="/logo_icon_white.png" alt="Alora" class="alokpath-theme-logo-dark" style="height: 24px; width: auto; object-fit: contain;">
+          <img src="/logo_icon_black.png" alt="Alora" class="alokpath-theme-logo-light" style="height: 24px; width: auto; object-fit: contain;">
         </div>
       </div>
       <span>Alora v1.2.0 (Build 12) • An Alokpath Product • Developed by Zihan Fakir</span>

@@ -194,7 +194,7 @@
       border: 1px solid var(--border-card);
       border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+      box-shadow: none;
     }
 
     .settings-row {
@@ -265,7 +265,7 @@
       background-color: #ffffff;
       transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       border-radius: 50%;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+      box-shadow: none;
     }
 
     .toggle-switch input:checked + .toggle-slider { background-color: var(--accent-blue); }
@@ -325,7 +325,7 @@
       border-radius: 50%;
       background: var(--accent-blue);
       cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      box-shadow: none;
       transition: transform 0.1s;
     }
     .volume-range-input::-webkit-slider-thumb:hover {
@@ -364,7 +364,7 @@
     .option-card.active {
       border-color: var(--accent-blue);
       background: rgba(255, 255, 255, 0.08);
-      box-shadow: 0 0 0 1px var(--accent-blue);
+      box-shadow: none;
     }
     .option-card:focus-visible {
       outline: 2px solid var(--accent-blue);
@@ -450,7 +450,7 @@
       gap: 8px;
       transition: background 0.15s, transform 0.1s;
       margin: 8px 16px 16px;
-      box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+      box-shadow: none;
     }
     .btn-test-sound:hover {
       background: var(--accent-blue-hover);
@@ -472,10 +472,10 @@
       color: #ffffff;
       background: rgba(24, 24, 27, 0.95);
       border: 1px solid rgba(255, 255, 255, 0.15);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      box-shadow: none;
       z-index: 1000;
       display: none;
-      backdrop-filter: blur(12px);
+      backdrop-filter: none;
       white-space: nowrap;
     }
     .toast.success { border-color: rgba(255, 255, 255, 0.25);  }
