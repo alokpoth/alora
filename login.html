@@ -3,51 +3,109 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Log in — Alora AI</title>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>Log in — Alora</title>
 
   <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=3">
   <link rel="shortcut icon" href="/favicon.ico?v=3">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3">
+
+  <script>
+    (function() {
+      try {
+        var qTheme = new URLSearchParams(window.location.search).get('theme');
+        var rawTheme = qTheme || localStorage.getItem('alokpoth_theme') || 'dark';
+        var effective = rawTheme;
+        if (rawTheme === 'system') {
+          effective = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+        }
+        var allowed = ['dark', 'oled', 'light', 'eyecare', 'sapphire'];
+        if (allowed.indexOf(effective) === -1) effective = 'dark';
+        document.documentElement.setAttribute('data-theme', effective);
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
-    :root {
+    :root,
+    [data-theme="dark"],
+    [data-theme="sapphire"] {
       --bg: #212121;
-      --card-bg: #212121;
-      --text-primary: #ececec;
-      --text-secondary: #b4b4b4;
+      --surface: #171717;
+      --card: #2a2a2a;
+      --input: #2f2f2f;
+      --border: rgba(255, 255, 255, 0.12);
+      --border-strong: rgba(255, 255, 255, 0.28);
+      --focus-ring: rgba(255, 255, 255, 0.14);
+      --text-main: #ececec;
+      --text-sub: #b4b4b4;
       --text-muted: #8e8e8e;
-      --border: rgba(255, 255, 255, 0.15);
-      --border-focus: #ffffff;
-      --input-bg: #2f2f2f;
-      --btn-primary: #ffffff;
-      --btn-primary-hover: #ececec;
+      --btn-bg: #ffffff;
       --btn-text: #000000;
-      --social-btn-bg: transparent;
-      --social-btn-hover: #2f2f2f;
+      --btn-hover: #e5e5e5;
+      --hover-fill: rgba(255, 255, 255, 0.06);
       --danger: #ef4444;
-      --radius: 28px;
-      --radius-input: 26px;
-      --radius-pill: 9999px;
+    }
+
+    [data-theme="oled"] {
+      --bg: #000000;
+      --surface: #0a0a0a;
+      --card: #141414;
+      --input: #1c1c1c;
+      --border: rgba(255, 255, 255, 0.12);
+      --border-strong: rgba(255, 255, 255, 0.28);
+      --focus-ring: rgba(255, 255, 255, 0.16);
+      --text-main: #ececec;
+      --text-sub: #b4b4b4;
+      --text-muted: #8e8e8e;
+      --btn-bg: #ffffff;
+      --btn-text: #000000;
+      --btn-hover: #e5e5e5;
+      --hover-fill: rgba(255, 255, 255, 0.07);
+      --danger: #ef4444;
     }
 
     [data-theme="light"] {
       --bg: #ffffff;
-      --card-bg: #ffffff;
-      --text-primary: #2d333a;
-      --text-secondary: #6e7681;
-      --text-muted: #8c959f;
-      --border: #d0d7de;
-      --border-focus: #000000;
-      --input-bg: #ffffff;
-      --btn-primary: #000000;
-      --btn-primary-hover: #222222;
+      --surface: #f9f9f9;
+      --card: #f4f4f4;
+      --input: #ffffff;
+      --border: rgba(0, 0, 0, 0.12);
+      --border-strong: rgba(0, 0, 0, 0.32);
+      --focus-ring: rgba(0, 0, 0, 0.08);
+      --text-main: #0d0d0d;
+      --text-sub: #5d5d5d;
+      --text-muted: #8e8e8e;
+      --btn-bg: #0d0d0d;
       --btn-text: #ffffff;
-      --social-btn-bg: #ffffff;
-      --social-btn-hover: #f6f8fa;
+      --btn-hover: #262626;
+      --hover-fill: rgba(0, 0, 0, 0.04);
+      --danger: #ef4444;
+    }
+
+    [data-theme="eyecare"] {
+      --bg: #f5eedc;
+      --surface: #f9f9f9;
+      --card: #f4f4f4;
+      --input: #ffffff;
+      --border: rgba(0, 0, 0, 0.12);
+      --border-strong: rgba(0, 0, 0, 0.32);
+      --focus-ring: rgba(0, 0, 0, 0.08);
+      --text-main: #0d0d0d;
+      --text-sub: #5d5d5d;
+      --text-muted: #8e8e8e;
+      --btn-bg: #0d0d0d;
+      --btn-text: #ffffff;
+      --btn-hover: #262626;
+      --hover-fill: rgba(0, 0, 0, 0.04);
+      --danger: #ef4444;
     }
 
     *, *::before, *::after {
@@ -59,409 +117,1039 @@
 
     body {
       background-color: var(--bg);
-      color: var(--text-primary);
-      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', 'Hind Siliguri', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       min-height: 100vh;
       min-height: 100dvh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: space-between;
-      padding: 32px 16px 24px;
+      padding: max(28px, env(safe-area-inset-top, 28px)) 20px max(24px, env(safe-area-inset-bottom, 24px));
       -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
-    .auth-container {
+    .auth-shell {
       width: 100%;
       max-width: 360px;
       display: flex;
       flex-direction: column;
       align-items: center;
       margin: auto 0;
+      padding: 16px 0;
     }
 
-    .brand-logo-wrap {
-      margin-bottom: 24px;
-      cursor: pointer;
-    }
-    .brand-logo-img {
-      width: 52px;
-      height: 52px;
+    .brand-logo-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 28px;
+      text-decoration: none;
       border-radius: 50%;
+      transition: opacity 0.15s ease;
+    }
+
+    .brand-logo-link:hover {
+      opacity: 0.85;
+    }
+
+    .brand-logo-img {
+      width: 44px;
+      height: 44px;
       object-fit: contain;
       display: block;
     }
 
-    .auth-title {
-      font-size: 1.85rem;
-      font-weight: 700;
+    .auth-heading {
+      font-size: 1.9rem;
+      font-weight: 600;
       letter-spacing: -0.025em;
-      margin-bottom: 24px;
+      line-height: 1.2;
       text-align: center;
-      color: var(--text-primary);
+      color: var(--text-main);
+      margin-bottom: 28px;
     }
 
+    .auth-heading.compact {
+      margin-bottom: 10px;
+    }
+
+    .auth-subtitle {
+      font-size: 0.92rem;
+      color: var(--text-sub);
+      text-align: center;
+      line-height: 1.55;
+      margin-bottom: 24px;
+      display: none;
+    }
+
+    /* Existing Session Pill */
+    .session-box {
+      width: 100%;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .session-continue-pill {
+      width: 100%;
+      min-height: 56px;
+      padding: 10px 16px;
+      background: var(--card);
+      border: 1px solid var(--border-strong);
+      border-radius: 9999px;
+      color: var(--text-main);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      cursor: pointer;
+      transition: background-color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .session-continue-pill:hover {
+      background: var(--hover-fill);
+      border-color: var(--text-main);
+    }
+
+    .session-user-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      text-align: left;
+    }
+
+    .session-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      font-size: 0.88rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      text-transform: uppercase;
+    }
+
+    .session-text-wrap {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .session-title {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .session-email {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .session-switch-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 0.82rem;
+      cursor: pointer;
+      align-self: center;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .session-switch-btn:hover {
+      color: var(--text-main);
+    }
+
+    /* Alerts & Notices */
+    .alert-banner {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 16px;
+      font-size: 0.88rem;
+      line-height: 1.5;
+      margin-bottom: 16px;
+      display: none;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .alert-banner svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .alert-banner.error {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.32);
+      color: var(--danger);
+    }
+
+    .alert-banner.notice {
+      background: var(--card);
+      border: 1px solid var(--border-strong);
+      color: var(--text-main);
+    }
+
+    /* Form & Inputs */
     .auth-form {
       width: 100%;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
     }
 
-    .input-group {
+    .field-wrap {
+      width: 100%;
+      position: relative;
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      position: relative;
     }
 
-    .input-field {
+    .input-control {
       width: 100%;
       height: 52px;
       padding: 0 20px;
-      background: var(--input-bg);
+      background: var(--input);
       border: 1px solid var(--border);
-      border-radius: var(--radius-input);
-      color: var(--text-primary);
-      font-size: 1rem;
+      border-radius: 9999px;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 0.98rem;
       outline: none;
       transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
-    .input-field:focus {
-      border-color: var(--border-focus);
-      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.15);
+
+    .input-control.has-trailing-icon {
+      padding-right: 50px;
     }
-    .input-field::placeholder {
+
+    .input-control::placeholder {
       color: var(--text-muted);
     }
 
-    .password-toggle-btn {
+    .input-control:focus {
+      border-color: var(--text-main);
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+
+    .pw-eye-btn {
       position: absolute;
-      right: 18px;
+      right: 14px;
       top: 50%;
       transform: translateY(-50%);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.15s ease, background-color 0.15s ease;
+    }
+
+    .pw-eye-btn:hover {
+      color: var(--text-main);
+      background: var(--hover-fill);
+    }
+
+    .forgot-row {
+      display: flex;
+      justify-content: flex-start;
+      padding: 0 6px;
+      margin-top: -4px;
+    }
+
+    .text-action-btn {
       background: none;
       border: none;
-      color: var(--text-muted);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .password-toggle-btn:hover {
-      color: var(--text-primary);
-    }
-
-    .error-alert {
-      padding: 12px 18px;
-      border-radius: 18px;
-      background: rgba(239, 68, 68, 0.12);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-      color: var(--danger);
+      color: var(--text-sub);
+      font-family: inherit;
       font-size: 0.86rem;
-      display: none;
-      line-height: 1.45;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 2px 0;
+      transition: color 0.15s ease;
     }
 
-    .continue-btn {
+    .text-action-btn:hover {
+      color: var(--text-main);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .continue-pill-btn {
       width: 100%;
       height: 52px;
-      background: var(--btn-primary);
+      margin-top: 4px;
+      background: var(--btn-bg);
       color: var(--btn-text);
       border: none;
-      border-radius: var(--radius-pill);
-      font-size: 1rem;
+      border-radius: 9999px;
+      font-family: inherit;
+      font-size: 0.98rem;
       font-weight: 600;
       cursor: pointer;
-      display: flex;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      transition: background-color 0.15s ease, opacity 0.15s ease, transform 0.1s ease;
-      margin-top: 4px;
+      gap: 10px;
+      transition: background-color 0.15s ease, opacity 0.15s ease;
     }
-    .continue-btn:hover {
-      background: var(--btn-primary-hover);
-      transform: scale(1.01);
+
+    .continue-pill-btn:hover:not(:disabled) {
+      background: var(--btn-hover);
     }
-    .continue-btn:disabled {
-      opacity: 0.6;
+
+    .continue-pill-btn:disabled {
+      opacity: 0.65;
       cursor: not-allowed;
-      transform: none;
     }
 
-    .auth-toggle-row {
+    .spinner-svg {
+      width: 18px;
+      height: 18px;
+      animation: authSpin 0.75s linear infinite;
+    }
+
+    @keyframes authSpin {
+      to { transform: rotate(360deg); }
+    }
+
+    .back-login-row {
+      display: none;
+      justify-content: center;
+      margin-top: 18px;
+    }
+
+    .toggle-mode-row {
       display: flex;
       align-items: center;
       justify-content: center;
+      flex-wrap: wrap;
       gap: 6px;
+      margin-top: 20px;
       font-size: 0.9rem;
-      color: var(--text-secondary);
-      margin-top: 14px;
-    }
-    .auth-toggle-link {
-      color: var(--text-primary);
-      font-weight: 600;
-      text-decoration: underline;
-      cursor: pointer;
-    }
-    .auth-toggle-link:hover {
-      opacity: 0.8;
+      color: var(--text-sub);
     }
 
-    .divider-row {
+    .toggle-mode-btn {
+      background: none;
+      border: none;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .toggle-mode-btn:hover {
+      opacity: 0.82;
+    }
+
+    .or-divider {
+      width: 100%;
       display: flex;
       align-items: center;
-      width: 100%;
-      margin: 24px 0;
+      margin: 24px 0 20px;
       color: var(--text-muted);
-      font-size: 0.78rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
     }
-    .divider-row::before,
-    .divider-row::after {
+
+    .or-divider::before,
+    .or-divider::after {
       content: "";
       flex: 1;
       height: 1px;
       background: var(--border);
     }
-    .divider-row span {
+
+    .or-divider span {
       padding: 0 14px;
     }
 
-    .social-btn {
+    .secondary-actions {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .secondary-pill-btn {
       width: 100%;
       height: 52px;
-      background: var(--social-btn-bg);
+      padding: 0 20px;
+      background: transparent;
       border: 1px solid var(--border);
-      border-radius: var(--radius-pill);
-      color: var(--text-primary);
+      border-radius: 9999px;
+      color: var(--text-main);
+      font-family: inherit;
       font-size: 0.95rem;
       font-weight: 500;
-      display: flex;
+      text-decoration: none;
+      cursor: pointer;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 12px;
-      cursor: pointer;
-      transition: background-color 0.15s ease, transform 0.1s ease;
-      text-decoration: none;
-      margin-bottom: 10px;
+      transition: background-color 0.15s ease, border-color 0.15s ease;
     }
-    .social-btn:hover {
-      background: var(--social-btn-hover);
-      transform: scale(1.01);
+
+    .secondary-pill-btn:hover {
+      background: var(--hover-fill);
+      border-color: var(--border-strong);
     }
 
     .auth-footer {
       display: flex;
       align-items: center;
-      gap: 16px;
+      justify-content: center;
+      gap: 12px;
       font-size: 0.8rem;
       color: var(--text-muted);
-      margin-top: 24px;
+      padding-top: 16px;
     }
+
     .auth-footer a {
       color: var(--text-muted);
       text-decoration: none;
+      transition: color 0.15s ease;
     }
+
     .auth-footer a:hover {
+      color: var(--text-main);
       text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .footer-sep {
+      color: var(--border-strong);
+      user-select: none;
     }
   </style>
 </head>
 <body>
 
-  <div class="auth-container">
-    <a href="/" class="brand-logo-wrap" title="Go to Alora">
-      <img src="/logo_icon_white.png" alt="Alokpath" class="brand-logo-img">
+  <main class="auth-shell">
+    <a href="/" class="brand-logo-link" id="logoHomeLink" aria-label="Alokpath Home">
+      <img src="/logo_icon_white.png" alt="Alokpath" class="brand-logo-img" id="brandLogo">
     </a>
 
-    <h1 class="auth-title" id="authHeading">Welcome back</h1>
+    <h1 class="auth-heading" id="authHeading">Welcome back</h1>
+    <p class="auth-subtitle" id="authSubtitle"></p>
 
-    <div class="error-alert" id="errorAlert"></div>
+    <!-- Existing Valid Session Pill -->
+    <div class="session-box" id="sessionBox">
+      <a href="/" class="session-continue-pill" id="sessionContinueLink">
+        <div class="session-user-meta">
+          <div class="session-avatar" id="sessionAvatar">A</div>
+          <div class="session-text-wrap">
+            <span class="session-title" id="sessionTitle">Continue</span>
+            <span class="session-email" id="sessionEmail"></span>
+          </div>
+        </div>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+        </svg>
+      </a>
+      <button type="button" class="session-switch-btn" id="sessionSwitchBtn">Use another account</button>
+    </div>
 
-    <form class="auth-form" id="mainAuthForm">
-      <div class="input-group" id="nameGroup" style="display: none;">
-        <input type="text" class="input-field" id="nameInput" placeholder="Full name">
+    <!-- Error & Notice Banners -->
+    <div class="alert-banner error" id="errorBanner" role="alert">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <span id="errorBannerText"></span>
+    </div>
+
+    <div class="alert-banner notice" id="noticeBanner" role="status">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="2" y="4" width="20" height="16" rx="3"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+      </svg>
+      <span id="noticeBannerText"></span>
+    </div>
+
+    <!-- Main Form -->
+    <form class="auth-form" id="authForm" novalidate>
+      <div class="field-wrap" id="nameGroup" style="display: none;">
+        <input type="text" class="input-control" id="nameInput" placeholder="Full name" autocomplete="name">
       </div>
 
-      <div class="input-group">
-        <input type="email" class="input-field" id="emailInput" placeholder="Email address" required>
+      <div class="field-wrap" id="emailGroup">
+        <input type="email" class="input-control" id="emailInput" placeholder="Email address" autocomplete="email" required>
       </div>
 
-      <div class="input-group">
-        <input type="password" class="input-field" id="passwordInput" placeholder="Password" minlength="6" required>
-        <button type="button" class="password-toggle-btn" id="passwordToggleBtn" aria-label="Toggle password">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>
+      <div class="field-wrap" id="passwordGroup">
+        <input type="password" class="input-control has-trailing-icon" id="passwordInput" placeholder="Password" autocomplete="current-password" minlength="6" required>
+        <button type="button" class="pw-eye-btn" id="pwToggleBtn" aria-label="Show password">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+            <circle cx="12" cy="12" r="3"/>
           </svg>
         </button>
       </div>
 
-      <button type="submit" class="continue-btn" id="submitBtn">Continue</button>
+      <div class="forgot-row" id="forgotRow">
+        <button type="button" class="text-action-btn" id="forgotBtn">Forgot password?</button>
+      </div>
+
+      <button type="submit" class="continue-pill-btn" id="submitBtn">
+        <span id="submitBtnLabel">Continue</span>
+      </button>
     </form>
 
-    <div class="auth-toggle-row">
-      <span id="togglePrompt">Don't have an account?</span>
-      <a class="auth-toggle-link" id="toggleLink">Sign up</a>
+    <div class="back-login-row" id="backToLoginRow">
+      <button type="button" class="toggle-mode-btn" id="backToLoginBtn">Back to log in</button>
     </div>
 
-    <div class="divider-row">
-      <span>OR</span>
+    <div class="toggle-mode-row" id="toggleRow">
+      <span id="togglePromptText">Don't have an account?</span>
+      <button type="button" class="toggle-mode-btn" id="toggleModeBtn">Sign up</button>
     </div>
 
-    <button type="button" class="social-btn" id="googleAuthBtn">
-      <svg viewBox="0 0 24 24" width="18" height="18">
-        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-      </svg>
-      <span>Continue with Google</span>
-    </button>
+    <div class="or-divider" id="orDivider">
+      <span id="orText">OR</span>
+    </div>
 
-    <a href="/" class="social-btn" onclick="try{localStorage.removeItem('alokpoth_guest_count');}catch(e){}">
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M19 12H5M12 19l-7-7 7-7"/>
-      </svg>
-      <span>Stay logged out (Continue as Guest)</span>
-    </a>
+    <div class="secondary-actions" id="secondaryActions">
+      <button type="button" class="secondary-pill-btn" id="googleAuthBtn">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+          <path d="M21.35 11.1H12v2.92h5.35c-.24 1.38-1.02 2.55-2.19 3.33v2.76h3.54c2.07-1.91 3.27-4.72 3.27-8.08 0-.65-.06-1.3-.17-1.93h-.45ZM12 22c2.97 0 5.46-.98 7.28-2.66l-3.54-2.76c-.98.66-2.24 1.06-3.74 1.06-2.87 0-5.3-1.94-6.17-4.54H2.18v2.85A9.997 9.997 0 0 0 12 22Zm-6.17-8.9A5.996 5.996 0 0 1 5.5 12c0-.38.07-.75.16-1.1V8.05H2.18A9.996 9.996 0 0 0 2 12c0 1.61.39 3.14 1.08 4.49l2.75-2.14v-.25ZM12 5.96c1.62 0 3.07.56 4.21 1.65l3.15-3.15C17.45 2.69 14.97 1.6 12 1.6A9.997 9.997 0 0 0 2.18 8.05l3.48 2.85c.87-2.6 3.3-4.94 6.34-4.94Z"/>
+        </svg>
+        <span id="googleBtnText">Continue with Google</span>
+      </button>
 
-    <a href="/download" class="social-btn">
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-      </svg>
-      <span>Download Android App (APK)</span>
-    </a>
-  </div>
+      <a href="/" class="secondary-pill-btn" id="guestContinueLink">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+        <span id="guestBtnText">Continue as Guest</span>
+      </a>
+    </div>
+  </main>
 
   <footer class="auth-footer">
-    <a href="/help">Terms of use</a>
-    <span>|</span>
-    <a href="/help">Privacy policy</a>
-    <span>•</span>
-    <span>আলোকপথ</span>
+    <a href="/help#terms" id="termsLink">Terms of use</a>
+    <span class="footer-sep">|</span>
+    <a href="/help#privacy" id="privacyLink">Privacy policy</a>
   </footer>
 
   <script>
-    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const BACKEND_URL = (isLocal && window.location.port === '5000') 
-      ? '' 
-      : (window.location.origin.includes('localhost') ? 'http://localhost:5000' : 'https://alora-backend-emw3.onrender.com');
-    const API_BASE = (BACKEND_URL ? BACKEND_URL : '') + "/api";
+    const isLocalHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const BACKEND_URL = isLocalHost
+      ? (window.location.port === '5000' ? '' : 'http://localhost:5000')
+      : (window.location.hostname.endsWith('onrender.com') ? '' : 'https://alora-backend-emw3.onrender.com');
+    const API_BASE = BACKEND_URL + '/api';
 
-    let mode = "login"; // "login" or "signup"
+    const I18N = {
+      en: {
+        docLogin: 'Log in — Alora',
+        docSignup: 'Sign up — Alora',
+        docForgot: 'Reset password — Alora',
+        welcomeBack: 'Welcome back',
+        createAccount: 'Create an account',
+        resetPassword: 'Reset your password',
+        resetSubtitle: 'Enter your email address and we will check instructions to reset your password.',
+        fullName: 'Full name',
+        emailAddress: 'Email address',
+        password: 'Password',
+        forgotPassword: 'Forgot password?',
+        continueBtn: 'Continue',
+        backToLogin: 'Back to log in',
+        noAccount: "Don't have an account?",
+        signUp: 'Sign up',
+        hasAccount: 'Already have an account?',
+        logIn: 'Log in',
+        or: 'OR',
+        continueGoogle: 'Continue with Google',
+        continueGuest: 'Continue as Guest',
+        terms: 'Terms of use',
+        privacy: 'Privacy policy',
+        continueAs: 'Continue as ',
+        switchAccount: 'Use another account',
+        errRequiredEmail: 'Please enter a valid email address.',
+        errRequiredName: 'Please enter your full name.',
+        errShortPassword: 'Password must be at least 6 characters.',
+        errAuthFailed: 'Authentication failed. Please verify your credentials.',
+        errNetwork: 'Unable to reach the server. Please try again.',
+        errGoogleUnavailable: 'Google Sign-In is currently unavailable. Please continue with email.',
+        forgotDefaultSuccess: 'If an account exists for this email, password reset instructions have been processed.'
+      },
+      bn: {
+        docLogin: 'লগইন — Alora',
+        docSignup: 'সাইন আপ — Alora',
+        docForgot: 'পাসওয়ার্ড রিসেট — Alora',
+        welcomeBack: 'আবারও স্বাগতম',
+        createAccount: 'অ্যাকাউন্ট তৈরি করুন',
+        resetPassword: 'পাসওয়ার্ড রিসেট করুন',
+        resetSubtitle: 'আপনার ইমেইল ঠিকানা দিন, পাসওয়ার্ড রিসেট করার নির্দেশনা দেখানো হবে।',
+        fullName: 'পূর্ণ নাম',
+        emailAddress: 'ইমেইল ঠিকানা',
+        password: 'পাসওয়ার্ড',
+        forgotPassword: 'পাসওয়ার্ড ভুলে গেছেন?',
+        continueBtn: 'এগিয়ে যান',
+        backToLogin: 'লগইনে ফিরে যান',
+        noAccount: 'অ্যাকাউন্ট নেই?',
+        signUp: 'সাইন আপ করুন',
+        hasAccount: 'ইতিমধ্যে অ্যাকাউন্ট আছে?',
+        logIn: 'লগইন করুন',
+        or: 'অথবা',
+        continueGoogle: 'Google দিয়ে চালিয়ে যান',
+        continueGuest: 'গেস্ট হিসেবে চালিয়ে যান',
+        terms: 'ব্যবহারের শর্তাবলী',
+        privacy: 'গোপনীয়তা নীতি',
+        continueAs: 'চালিয়ে যান: ',
+        switchAccount: 'অন্য অ্যাকাউন্ট ব্যবহার করুন',
+        errRequiredEmail: 'অনুগ্রহ করে একটি সঠিক ইমেইল ঠিকানা লিখুন।',
+        errRequiredName: 'অনুগ্রহ করে আপনার পূর্ণ নাম লিখুন।',
+        errShortPassword: 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।',
+        errAuthFailed: 'লগইন ব্যর্থ হয়েছে। আপনার তথ্য যাচাই করে আবার চেষ্টা করুন।',
+        errNetwork: 'সার্ভারের সাথে সংযোগ করা যাচ্ছে না। আবার চেষ্টা করুন।',
+        errGoogleUnavailable: 'Google সাইন-ইন বর্তমানে অনুপলব্ধ। অনুগ্রহ করে ইমেইল ও পাসওয়ার্ড ব্যবহার করুন।',
+        forgotDefaultSuccess: 'এই ইমেইলে অ্যাকাউন্ট থাকলে পাসওয়ার্ড রিসেট নির্দেশনা প্রক্রিয়া করা হয়েছে।'
+      }
+    };
 
-    const heading = document.getElementById("authHeading");
-    const nameGroup = document.getElementById("nameGroup");
-    const nameInput = document.getElementById("nameInput");
-    const emailInput = document.getElementById("emailInput");
-    const passwordInput = document.getElementById("passwordInput");
-    const submitBtn = document.getElementById("submitBtn");
-    const togglePrompt = document.getElementById("togglePrompt");
-    const toggleLink = document.getElementById("toggleLink");
-    const errorAlert = document.getElementById("errorAlert");
-    const pwToggle = document.getElementById("passwordToggleBtn");
+    const currentLang = (function() {
+      try {
+        return localStorage.getItem('alokpoth_lang') === 'bn' ? 'bn' : 'en';
+      } catch (e) {
+        return 'en';
+      }
+    })();
+    document.documentElement.setAttribute('lang', currentLang);
+    const t = I18N[currentLang];
 
-    // Check URL parameters for mode
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get("mode") === "signup" || urlParams.get("mode") === "register") {
-      setMode("signup");
+    // Theme-aware logo sync
+    const brandLogo = document.getElementById('brandLogo');
+    function syncThemeAndLogo() {
+      let raw = 'dark';
+      try {
+        const qTheme = new URLSearchParams(window.location.search).get('theme');
+        raw = qTheme || localStorage.getItem('alokpoth_theme') || 'dark';
+      } catch (e) {}
+      let effective = raw;
+      if (raw === 'system') {
+        effective = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+      }
+      const allowed = ['dark', 'oled', 'light', 'eyecare', 'sapphire'];
+      if (allowed.indexOf(effective) === -1) effective = 'dark';
+      document.documentElement.setAttribute('data-theme', effective);
+      const isLightTheme = (effective === 'light' || effective === 'eyecare');
+      if (brandLogo) {
+        brandLogo.src = isLightTheme ? '/logo_icon_black.png' : '/logo_icon_white.png';
+      }
+    }
+    syncThemeAndLogo();
+    if (window.matchMedia) {
+      try {
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', syncThemeAndLogo);
+      } catch (e) {}
+    }
+    try { sessionStorage.removeItem('alora_404_guard'); } catch (e) {}
+
+    // Safe redirect helper
+    const initialParams = new URLSearchParams(window.location.search);
+    function getSafeRedirect() {
+      const r = initialParams.get('redirect');
+      if (r && r.startsWith('/') && !r.startsWith('//')) {
+        return r;
+      }
+      return '/';
     }
 
-    function setMode(newMode) {
-      mode = newMode;
-      errorAlert.style.display = "none";
-      if (mode === "signup") {
-        document.title = "Sign up — Alora AI";
-        heading.textContent = "Create your account";
-        nameGroup.style.display = "flex";
-        nameInput.required = true;
-        submitBtn.textContent = "Continue";
-        togglePrompt.textContent = "Already have an account?";
-        toggleLink.textContent = "Log in";
+    // Elements
+    const authHeading = document.getElementById('authHeading');
+    const authSubtitle = document.getElementById('authSubtitle');
+    const errorBanner = document.getElementById('errorBanner');
+    const errorBannerText = document.getElementById('errorBannerText');
+    const noticeBanner = document.getElementById('noticeBanner');
+    const noticeBannerText = document.getElementById('noticeBannerText');
+    const authForm = document.getElementById('authForm');
+    const nameGroup = document.getElementById('nameGroup');
+    const nameInput = document.getElementById('nameInput');
+    const emailInput = document.getElementById('emailInput');
+    const passwordGroup = document.getElementById('passwordGroup');
+    const passwordInput = document.getElementById('passwordInput');
+    const pwToggleBtn = document.getElementById('pwToggleBtn');
+    const forgotRow = document.getElementById('forgotRow');
+    const forgotBtn = document.getElementById('forgotBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const backToLoginRow = document.getElementById('backToLoginRow');
+    const backToLoginBtn = document.getElementById('backToLoginBtn');
+    const toggleRow = document.getElementById('toggleRow');
+    const togglePromptText = document.getElementById('togglePromptText');
+    const toggleModeBtn = document.getElementById('toggleModeBtn');
+    const orDivider = document.getElementById('orDivider');
+    const secondaryActions = document.getElementById('secondaryActions');
+
+    // Static bilingual strings
+    nameInput.placeholder = t.fullName;
+    emailInput.placeholder = t.emailAddress;
+    passwordInput.placeholder = t.password;
+    forgotBtn.textContent = t.forgotPassword;
+    backToLoginBtn.textContent = t.backToLogin;
+    document.getElementById('orText').textContent = t.or;
+    document.getElementById('googleBtnText').textContent = t.continueGoogle;
+    document.getElementById('guestBtnText').textContent = t.continueGuest;
+    document.getElementById('termsLink').textContent = t.terms;
+    document.getElementById('privacyLink').textContent = t.privacy;
+    document.getElementById('sessionSwitchBtn').textContent = t.switchAccount;
+
+    let mode = 'login'; // 'login' | 'signup' | 'forgot'
+    let isSubmitting = false;
+
+    function clearMessages() {
+      errorBanner.style.display = 'none';
+      errorBannerText.textContent = '';
+      noticeBanner.style.display = 'none';
+      noticeBannerText.textContent = '';
+    }
+
+    function showError(msg) {
+      noticeBanner.style.display = 'none';
+      errorBannerText.textContent = msg;
+      errorBanner.style.display = 'flex';
+    }
+
+    function showNotice(msg) {
+      errorBanner.style.display = 'none';
+      noticeBannerText.textContent = msg;
+      noticeBanner.style.display = 'flex';
+    }
+
+    function setLoading(loading) {
+      isSubmitting = loading;
+      submitBtn.disabled = loading;
+      if (loading) {
+        submitBtn.innerHTML =
+          '<svg class="spinner-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">' +
+          '<path d="M12 2a10 10 0 0 1 10 10"/>' +
+          '</svg>' +
+          '<span>' + t.continueBtn + '</span>';
       } else {
-        document.title = "Log in — Alora AI";
-        heading.textContent = "Welcome back";
-        nameGroup.style.display = "none";
-        nameInput.required = false;
-        submitBtn.textContent = "Continue";
-        togglePrompt.textContent = "Don't have an account?";
-        toggleLink.textContent = "Sign up";
+        submitBtn.innerHTML = '<span id="submitBtnLabel">' + t.continueBtn + '</span>';
       }
     }
 
-    toggleLink.addEventListener("click", () => {
-      setMode(mode === "login" ? "signup" : "login");
+    function syncBrowserUrl(targetMode) {
+      if (targetMode !== 'login' && targetMode !== 'signup') return;
+      if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') return;
+      try {
+        const params = new URLSearchParams(window.location.search);
+        params.delete('mode');
+        const qs = params.toString();
+        const nextPath = targetMode === 'signup' ? '/auth/signup' : '/auth/login';
+        const nextUrl = nextPath + (qs ? '?' + qs : '') + (window.location.hash || '');
+        if (window.location.pathname + window.location.search + window.location.hash !== nextUrl) {
+          window.history.replaceState(null, '', nextUrl);
+        }
+      } catch (e) {}
+    }
+
+    function setMode(nextMode, updateHistory = true) {
+      mode = nextMode;
+      clearMessages();
+
+      if (mode === 'signup') {
+        document.title = t.docSignup;
+        authHeading.textContent = t.createAccount;
+        authHeading.classList.remove('compact');
+        authSubtitle.style.display = 'none';
+
+        nameGroup.style.display = 'flex';
+        nameInput.required = true;
+        passwordGroup.style.display = 'flex';
+        passwordInput.required = true;
+        passwordInput.autocomplete = 'new-password';
+        forgotRow.style.display = 'none';
+
+        backToLoginRow.style.display = 'none';
+        toggleRow.style.display = 'flex';
+        togglePromptText.textContent = t.hasAccount;
+        toggleModeBtn.textContent = t.logIn;
+        orDivider.style.display = 'flex';
+        secondaryActions.style.display = 'flex';
+
+        if (updateHistory) syncBrowserUrl('signup');
+      } else if (mode === 'forgot') {
+        document.title = t.docForgot;
+        authHeading.textContent = t.resetPassword;
+        authHeading.classList.add('compact');
+        authSubtitle.textContent = t.resetSubtitle;
+        authSubtitle.style.display = 'block';
+
+        nameGroup.style.display = 'none';
+        nameInput.required = false;
+        passwordGroup.style.display = 'none';
+        passwordInput.required = false;
+        forgotRow.style.display = 'none';
+
+        backToLoginRow.style.display = 'flex';
+        toggleRow.style.display = 'none';
+        orDivider.style.display = 'none';
+        secondaryActions.style.display = 'none';
+      } else {
+        mode = 'login';
+        document.title = t.docLogin;
+        authHeading.textContent = t.welcomeBack;
+        authHeading.classList.remove('compact');
+        authSubtitle.style.display = 'none';
+
+        nameGroup.style.display = 'none';
+        nameInput.required = false;
+        passwordGroup.style.display = 'flex';
+        passwordInput.required = true;
+        passwordInput.autocomplete = 'current-password';
+        forgotRow.style.display = 'flex';
+
+        backToLoginRow.style.display = 'none';
+        toggleRow.style.display = 'flex';
+        togglePromptText.textContent = t.noAccount;
+        toggleModeBtn.textContent = t.signUp;
+        orDivider.style.display = 'flex';
+        secondaryActions.style.display = 'flex';
+
+        if (updateHistory) syncBrowserUrl('login');
+      }
+
+      setLoading(false);
+    }
+
+    // Detect initial mode from pathname or query param
+    const pathLower = window.location.pathname.toLowerCase();
+    const queryMode = (initialParams.get('mode') || '').toLowerCase();
+    if (pathLower.includes('signup') || queryMode === 'signup' || queryMode === 'register') {
+      setMode('signup', true);
+    } else if (queryMode === 'forgot' || queryMode === 'reset') {
+      setMode('forgot', false);
+    } else {
+      setMode('login', true);
+    }
+
+    toggleModeBtn.addEventListener('click', () => {
+      setMode(mode === 'login' ? 'signup' : 'login', true);
     });
 
-    pwToggle.addEventListener("click", () => {
-      const isPw = passwordInput.type === "password";
-      passwordInput.type = isPw ? "text" : "password";
-      pwToggle.innerHTML = isPw 
-        ? `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>`
-        : `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`;
+    forgotBtn.addEventListener('click', () => {
+      setMode('forgot', false);
+      emailInput.focus();
     });
 
-    document.getElementById("mainAuthForm").addEventListener("submit", async (e) => {
+    backToLoginBtn.addEventListener('click', () => {
+      setMode('login', true);
+    });
+
+    // Password eye toggle
+    const EYE_OPEN_SVG =
+      '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>' +
+      '</svg>';
+    const EYE_OFF_SVG =
+      '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>' +
+      '<path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/>' +
+      '<path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/>' +
+      '<line x1="2" y1="2" x2="22" y2="22"/>' +
+      '</svg>';
+
+    pwToggleBtn.addEventListener('click', () => {
+      const reveal = passwordInput.type === 'password';
+      passwordInput.type = reveal ? 'text' : 'password';
+      pwToggleBtn.setAttribute('aria-label', reveal ? 'Hide password' : 'Show password');
+      pwToggleBtn.innerHTML = reveal ? EYE_OFF_SVG : EYE_OPEN_SVG;
+    });
+
+    // Verify existing session if token exists and ?force=1 is not set
+    (async function checkExistingSession() {
+      if (initialParams.get('force') === '1') return;
+      let existingToken = null;
+      try {
+        existingToken = localStorage.getItem('alokpoth_token');
+      } catch (e) {}
+      if (!existingToken) return;
+
+      try {
+        const res = await fetch(API_BASE + '/auth/me', {
+          method: 'GET',
+          headers: { 'Authorization': 'Bearer ' + existingToken }
+        });
+        if (res.status === 401) {
+          try { localStorage.removeItem('alokpoth_token'); } catch (e) {}
+          return;
+        }
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!data || !data.success || !data.user) return;
+
+        const user = data.user;
+        try {
+          if (data.token) localStorage.setItem('alokpoth_token', data.token);
+          localStorage.setItem('alokpoth_user', JSON.stringify(user));
+          const planName = (user.subscription && user.subscription.plan_name) || user.plan || 'Free';
+          localStorage.setItem('alokpoth_current_plan', planName);
+        } catch (e) {}
+
+        const targetUrl = getSafeRedirect();
+        if (initialParams.get('auto') === '1') {
+          window.location.replace(targetUrl);
+          return;
+        }
+
+        const displayName = (user.name || user.email || 'User').trim();
+        const sessionBox = document.getElementById('sessionBox');
+        const sessionContinueLink = document.getElementById('sessionContinueLink');
+        const sessionAvatar = document.getElementById('sessionAvatar');
+        const sessionTitle = document.getElementById('sessionTitle');
+        const sessionEmail = document.getElementById('sessionEmail');
+
+        sessionContinueLink.href = targetUrl;
+        sessionAvatar.textContent = displayName.charAt(0).toUpperCase();
+        sessionTitle.textContent = t.continueAs + displayName;
+        sessionEmail.textContent = user.email || '';
+        sessionBox.style.display = 'flex';
+
+        document.getElementById('sessionSwitchBtn').onclick = () => {
+          sessionBox.style.display = 'none';
+          emailInput.focus();
+        };
+      } catch (e) {}
+    })();
+
+    // Form submit: Login / Signup / Forgot Password
+    authForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      errorAlert.style.display = "none";
-      submitBtn.disabled = true;
-      submitBtn.textContent = "Please wait...";
+      if (isSubmitting) return;
+      clearMessages();
 
       const email = emailInput.value.trim();
-      const password = passwordInput.value.trim();
+      const password = passwordInput.value;
       const name = nameInput.value.trim();
 
-      const endpoint = mode === "signup" ? "/auth/register" : "/auth/login";
-      const requestData = mode === "signup" ? { name, email, password } : { email, password };
+      if (!email || !email.includes('@')) {
+        showError(t.errRequiredEmail);
+        emailInput.focus();
+        return;
+      }
+
+      if (mode === 'forgot') {
+        setLoading(true);
+        try {
+          const res = await fetch(API_BASE + '/auth/forgot-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+          });
+          let data = {};
+          try { data = await res.json(); } catch (parseErr) {}
+
+          if (res.ok && data.success !== false) {
+            showNotice(data.message || data.notice || t.forgotDefaultSuccess);
+          } else if (data.message && !data.error) {
+            showNotice(data.message);
+          } else {
+            showError(data.error || t.errAuthFailed);
+          }
+        } catch (err) {
+          showError(t.errNetwork);
+        } finally {
+          setLoading(false);
+        }
+        return;
+      }
+
+      if (mode === 'signup' && !name) {
+        showError(t.errRequiredName);
+        nameInput.focus();
+        return;
+      }
+
+      if (!password || password.length < 6) {
+        showError(t.errShortPassword);
+        passwordInput.focus();
+        return;
+      }
+
+      setLoading(true);
+      const endpoint = mode === 'signup' ? '/auth/register' : '/auth/login';
+      const payload = mode === 'signup' ? { name, email, password } : { email, password };
 
       try {
-        const res = await fetch(`${API_BASE}${endpoint}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(requestData)
+        const res = await fetch(API_BASE + endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
         });
         const data = await res.json();
+
         if (!res.ok || !data.success) {
-          throw new Error(data.error || "Authentication failed. Please check your credentials.");
+          throw new Error(data.error || data.message || t.errAuthFailed);
         }
 
-        // Save auth data
-        localStorage.setItem("alokpoth_token", data.token);
-        if (data.user) {
-          localStorage.setItem("alokpoth_user", JSON.stringify(data.user));
-          if (data.user.subscription && data.user.subscription.plan_name) {
-            localStorage.setItem("alokpoth_current_plan", data.user.subscription.plan_name);
+        try {
+          if (data.token) {
+            localStorage.setItem('alokpoth_token', data.token);
           }
-        }
+          if (data.user) {
+            localStorage.setItem('alokpoth_user', JSON.stringify(data.user));
+            const planName = (data.user.subscription && data.user.subscription.plan_name) || data.user.plan || 'Free';
+            localStorage.setItem('alokpoth_current_plan', planName);
+            localStorage.setItem('alokpoth_user_plan', planName);
+            localStorage.setItem('alokpoth_plan', planName);
+          } else {
+            localStorage.setItem('alokpoth_current_plan', 'Free');
+          }
+          localStorage.removeItem('alokpoth_guest_count');
+        } catch (storageErr) {}
 
-        // Return to app
-        const returnUrl = urlParams.get("redirect") || "/";
-        window.location.href = returnUrl;
+        window.location.href = getSafeRedirect();
       } catch (err) {
-        errorAlert.textContent = err.message;
-        errorAlert.style.display = "block";
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = "Continue";
+        showError(err && err.message ? err.message : t.errAuthFailed);
+        setLoading(false);
       }
     });
 
-    // Google OAuth Handler
-    document.getElementById("googleAuthBtn")?.addEventListener("click", async () => {
+    // Google OAuth
+    document.getElementById('googleAuthBtn').addEventListener('click', async () => {
+      clearMessages();
       try {
-        const res = await fetch(`${API_BASE}/auth/google`);
+        const res = await fetch(API_BASE + '/auth/google');
         const data = await res.json();
-        if (res.ok && data.url) {
+        if (res.ok && data && data.url) {
           window.location.href = data.url;
         } else {
-          errorAlert.textContent = data.error || "Google Sign-In is temporarily unavailable. Please use email and password.";
-          errorAlert.style.display = "block";
+          showError((data && data.error) || t.errGoogleUnavailable);
         }
       } catch (e) {
-        errorAlert.textContent = "Google Sign-In is temporarily unavailable. Please use email and password.";
-        errorAlert.style.display = "block";
+        showError(t.errGoogleUnavailable);
       }
     });
   </script>

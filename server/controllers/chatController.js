@@ -4,7 +4,7 @@ const UsageLog = require('../models/UsageLog');
 const { getIsMongoConnected } = require('../config/db');
 const { memoryStore, debouncedSave } = require('../config/memoryStore');
 const AiModel = require('../models/AiModel');
-const { getModelConfig, getApiKeyFromSupabase, incrementUserUsage, getSystemSettings } = require('../../utils/getModelConfig');
+const { getModelConfig, getPersistedModels, getApiKeyFromSupabase, incrementUserUsage, getSystemSettings } = require('../../utils/getModelConfig');
 
 const DEFAULT_GEMINI_KEY = process.env.GEMINI_API_KEY || (process.env.GEMINI_API_KEYS ? process.env.GEMINI_API_KEYS.split(',')[0].trim() : '') || '';
 const DEFAULT_GROQ_KEY = process.env.GROQ_API_KEY || '';
@@ -18,82 +18,83 @@ const resolveModelTarget = async (targetModelId, customUrl, customKey, targetMod
     customUrl = null;
     customKey = null;
   }
-  let targetUrl = (typeof customUrl === 'string' && customUrl) ? customUrl : ((targetModelConfig && targetModelConfig.base_url) || null);
-  let targetKey = (typeof customKey === 'string' && customKey) ? customKey : ((targetModelConfig && targetModelConfig.api_key) || null);
-  let actualModel = (typeof targetModelId === 'string' && targetModelId) ? targetModelId : ((targetModelConfig && (targetModelConfig.api_model_1 || targetModelConfig.model_id)) || 'gemini-3.6-flash');
+  const explicitUrl = (typeof customUrl === 'string' && customUrl.trim())
+    ? customUrl.trim()
+    : ((targetModelConfig && typeof targetModelConfig.base_url === 'string' && targetModelConfig.base_url.trim()) ? targetModelConfig.base_url.trim() : '');
+  let targetUrl = explicitUrl || null;
+  let targetKey = (typeof customKey === 'string' && customKey.trim())
+    ? customKey.trim()
+    : ((targetModelConfig && typeof targetModelConfig.api_key === 'string' && targetModelConfig.api_key.trim()) ? targetModelConfig.api_key.trim() : null);
+  let actualModel = (typeof targetModelId === 'string' && targetModelId.trim())
+    ? targetModelId.trim()
+    : ((targetModelConfig && (targetModelConfig.api_model_1 || targetModelConfig.model_id || targetModelConfig.id)) || 'openrouter/free');
   let providerType = 'custom';
 
   const geminiKey = process.env.GEMINI_API_KEY || (process.env.GEMINI_API_KEYS ? process.env.GEMINI_API_KEYS.split(',')[0].trim() : '') || DEFAULT_GEMINI_KEY;
 
-  if ((targetUrl && (targetUrl.includes('googleapis.com') || targetUrl.includes('streamGenerateContent'))) || (!customUrl && (actualModel.startsWith('gemini-') || actualModel.includes('gemini') || targetModelConfig?.type === 'gemini'))) {
+  // CASE A: Admin explicitly configured a base_url -> 100% honor Admin's URL, API key, and exact model ID without hijacking!
+  if (explicitUrl) {
+    const isNativeGeminiUrl = (explicitUrl.includes(':streamGenerateContent') || explicitUrl.includes(':generateContent') || (explicitUrl.includes('generativelanguage.googleapis.com') && !explicitUrl.includes('/openai/')));
+    if (isNativeGeminiUrl) {
+      providerType = 'gemini';
+      if (!targetKey) targetKey = geminiKey || (await getApiKeyFromSupabase(actualModel)) || (await getApiKeyFromSupabase('__gemini_key__'));
+      if (explicitUrl.includes(':streamGenerateContent') || explicitUrl.includes(':generateContent')) {
+        targetUrl = explicitUrl.includes('key=')
+          ? (targetKey ? explicitUrl.replace(/key=[^&]+/, 'key=' + targetKey) : explicitUrl)
+          : (explicitUrl.includes('?') ? `${explicitUrl}&key=${targetKey || ''}` : `${explicitUrl}?key=${targetKey || ''}&alt=sse`);
+      } else {
+        targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/${actualModel}:streamGenerateContent?key=${targetKey || ''}&alt=sse`;
+      }
+    } else {
+      if (explicitUrl.includes('openrouter.ai')) {
+        providerType = 'openrouter';
+        if (!targetKey) targetKey = (await getApiKeyFromSupabase(actualModel)) || process.env.OPENROUTER_API_KEY || DEFAULT_OPENROUTER_KEY || (await getApiKeyFromSupabase('__openrouter_key__'));
+      } else if (explicitUrl.includes('groq.com')) {
+        providerType = 'groq';
+        if (!targetKey) targetKey = (await getApiKeyFromSupabase(actualModel)) || process.env.GROQ_API_KEY || DEFAULT_GROQ_KEY || (await getApiKeyFromSupabase('__groq_key__'));
+      } else if (explicitUrl.includes('vyceai.com')) {
+        providerType = 'vyce';
+        if (!targetKey) targetKey = (await getApiKeyFromSupabase(actualModel)) || process.env.VYCE_API_KEY || DEFAULT_VYCE_KEY || (await getApiKeyFromSupabase('__vyce_key__'));
+      } else {
+        providerType = 'custom';
+        if (!targetKey) {
+          targetKey = await getApiKeyFromSupabase(actualModel);
+          if (!targetKey && targetModelId) targetKey = await getApiKeyFromSupabase(targetModelId);
+        }
+      }
+      let bUrl = explicitUrl;
+      if (!bUrl.endsWith('/chat/completions') && !bUrl.endsWith('/completions') && !bUrl.includes('/v1/messages') && !bUrl.includes('GenerateContent')) {
+        bUrl = bUrl.replace(/\/+$/, '') + '/chat/completions';
+      }
+      targetUrl = bUrl;
+    }
+    return { targetUrl, targetKey, actualModel, providerType };
+  }
+
+  // CASE B: No explicit base_url set (built-in default models) -> smart provider inference
+  if (actualModel.startsWith('gemini-') || targetModelConfig?.type === 'gemini') {
     providerType = 'gemini';
     let gMod = actualModel;
-    if (gMod === 'gemini-1.5-flash' || gMod === 'gemini-flash' || gMod === 'gemini-pro' || gMod === 'gemini-2.5-flash' || gMod === 'gemini-3.5-flash-lite' || !gMod) {
-      gMod = 'gemini-3.6-flash';
+    if (gMod === 'gemini-1.5-flash' || gMod === 'gemini-flash' || gMod === 'gemini-3.5-flash-lite' || gMod === 'gemini-3.6-flash') {
+      gMod = 'gemini-2.5-flash';
     }
     actualModel = gMod;
-    if (!targetKey) targetKey = geminiKey || (await getApiKeyFromSupabase('__gemini_key__')) || (await getApiKeyFromSupabase('gemini-3.6-flash'));
-    targetUrl = (targetUrl && targetUrl.includes('googleapis.com'))
-      ? (targetKey && targetUrl.includes('key=') ? targetUrl.replace(/key=[^&]+/, 'key=' + targetKey) : (targetUrl.includes('?') ? `${targetUrl}&key=${targetKey}` : `${targetUrl}?key=${targetKey}&alt=sse`))
-      : `https://generativelanguage.googleapis.com/v1beta/models/${actualModel}:streamGenerateContent?key=${targetKey}&alt=sse`;
-  } else if ((targetUrl && targetUrl.includes('groq.com')) || (!customUrl && (actualModel === 'openai/gpt-oss-120b' || actualModel === 'llama-3.3-70b-versatile' || actualModel === 'alo-pro' || actualModel.includes('deepseek') || actualModel.includes('qwen') || actualModel.includes('llama-3.1-8b') || actualModel === 'openai/gpt-oss-20b'))) {
+    if (!targetKey) targetKey = geminiKey || (await getApiKeyFromSupabase('__gemini_key__')) || (await getApiKeyFromSupabase(actualModel));
+    targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/${actualModel}:streamGenerateContent?key=${targetKey || ''}&alt=sse`;
+  } else if (targetModelConfig?.type === 'groq' || actualModel === 'openai/gpt-oss-120b' || actualModel === 'llama-3.3-70b-versatile' || actualModel === 'alo-pro' || actualModel === 'openai/gpt-oss-20b') {
     providerType = 'groq';
-    targetUrl = targetUrl || 'https://api.groq.com/openai/v1/chat/completions';
-    if (actualModel === 'alo-pro' || actualModel === 'llama-3.3-70b-versatile') actualModel = 'openai/gpt-oss-120b';
-    else if (actualModel.includes('qwen')) actualModel = 'qwen/qwen3.8-27b';
-    else if (actualModel.includes('deepseek')) actualModel = 'openai/gpt-oss-120b';
-    else if (actualModel === 'llama-3.1-8b-instant') actualModel = 'openai/gpt-oss-20b';
-    if (!targetKey) targetKey = process.env.GROQ_API_KEY || DEFAULT_GROQ_KEY || (await getApiKeyFromSupabase('__groq_key__')) || (await getApiKeyFromSupabase('openai/gpt-oss-120b'));
-  } else if (targetUrl && targetUrl.includes('aihub.071129.xyz')) {
-    providerType = 'custom';
-    if (actualModel === 'openrouter/free' || !actualModel) {
-      actualModel = 'ministral-8b-latest';
-    }
-    if (!targetKey) targetKey = await getApiKeyFromSupabase(actualModel) || (await getApiKeyFromSupabase('openrouter/free'));
-  } else if ((targetUrl && targetUrl.includes('openrouter.ai')) || (!targetUrl && !customUrl && (actualModel === 'openrouter/free' || !actualModel))) {
-    providerType = 'openrouter';
-    targetUrl = targetUrl || 'https://openrouter.ai/api/v1/chat/completions';
-    actualModel = actualModel || 'openrouter/free';
-    if (!targetKey) targetKey = process.env.OPENROUTER_API_KEY || DEFAULT_OPENROUTER_KEY || (await getApiKeyFromSupabase('__openrouter_key__')) || (await getApiKeyFromSupabase('openrouter/free'));
-  } else if ((targetUrl && targetUrl.includes('b.ai')) || (!customUrl && (actualModel === 'mimo-v2.5' || actualModel === 'hy3'))) {
-    // Transparently reroute B.AI models since api.b.ai credit balance is 0
-    if (actualModel === 'hy3') {
-      providerType = 'groq';
-      targetUrl = 'https://api.groq.com/openai/v1/chat/completions';
-      actualModel = 'openai/gpt-oss-120b';
-      targetKey = process.env.GROQ_API_KEY || DEFAULT_GROQ_KEY || (await getApiKeyFromSupabase('__groq_key__')) || (await getApiKeyFromSupabase('openai/gpt-oss-120b'));
-    } else {
-      providerType = 'gemini';
-      actualModel = 'gemini-3.6-flash';
-      targetKey = geminiKey || (await getApiKeyFromSupabase('__gemini_key__')) || (await getApiKeyFromSupabase('gemini-3.6-flash'));
-      targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/${actualModel}:streamGenerateContent?key=${targetKey}&alt=sse`;
-    }
-  } else if ((targetUrl && targetUrl.includes('vyceai.com')) || (!customUrl && (actualModel === 'claude-sonnet-4-6' || actualModel === 'gpt-5.6' || actualModel === 'gpt-5.6-new' || actualModel === 'nemotron-ultra-550b'))) {
+    targetUrl = 'https://api.groq.com/openai/v1/chat/completions';
+    if (actualModel === 'alo-pro') actualModel = 'openai/gpt-oss-120b';
+    if (!targetKey) targetKey = process.env.GROQ_API_KEY || DEFAULT_GROQ_KEY || (await getApiKeyFromSupabase('__groq_key__')) || (await getApiKeyFromSupabase(actualModel));
+  } else if (targetModelConfig?.type === 'vyce' || actualModel === 'claude-sonnet-4-6' || actualModel === 'gpt-5.6' || actualModel === 'nemotron-ultra-550b') {
     providerType = 'vyce';
-    targetUrl = targetUrl || 'https://vyceai.com/v1/chat/completions';
-    if (actualModel === 'gpt-5.6') actualModel = 'gpt-5.6-new';
-    else if (actualModel === 'nemotron-ultra-550b') actualModel = 'deepseek-v4-flash-lr';
-    if (!targetKey) targetKey = process.env.VYCE_API_KEY || DEFAULT_VYCE_KEY || (await getApiKeyFromSupabase('__vyce_key__')) || (await getApiKeyFromSupabase('claude-sonnet-4-6'));
-  } else if (targetUrl) {
-    providerType = 'custom';
-    let bUrl = targetUrl.trim();
-    if (!bUrl.endsWith('/chat/completions') && !bUrl.endsWith('/completions') && !bUrl.includes('streamGenerateContent')) {
-      bUrl = bUrl.replace(/\/+$/, '') + '/chat/completions';
-    }
-    targetUrl = bUrl;
-    if (!targetKey) {
-      targetKey = await getApiKeyFromSupabase(actualModel);
-      if (!targetKey && targetModelId) targetKey = await getApiKeyFromSupabase(targetModelId);
-    }
+    targetUrl = 'https://vyceai.com/v1/chat/completions';
+    if (!targetKey) targetKey = process.env.VYCE_API_KEY || DEFAULT_VYCE_KEY || (await getApiKeyFromSupabase('__vyce_key__')) || (await getApiKeyFromSupabase(actualModel));
   } else {
     providerType = 'openrouter';
     targetUrl = 'https://openrouter.ai/api/v1/chat/completions';
     actualModel = actualModel || 'openrouter/free';
-    if (!targetKey) targetKey = process.env.OPENROUTER_API_KEY || DEFAULT_OPENROUTER_KEY;
-  }
-
-  if (providerType === 'gemini' && targetKey && targetUrl.includes('key=')) {
-    targetUrl = targetUrl.replace(/key=[^&]+/, 'key=' + targetKey);
+    if (!targetKey) targetKey = (await getApiKeyFromSupabase(actualModel)) || process.env.OPENROUTER_API_KEY || DEFAULT_OPENROUTER_KEY || (await getApiKeyFromSupabase('__openrouter_key__'));
   }
 
   return { targetUrl, targetKey, actualModel, providerType };
@@ -402,10 +403,10 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
       }
 
       const effectiveMod = cleanModId || (refModelConfig?.api_model_1 || refModelConfig?.model_id) || actualModel;
-      const effectiveUrl = cleanUrl || (refModelConfig?.base_url) || targetUrl;
-      const effectiveKey = cleanKey || (refModelConfig?.api_key) || targetKey;
+      const effectiveUrl = cleanUrl || (refModelConfig ? refModelConfig.base_url : (aiModelConfig?.base_url || ''));
+      const effectiveKey = cleanKey || (refModelConfig ? refModelConfig.api_key : (!cleanUrl ? (aiModelConfig?.api_key || '') : ''));
 
-      return await resolveModelTarget(effectiveMod, effectiveUrl, effectiveKey, refModelConfig || aiModelConfig);
+      return await resolveModelTarget(effectiveMod, effectiveUrl, effectiveKey, refModelConfig || null);
     };
 
     // 1. First failover: Attempt Internal Fallback API 2 (Fallback 1)
@@ -450,75 +451,54 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
       }
     }
 
-    // 3. Multi-provider emergency backup chain if primary and both configured fallbacks fail or are not set
-    if (!response || !response.ok) {
-      console.warn(`[Chat Fallbacks Exhausted] Trying global multi-provider backup chain...`);
+    // 3. Only use env fallback when the model exists in Admin list with NO custom Admin URL/key configured; never silently impersonate deleted/unconfigured or custom models
+    const isCustomAdminConfigured = Boolean(aiModelConfig && (aiModelConfig.base_url || aiModelConfig.api_key || aiModelConfig.fallback_url_1 || aiModelConfig.fallback_model_1));
+    if ((!response || !response.ok) && aiModelConfig && !isCustomAdminConfigured) {
+      const groqKey = process.env.GROQ_API_KEY || DEFAULT_GROQ_KEY;
+      const openRouterKey = process.env.OPENROUTER_API_KEY || DEFAULT_OPENROUTER_KEY;
+      const envFallbacks = [
+        groqKey ? { id: 'openai/gpt-oss-120b', type: 'groq', url: 'https://api.groq.com/openai/v1/chat/completions', key: groqKey, model: 'openai/gpt-oss-120b' } : null,
+        openRouterKey ? { id: 'openrouter/free', type: 'openrouter', url: 'https://openrouter.ai/api/v1/chat/completions', key: openRouterKey, model: 'openrouter/free' } : null
+      ].filter(fb => fb && fb.id !== cleanModel);
 
-      const geminiKey = process.env.GEMINI_API_KEY || (process.env.GEMINI_API_KEYS ? process.env.GEMINI_API_KEYS.split(',')[0].trim() : '') || DEFAULT_GEMINI_KEY || (await getApiKeyFromSupabase('__gemini_key__')) || (await getApiKeyFromSupabase('gemini-3.6-flash'));
-      const groqKey = process.env.GROQ_API_KEY || DEFAULT_GROQ_KEY || (await getApiKeyFromSupabase('__groq_key__')) || (await getApiKeyFromSupabase('openai/gpt-oss-120b'));
-      const openRouterKey = process.env.OPENROUTER_API_KEY || DEFAULT_OPENROUTER_KEY || (await getApiKeyFromSupabase('__openrouter_key__')) || (await getApiKeyFromSupabase('openrouter/free'));
-      const fallbacks = [
-        {
-          id: 'gemini-3.6-flash',
-          type: 'gemini',
-          url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:streamGenerateContent?key=${geminiKey}&alt=sse`,
-          key: geminiKey,
-          model: 'gemini-3.6-flash'
-        },
-        {
-          id: 'openai/gpt-oss-120b',
-          type: 'groq',
-          url: 'https://api.groq.com/openai/v1/chat/completions',
-          key: groqKey,
-          model: 'openai/gpt-oss-120b'
-        },
-        {
-          id: 'qwen/qwen3.8-27b',
-          type: 'groq',
-          url: 'https://api.groq.com/openai/v1/chat/completions',
-          key: groqKey,
-          model: 'qwen/qwen3.8-27b'
-        },
-        {
-          id: 'openrouter/free',
-          type: 'openrouter',
-          url: 'https://openrouter.ai/api/v1/chat/completions',
-          key: openRouterKey,
-          model: 'openrouter/free'
-        }
-      ].filter(fb => fb.id !== cleanModel);
-
-      for (const fb of fallbacks) {
+      for (const fb of envFallbacks) {
         if (res.writableEnded || res.destroyed) break;
-        const fbResp = await tryFetchTarget(fb.type, fb.url, fb.key, fb.model, 15000);
+        const fbResp = await tryFetchTarget(fb.type, fb.url, fb.key, fb.model, 10000);
         if (fbResp && fbResp.ok) {
-          console.log(`[Chat Fallback Success] Switched cleanly to ${fb.id}`);
           response = fbResp;
           effectiveModel = fb.id;
-          isGeminiStream = (fb.type === 'gemini');
+          isGeminiStream = false;
           break;
         }
       }
     }
 
-    // Guard against client socket abort / closure
     if (res.writableEnded || res.destroyed) {
       return;
     }
 
-    // If all providers and fallbacks failed, send user-safe error
+    // Surface clean MODEL_BUSY / not-found response so UI renders the Model Busy card & Retry button
+    if (!aiModelConfig) {
+      return res.status(404).json({
+        success: false,
+        code: 'MODEL_BUSY',
+        model: cleanModel,
+        error: `মডেলটি বর্তমানে সক্রিয় নেই (${cleanModel})। অনুগ্রহ করে তালিকা থেকে অন্য সক্রিয় মডেল বেছে নিন।`
+      });
+    }
     if (!response || !response.ok) {
       const status = response ? response.status : 504;
-      const modelDisplayName = (aiModelConfig && (aiModelConfig.name || aiModelConfig.id)) || model || 'AI Model';
-      let userSafeError = `AI মডেল প্রোভাইডার সার্ভারে ত্রুটি হয়েছে (${modelDisplayName})। অনুগ্রহ করে আবার চেষ্টা করুন।`;
+      const modelDisplayName = (aiModelConfig && (aiModelConfig.name || aiModelConfig.id)) || model || 'Alora Model';
+      let userSafeError = `মডেলটি বর্তমানে ব্যস্ত আছে (${modelDisplayName})। অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন অথবা অন্য মডেল নির্বাচন করুন।`;
       if (status === 429) {
-        userSafeError = `মডেল প্রোভাইডার সার্ভারের অনুরোধের সীমা শেষ হয়েছে (${modelDisplayName})। অনুগ্রহ করে কিছুক্ষণ পর চেষ্টা করুন বা অন্য কোনো মডেল নির্বাচন করুন।`;
-      } else if (status === 401 || status === 403) {
-        userSafeError = `AI মডেল প্রোভাইডারের কী বা সার্ভার সংযোগে সমস্যা দেখা দিয়েছে (${modelDisplayName})। অনুগ্রহ করে অ্যাডমিনের সাথে যোগাযোগ করুন অথবা অন্য মডেল নির্বাচন করুন।`;
-      } else if (status === 502 || status === 503 || status === 504) {
-        userSafeError = `AI মডেল প্রোভাইডার সার্ভার (${modelDisplayName}) সাময়িকভাবে ডাউন বা রেসপন্স করতে ব্যর্থ হয়েছে।`;
+        userSafeError = `মডেলটি বর্তমানে অনুরোধের আধিক্যের কারণে ব্যস্ত আছে (${modelDisplayName})। অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন।`;
       }
-      return res.status(status >= 400 && status < 600 ? status : 503).json({ success: false, error: userSafeError });
+      return res.status(status >= 400 && status < 600 ? status : 503).json({
+        success: false,
+        code: 'MODEL_BUSY',
+        model: modelDisplayName,
+        error: userSafeError
+      });
     }
 
     // Model is verified healthy and responding: Now establish SSE streaming
@@ -893,36 +873,43 @@ const generateImage = async (req, res) => {
 
     let finalPrompt = prompt.trim();
     
-    // Automatically enhance and translate the prompt to English using the main model
-    try {
-      const geminiKey = process.env.GEMINI_API_KEY || (process.env.GEMINI_API_KEYS ? process.env.GEMINI_API_KEYS.split(',')[0].trim() : '') || DEFAULT_GEMINI_KEY || (await getApiKeyFromSupabase('__gemini_key__')) || (await getApiKeyFromSupabase('gemini-3.6-flash'));
-      if (geminiKey) {
-        const enhController = new AbortController();
-        const enhTimeout = setTimeout(() => enhController.abort(), 8000);
-        try {
-          const enhanceRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: `You are an expert AI image prompt engineer. The user wants to generate an image based on the following input (it might be in Bengali or English). Translate it to English (if it isn't), and beautifully enhance it into a highly detailed, cinematic, and professional image generation prompt suitable for Midjourney or Flux. Add appropriate descriptors for lighting, camera angle, and atmosphere. Return ONLY the enhanced English prompt without any quotes, conversational text, or explanations. User input: "${finalPrompt}"` }] }]
-            }),
-            signal: enhController.signal
-          });
-          clearTimeout(enhTimeout);
-          if (enhanceRes.ok) {
-            const enhanceData = await enhanceRes.json();
-            const enhancedText = enhanceData?.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (enhancedText && enhancedText.trim()) {
-              finalPrompt = enhancedText.trim();
+    // Optionally enhance and translate the prompt to English when enhance is not disabled
+    if (enhance !== false) {
+      try {
+        const persistedModels = await getPersistedModels();
+        const geminiModelCfg = (persistedModels || []).find(m => m && m.is_active !== false && /gemini/i.test(String(m.base_url || '') + String(m.model_id || '')));
+        const geminiKey = (geminiModelCfg && geminiModelCfg.api_key && !geminiModelCfg.api_key.startsWith('sk-placeholder'))
+          ? geminiModelCfg.api_key
+          : (process.env.GEMINI_API_KEY || (process.env.GEMINI_API_KEYS ? process.env.GEMINI_API_KEYS.split(',')[0].trim() : '') || DEFAULT_GEMINI_KEY || (await getApiKeyFromSupabase('__gemini_key__')));
+        if (geminiKey) {
+          const enhModel = (geminiModelCfg && geminiModelCfg.model_id && !geminiModelCfg.model_id.includes('/')) ? geminiModelCfg.model_id : 'gemini-2.0-flash';
+          const enhController = new AbortController();
+          const enhTimeout = setTimeout(() => enhController.abort(), 8000);
+          try {
+            const enhanceRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(enhModel)}:generateContent?key=${geminiKey}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: `You are an expert AI image prompt engineer. The user wants to generate an image based on the following input (it might be in Bengali or English). Translate it to English (if it isn't), and beautifully enhance it into a highly detailed, cinematic, and professional image generation prompt suitable for Midjourney or Flux. Add appropriate descriptors for lighting, camera angle, and atmosphere. Return ONLY the enhanced English prompt without any quotes, conversational text, or explanations. User input: "${finalPrompt}"` }] }]
+              }),
+              signal: enhController.signal
+            });
+            clearTimeout(enhTimeout);
+            if (enhanceRes.ok) {
+              const enhanceData = await enhanceRes.json();
+              const enhancedText = enhanceData?.candidates?.[0]?.content?.parts?.[0]?.text;
+              if (enhancedText && enhancedText.trim()) {
+                finalPrompt = enhancedText.trim();
+              }
             }
+          } catch (e) {
+            clearTimeout(enhTimeout);
+            console.warn("[Image Enhancer Timeout/Skip]:", e.message);
           }
-        } catch (e) {
-          clearTimeout(enhTimeout);
-          console.warn("[Image Enhancer Timeout/Skip]:", e.message);
         }
+      } catch (err) {
+        console.warn("[Image Enhancer Error]:", err.message);
       }
-    } catch (err) {
-      console.warn("[Image Enhancer Error]:", err.message);
     }
 
     if (style && typeof style === 'string' && style.trim()) {

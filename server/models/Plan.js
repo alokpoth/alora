@@ -22,9 +22,9 @@ const PlanSchema = new mongoose.Schema({
   image_limit: {
     type: Number,
     default: function() {
-      if (this.name === 'Pro') return 20;
+      if (this.name === 'Pro') return 25;
       if (this.name === 'Max') return 100;
-      return 3;
+      return 5;
     }
   },
   allowed_models: [{
@@ -48,15 +48,15 @@ PlanSchema.statics.seedDefaultPlans = async function() {
         displayName: 'ফ্রি প্ল্যান',
         message_limit: 10,
         window_hours: 3,
-        image_limit: 3,
-        allowed_models: ['openrouter/free', 'gemini-3.5-flash-lite', 'mimo-v2.5', 'hy3']
+        image_limit: 5,
+        allowed_models: ['*']
       },
       {
         name: 'Pro',
         displayName: 'প্রো প্ল্যান',
         message_limit: 30,
         window_hours: 3,
-        image_limit: 20,
+        image_limit: 25,
         allowed_models: ['*']
       },
       {

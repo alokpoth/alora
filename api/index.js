@@ -6,7 +6,7 @@ const cors = require('cors');
 require('dotenv').config({ path: path.join(__dirname, '..', 'server', '.env') });
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
-const { connectDB, getIsMongoConnected } = require('../server/config/db');
+const { connectDB, getIsMongoConnected, ensureDBConnected } = require('../server/config/db');
 const { memoryStore } = require('../server/config/memoryStore');
 const { createRateLimiter } = require('../server/middleware/ipRateLimiter');
 const { protect } = require('../server/middleware/authMiddleware');
@@ -136,8 +136,8 @@ const plansHandler = async (req, res) => {
       const plain = (p && typeof p.toObject === 'function') ? p.toObject() : { ...p };
       plain.message_limit = Number(plain.message_limit) || 10;
       const defaultImg = (plain.name === 'Free' ? 5 : (plain.name === 'Pro' ? 25 : 100));
-      plain.image_limit = (plain.image_limit !== undefined && plain.image_limit !== null && !isNaN(Number(plain.image_limit)) && Number(plain.image_limit) > 0)
-        ? Math.max(Number(plain.image_limit), defaultImg)
+      plain.image_limit = (plain.image_limit !== undefined && plain.image_limit !== null && !isNaN(Number(plain.image_limit)) && Number(plain.image_limit) >= 0)
+        ? Number(plain.image_limit)
         : defaultImg;
       return plain;
     };
@@ -163,6 +163,10 @@ app.get('/api/plans', plansHandler);
 app.get('/plans', plansHandler);
 
 // API Routes with Rate Limiting & Anti-Cache Headers
+app.use(['/api', '/auth', '/chat', '/redeem', '/admin', '/search'], async (req, res, next) => {
+  await ensureDBConnected();
+  next();
+});
 app.use(['/api', '/auth', '/chat', '/redeem', '/admin', '/search'], (req, res, next) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.setHeader('Pragma', 'no-cache');
@@ -173,6 +177,7 @@ app.use(['/api', '/auth', '/chat', '/redeem', '/admin', '/search'], (req, res, n
 app.use('/api', apiLimiter);
 
 // Mount main routes (with and without /api prefix for Vercel path flexibility)
+app.get(['/auth/login', '/auth/signup'], (req, res) => res.sendFile(path.join(__dirname, '..', 'login.html')));
 app.use('/api/auth',   authLimiter, authRoutes);
 app.use('/auth',       authLimiter, authRoutes);
 

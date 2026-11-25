@@ -11,8 +11,8 @@
     "standalone",
     "minimal-ui"
   ],
-  "background_color": "#09090b",
-  "theme_color": "#09090b",
+  "background_color": "#212121",
+  "theme_color": "#212121",
   "orientation": "any",
   "lang": "bn",
   "dir": "ltr",

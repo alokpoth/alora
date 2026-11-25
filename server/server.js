@@ -4,7 +4,8 @@ const cors = require('cors');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
-const { connectDB, getIsMongoConnected } = require('./config/db');
+const { connectDB, getIsMongoConnected, ensureDBConnected } = require('./config/db');
+const { memoryStore } = require('./config/memoryStore');
 const Plan = require('./models/Plan');
 const AiModel = require('./models/AiModel');
 const { createRateLimiter } = require('./middleware/ipRateLimiter');
@@ -68,8 +69,10 @@ connectDB().then(async () => {
         }
       }
 
+      const { getDeletedModelIds } = require('../utils/getModelConfig');
+      const deletedSet = await getDeletedModelIds();
       const modelCount = await AiModel.countDocuments();
-      if (modelCount === 0) {
+      if (modelCount === 0 && deletedSet.size === 0 && !memoryStore.settings?.modelsInitialized) {
         const pModels = await getPersistedModels();
         if (pModels && pModels.length > 0) {
           for (const m of pModels) {
@@ -120,6 +123,10 @@ connectDB().then(async () => {
 }).catch(err => console.error('[DB Connection Error]:', err.message));
 
 // API Routes with Rate Limiting & Anti-Cache Headers (fixes login/logout stale cache)
+app.use('/api', async (req, res, next) => {
+  await ensureDBConnected();
+  next();
+});
 app.use('/api', (req, res, next) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.setHeader('Pragma', 'no-cache');
@@ -184,8 +191,8 @@ app.get('/api/plans', async (req, res) => {
       const plain = (p && typeof p.toObject === 'function') ? p.toObject() : { ...p };
       plain.message_limit = Number(plain.message_limit) || 10;
       const defaultImg = (plain.name === 'Free' ? 5 : (plain.name === 'Pro' ? 25 : 100));
-      plain.image_limit = (plain.image_limit !== undefined && plain.image_limit !== null && !isNaN(Number(plain.image_limit)) && Number(plain.image_limit) > 0)
-        ? Math.max(Number(plain.image_limit), defaultImg)
+      plain.image_limit = (plain.image_limit !== undefined && plain.image_limit !== null && !isNaN(Number(plain.image_limit)) && Number(plain.image_limit) >= 0)
+        ? Number(plain.image_limit)
         : defaultImg;
       return plain;
     };
@@ -273,7 +280,18 @@ app.get('/download.html', (req, res) => res.sendFile(path.join(ROOT_DIR, 'downlo
 app.get('/download', (req, res) => res.sendFile(path.join(ROOT_DIR, 'download.html')));
 app.get('/app', (req, res) => res.sendFile(path.join(ROOT_DIR, 'download.html')));
 
-// Extensionless Clean Page Routes
+// ChatGPT Exact SPA & Auth/Pricing URL Routes
+app.get(['/c/:chatId', '/c/*', '/g/:gptId', '/share/:shareId', '/settings', '/settings/*'], (req, res) => {
+  res.sendFile(path.join(ROOT_DIR, 'index.html'));
+});
+app.get(['/auth/login', '/auth/signup', '/signup'], (req, res) => {
+  res.sendFile(path.join(ROOT_DIR, 'login.html'));
+});
+app.get(['/pricing'], (req, res) => {
+  res.sendFile(path.join(ROOT_DIR, 'plans.html'));
+});
+
+// Extensionless Clean Page Routes (with optional trailing slash handled by Express)
 ['plans', 'login', 'account', 'profile', 'security', 'subscription', 'usage', 'theme', 'sound', 'personalization', 'language', 'help', 'redeem', 'admin'].forEach(p => {
   app.get(`/${p}`, (req, res) => res.sendFile(path.join(ROOT_DIR, `${p}.html`)));
 });

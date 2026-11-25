@@ -1,4 +1,4 @@
-# GitLab Pages deployment pipeline for Alora AI
+# GitLab Pages deployment pipeline for Alora AI (ChatGPT Clean URLs)
 image: alpine:latest
 
 pages:
@@ -7,7 +7,7 @@ pages:
     - mkdir -p public
     # Copy all static root files
     - cp -r *.html public/ 2>/dev/null || true
-    - cp -r *.json *.js *.css CNAME robots.txt sitemap.xml site.webmanifest public/ 2>/dev/null || true
+    - cp -r *.json *.js *.css _redirects CNAME robots.txt sitemap.xml site.webmanifest public/ 2>/dev/null || true
     - cp -r *.png *.jpg *.jpeg *.svg *.ico *.webp public/ 2>/dev/null || true
     - cp -r *.apk *.ipa public/ 2>/dev/null || true
     - cp -r avatars logo utils public/ 2>/dev/null || true
@@ -21,6 +21,14 @@ pages:
           cp "$f" "public/$name/index.html"
         fi
       done
+    # ChatGPT alias directories (/auth/login, /auth/signup, /signup, /pricing, /settings, /app)
+    - mkdir -p public/auth/login public/auth/signup public/signup public/pricing public/settings public/app
+    - cp login.html public/auth/login/index.html
+    - cp login.html public/auth/signup/index.html
+    - cp login.html public/signup/index.html
+    - cp plans.html public/pricing/index.html
+    - cp index.html public/settings/index.html
+    - cp download.html public/app/index.html
   artifacts:
     paths:
       - public

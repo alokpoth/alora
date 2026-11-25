@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="oled">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
-  <meta name="theme-color" content="#000000">
+  <meta name="theme-color" content="#212121">
   <title>Help Center &amp; FAQ — Alora</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=3">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png?v=3">
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png?v=3">
-  <link rel="shortcut icon" href="favicon.ico?v=3">
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=3">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=3">
+  <link rel="shortcut icon" href="/favicon.ico?v=3">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -21,12 +21,13 @@
       --bg-card-hover: #1c1c22;
       --border-card: rgba(255, 255, 255, 0.09);
       --border-divider: rgba(255, 255, 255, 0.06);
-      --text-main: #ffffff;
+      --text-main: #ececec;
       --text-sub: #a1a1aa;
       --text-dim: #71717a;
-      --accent-blue: #3b82f6;
-      --accent-blue-hover: #2563eb;
-      --accent-success: #10b981;
+      --accent-blue: #ececec;
+      --accent-ink: #0d0d0d;
+      --accent-blue-hover: #ffffff;
+      --accent-success: var(--text-main);
       --font-main: 'Plus Jakarta Sans', 'Hind Siliguri', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
 
@@ -36,10 +37,11 @@
       --bg-card-hover: #1a1a20;
       --border-card: rgba(255, 255, 255, 0.1);
       --border-divider: rgba(255, 255, 255, 0.06);
-      --text-main: #ffffff;
+      --text-main: #ececec;
       --text-sub: #a1a1aa;
       --text-dim: #71717a;
-      --accent-blue: #3b82f6;
+      --accent-blue: #ececec;
+      --accent-ink: #0d0d0d;
     }
 
     [data-theme="sapphire"] {
@@ -51,19 +53,21 @@
       --text-main: #f8fafc;
       --text-sub: #94a3b8;
       --text-dim: #64748b;
-      --accent-blue: #38bdf8;
+      --accent-blue: #ececec;
+      --accent-ink: #0d0d0d;
     }
 
     [data-theme="light"] {
-      --bg-base: #f8fafc;
+      --bg-base: #ffffff;
       --bg-card: #ffffff;
-      --bg-card-hover: #f1f5f9;
+      --bg-card-hover: #ececec;
       --border-card: rgba(0, 0, 0, 0.08);
       --border-divider: rgba(0, 0, 0, 0.06);
-      --text-main: #09090b;
+      --text-main: #0d0d0d;
       --text-sub: #64748b;
       --text-dim: #94a3b8;
-      --accent-blue: #2563eb;
+      --accent-blue: #0d0d0d;
+      --accent-ink: #ffffff;
     }
 
     [data-theme="eyecare"] {
@@ -75,7 +79,8 @@
       --text-main: #4a3b2c;
       --text-sub: #7a6b5c;
       --text-dim: #9c8a77;
-      --accent-blue: #b45309;
+      --accent-blue: #2d2318;
+      --accent-ink: #f5eedc;
     }
 
     *, *::before, *::after {
@@ -218,7 +223,7 @@
     }
     .search-input:focus {
       border-color: var(--accent-blue);
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
     }
     .clear-search-btn {
       position: absolute;
@@ -414,19 +419,29 @@
   <script>
     (function() {
       try {
-        var saved = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "oled";
-        var valid = ["oled", "sapphire", "light", "eyecare"];
-        var mode = valid.indexOf(saved) !== -1 ? saved : "oled";
-        document.documentElement.setAttribute("data-theme-mode", mode);
+        var raw = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "dark";
+        var valid = ["dark", "oled", "sapphire", "light", "eyecare"];
+        var mode = raw;
+        if (raw === "system") {
+          mode = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? "dark" : "light";
+        } else if (valid.indexOf(raw) === -1) {
+          mode = "dark";
+        }
+        document.documentElement.setAttribute("data-theme-mode", raw);
         document.documentElement.setAttribute("data-theme", mode);
       } catch(e) {}
+      if (window.location.pathname.endsWith('.html')) {
+        var clean = window.location.pathname.replace(/\.html$/, '');
+        if (clean === '/index') clean = '/';
+        window.history.replaceState(null, '', clean + window.location.search + window.location.hash);
+      }
     })();
   </script>
 </head>
 <body>
   <!-- Top Navigation -->
   <header class="settings-nav">
-    <a href="account" class="settings-back-link" id="backBtn">
+    <a href="/account" class="settings-back-link" id="backBtn">
       <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
       <span id="backText">Settings</span>
     </a>
@@ -536,13 +551,31 @@
       </div>
       <div class="contact-item">
         <span class="contact-label" id="labelCommunity">Alokpath Platform</span>
-        <a href="https://alora.zihan.xyz" target="_blank" rel="noopener noreferrer" class="contact-val">alokpath.com</a>
+        <a href="https://alora.zihan.xyz" target="_blank" rel="noopener noreferrer" class="contact-val">alokpoth.com</a>
       </div>
       <div class="contact-item">
         <span class="contact-label" id="labelSecurity">Security Status</span>
         <span style="color:var(--accent-success); font-weight:700;" id="valSecStatus">Verified &amp; Hardened</span>
       </div>
     </div>
+
+    <!-- Terms of Use -->
+    <section id="terms" class="settings-card">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <span id="termsHeading">Terms of Use</span>
+      </div>
+      <p style="font-size:0.86rem; color:var(--text-sub); line-height:1.65;" id="termsBody">By accessing Alora, you agree to use AI tools responsibly, adhere to plan rate limits, and avoid automated abuse or unauthorized redistribution. Service availability and model routing remain managed dynamically by platform administrators.</p>
+    </section>
+
+    <!-- Privacy Policy -->
+    <section id="privacy" class="settings-card">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span id="privacyHeading">Privacy Policy</span>
+      </div>
+      <p style="font-size:0.86rem; color:var(--text-sub); line-height:1.65;" id="privacyBody">Alora stores chat threads and personalization preferences locally in your browser while sending prompts securely over HTTPS for AI inference. You can export your chats or permanently delete your account at any time from Security Settings.</p>
+    </section>
 
     <div class="version-stamp" id="versionText">
       Alora v2.0.0 • An Alokpath Product • Developed by Zihan Fakir
@@ -569,7 +602,7 @@
         faqQ5: "অফলাইনে Alora ব্যবহার করা যায় কি?",
         faqA5: "হ্যাঁ! আপনার পূর্বের সকল চ্যাট ও সেটিংস নিরাপদে ব্রাউজারে সংরক্ষিত থাকে, ফলে ইন্টারনেট সংযোগ ছাড়াই পুরনো কথোপকথন দেখা ও পড়া যায়।",
         faqQ6: "থিম ও সাউন্ড কীভাবে পরিবর্তন করব?",
-        faqA6: "সেটিংস > থিম থেকে OLED Dark, Deep Sapphire, Light ও Eye Care মোড নির্বাচন করতে পারেন এবং সেটিংস > শব্দ থেকে অডিও সাউন্ড কাস্টমাইজ করতে পারবেন।",
+        faqA6: "সেটিংস > থিম থেকে Dark, System, OLED, Deep Sapphire, Light ও Eye Care মোড নির্বাচন করতে পারেন এবং সেটিংস > শব্দ থেকে অডিও সাউন্ড কাস্টমাইজ করতে পারবেন।",
         noResults: "কোনো প্রাসঙ্গিক প্রশ্নোত্তর পাওয়া যায়নি। প্রয়োজনে ডেভেলপারের সাথে সরাসরি যোগাযোগ করুন।",
         supportHeading: "সহায়তা ও যোগাযোগ",
         labelPortal: "অফিসিয়াল পোর্টাল",
@@ -577,7 +610,11 @@
         labelCommunity: "আলোকপথ প্ল্যাটফর্ম",
         labelSecurity: "নিরাপত্তা স্ট্যাটাস",
         valSecStatus: "ভেরিফায়েড ও নিরাপদ",
-        version: "Alora সংস্করণ ২.০.০ • আলোকপথ প্রোডাক্ট • প্রস্তুতকারক জিহান ফকির"
+        termsHeading: "ব্যবহারের শর্তাবলী",
+        termsBody: "Alora ব্যবহারের মাধ্যমে আপনি দায়িত্বশীলভাবে এআই ব্যবহার করতে, প্ল্যান কোটা মেনে চলতে এবং অটোমেটেড অপব্যবহার থেকে বিরত থাকতে সম্মত হচ্ছেন। প্ল্যাটফর্ম অ্যাডমিনিস্ট্রেটর দ্বারা মডেল ও সেবা পরিচালিত হয়।",
+        privacyHeading: "গোপনীয়তা নীতি",
+        privacyBody: "আপনার চ্যাট ইতিহাস ও কাস্টম নির্দেশনা ব্রাউজারে লোকালি সংরক্ষিত থাকে এবং নিরাপদ HTTPS-এর মাধ্যমে এআই উত্তর তৈরি হয়। আপনি যেকোনো সময় অ্যাকাউন্ট ও ডেটা মুছে ফেলতে পারবেন।",
+        version: "Alora সংস্করণ ৩.০.০ • আলোকপথ প্রোডাক্ট • প্রস্তুতকারক জিহান ফকির"
       },
       en: {
         back: "Settings",
@@ -595,7 +632,7 @@
         faqQ5: "Can I use Alora offline?",
         faqA5: "Yes! All your previous chats, drafts, and preferences are cached locally using IndexedDB and LocalStorage, allowing you to browse and review conversations even with no network connection.",
         faqQ6: "How do I change themes or speech audio?",
-        faqA6: "You can adjust the theme from Settings > Color Theme (OLED, Deep Sapphire, Light, Eye Care) and configure speech audio, volume, and tones from Settings > Sound Settings.",
+        faqA6: "You can adjust the theme from Settings > Color Theme (Default Dark, System, OLED, Deep Sapphire, Light, Eye Care) and configure speech audio, volume, and tones from Settings > Sound Settings.",
         noResults: "No matching help topics found. Feel free to contact our developer directly.",
         supportHeading: "Support & Community",
         labelPortal: "Official Website",
@@ -603,7 +640,11 @@
         labelCommunity: "Alokpath Platform",
         labelSecurity: "Security Status",
         valSecStatus: "Verified & Hardened",
-        version: "Alora v2.0.0 • An Alokpath Product • Developed by Zihan Fakir"
+        termsHeading: "Terms of Use",
+        termsBody: "By accessing Alora, you agree to use AI tools responsibly, adhere to plan rate limits, and avoid automated abuse or unauthorized redistribution. Service availability and model routing remain managed dynamically by platform administrators.",
+        privacyHeading: "Privacy Policy",
+        privacyBody: "Alora stores chat threads and personalization preferences locally in your browser while sending prompts securely over HTTPS for AI inference. You can export your chats or permanently delete your account at any time from Security Settings.",
+        version: "Alora v3.0.0 • An Alokpath Product • Developed by Zihan Fakir"
       }
     };
 
@@ -653,6 +694,15 @@
 
       const valSec = document.getElementById("valSecStatus");
       if (valSec) valSec.textContent = d.valSecStatus;
+
+      const th = document.getElementById("termsHeading");
+      if (th && d.termsHeading) th.textContent = d.termsHeading;
+      const tb = document.getElementById("termsBody");
+      if (tb && d.termsBody) tb.textContent = d.termsBody;
+      const ph = document.getElementById("privacyHeading");
+      if (ph && d.privacyHeading) ph.textContent = d.privacyHeading;
+      const pb = document.getElementById("privacyBody");
+      if (pb && d.privacyBody) pb.textContent = d.privacyBody;
 
       const verText = document.getElementById("versionText");
       if (verText) verText.textContent = d.version;

@@ -1,106 +1,305 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>পৃষ্ঠা খুঁজে পাওয়া যায়নি — Alora</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
-  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <title>Page not found — Alora</title>
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=3">
+  <link rel="shortcut icon" href="/favicon.ico?v=3">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3">
+
   <script>
-    // Alokpath Static Clean URL Router
     (function() {
-      var pathname = window.location.pathname;
+      var pathname = window.location.pathname || '/';
+      var search = window.location.search || '';
+      var hash = window.location.hash || '';
+
+      function redirectOnce(targetUrl) {
+        try {
+          var prev = sessionStorage.getItem('alora_404_guard');
+          var now = Date.now();
+          if (prev) {
+            var sep = prev.lastIndexOf('|');
+            if (sep !== -1) {
+              var prevTarget = prev.slice(0, sep);
+              var prevTs = Number(prev.slice(sep + 1));
+              if (prevTarget === targetUrl && !isNaN(prevTs) && (now - prevTs) < 2000) {
+                sessionStorage.removeItem('alora_404_guard');
+                return false;
+              }
+            }
+          }
+          sessionStorage.setItem('alora_404_guard', targetUrl + '|' + now);
+        } catch (e) {}
+        document.documentElement.style.visibility = 'hidden';
+        window.location.replace(targetUrl);
+        return true;
+      }
+
+      // 1. Static-host SPA routes -> index.html restores URL via history.replaceState
+      if (pathname.indexOf('/c/') === 0 ||
+          pathname.indexOf('/share/') === 0 ||
+          pathname.indexOf('/g/') === 0 ||
+          pathname.indexOf('/settings') === 0) {
+        try {
+          sessionStorage.setItem('alora_spa_redirect', pathname + search + hash);
+        } catch (e) {}
+        if (redirectOnce('/' + search + hash)) return;
+      }
+
+      // 2. Auth login aliases
+      if (pathname === '/auth/login' || pathname === '/auth/login/' || pathname === '/login/') {
+        if (redirectOnce('/login.html' + search + hash)) return;
+      }
+
+      // 3. Auth signup aliases
+      if (pathname === '/auth/signup' || pathname === '/auth/signup/' || pathname === '/signup' || pathname === '/signup/') {
+        if (redirectOnce('/login.html?mode=signup' + (search ? '&' + search.slice(1) : '') + hash)) return;
+      }
+
+      // 4. Pricing alias
+      if (pathname === '/pricing' || pathname === '/pricing/') {
+        if (redirectOnce('/plans.html' + search + hash)) return;
+      }
+
+      // 5. Known standalone pages (redirect cleanly to /<page>.html only once)
       var clean = pathname.replace(/\/+$/, '');
-      if (clean && !clean.endsWith('.html') && !clean.includes('.')) {
-        var target = clean + '.html' + window.location.search + window.location.hash;
-        window.location.replace(target);
+      var knownPages = [
+        'account', 'profile', 'security', 'subscription', 'usage',
+        'theme', 'sound', 'personalization', 'language', 'help',
+        'redeem', 'download', 'plans', 'login', 'admin'
+      ];
+      if (clean.charAt(0) === '/' && knownPages.indexOf(clean.slice(1)) !== -1) {
+        var pageName = clean.slice(1);
+        if (redirectOnce('/' + pageName + '.html' + search + hash)) return;
+      }
+
+      // Apply user theme if staying on 404 fallback
+      try {
+        var qTheme = new URLSearchParams(search).get('theme');
+        var rawTheme = qTheme || localStorage.getItem('alokpoth_theme') || 'dark';
+        var effective = rawTheme;
+        if (rawTheme === 'system') {
+          effective = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+        }
+        var allowed = ['dark', 'oled', 'light', 'eyecare', 'sapphire'];
+        if (allowed.indexOf(effective) === -1) effective = 'dark';
+        document.documentElement.setAttribute('data-theme', effective);
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'dark');
       }
     })();
   </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
   <style>
-    :root {
-      --bg: #09090b;
-      --card-bg: #121215;
-      --border: rgba(255, 255, 255, 0.08);
-      --text: #f4f4f5;
-      --text-sub: #a1a1aa;
-      --primary: #3b82f6;
+    :root,
+    [data-theme="dark"],
+    [data-theme="sapphire"] {
+      --bg: #212121;
+      --surface: #171717;
+      --card: #2a2a2a;
+      --input: #2f2f2f;
+      --border: rgba(255, 255, 255, 0.12);
+      --text-main: #ececec;
+      --text-sub: #b4b4b4;
+      --text-muted: #8e8e8e;
+      --btn-bg: #ffffff;
+      --btn-text: #000000;
+      --btn-hover: #e5e5e5;
+      --danger: #ef4444;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    [data-theme="oled"] {
+      --bg: #000000;
+      --surface: #0a0a0a;
+      --card: #141414;
+      --input: #1c1c1c;
+      --border: rgba(255, 255, 255, 0.12);
+      --text-main: #ececec;
+      --text-sub: #b4b4b4;
+      --text-muted: #8e8e8e;
+      --btn-bg: #ffffff;
+      --btn-text: #000000;
+      --btn-hover: #e5e5e5;
+      --danger: #ef4444;
+    }
+
+    [data-theme="light"] {
+      --bg: #ffffff;
+      --surface: #f9f9f9;
+      --card: #f4f4f4;
+      --input: #ffffff;
+      --border: rgba(0, 0, 0, 0.12);
+      --text-main: #0d0d0d;
+      --text-sub: #5d5d5d;
+      --text-muted: #8e8e8e;
+      --btn-bg: #0d0d0d;
+      --btn-text: #ffffff;
+      --btn-hover: #262626;
+      --danger: #ef4444;
+    }
+
+    [data-theme="eyecare"] {
+      --bg: #f5eedc;
+      --surface: #f9f9f9;
+      --card: #f4f4f4;
+      --input: #ffffff;
+      --border: rgba(0, 0, 0, 0.12);
+      --text-main: #0d0d0d;
+      --text-sub: #5d5d5d;
+      --text-muted: #8e8e8e;
+      --btn-bg: #0d0d0d;
+      --btn-text: #ffffff;
+      --btn-hover: #262626;
+      --danger: #ef4444;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
     body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Hind Siliguri', sans-serif;
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', 'Hind Siliguri', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       min-height: 100vh;
+      min-height: 100dvh;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 24px;
       text-align: center;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
-    .box {
-      max-width: 440px;
+
+    .not-found-card {
       width: 100%;
-      background: var(--card-bg);
+      max-width: 420px;
+      background: var(--card);
       border: 1px solid var(--border);
       border-radius: 24px;
-      padding: 40px 24px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      padding: 40px 28px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 16px;
     }
-    .logo {
-      height: 48px;
-      width: 48px;
+
+    .logo-link {
+      display: inline-flex;
+      margin-bottom: 20px;
+      text-decoration: none;
+    }
+
+    .logo-img {
+      width: 44px;
+      height: 44px;
       object-fit: contain;
-      margin-bottom: 8px;
+      display: block;
     }
-    .code {
-      font-size: 3.5rem;
-      font-weight: 800;
-      background: linear-gradient(135deg, #60a5fa, #a855f7);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      line-height: 1;
-    }
-    h1 {
-      font-size: 1.25rem;
+
+    .status-code {
+      font-size: 0.78rem;
       font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 4px 12px;
+      border-radius: 9999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      margin-bottom: 16px;
     }
-    p {
+
+    .not-found-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--text-main);
+      margin-bottom: 10px;
+    }
+
+    .not-found-desc {
+      font-size: 0.92rem;
       color: var(--text-sub);
-      font-size: 0.95rem;
-      line-height: 1.6;
+      line-height: 1.55;
+      margin-bottom: 28px;
     }
-    .btn {
-      margin-top: 12px;
+
+    .home-pill-btn {
+      height: 46px;
+      padding: 0 26px;
+      border-radius: 9999px;
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      font-size: 0.94rem;
+      font-weight: 600;
+      text-decoration: none;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      background: var(--primary);
-      color: #fff;
-      text-decoration: none;
-      padding: 12px 28px;
-      border-radius: 12px;
-      font-weight: 600;
-      font-size: 0.95rem;
-      transition: opacity 0.2s;
+      transition: background-color 0.15s ease;
     }
-    .btn:hover { opacity: 0.9; }
+
+    .home-pill-btn:hover {
+      background: var(--btn-hover);
+    }
   </style>
 </head>
 <body>
-  <div class="box">
-    <img src="logo_icon_white.png" alt="Alora Logo" class="logo">
-    <div class="code">404</div>
-    <h1>পৃষ্ঠাটি খুঁজে পাওয়া যায়নি</h1>
-    <p>অনুরোধকৃত পাতাটি সরানো হয়েছে বা এই ঠিকানায় কোনো পৃষ্ঠা নেই।</p>
-    <a href="/" class="btn">মূল পাতায় ফিরে যান</a>
-  </div>
+
+  <main class="not-found-card">
+    <a href="/" class="logo-link" aria-label="Alora Home">
+      <img src="/logo_icon_white.png" alt="Alora" class="logo-img" id="brandLogo">
+    </a>
+
+    <div class="status-code">404</div>
+
+    <h1 class="not-found-title" id="nfTitle">Page not found</h1>
+    <p class="not-found-desc" id="nfDesc">The page you are looking for does not exist or may have been moved.</p>
+
+    <a href="/" class="home-pill-btn" id="nfBtn">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M19 12H5"/><path d="m12 19-7-7 7-7"/>
+      </svg>
+      <span id="nfBtnLabel">Back to Alora</span>
+    </a>
+  </main>
+
+  <script>
+    (function() {
+      var effective = document.documentElement.getAttribute('data-theme') || 'dark';
+      var logo = document.getElementById('brandLogo');
+      if (logo) {
+        logo.src = (effective === 'light' || effective === 'eyecare')
+          ? '/logo_icon_black.png'
+          : '/logo_icon_white.png';
+      }
+
+      var isBn = false;
+      try {
+        isBn = localStorage.getItem('alokpoth_lang') === 'bn';
+      } catch (e) {}
+
+      if (isBn) {
+        document.documentElement.setAttribute('lang', 'bn');
+        document.title = 'পৃষ্ঠাটি খুঁজে পাওয়া যায়নি — Alora';
+        document.getElementById('nfTitle').textContent = 'পৃষ্ঠাটি খুঁজে পাওয়া যায়নি';
+        document.getElementById('nfDesc').textContent = 'অনুরোধকৃত পাতাটি সরানো হয়েছে অথবা এই ঠিকানায় কোনো পৃষ্ঠা নেই।';
+        document.getElementById('nfBtnLabel').textContent = 'Alora-তে ফিরে যান';
+      }
+    })();
+  </script>
 </body>
 </html>

@@ -2,1864 +2,1586 @@
 <html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
-  <title>Plans & Pricing — Alora</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=3">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png?v=3">
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png?v=3">
-  <link rel="shortcut icon" href="favicon.ico?v=3">
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=3">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Upgrade your plan — Alora</title>
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=3">
+  <link rel="shortcut icon" href="/favicon.ico?v=3">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3">
+
   <script>
     (function() {
-      var p = new URLSearchParams(window.location.search).get('theme');
-      var t = p || localStorage.getItem('alokpoth_theme') || localStorage.getItem('alokpoth-theme') || 'system';
-      if (t === 'system') {
-        var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        t = isDark ? 'dark' : 'light';
+      try {
+        if ((window.location.protocol === 'http:' || window.location.protocol === 'https:') &&
+            window.location.pathname.endsWith('/plans.html')) {
+          window.history.replaceState(null, '', '/pricing' + window.location.search + window.location.hash);
+        }
+      } catch (e) {}
+
+      try {
+        var qTheme = new URLSearchParams(window.location.search).get('theme');
+        var rawTheme = qTheme || localStorage.getItem('alokpoth_theme') || 'dark';
+        var effective = rawTheme;
+        if (rawTheme === 'system') {
+          effective = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+        }
+        var allowed = ['dark', 'oled', 'light', 'eyecare', 'sapphire'];
+        if (allowed.indexOf(effective) === -1) effective = 'dark';
+        document.documentElement.setAttribute('data-theme', effective);
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'dark');
       }
-      document.documentElement.setAttribute('data-theme', t);
     })();
   </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  
-  <style>
-    :root {
-      --bg-base: #000000;
-      --bg-surface: #121316;
-      --bg-surface-hover: #1a1b20;
-      --border-subtle: rgba(255, 255, 255, 0.1);
-      --border-focus: rgba(255, 255, 255, 0.35);
-      --accent-primary: #3b82f6;
-      --accent-gradient: linear-gradient(135deg, #3b82f6, #6366f1);
-      --text-main: #f4f4f5;
-      --text-sub: #a1a1aa;
-      --text-muted: #71717a;
-      --danger: #ef4444;
-      --success: #10b981;
-      --radius-sm: 8px;
-      --radius-md: 14px;
-      --radius-lg: 20px;
-      --radius-xl: 24px;
-      --font-main: 'Plus Jakarta Sans', 'Hind Siliguri', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    }
 
-    [data-theme="dark"] {
-      --bg-base: #09090b;
-      --bg-surface: #141417;
-      --bg-surface-hover: #1f1f24;
-      --border-subtle: rgba(255, 255, 255, 0.09);
-      --border-focus: rgba(255, 255, 255, 0.35);
-      --text-main: #f4f4f5;
-      --text-sub: #a1a1aa;
-      --text-muted: #71717a;
-      --accent-primary: #3b82f6;
-      --accent-gradient: linear-gradient(135deg, #3b82f6, #6366f1);
+  <style>
+    :root,
+    [data-theme="dark"],
+    [data-theme="sapphire"] {
+      --bg: #212121;
+      --surface: #171717;
+      --card: #2a2a2a;
+      --input: #2f2f2f;
+      --border: rgba(255, 255, 255, 0.12);
+      --border-featured: rgba(255, 255, 255, 0.28);
+      --border-strong: rgba(255, 255, 255, 0.38);
+      --focus-ring: rgba(255, 255, 255, 0.14);
+      --text-main: #ececec;
+      --text-sub: #b4b4b4;
+      --text-muted: #8e8e8e;
+      --btn-bg: #ffffff;
+      --btn-text: #000000;
+      --btn-hover: #e5e5e5;
+      --subtle-pill-bg: rgba(255, 255, 255, 0.08);
+      --subtle-pill-hover: rgba(255, 255, 255, 0.14);
+      --badge-bg: rgba(255, 255, 255, 0.12);
+      --danger: #ef4444;
     }
 
     [data-theme="oled"] {
-      --bg-base: #000000;
-      --bg-surface: #0e0f12;
-      --bg-surface-hover: #18191d;
-      --border-subtle: rgba(255, 255, 255, 0.12);
-      --border-focus: rgba(255, 255, 255, 0.4);
-      --text-main: #ffffff;
-      --text-sub: #a1a1aa;
-      --text-muted: #71717a;
-      --accent-primary: #3b82f6;
-      --accent-gradient: linear-gradient(135deg, #3b82f6, #6366f1);
-    }
-
-    [data-theme="sapphire"] {
-      --bg-base: #060913;
-      --bg-surface: #0f1c32;
-      --bg-surface-hover: #162846;
-      --border-subtle: rgba(56, 189, 248, 0.16);
-      --border-focus: rgba(56, 189, 248, 0.5);
-      --accent-primary: #38bdf8;
-      --accent-gradient: linear-gradient(135deg, #38bdf8, #818cf8);
-      --text-main: #f8fafc;
-      --text-sub: #94a3b8;
-      --text-muted: #64748b;
-    }
-
-    [data-theme="eyecare"] {
-      --bg-base: #f5eedc;
-      --bg-surface: #fffdf7;
-      --bg-surface-hover: #ede3ce;
-      --border-subtle: rgba(146, 64, 14, 0.16);
-      --border-focus: rgba(146, 64, 14, 0.4);
-      --text-main: #3d2f21;
-      --text-sub: #6e5e4e;
-      --text-muted: #8c7b6b;
-      --accent-primary: #92400e;
-      --accent-gradient: linear-gradient(135deg, #b45309, #92400e);
+      --bg: #000000;
+      --surface: #0a0a0a;
+      --card: #141414;
+      --input: #1c1c1c;
+      --border: rgba(255, 255, 255, 0.12);
+      --border-featured: rgba(255, 255, 255, 0.28);
+      --border-strong: rgba(255, 255, 255, 0.4);
+      --focus-ring: rgba(255, 255, 255, 0.16);
+      --text-main: #ececec;
+      --text-sub: #b4b4b4;
+      --text-muted: #8e8e8e;
+      --btn-bg: #ffffff;
+      --btn-text: #000000;
+      --btn-hover: #e5e5e5;
+      --subtle-pill-bg: rgba(255, 255, 255, 0.08);
+      --subtle-pill-hover: rgba(255, 255, 255, 0.14);
+      --badge-bg: rgba(255, 255, 255, 0.12);
+      --danger: #ef4444;
     }
 
     [data-theme="light"] {
-      --bg-base: #f4f4f6;
-      --bg-surface: #ffffff;
-      --bg-surface-hover: #f8fafc;
-      --border-subtle: rgba(0, 0, 0, 0.09);
-      --border-focus: rgba(59, 130, 246, 0.4);
-      --text-main: #09090b;
-      --text-sub: #52525b;
-      --text-muted: #71717a;
-      --accent-primary: #2563eb;
-      --accent-gradient: linear-gradient(135deg, #3b82f6, #2563eb);
+      --bg: #ffffff;
+      --surface: #f9f9f9;
+      --card: #f4f4f4;
+      --input: #ffffff;
+      --border: rgba(0, 0, 0, 0.12);
+      --border-featured: rgba(0, 0, 0, 0.28);
+      --border-strong: rgba(0, 0, 0, 0.42);
+      --focus-ring: rgba(0, 0, 0, 0.08);
+      --text-main: #0d0d0d;
+      --text-sub: #5d5d5d;
+      --text-muted: #8e8e8e;
+      --btn-bg: #0d0d0d;
+      --btn-text: #ffffff;
+      --btn-hover: #262626;
+      --subtle-pill-bg: rgba(0, 0, 0, 0.06);
+      --subtle-pill-hover: rgba(0, 0, 0, 0.1);
+      --badge-bg: rgba(0, 0, 0, 0.08);
+      --danger: #ef4444;
+    }
+
+    [data-theme="eyecare"] {
+      --bg: #f5eedc;
+      --surface: #f9f9f9;
+      --card: #f4f4f4;
+      --input: #ffffff;
+      --border: rgba(0, 0, 0, 0.12);
+      --border-featured: rgba(0, 0, 0, 0.28);
+      --border-strong: rgba(0, 0, 0, 0.42);
+      --focus-ring: rgba(0, 0, 0, 0.08);
+      --text-main: #0d0d0d;
+      --text-sub: #5d5d5d;
+      --text-muted: #8e8e8e;
+      --btn-bg: #0d0d0d;
+      --btn-text: #ffffff;
+      --btn-hover: #262626;
+      --subtle-pill-bg: rgba(0, 0, 0, 0.06);
+      --subtle-pill-hover: rgba(0, 0, 0, 0.1);
+      --badge-bg: rgba(0, 0, 0, 0.08);
+      --danger: #ef4444;
     }
 
     *, *::before, *::after {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      -webkit-user-select: none !important;
-      -moz-user-select: none !important;
-      -ms-user-select: none !important;
-      user-select: none !important;
-      -webkit-touch-callout: none !important;
-      -webkit-tap-highlight-color: transparent !important;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      text-rendering: optimizeLegibility;
-      letter-spacing: -0.011em;
-    }
-
-    ::selection {
-      background: transparent !important;
-      color: inherit !important;
-    }
-    ::-moz-selection {
-      background: transparent !important;
-      color: inherit !important;
-    }
-
-    input, textarea, [contenteditable="true"] {
-      -webkit-user-select: text !important;
-      -moz-user-select: text !important;
-      -ms-user-select: text !important;
-      user-select: text !important;
-      -webkit-touch-callout: default !important;
-    }
-    input::selection, textarea::selection {
-      background: rgba(255, 255, 255, 0.25) !important;
-      color: inherit !important;
-    }
-
-    button, input, select, textarea, .btn, .btn-primary, .plan-card, .plan-btn {
-      touch-action: manipulation;
-    }
-
-    button:active, .btn:active, .btn-primary:active, .plan-btn:active {
-      transform: scale(0.968) !important;
-      transition: transform 0.1s cubic-bezier(0.16, 1, 0.3, 1) !important;
+      -webkit-tap-highlight-color: transparent;
     }
 
     body {
-      font-family: var(--font-main);
-      background-color: var(--bg-base) !important;
+      background-color: var(--bg);
       color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', 'Hind Siliguri', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       min-height: 100vh;
+      min-height: 100dvh;
       display: flex;
       flex-direction: column;
-      position: relative;
-      overflow-x: hidden;
-      padding-top: 0;
-      padding-bottom: env(safe-area-inset-bottom, 0px);
-      padding-left: env(safe-area-inset-left, 0px);
-      padding-right: env(safe-area-inset-right, 0px);
-      box-sizing: border-box;
-      background-image: none !important;
-      transition: background-color 0.2s ease, color 0.2s ease;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      transition: background-color 0.15s ease, color 0.15s ease;
     }
 
-    .ambient-glow {
-      display: none !important;
-    }
-
-    /* Top Bar */
-    .top-bar {
+    /* Top Header */
+    .pricing-header {
+      width: 100%;
+      padding: max(16px, env(safe-area-inset-top, 16px)) 24px 16px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      height: calc(56px + env(safe-area-inset-top, 0px));
-      padding: env(safe-area-inset-top, 0px) 20px 0 20px;
       position: sticky;
       top: 0;
-      z-index: 100;
-      background: var(--bg-base);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-bottom: 1px solid var(--border-subtle);
-      width: 100%;
-      margin: 0 auto;
-      transition: background-color 0.2s ease, border-color 0.2s ease;
+      z-index: 50;
+      background-color: var(--bg);
     }
 
-    .top-bar-center {
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: var(--text-main);
-      text-align: center;
-      flex: 1;
-    }
-
-    .brand-link {
-      display: flex;
+    .brand-anchor {
+      display: inline-flex;
       align-items: center;
       gap: 10px;
       text-decoration: none;
       color: var(--text-main);
-      font-weight: 700;
-      font-size: 1.15rem;
+      font-size: 1.05rem;
+      font-weight: 600;
+      letter-spacing: -0.015em;
     }
 
     .brand-logo {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      object-fit: cover;
+      width: 28px;
+      height: 28px;
+      object-fit: contain;
+      display: block;
     }
 
-    .top-actions {
+    .header-plan-chip {
+      display: none;
+      align-items: center;
+      padding: 2px 9px;
+      border-radius: 9999px;
+      background: var(--badge-bg);
+      border: 1px solid var(--border);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: var(--text-sub);
+    }
+
+    .header-controls {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 8px;
     }
 
-    .back-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 14px;
-      border-radius: 999px;
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      color: var(--text-main);
-      text-decoration: none;
-      font-size: 0.88rem;
-      font-weight: 500;
-      transition: all 0.2s;
-    }
-
-    .back-btn:hover {
-      background: var(--bg-surface-hover);
-    }
-
-    .theme-toggle-btn {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      color: var(--text-main);
-      width: 36px;
+    .icon-pill-btn {
       height: 36px;
-      border-radius: var(--radius-md);
+      padding: 0 12px;
+      border-radius: 9999px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-sub);
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: 600;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.2s;
-    }
-
-    .theme-toggle-btn:hover {
-      background: var(--bg-surface-hover);
-      border-color: var(--accent-primary);
-    }
-
-    .lang-toggle-btn {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      color: var(--text-main);
-      font-size: 0.8rem;
-      font-weight: 700;
-      padding: 6px 12px;
-      border-radius: var(--radius-md);
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      transition: all 0.2s;
-    }
-
-    .lang-toggle-btn:hover {
-      background: var(--bg-surface-hover);
-      border-color: var(--accent-primary);
-    }
-
-    @media (max-width: 640px) {
-      .top-bar {
-        padding-top: max(24px, calc(env(safe-area-inset-top, 0px) + 12px));
-        padding-bottom: 12px;
-        padding-left: max(14px, env(safe-area-inset-left, 14px));
-        padding-right: max(14px, env(safe-area-inset-right, 14px));
-      }
-      .brand-link span {
-        font-size: 1.05rem;
-      }
-      .brand-logo {
-        width: 28px;
-        height: 28px;
-      }
-      .top-actions {
-        gap: 8px;
-      }
-      .back-btn span {
-        display: none;
-      }
-      .back-btn {
-        padding: 8px 10px;
-      }
-      .lang-toggle-btn {
-        padding: 6px 10px;
-        font-size: 0.75rem;
-      }
-      .theme-toggle-btn {
-        width: 34px;
-        height: 34px;
-      }
-    }
-
-    /* Layout */
-    .plans-container {
-      flex: 1;
-      max-width: 1160px;
-      width: 100%;
-      margin: 0 auto;
-      padding: 40px 20px 80px;
-      position: relative;
-      z-index: 5;
-    }
-
-    .hero-section {
-      text-align: center;
-      max-width: 680px;
-      margin: 0 auto 48px;
-    }
-
-    .hero-badge {
-      display: inline-flex;
-      align-items: center;
       gap: 6px;
-      padding: 6px 14px;
-      border-radius: 9999px;
-      background: rgba(59, 130, 246, 0.12);
-      border: 1px solid rgba(59, 130, 246, 0.3);
-      color: var(--accent-primary);
-      font-size: 0.85rem;
-      font-weight: 600;
-      margin-bottom: 16px;
+      text-decoration: none;
+      transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
     }
 
-    .hero-title {
-      font-size: 2.3rem;
-      font-weight: 800;
-      line-height: 1.25;
-      margin-bottom: 12px;
+    .icon-pill-btn.square {
+      width: 36px;
+      padding: 0;
+    }
+
+    .icon-pill-btn:hover {
+      background: var(--subtle-pill-bg);
+      color: var(--text-main);
+      border-color: var(--border-featured);
+    }
+
+    /* Main Content Container */
+    .pricing-main {
+      width: 100%;
+      max-width: 1060px;
+      margin: 0 auto;
+      padding: 16px 20px 72px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .page-title {
+      font-size: clamp(1.75rem, 3.5vw, 2.25rem);
+      font-weight: 600;
+      letter-spacing: -0.028em;
+      line-height: 1.2;
+      text-align: center;
+      color: var(--text-main);
+      margin-bottom: 20px;
+    }
+
+    /* ChatGPT Segmented Pill Switcher */
+    .segmented-switcher {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 9999px;
+      margin-bottom: 36px;
+      gap: 2px;
+    }
+
+    .segment-btn {
+      height: 36px;
+      padding: 0 18px;
+      border-radius: 9999px;
+      border: none;
+      background: transparent;
+      color: var(--text-sub);
+      font-family: inherit;
+      font-size: 0.88rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+
+    .segment-btn:hover {
       color: var(--text-main);
     }
 
-    .hero-subtitle {
-      font-size: 1.05rem;
-      color: var(--text-sub);
-      line-height: 1.6;
+    .segment-btn.active {
+      background: var(--card);
+      color: var(--text-main);
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.16);
     }
 
-    /* Plans Grid */
+    [data-theme="light"] .segment-btn.active,
+    [data-theme="eyecare"] .segment-btn.active {
+      background: var(--input);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Stack Wrapper so Voucher tab can elevate inline section smoothly */
+    .sections-stack {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    /* 3-Column Pricing Grid */
     .plans-grid {
+      width: 100%;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
-      gap: 24px;
-      margin-bottom: 50px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 20px;
+      align-items: stretch;
+      order: 1;
+    }
+
+    @media (max-width: 740px) {
+      .plans-grid {
+        grid-template-columns: 1fr;
+        max-width: 440px;
+        margin: 0 auto;
+      }
     }
 
     .plan-card {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-xl);
-      padding: 36px 28px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 28px 26px 30px;
       display: flex;
       flex-direction: column;
       position: relative;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    .plan-card:hover {
-      transform: none !important;
-      border-color: rgba(255, 255, 255, 0.25);
-      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.25);
-    }
-
-    [data-theme="light"] .plan-card:hover {
-      border-color: rgba(0, 0, 0, 0.2);
+      transition: border-color 0.15s ease, background-color 0.15s ease;
     }
 
     .plan-card.featured {
-      border-color: var(--accent-primary);
-      box-shadow: 0 0 0 1px var(--accent-primary), 0 20px 48px rgba(59, 130, 246, 0.18);
+      background: var(--card);
+      border-color: var(--border-featured);
     }
 
-    .plan-card.active-user-plan {
-      border: 2px solid #10b981 !important;
-      box-shadow: 0 0 0 1px #10b981, 0 16px 36px rgba(16, 185, 129, 0.22) !important;
+    .plan-card.current-active {
+      border-color: var(--border-strong);
     }
 
-    .plan-card.active-user-plan.admin-plan {
-      border: 2px solid #f59e0b !important;
-      box-shadow: 0 0 0 1px #f59e0b, 0 16px 36px rgba(245, 158, 11, 0.25) !important;
-    }
-
-    .plan-badge-slot {
-      position: absolute;
-      top: -12px;
-      right: 20px;
+    .card-top-row {
       display: flex;
-      gap: 6px;
-      z-index: 10;
-    }
-
-    .active-plan-badge-top {
-      padding: 4px 12px;
-      background: #10b981;
-      color: #ffffff;
-      border-radius: 9999px;
-      font-size: 0.78rem;
-      font-weight: 700;
-      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.45);
-      display: inline-flex;
       align-items: center;
-      gap: 4px;
+      justify-content: space-between;
+      gap: 10px;
+      min-height: 28px;
+      margin-bottom: 14px;
     }
 
-    .active-plan-badge-top.admin {
-      background: linear-gradient(135deg, #ec4899, #f59e0b);
-      box-shadow: 0 4px 14px rgba(245, 158, 11, 0.45);
-    }
-
-    .popular-tag {
-      position: absolute;
-      top: -12px;
-      right: 24px;
-      padding: 4px 12px;
-      background: var(--accent-gradient);
-      color: #ffffff;
-      border-radius: 9999px;
-      font-size: 0.78rem;
-      font-weight: 700;
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
-    }
-
-    .plan-name {
-      font-size: 1.4rem;
-      font-weight: 700;
-      margin-bottom: 4px;
+    .plan-tier-name {
+      font-size: 1.35rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
       color: var(--text-main);
     }
 
-    .plan-desc {
-      font-size: 0.88rem;
-      color: var(--text-sub);
-      margin-bottom: 20px;
-      min-height: 42px;
-      line-height: 1.5;
-    }
-
-    .plan-quota {
-      display: flex;
-      flex-direction: column;
+    .card-badges {
+      display: inline-flex;
+      align-items: center;
       gap: 6px;
-      margin-bottom: 24px;
-      padding-bottom: 20px;
-      border-bottom: 1px solid var(--border-subtle);
+      flex-wrap: wrap;
+      justify-content: flex-end;
     }
 
-    .quota-primary-row {
+    .mono-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      border-radius: 9999px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      background: var(--badge-bg);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+    }
+
+    .mono-badge.inverted {
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      border-color: var(--btn-bg);
+    }
+
+    .price-row {
       display: flex;
       align-items: baseline;
-      gap: 6px;
-    }
-
-    .quota-num {
-      font-size: 2.4rem;
-      font-weight: 800;
-      color: var(--text-main);
-      line-height: 1.1;
-    }
-
-    .quota-unit {
-      font-size: 0.95rem;
-      color: var(--text-sub);
-    }
-
-    .quota-img-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      border-radius: 9999px;
-      background: rgba(236, 72, 153, 0.12);
-      border: 1px solid rgba(236, 72, 153, 0.28);
-      color: #ec4899;
-      font-size: 0.82rem;
-      font-weight: 600;
-      width: fit-content;
-      margin-top: 4px;
-    }
-
-    [data-theme="light"] .quota-img-pill {
-      background: rgba(219, 39, 119, 0.1);
-      border-color: rgba(219, 39, 119, 0.25);
-      color: #db2777;
-    }
-
-    [data-theme="eyecare"] .quota-img-pill {
-      background: rgba(180, 83, 9, 0.12);
-      border-color: rgba(180, 83, 9, 0.25);
-      color: #92400e;
-    }
-
-    .features-list {
-      list-style: none;
-      margin-bottom: 32px;
-      flex: 1;
-    }
-
-    .features-list li {
-      padding: 10px 0;
-      font-size: 0.95rem;
-      color: var(--text-main);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .features-list li svg {
-      width: 18px;
-      height: 18px;
-      color: var(--success);
-      flex-shrink: 0;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-
-    .btn-plan {
-      width: 100%;
-      height: 48px;
-      border-radius: var(--radius-md);
-      font-size: 0.96rem;
-      font-weight: 600;
-      font-family: inherit;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       gap: 8px;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-      text-decoration: none;
-      border: 1px solid var(--border-subtle);
-      background: rgba(255, 255, 255, 0.06);
-      color: var(--text-main);
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    [data-theme="light"] .btn-plan {
-      background: #f1f5f9;
-      border-color: rgba(0, 0, 0, 0.1);
-      color: #09090b;
-    }
-    [data-theme="light"] .btn-plan:hover {
-      background: #e2e8f0;
-    }
-
-    [data-theme="eyecare"] .btn-plan {
-      background: #ede3ce;
-      border-color: rgba(146, 64, 14, 0.18);
-      color: #3d2f21;
-    }
-    [data-theme="eyecare"] .btn-plan:hover {
-      background: #dfcfb8;
-    }
-
-    .btn-plan:hover {
-      background: rgba(255, 255, 255, 0.12);
-      transform: none !important;
-    }
-
-    .btn-plan.primary {
-      background: var(--accent-gradient);
-      color: #ffffff;
-      border: none;
-      box-shadow: 0 8px 24px rgba(59, 130, 246, 0.35);
-    }
-
-    .btn-plan.primary:hover {
-      opacity: 0.95;
-      box-shadow: 0 12px 30px rgba(59, 130, 246, 0.45);
-    }
-
-    .btn-plan.active-plan-btn {
-      background: #10b981 !important;
-      color: #ffffff !important;
-      border: none !important;
-      font-weight: 700 !important;
-      box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4) !important;
-    }
-
-    .btn-plan.active-admin-btn {
-      background: linear-gradient(135deg, #ec4899, #f59e0b) !important;
-      color: #ffffff !important;
-      border: none !important;
-      font-weight: 700 !important;
-      box-shadow: 0 4px 16px rgba(245, 158, 11, 0.4) !important;
-    }
-
-    /* Redeem Section */
-    .redeem-section-card {
-      background: var(--bg-surface);
-      border: 1px dashed rgba(139, 92, 246, 0.4);
-      border-radius: var(--radius-xl);
-      padding: 36px 32px;
-      margin-bottom: 60px;
-      backdrop-filter: blur(16px);
-      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.2);
-    }
-
-    .redeem-header {
-      display: flex;
-      align-items: center;
-      gap: 14px;
       margin-bottom: 12px;
     }
 
-    .redeem-icon {
-      width: 44px;
-      height: 44px;
+    .price-figure {
+      font-size: 2.35rem;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      color: var(--text-main);
+    }
+
+    .price-meta {
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      line-height: 1.3;
+    }
+
+    .plan-tagline {
+      font-size: 0.92rem;
+      color: var(--text-sub);
+      line-height: 1.5;
+      min-height: 44px;
+      margin-bottom: 20px;
+    }
+
+    /* Card CTA Pill Button */
+    .plan-cta-btn {
+      width: 100%;
+      height: 46px;
+      border-radius: 9999px;
+      font-family: inherit;
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+      margin-bottom: 24px;
+      border: 1px solid var(--border-featured);
+      background: transparent;
+      color: var(--text-main);
+    }
+
+    .plan-cta-btn:hover:not(:disabled) {
+      background: var(--subtle-pill-hover);
+    }
+
+    .plan-cta-btn.solid {
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      border-color: var(--btn-bg);
+    }
+
+    .plan-cta-btn.solid:hover:not(:disabled) {
+      background: var(--btn-hover);
+      border-color: var(--btn-hover);
+    }
+
+    .plan-cta-btn.current,
+    .plan-cta-btn:disabled {
+      background: var(--subtle-pill-bg);
+      color: var(--text-muted);
+      border-color: var(--border);
+      cursor: default;
+    }
+
+    /* Features List */
+    .feature-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 13px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      flex: 1;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 11px;
+      font-size: 0.9rem;
+      line-height: 1.45;
+      color: var(--text-main);
+    }
+
+    .feature-item svg {
+      width: 17px;
+      height: 17px;
+      flex-shrink: 0;
+      margin-top: 2px;
+      color: var(--text-main);
+    }
+
+    /* Inline Voucher Redemption Section */
+    .voucher-section {
+      width: 100%;
+      max-width: 680px;
+      margin: 0 auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 28px;
+      order: 2;
+      transition: border-color 0.2s ease, background-color 0.2s ease;
+    }
+
+    .sections-stack.voucher-first .voucher-section {
+      order: 0;
+      background: var(--card);
+      border-color: var(--border-featured);
+    }
+
+    .voucher-head {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .voucher-icon-box {
+      width: 40px;
+      height: 40px;
       border-radius: 12px;
-      background: rgba(139, 92, 246, 0.18);
-      color: #c084fc;
+      background: var(--subtle-pill-bg);
+      border: 1px solid var(--border);
+      color: var(--text-main);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.4rem;
+      flex-shrink: 0;
     }
 
-    .redeem-title {
-      font-size: 1.35rem;
-      font-weight: 700;
+    .voucher-title {
+      font-size: 1.12rem;
+      font-weight: 600;
+      letter-spacing: -0.015em;
       color: var(--text-main);
+      margin-bottom: 4px;
     }
 
-    .redeem-desc {
-      font-size: 0.95rem;
+    .voucher-desc {
+      font-size: 0.88rem;
       color: var(--text-sub);
-      margin-bottom: 20px;
-      line-height: 1.6;
+      line-height: 1.5;
     }
 
-    .redeem-form {
+    .voucher-form {
       display: flex;
-      gap: 12px;
+      gap: 10px;
+      width: 100%;
     }
 
-    @media (max-width: 640px) {
-      .redeem-form {
+    @media (max-width: 600px) {
+      .voucher-form {
         flex-direction: column;
+      }
+      .pricing-header {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+      .voucher-section {
+        padding: 22px 18px;
       }
     }
 
-    .redeem-input {
+    .voucher-input {
       flex: 1;
-      height: 50px;
-      padding: 0 16px;
-      background: rgba(0, 0, 0, 0.25);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-md);
+      height: 48px;
+      padding: 0 18px;
+      background: var(--input);
+      border: 1px solid var(--border);
+      border-radius: 9999px;
       color: var(--text-main);
-      font-size: 1.05rem;
-      font-weight: 700;
-      letter-spacing: 1px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.94rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
       text-transform: uppercase;
       outline: none;
-      font-family: monospace;
-      box-sizing: border-box;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
 
-    .redeem-input:focus {
-      border-color: #a855f7;
-      box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2);
+    .voucher-input::placeholder {
+      color: var(--text-muted);
+      font-weight: 400;
+      letter-spacing: 0.01em;
     }
 
-    [data-theme="light"] .redeem-input {
-      background: #f8fafc;
-      border-color: rgba(0, 0, 0, 0.15);
-      color: #09090b;
+    .voucher-input:focus {
+      border-color: var(--text-main);
+      box-shadow: 0 0 0 3px var(--focus-ring);
     }
 
-    [data-theme="eyecare"] .redeem-input {
-      background: #ede3ce;
-      border-color: rgba(146, 64, 14, 0.25);
-      color: #3d2f21;
-    }
-
-    .btn-claim {
-      height: 50px;
-      padding: 0 28px;
-      background: linear-gradient(135deg, #8b5cf6, #6d28d9);
-      color: #ffffff;
+    .voucher-submit-btn {
+      height: 48px;
+      padding: 0 24px;
+      border-radius: 9999px;
       border: none;
-      border-radius: var(--radius-md);
-      font-size: 1rem;
-      font-weight: 600;
+      background: var(--btn-bg);
+      color: var(--btn-text);
       font-family: inherit;
+      font-size: 0.92rem;
+      font-weight: 600;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      box-shadow: 0 8px 24px rgba(139, 92, 246, 0.35);
-      transition: all 0.2s;
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
+      white-space: nowrap;
+      transition: background-color 0.15s ease, opacity 0.15s ease;
     }
 
-    .btn-claim:hover {
-      opacity: 0.95;
-      transform: none !important;
+    .voucher-submit-btn:hover:not(:disabled) {
+      background: var(--btn-hover);
     }
 
-    .btn-claim:disabled {
-      opacity: 0.6;
+    .voucher-submit-btn:disabled {
+      opacity: 0.65;
       cursor: not-allowed;
-      transform: none;
     }
 
-    /* FAQ Section */
-    .faq-title {
-      text-align: center;
-      font-size: 1.6rem;
-      font-weight: 700;
-      margin-bottom: 30px;
+    .spinner-svg {
+      width: 16px;
+      height: 16px;
+      animation: planSpin 0.75s linear infinite;
     }
 
-    .faq-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 20px;
+    @keyframes planSpin {
+      to { transform: rotate(360deg); }
     }
 
-    .faq-card {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-lg);
-      padding: 24px;
+    /* Monochrome Feedback Banner */
+    .voucher-feedback {
+      margin-top: 16px;
+      padding: 13px 16px;
+      border-radius: 16px;
+      font-size: 0.88rem;
+      line-height: 1.5;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
     }
 
-    .faq-q {
-      font-size: 1.05rem;
-      font-weight: 700;
-      margin-bottom: 8px;
+    .voucher-feedback-main {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .voucher-feedback svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .voucher-feedback.success {
+      background: var(--bg);
+      border: 1px solid var(--border-strong);
       color: var(--text-main);
     }
 
-    .faq-a {
-      font-size: 0.92rem;
-      color: var(--text-sub);
+    .voucher-feedback.error {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.32);
+      color: var(--danger);
+    }
+
+    .feedback-chat-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .feedback-chat-link:hover {
+      background: var(--btn-hover);
+    }
+
+    /* Footer Note */
+    .pricing-footnote {
+      margin-top: 36px;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
       line-height: 1.6;
     }
 
-    /* Toast */
-    .toast {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      padding: 14px 20px;
-      border-radius: var(--radius-md);
-      font-size: 0.95rem;
-      font-weight: 500;
-      color: #ffffff;
-      background: #1e293b;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
-      z-index: 1000;
-      display: none;
-      animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    .pricing-footnote a {
+      color: var(--text-sub);
+      text-decoration: underline;
+      text-underline-offset: 3px;
     }
 
-    .toast.success { background: #065f46; border-color: #059669; }
-    .toast.error { background: #991b1b; border-color: #dc2626; }
-
-    @keyframes toastIn {
-      from { transform: none !important; opacity: 0; }
-      to { transform: none !important; opacity: 1; }
+    .pricing-footnote a:hover {
+      color: var(--text-main);
     }
-
-    #confettiCanvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 9999;
-    }
-  
-
-
-    
-    /* Clean Modern Controls (Vercel/Linear Design System) */
-    button, .btn, .btn-primary, .btn-secondary, .page-back-btn, .option-card, .btn-test-sound, .auth-btn, .download-btn, .plan-cta-btn, .plan-toggle-btn, .pill-btn, .tab-btn, .cta-btn, .submit-btn, .back-btn, .settings-back-link {
-      border-radius: 9px !important;
-      transform: none !important;
-      transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease !important;
-    }
-    button:hover, .btn:hover, .btn-primary:hover, .btn-secondary:hover, .page-back-btn:hover, .option-card:hover, .btn-test-sound:hover, .auth-btn:hover, .download-btn:hover {
-      transform: none !important;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18) !important;
-    }
-    button:active, .btn:active, .btn-primary:active, .btn-secondary:active, .page-back-btn:active, .option-card:active, .btn-test-sound:active, .auth-btn:active, .download-btn:active {
-      transform: scale(0.975) !important;
-    }
-    input, .auth-input, .custom-dialog-input, .search-input {
-      border-radius: 10px !important;
-    }
-    .card, .auth-card, .plan-card, .profile-card, .settings-group, .settings-card, .help-card, .modal-sheet, .custom-dialog-box, .content-card, .feature-card, .modal-box, .glass-panel, .info-box, .account-card {
-      border-radius: 14px !important;
-    }
-    .badge, .status-pill, .role-pill, .filter-chip {
-      border-radius: 6px !important;
-    }
-
-</style>
-<script>
-  (function() {
-    if (window.location.pathname.endsWith('.html')) {
-      var clean = window.location.pathname.replace(/\.html$/, '');
-      if (clean === '/index') clean = '/';
-      window.history.replaceState(null, '', clean + window.location.search + window.location.hash);
-    }
-  })();
-</script>
-<script>
-  (function() {
-    try {
-      var saved = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "oled";
-      if (saved !== "light" && saved !== "eyecare") saved = "oled";
-      document.documentElement.setAttribute("data-theme-mode", saved);
-      document.documentElement.setAttribute("data-theme", saved);
-    } catch(e) {}
-  })();
-</script>
+  </style>
 </head>
 <body>
-  <div class="ambient-glow"></div>
-  <canvas id="confettiCanvas"></canvas>
-  <div id="toastEl" class="toast"></div>
 
-  <header class="top-bar">
-    <a href="/" class="back-btn" id="backToChatBtn">
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="15 18 9 12 15 6"></polyline>
-      </svg>
-      <span id="backToChatText">Alora</span>
+  <header class="pricing-header">
+    <a href="/" class="brand-anchor" aria-label="Alora Home">
+      <img src="/logo_icon_white.png" alt="Alora" class="brand-logo" id="brandLogo">
+      <span>Alora</span>
+      <span class="header-plan-chip" id="headerPlanChip"></span>
     </a>
-    <div class="top-bar-center" id="plansPageTitle">Plans &amp; Pricing</div>
-    <div class="top-actions">
-      <button type="button" class="lang-toggle-btn" id="langToggleBtn" title="Switch Language / ভাষা পরিবর্তন">
-        <span id="langBtnText">EN</span>
+
+    <div class="header-controls">
+      <button type="button" class="icon-pill-btn" id="langToggleBtn" aria-label="Switch language">
+        <span id="langToggleText">বাংলা</span>
       </button>
-      <button type="button" class="theme-toggle-btn" id="themeToggleBtn" title="Switch Theme / থিম পরিবর্তন">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+
+      <button type="button" class="icon-pill-btn square" id="themeToggleBtn" aria-label="Toggle theme">
+        <svg id="themeIconSvg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="4"/>
           <path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
         </svg>
       </button>
+
+      <a href="/" class="icon-pill-btn square" id="closePageBtn" aria-label="Close">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </a>
     </div>
   </header>
 
-  <main class="plans-container">
-    <div class="hero-section">
-      <div class="hero-badge">
-        <img src="/logo_icon_white.png" alt="Alora" style="width:16px;height:16px;border-radius:4px;vertical-align:-3px;margin-right:6px;display:inline-block;">
-        <span id="heroBadgeText">Alora Plans</span>
-      </div>
-      <h1 class="hero-title" id="heroTitle">Choose the Best Plan for You</h1>
-      <p class="hero-subtitle" id="heroSubtitle">From everyday quick questions to advanced coding and research with high-speed AI.</p>
+  <main class="pricing-main">
+    <h1 class="page-title" id="pageTitle">Upgrade your plan</h1>
+
+    <div class="segmented-switcher" role="tablist" aria-label="Plan view">
+      <button type="button" class="segment-btn active" id="tabPersonalBtn" role="tab" aria-selected="true">Personal</button>
+      <button type="button" class="segment-btn" id="tabVoucherBtn" role="tab" aria-selected="false">Redeem Voucher</button>
     </div>
 
-    <!-- Plans Grid -->
-    <div class="plans-grid">
-      <!-- Free Plan -->
-      <div class="plan-card" id="planCardFree">
-        <div class="plan-badge-slot" id="badgeSlotFree"></div>
-        <div class="plan-name" id="planNameFree">Free</div>
-        <div class="plan-desc" id="planDescFree">Great for everyday answers, general queries, and exploring Alora.</div>
-        <div class="plan-quota">
-          <div class="quota-primary-row">
-            <div class="quota-num" id="quotaNumFree">10</div>
-            <div class="quota-unit" id="quotaUnitFree">msgs / 3 hrs</div>
-          </div>
-          <div class="quota-img-pill" id="quotaImgBadgeFree">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            <span id="quotaImgPillTextFree">5 images / 3 hrs</span>
-          </div>
-        </div>
-        <ul class="features-list">
-          <li id="featFree1">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-            <span>10 messages per 3 hours</span>
-          </li>
-          <li id="featFreeImg">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            <span id="featFreeImgText">5 images per 3 hours</span>
-          </li>
-          <li id="featFree2">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-            <span>Standard AI models access</span>
-          </li>
-          <li id="featFree3">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-            <span>Standard streaming speed</span>
-          </li>
-          <li id="featFree4">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-            <span>Lifetime free access</span>
-          </li>
-        </ul>
-        <a href="/" class="btn-plan" id="btnFree">Use Current Plan</a>
-      </div>
+    <div class="sections-stack" id="sectionsStack">
+      <!-- 3 Monochrome ChatGPT Pricing Cards -->
+      <section class="plans-grid" id="plansGrid" aria-label="Subscription plans">
 
-      <!-- Pro Plan -->
-      <div class="plan-card featured" id="planCardPro">
-        <div class="plan-badge-slot" id="badgeSlotPro">
-          <div class="popular-tag" id="popularTag">Most Popular</div>
-        </div>
-        <div class="plan-name" id="planNamePro">Pro</div>
-        <div class="plan-desc" id="planDescPro">For developers, creators, and power users who need high speed and intelligence.</div>
-        <div class="plan-quota">
-          <div class="quota-primary-row">
-            <div class="quota-num" id="quotaNumPro" style="color:#8b5cf6;">30</div>
-            <div class="quota-unit" id="quotaUnitPro">msgs / 3 hrs</div>
+        <!-- Free -->
+        <article class="plan-card" id="cardFree">
+          <div class="card-top-row">
+            <h2 class="plan-tier-name" id="nameFree">Free</h2>
+            <div class="card-badges" id="badgesFree"></div>
           </div>
-          <div class="quota-img-pill" id="quotaImgBadgePro" style="background: rgba(139, 92, 246, 0.12); border-color: rgba(139, 92, 246, 0.3); color: #8b5cf6;">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            <span id="quotaImgPillTextPro">25 images / 3 hrs</span>
-          </div>
-        </div>
-        <ul class="features-list">
-          <li id="featPro1">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-            <span>30 messages per 3 hours</span>
-          </li>
-          <li id="featProImg">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            <span id="featProImgText">25 images per 3 hours</span>
-          </li>
-          <li id="featPro2">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-            <span>All premium AI models access</span>
-          </li>
-          <li id="featPro3">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-            <span>Ultrafast streaming response</span>
-          </li>
-          <li id="featPro4">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-            <span>Full code gen &amp; live web search</span>
-          </li>
-        </ul>
-        <button type="button" class="btn-plan primary" id="btnPro" onclick="scrollToRedeem()">Unlock with Redeem Code</button>
-      </div>
 
-      <!-- Max Plan -->
-      <div class="plan-card" id="planCardMax">
-        <div class="plan-badge-slot" id="badgeSlotMax"></div>
-        <div class="plan-name" id="planNameMax">Max</div>
-        <div class="plan-desc" id="planDescMax">Maximum AI speed, extended context, and dedicated resources for heavy-duty workloads.</div>
-        <div class="plan-quota">
-          <div class="quota-primary-row">
-            <div class="quota-num" id="quotaNumMax" style="color:#f59e0b;">50</div>
-            <div class="quota-unit" id="quotaUnitMax">msgs / 1 hr</div>
+          <div class="price-row">
+            <span class="price-figure" id="priceFree">$0</span>
+            <span class="price-meta" id="priceMetaFree">forever</span>
           </div>
-          <div class="quota-img-pill" id="quotaImgBadgeMax" style="background: rgba(245, 158, 11, 0.12); border-color: rgba(245, 158, 11, 0.3); color: #f59e0b;">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            <span id="quotaImgPillTextMax">100 images / 1 hr</span>
+
+          <p class="plan-tagline" id="taglineFree">Intelligence for everyday tasks and quick answers</p>
+
+          <button type="button" class="plan-cta-btn current" id="ctaFree" disabled>Your current plan</button>
+
+          <ul class="feature-list">
+            <li class="feature-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              <span id="featFree1">Everyday assistance</span>
+            </li>
+            <li class="feature-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              <span id="featFree2">Standard models</span>
+            </li>
+            <li class="feature-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              <span id="featFreeQuota">10 messages per 3 hours</span>
+            </li>
+            <li class="feature-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              <span id="featFree4">Web search &amp; file uploads</span>
+            </li>
+          </ul>
+        </article>
+
+        <!-- Pro -->
+        <article class="plan-card featured" id="cardPro">
+          <div class="card-top-row">
+            <h2 class="plan-tier-name" id="namePro">Pro</h2>
+            <div class="card-badges" id="badgesPro">
+              <span class="mono-badge inverted" id="popularBadge">POPULAR</span>
+            </div>
+          </div>
+
+          <div class="price-row">
+            <span class="price-figure" id="pricePro">Pro</span>
+            <span class="price-meta" id="priceMetaPro">voucher access</span>
+          </div>
+
+          <p class="plan-tagline" id="taglinePro">More access to advanced reasoning, coding, and vision</p>
+
+          <button type="button" class="plan-cta-btn solid" id="ctaPro">Upgrade with Voucher</button>
+
+          <ul class="feature-list">
+            <li class="feature-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              <span id="featPro1">Everything in Free</span>
+            </li>
+            <li class="feature-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              <span id="featPro2">Access to Alora Pro reasoning models</span>
+            </li>
+            <li class="feature-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              <span id="featProQuota">30 messages per 3 hours</span>
+            </li>
+            <li class="feature-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              <span id="featPro4">Priority speed</span>
+            </li>
+            <li class="feature-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              <span id="featPro5">Multimodal vision &amp; code analysis</span>
+            </li>
+          </ul>
+        </article>
+
+        <!-- Max -->
+        <article class="plan-card" id="cardMax">
+          <div class="card-top-row">
+            <h2 class="plan-tier-name" id="nameMax">Max</h2>
+            <div class="card-badges" id="badgesMax">
+              <span class="mono-badge" id="frontierBadge">FRONTIER</span>
+            </div>
+          </div>
+
+          <div class="price-row">
+            <span class="price-figure" id="priceMax">Max</span>
+            <span class="price-meta" id="priceMetaMax">frontier access</span>
+          </div>
+
+          <p class="plan-tagline" id="taglineMax">Full frontier intelligence with our highest usage limits</p>
+
+          <button type="button" class="plan-cta-btn" id="ctaMax">Get Max with Voucher</button>
+
+          <ul class="feature-list">
+            <li class="feature-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              <span id="featMax1">Everything in Pro</span>
+            </li>
+            <li class="feature-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              <span id="featMax2">Full access to all Frontier &amp; Pro Max models</span>
+            </li>
+            <li class="feature-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              <span id="featMaxQuota">50 messages per 1 hour (highest limits)</span>
+            </li>
+            <li class="feature-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              <span id="featMax4">Deep analytical workflows</span>
+            </li>
+            <li class="feature-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              <span id="featMax5">Early access to new capabilities</span>
+            </li>
+          </ul>
+        </article>
+
+      </section>
+
+      <!-- Working Inline Voucher Redemption Section -->
+      <section class="voucher-section" id="redeemSection" aria-label="Redeem voucher">
+        <div class="voucher-head">
+          <div class="voucher-icon-box" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/>
+              <path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/>
+            </svg>
+          </div>
+          <div>
+            <h2 class="voucher-title" id="voucherTitle">Redeem a plan voucher</h2>
+            <p class="voucher-desc" id="voucherDesc">Enter an official Alora Pro or Max voucher code to upgrade your account immediately.</p>
           </div>
         </div>
-        <ul class="features-list">
-          <li id="featMax1">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-            <span>50 messages per 1 hour</span>
-          </li>
-          <li id="featMaxImg">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            <span id="featMaxImgText">100 images per 1 hour</span>
-          </li>
-          <li id="featMax2">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-            <span>Top priority AI bandwidth</span>
-          </li>
-          <li id="featMax3">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-            <span>Maximum context memory support</span>
-          </li>
-          <li id="featMax4">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-            <span>All exclusive features &amp; early access</span>
-          </li>
-        </ul>
-        <button type="button" class="btn-plan" id="btnMax" style="background:linear-gradient(135deg, #ec4899, #f59e0b); color:#fff; border:none;" onclick="scrollToRedeem()">Claim Max with Code</button>
-      </div>
+
+        <form class="voucher-form" id="redeemForm" novalidate>
+          <input
+            type="text"
+            class="voucher-input"
+            id="redeemInput"
+            placeholder="ALO-PRO-XXXX / ALO-MAX-XXXX"
+            maxlength="64"
+            autocomplete="off"
+            spellcheck="false"
+          >
+          <button type="submit" class="voucher-submit-btn" id="activateBtn">
+            <span id="activateBtnLabel">Activate Plan</span>
+          </button>
+        </form>
+
+        <div class="voucher-feedback" id="redeemFeedback" role="status">
+          <div class="voucher-feedback-main">
+            <svg id="feedbackIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/><polyline points="16 10 11 15 8 12"/>
+            </svg>
+            <span id="redeemFeedbackText"></span>
+          </div>
+          <a href="/" class="feedback-chat-link" id="feedbackChatLink" style="display: none;">Open Alora</a>
+        </div>
+      </section>
     </div>
 
-    <!-- Redeem Section -->
-    <div class="redeem-section-card" id="redeemSection">
-      <div class="redeem-header">
-        <div class="redeem-icon">
-          <svg viewBox="0 0 24 24" style="width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></svg>
-        </div>
-        <div>
-          <h2 class="redeem-title" id="redeemTitle">Have a Redeem Code? Upgrade Instantly!</h2>
-        </div>
-      </div>
-      <p class="redeem-desc" id="redeemDesc">
-        Paste your promo voucher or coupon code below to upgrade your account to Pro or Max tier.
-      </p>
-      <div class="redeem-form">
-        <input type="text" class="redeem-input" id="redeemInput" placeholder="Enter code (e.g. ALO-PRO-XXXXXX)" maxlength="50">
-        <button type="button" class="btn-claim" id="claimBtn">Claim Code</button>
-      </div>
-    </div>
-
-    <!-- FAQ -->
-    <div class="faq-section">
-      <h2 class="faq-title" id="faqTitle">Frequently Asked Questions (FAQ)</h2>
-      <div class="faq-grid">
-        <div class="faq-card">
-          <div class="faq-q" id="faqQ1">How does the 3-hour window work?</div>
-          <div class="faq-a" id="faqA1">Your 3-hour session begins when you send your first message. Once 3 hours elapse, your quota resets back to maximum automatically.</div>
-        </div>
-        <div class="faq-card">
-          <div class="faq-q" id="faqQ2">How can I obtain a redeem code?</div>
-          <div class="faq-a" id="faqA2">Redeem codes are distributed during promotional events, community campaigns, and admin giveaways.</div>
-        </div>
-        <div class="faq-card">
-          <div class="faq-q" id="faqQ3">Does activation happen instantly?</div>
-          <div class="faq-a" id="faqA3">Yes! As soon as you enter a valid code, your tier upgrades immediately and all features unlock with zero downtime.</div>
-        </div>
-      </div>
-    </div>
+    <p class="pricing-footnote" id="pricingFootnote">
+      Message limits refresh automatically on a rolling window. Need assistance? <a href="/help" id="helpLink">Visit Help Center</a>
+    </p>
   </main>
 
   <script>
-    // i18n Dictionary
-    const I18N_PLANS = {
-      bn: {
-        pageTitle: "প্ল্যান ও মূল্য — Alora",
-        backToChat: "Alora",
-        themeToggle: "থিম পরিবর্তন",
-        heroTitle: "আপনার প্রয়োজনীয় সেরা প্ল্যানটি বেছে নিন",
-        heroSubtitle: "দৈনন্দিন সাধারণ প্রশ্ন থেকে শুরু করে জটিল কোডিং ও গবেষণার জন্য দ্রুততম এআই সুবিধা",
-        planNameFree: "ফ্রি (Free)",
-        planDescFree: "দৈনন্দিন সাধারণ জ্ঞান ও তথ্য অনুসন্ধানের জন্য উপযুক্ত।",
-        quotaNumFree: "১০",
-        quotaUnitFree: "বার্তা / ৩ ঘণ্টা",
-        quotaImgFree: "৫টি ছবি / ৩ ঘণ্টা",
-        featFree1: "১০টি বার্তা প্রতি ৩ ঘণ্টায়",
-        featFreeImg: "৫টি ছবি প্রতি ৩ ঘণ্টায়",
-        featFree2: "সাধারণ এআই মডেল অ্যাক্সেস",
-        featFree3: "স্ট্যান্ডার্ড স্ট্রিমিং গতি",
-        featFree4: "আজীবন মেয়াদহীন সুবিধা",
-        btnFree: "বর্তমান প্ল্যান ব্যবহার করুন",
-        popularTag: "সর্বাধিক জনপ্রিয়",
-        planNamePro: "প্রো (Pro)",
-        planDescPro: "পেশাদার ডেভেলপার, শিক্ষার্থী ও নিয়মিত ক্রিয়েটরদের জন্য উপযুক্ত।",
-        quotaNumPro: "৩০",
-        quotaUnitPro: "বার্তা / ৩ ঘণ্টা",
-        quotaImgPro: "২৫টি ছবি / ৩ ঘণ্টা",
-        featPro1: "৩০টি বার্তা প্রতি ৩ ঘণ্টায়",
-        featProImg: "২৫টি ছবি প্রতি ৩ ঘণ্টায়",
-        featPro2: "সবগুলো প্রিমিয়াম মডেল অ্যাক্সেস",
-        featPro3: "আল্ট্রাফাস্ট স্ট্রিমিং ও রেসপন্স",
-        featPro4: "কোড জেন ও লাইভ ওয়েব সার্চ",
-        btnPro: "রিডিম কোড দিয়ে আনলক করুন",
-        planNameMax: "ম্যাক্স (Max)",
-        planDescMax: "সর্বোচ্চ পারফরম্যান্স ও হেভি ডিউটি প্রজেক্ট কাজের জন্য।",
-        quotaNumMax: "৫০",
-        quotaUnitMax: "বার্তা / ১ ঘণ্টা",
-        quotaImgMax: "১০০টি ছবি / ১ ঘণ্টা",
-        featMax1: "৫০টি বার্তা প্রতি ১ ঘণ্টায়",
-        featMaxImg: "১০০টি ছবি প্রতি ১ ঘণ্টায়",
-        featMax2: "সর্বোচ্চ প্রায়োরিটি ব্যান্ডউইথ",
-        featMax3: "বৃহত্তম কনটেক্সট মেমোরি সাপোর্ট",
-        featMax4: "সকল এক্সক্লুসিভ ফিচার ও আর্লি অ্যাক্সেস",
-        btnMax: "ম্যাক্স কোড রিডিম করুন",
-        currentPlanActive: "বর্তমান প্ল্যান (সক্রিয়)",
-        redeemTitle: "রিডিম কোড আছে? অবিলম্বে আপগ্রেড করুন!",
-        redeemDesc: "আপনার রিডিম কোড বা অ্যাডমিন কর্তৃক প্রদত্ত কাস্টম ভাউচার কোডটি নিচে পেস্ট করে আপনার অ্যাকাউন্টে Pro বা Max সাবস্ক্রিপশন চালু করে নিন।",
-        redeemPlaceholder: "কোড লিখুন (যেমন: ALO-PRO-XXXXXX বা কোড)",
-        claimBtn: "আপগ্রেড করুন",
-        claimVerifying: "যাচাই হচ্ছে...",
-        faqTitle: "সাধারণ জিজ্ঞাসা (FAQ)",
-        faqQ1: "৩ ঘণ্টার উইন্ডো কিভাবে কাজ করে?",
-        faqA1: "আপনার পাঠানো প্রথম মেসেজ থেকে ৩ ঘণ্টার একটি সেশন শুরু হয়। ৩ ঘণ্টা শেষ হওয়ার সাথে সাথেই আপনার মেসেজ লিমিট পুনরায় স্বয়ংক্রিয়ভাবে রিচার্জ হয়ে যায়।",
-        faqQ2: "রিডিম কোড কিভাবে সংগ্রহ করব?",
-        faqA2: "অফিসিয়াল প্রোমো ক্যাম্পেইন, বিশেষ অফার অথবা অ্যাডমিনের কাছ থেকে উপহারস্বরূপ রিডিম কোড সংগ্রহ করতে পারেন।",
-        faqQ3: "রিডিম করলে কি সাথে সাথে সক্রিয় হয়?",
-        faqA3: "হ্যাঁ! কোডটি দেওয়ার সাথে সাথেই আপনার একাউন্ট নতুন প্ল্যানে আপগ্রেড হয়ে যায় এবং কোনো বিলম্ব ছাড়াই সব প্রিমিয়াম ফিচার আনলক হয়ে যায়।",
-        loginRequired: "রিডিম কোড ব্যবহারের জন্য অনুগ্রহ করে প্রথমে লগইন করুন!",
-        codeEmpty: "রিডিম কোড লিখুন",
-        serverErr: "সার্ভারের সাথে যোগাযোগ করা যায়নি"
-      },
+    const isLocalHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const BACKEND_URL = isLocalHost
+      ? (window.location.port === '5000' ? '' : 'http://localhost:5000')
+      : (window.location.hostname.endsWith('onrender.com') ? '' : 'https://alora-backend-emw3.onrender.com');
+    const API_BASE = BACKEND_URL + '/api';
+
+    try { sessionStorage.removeItem('alora_404_guard'); } catch (e) {}
+
+    const I18N = {
       en: {
-        pageTitle: "Plans & Pricing — Alora",
-        backToChat: "Alora",
-        themeToggle: "Change Theme",
-        heroTitle: "Choose the Perfect Plan for Your Needs",
-        heroSubtitle: "Fastest AI for everyday questions, deep coding, and extensive research",
-        planNameFree: "Free",
-        planDescFree: "Perfect for everyday questions and quick research.",
-        quotaNumFree: "10",
-        quotaUnitFree: "msgs / 3 hrs",
-        quotaImgFree: "5 images / 3 hrs",
-        featFree1: "10 messages per 3 hours",
-        featFreeImg: "5 images per 3 hours",
-        featFree2: "Access to standard AI models",
-        featFree3: "Standard streaming speed",
-        featFree4: "Lifetime free access",
-        btnFree: "Use Current Plan",
-        popularTag: "Most Popular",
-        planNamePro: "Pro",
-        planDescPro: "Designed for developers, students, and regular creators.",
-        quotaNumPro: "30",
-        quotaUnitPro: "msgs / 3 hrs",
-        quotaImgPro: "25 images / 3 hrs",
-        featPro1: "30 messages per 3 hours",
-        featProImg: "25 images per 3 hours",
-        featPro2: "Access to all premium models",
-        featPro3: "Ultrafast streaming & low latency",
-        featPro4: "Code generation & live web search",
-        btnPro: "Unlock with Redeem Code",
-        planNameMax: "Max",
-        planDescMax: "Ultimate performance for heavy-duty coding and projects.",
-        quotaNumMax: "50",
-        quotaUnitMax: "msgs / 1 hr",
-        quotaImgMax: "100 images / 1 hr",
-        featMax1: "50 messages per 1 hour",
-        featMaxImg: "100 images per 1 hour",
-        featMax2: "Highest priority bandwidth",
-        featMax3: "Largest context window & memory",
-        featMax4: "All exclusive features & early access",
-        btnMax: "Claim Max with Code",
-        currentPlanActive: "Current Plan (Active)",
-        redeemTitle: "Have a promo code? Upgrade immediately!",
-        redeemDesc: "Paste your voucher or promo code below to instantly activate your Pro or Max subscription.",
-        redeemPlaceholder: "Enter code (e.g. ALOAI2026 or ABCD-EFGH-IJKL)",
-        claimBtn: "Upgrade Now",
-        claimVerifying: "Verifying...",
-        faqTitle: "Frequently Asked Questions (FAQ)",
-        faqQ1: "How does the message quota window work?",
-        faqA1: "A rolling session window begins from your very first message. Once the period expires, your message quota is automatically refreshed in full.",
-        faqQ2: "How can I obtain a redeem code?",
-        faqA2: "Redeem codes can be obtained through promotional campaigns, community giveaways, or directly from the system administrator.",
-        faqQ3: "Is activation immediate upon redemption?",
-        faqA3: "Yes! The moment you submit a valid code, your account tier upgrades instantly with zero downtime and unlocks all premium models.",
-        loginRequired: "Please log in first to use a redeem code!",
-        codeEmpty: "Please enter a redeem code",
-        serverErr: "Could not connect to the server"
+        docTitle: 'Upgrade your plan — Alora',
+        pageTitle: 'Upgrade your plan',
+        tabPersonal: 'Personal',
+        tabVoucher: 'Redeem Voucher',
+        langSwitchLabel: 'বাংলা',
+        nameFree: 'Free',
+        priceFree: '$0',
+        priceMetaFree: 'forever',
+        taglineFree: 'Intelligence for everyday tasks and quick answers',
+        featFree1: 'Everyday assistance',
+        featFree2: 'Standard models',
+        featFree4: 'Web search & file uploads',
+        namePro: 'Pro',
+        popularBadge: 'POPULAR',
+        pricePro: 'Pro',
+        priceMetaPro: 'voucher access',
+        taglinePro: 'More access to advanced reasoning, coding, and vision',
+        featPro1: 'Everything in Free',
+        featPro2: 'Access to Alora Pro reasoning models',
+        featPro4: 'Priority speed',
+        featPro5: 'Multimodal vision & code analysis',
+        nameMax: 'Max',
+        frontierBadge: 'FRONTIER',
+        priceMax: 'Max',
+        priceMetaMax: 'frontier access',
+        taglineMax: 'Full frontier intelligence with our highest usage limits',
+        featMax1: 'Everything in Pro',
+        featMax2: 'Full access to all Frontier & Pro Max models',
+        featMax4: 'Deep analytical workflows',
+        featMax5: 'Early access to new capabilities',
+        currentBadge: 'CURRENT',
+        adminBadge: 'ADMIN',
+        ctaCurrent: 'Your current plan',
+        ctaStayFree: 'Stay on Free',
+        ctaUpgradePro: 'Upgrade with Voucher',
+        ctaUpgradeMax: 'Get Max with Voucher',
+        voucherTitle: 'Redeem a plan voucher',
+        voucherDesc: 'Enter an official Alora Pro or Max voucher code to upgrade your account immediately.',
+        voucherPlaceholder: 'ALO-PRO-XXXX / ALO-MAX-XXXX',
+        activatePlan: 'Activate Plan',
+        activating: 'Activating...',
+        openAlora: 'Open Alora',
+        errEmptyCode: 'Please enter a valid voucher code.',
+        errInvalidCode: 'Invalid or expired voucher code.',
+        errNetwork: 'Could not reach the server. Please try again.',
+        successActivated: function(plan) { return 'Your ' + plan + ' plan is now active.'; },
+        footnoteHtml: 'Message limits refresh automatically on a rolling window. Need assistance? <a href="/help">Visit Help Center</a>',
+        quotaLine: function(lim, hrs, imgLim, highest) {
+          var unit = hrs === 1 ? '1 hour' : hrs + ' hours';
+          var imgPart = (imgLim !== undefined && imgLim !== null) ? (' & ' + imgLim + ' images') : '';
+          return lim + ' messages' + imgPart + ' per ' + unit + (highest ? ' (highest limits)' : '');
+        },
+        quotaAdmin: 'Unlimited messages & images (Admin access)'
+      },
+      bn: {
+        docTitle: 'আপনার প্ল্যান আপগ্রেড করুন — Alora',
+        pageTitle: 'আপনার প্ল্যান আপগ্রেড করুন',
+        tabPersonal: 'ব্যক্তিগত',
+        tabVoucher: 'ভাউচার রিডিম',
+        langSwitchLabel: 'EN',
+        nameFree: 'ফ্রি',
+        priceFree: '৳০',
+        priceMetaFree: 'আজীবন ফ্রি',
+        taglineFree: 'দৈনন্দিন কাজ ও দ্রুত উত্তরের জন্য এআই সহায়তা',
+        featFree1: 'দৈনন্দিন কাজে সহায়তা',
+        featFree2: 'স্ট্যান্ডার্ড মডেলসমূহ',
+        featFree4: 'ওয়েব সার্চ ও ফাইল আপলোড',
+        namePro: 'প্রো',
+        popularBadge: 'জনপ্রিয়',
+        pricePro: 'প্রো',
+        priceMetaPro: 'ভাউচার পাস',
+        taglinePro: 'উন্নত রিজনিং, কোডিং এবং ভিশন সুবিধায় বেশি অ্যাক্সেস',
+        featPro1: 'ফ্রি প্ল্যানের সব সুবিধা',
+        featPro2: 'Alora Pro রিজনিং মডেলসমূহে অ্যাক্সেস',
+        featPro4: 'অগ্রাধিকার গতি',
+        featPro5: 'মাল্টিমোডাল ভিশন ও কোড বিশ্লেষণ',
+        nameMax: 'ম্যাক্স',
+        frontierBadge: 'ফ্রন্টিয়ার',
+        priceMax: 'ম্যাক্স',
+        priceMetaMax: 'ফ্রন্টিয়ার পাস',
+        taglineMax: 'সর্বোচ্চ সীমা ও পূর্ণ ফ্রন্টিয়ার এআই সক্ষমতা',
+        featMax1: 'প্রো প্ল্যানের সব সুবিধা',
+        featMax2: 'সকল ফ্রন্টিয়ার ও প্রো ম্যাক্স মডেলে পূর্ণ অ্যাক্সেস',
+        featMax4: 'গভীর বিশ্লেষণাত্মক ওয়ার্কফ্লো',
+        featMax5: 'নতুন সুবিধাসমূহে আর্লি অ্যাক্সেস',
+        currentBadge: 'সক্রিয়',
+        adminBadge: 'অ্যাডমিন',
+        ctaCurrent: 'আপনার বর্তমান প্ল্যান',
+        ctaStayFree: 'ফ্রি প্ল্যানে থাকুন',
+        ctaUpgradePro: 'ভাউচার দিয়ে আপগ্রেড করুন',
+        ctaUpgradeMax: 'ভাউচার দিয়ে ম্যাক্স নিন',
+        voucherTitle: 'প্ল্যান ভাউচার রিডিম করুন',
+        voucherDesc: 'আপনার অ্যাকাউন্ট তাৎক্ষণিক আপগ্রেড করতে অফিসিয়াল Pro বা Max ভাউচার কোড লিখুন।',
+        voucherPlaceholder: 'ALO-PRO-XXXX / ALO-MAX-XXXX',
+        activatePlan: 'প্ল্যান সক্রিয় করুন',
+        activating: 'সক্রিয় হচ্ছে...',
+        openAlora: 'Alora খুলুন',
+        errEmptyCode: 'অনুগ্রহ করে একটি ভাউচার কোড লিখুন।',
+        errInvalidCode: 'ভাউচার কোডটি সঠিক নয় বা মেয়াদ শেষ হয়েছে।',
+        errNetwork: 'সার্ভারের সাথে সংযোগ করা যায়নি। আবার চেষ্টা করুন।',
+        successActivated: function(plan) { return 'আপনার ' + plan + ' প্ল্যান সফলভাবে সক্রিয় হয়েছে।'; },
+        footnoteHtml: 'নির্দিষ্ট সময় পর বার্তা সীমা স্বয়ংক্রিয়ভাবে রিসেট হয়। সহায়তা প্রয়োজন? <a href="/help">হেল্প সেন্টার দেখুন</a>',
+        quotaLine: function(lim, hrs, imgLim, highest) {
+          var imgPart = (imgLim !== undefined && imgLim !== null) ? (' ও ' + toBnDigits(imgLim) + 'টি ছবি') : '';
+          return 'প্রতি ' + toBnDigits(hrs) + ' ঘণ্টায় ' + toBnDigits(lim) + 'টি বার্তা' + imgPart + (highest ? ' (সর্বোচ্চ সীমা)' : '');
+        },
+        quotaAdmin: 'সীমাহীন বার্তা ও ছবি (অ্যাডমিন অ্যাক্সেস)'
       }
     };
 
-    let currentLanguage = localStorage.getItem("alokpoth_lang") || "en";
-    document.documentElement.setAttribute("lang", currentLanguage);
-
-    function applyPlansI18n() {
-      const d = I18N_PLANS[currentLanguage] || I18N_PLANS.bn;
-      const isEn = (currentLanguage === "en");
-
-      document.title = d.pageTitle;
-      document.documentElement.setAttribute("lang", currentLanguage);
-
-      const langBtnText = document.getElementById("langBtnText");
-      if (langBtnText) langBtnText.textContent = isEn ? "বাংলা" : "English";
-
-      const themeBtn = document.getElementById("themeToggleBtn");
-      if (themeBtn) {
-        themeBtn.title = isEn ? "Toggle theme" : "থিম পরিবর্তন";
-        themeBtn.setAttribute("aria-label", isEn ? "Toggle theme" : "থিম পরিবর্তন");
-      }
-
-      const backToChatText = document.getElementById("backToChatText");
-      if (backToChatText) backToChatText.textContent = d.backToChat;
-
-      const pageTitleEl = document.getElementById("plansPageTitle");
-      if (pageTitleEl) pageTitleEl.textContent = isEn ? "Plans & Pricing" : "প্ল্যান ও মূল্য";
-
-      const heroTitle = document.getElementById("heroTitle");
-      if (heroTitle) heroTitle.textContent = d.heroTitle;
-
-      const heroSubtitle = document.getElementById("heroSubtitle");
-      if (heroSubtitle) heroSubtitle.textContent = d.heroSubtitle;
-
-      // Free
-      const planNameFree = document.getElementById("planNameFree");
-      if (planNameFree) planNameFree.textContent = d.planNameFree;
-      const planDescFree = document.getElementById("planDescFree");
-      if (planDescFree) planDescFree.textContent = d.planDescFree;
-      const quotaNumFree = document.getElementById("quotaNumFree");
-      if (quotaNumFree) quotaNumFree.textContent = d.quotaNumFree;
-      const quotaUnitFree = document.getElementById("quotaUnitFree");
-      if (quotaUnitFree) quotaUnitFree.textContent = d.quotaUnitFree;
-      const pillFree = document.getElementById("quotaImgPillTextFree");
-      if (pillFree) pillFree.textContent = d.quotaImgFree;
-      const featFree1 = document.querySelector("#featFree1 span");
-      if (featFree1) featFree1.textContent = d.featFree1;
-      const featFreeImg = document.getElementById("featFreeImgText");
-      if (featFreeImg) featFreeImg.textContent = d.featFreeImg;
-      const featFree2 = document.querySelector("#featFree2 span");
-      if (featFree2) featFree2.textContent = d.featFree2;
-      const featFree3 = document.querySelector("#featFree3 span");
-      if (featFree3) featFree3.textContent = d.featFree3;
-      const featFree4 = document.querySelector("#featFree4 span");
-      if (featFree4) featFree4.textContent = d.featFree4;
-      const btnFree = document.getElementById("btnFree");
-      if (btnFree) btnFree.textContent = d.btnFree;
-
-      // Pro
-      const popularTag = document.getElementById("popularTag");
-      if (popularTag) popularTag.textContent = d.popularTag;
-      const planNamePro = document.getElementById("planNamePro");
-      if (planNamePro) planNamePro.textContent = d.planNamePro;
-      const planDescPro = document.getElementById("planDescPro");
-      if (planDescPro) planDescPro.textContent = d.planDescPro;
-      const quotaNumPro = document.getElementById("quotaNumPro");
-      if (quotaNumPro) quotaNumPro.textContent = d.quotaNumPro;
-      const quotaUnitPro = document.getElementById("quotaUnitPro");
-      if (quotaUnitPro) quotaUnitPro.textContent = d.quotaUnitPro;
-      const pillPro = document.getElementById("quotaImgPillTextPro");
-      if (pillPro) pillPro.textContent = d.quotaImgPro;
-      const featPro1 = document.querySelector("#featPro1 span");
-      if (featPro1) featPro1.textContent = d.featPro1;
-      const featProImg = document.getElementById("featProImgText");
-      if (featProImg) featProImg.textContent = d.featProImg;
-      const featPro2 = document.querySelector("#featPro2 span");
-      if (featPro2) featPro2.textContent = d.featPro2;
-      const featPro3 = document.querySelector("#featPro3 span");
-      if (featPro3) featPro3.textContent = d.featPro3;
-      const featPro4 = document.querySelector("#featPro4 span");
-      if (featPro4) featPro4.textContent = d.featPro4;
-      const btnPro = document.getElementById("btnPro");
-      if (btnPro) btnPro.textContent = d.btnPro;
-
-      // Max
-      const planNameMax = document.getElementById("planNameMax");
-      if (planNameMax) planNameMax.textContent = d.planNameMax;
-      const planDescMax = document.getElementById("planDescMax");
-      if (planDescMax) planDescMax.textContent = d.planDescMax;
-      const quotaNumMax = document.getElementById("quotaNumMax");
-      if (quotaNumMax) quotaNumMax.textContent = d.quotaNumMax;
-      const quotaUnitMax = document.getElementById("quotaUnitMax");
-      if (quotaUnitMax) quotaUnitMax.textContent = d.quotaUnitMax;
-      const pillMax = document.getElementById("quotaImgPillTextMax");
-      if (pillMax) pillMax.textContent = d.quotaImgMax;
-      const featMax1 = document.querySelector("#featMax1 span");
-      if (featMax1) featMax1.textContent = d.featMax1;
-      const featMaxImg = document.getElementById("featMaxImgText");
-      if (featMaxImg) featMaxImg.textContent = d.featMaxImg;
-      const featMax2 = document.querySelector("#featMax2 span");
-      if (featMax2) featMax2.textContent = d.featMax2;
-      const featMax3 = document.querySelector("#featMax3 span");
-      if (featMax3) featMax3.textContent = d.featMax3;
-      const featMax4 = document.querySelector("#featMax4 span");
-      if (featMax4) featMax4.textContent = d.featMax4;
-      const btnMax = document.getElementById("btnMax");
-      if (btnMax) btnMax.textContent = d.btnMax;
-
-      // Redeem
-      const redeemTitle = document.getElementById("redeemTitle");
-      if (redeemTitle) redeemTitle.textContent = d.redeemTitle;
-      const redeemDesc = document.getElementById("redeemDesc");
-      if (redeemDesc) redeemDesc.textContent = d.redeemDesc;
-      const redeemInput = document.getElementById("redeemInput");
-      if (redeemInput) redeemInput.placeholder = d.redeemPlaceholder;
-      const claimBtn = document.getElementById("claimBtn");
-      if (claimBtn && !claimBtn.disabled) claimBtn.textContent = d.claimBtn;
-
-      // FAQ
-      const faqTitle = document.getElementById("faqTitle");
-      if (faqTitle) faqTitle.textContent = d.faqTitle;
-      const faqQ1 = document.getElementById("faqQ1");
-      if (faqQ1) faqQ1.textContent = d.faqQ1;
-      const faqA1 = document.getElementById("faqA1");
-      if (faqA1) faqA1.textContent = d.faqA1;
-      const faqQ2 = document.getElementById("faqQ2");
-      if (faqQ2) faqQ2.textContent = d.faqQ2;
-      const faqA2 = document.getElementById("faqA2");
-      if (faqA2) faqA2.textContent = d.faqA2;
-      const faqQ3 = document.getElementById("faqQ3");
-      if (faqQ3) faqQ3.textContent = d.faqQ3;
-      const faqA3 = document.getElementById("faqA3");
-      if (faqA3) faqA3.textContent = d.faqA3;
-
-      if (typeof updatePlanCardsUI === "function") {
-        updatePlanCardsUI();
-      }
+    function toBnDigits(val) {
+      const digits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+      return String(val).replace(/\d/g, d => digits[parseInt(d, 10)]);
     }
 
-    const langToggleBtn = document.getElementById("langToggleBtn");
-    if (langToggleBtn) {
-      langToggleBtn.addEventListener("click", () => {
-        currentLanguage = (currentLanguage === "en" ? "bn" : "en");
-        try { localStorage.setItem("alokpoth_lang", currentLanguage); } catch {}
-        applyPlansI18n();
-      });
-    }
-
-    // Theme sync
-    const urlParams = new URLSearchParams(window.location.search);
-    const themeFromUrl = urlParams.get("theme");
-    const savedTheme = themeFromUrl || localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "system";
-    
-    function applyEffectiveTheme(t) {
-      if (t === "system") {
-        const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light");
-      } else {
-        document.documentElement.setAttribute("data-theme", t);
+    let currentLang = (function() {
+      try {
+        return localStorage.getItem('alokpoth_lang') === 'bn' ? 'bn' : 'en';
+      } catch (e) {
+        return 'en';
       }
-    }
-    applyEffectiveTheme(savedTheme);
+    })();
 
-    const THEME_META_COLORS = {
-      dark: "#09090b",
-      sapphire: "#070d19",
-      oled: "#000000",
-      eyecare: "#f5eedc",
-      light: "#f9fafb"
+    const planLimits = {
+      Free: { message_limit: 10, image_limit: 5, window_hours: 3 },
+      Pro: { message_limit: 30, image_limit: 25, window_hours: 3 },
+      Max: { message_limit: 50, image_limit: 100, window_hours: 1 }
     };
 
-    function updateThemeMetaColor(t) {
-      let meta = document.querySelector('meta[name="theme-color"]');
-      if (!meta) {
-        meta = document.createElement('meta');
-        meta.setAttribute('name', 'theme-color');
-        document.head.appendChild(meta);
+    // Theme & Logo Management
+    const brandLogo = document.getElementById('brandLogo');
+    const themeIconSvg = document.getElementById('themeIconSvg');
+
+    const SUN_SVG_PATHS =
+      '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>';
+    const MOON_SVG_PATHS =
+      '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>';
+
+    function resolveEffectiveTheme(raw) {
+      if (raw === 'system') {
+        return (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
       }
-      meta.setAttribute('content', THEME_META_COLORS[t] || '#09090b');
-    }
-    updateThemeMetaColor(savedTheme === "system" ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark" : "light") : savedTheme);
-
-    const themeToggleBtn = document.getElementById("themeToggleBtn");
-    if (themeToggleBtn) {
-      const themes = ["system", "dark", "light", "oled", "sapphire", "eyecare"];
-      themeToggleBtn.addEventListener("click", () => {
-        const cur = localStorage.getItem("alokpoth_theme") || "system";
-        const next = themes[(themes.indexOf(cur) + 1) % themes.length];
-        applyEffectiveTheme(next);
-        localStorage.setItem("alokpoth_theme", next);
-        localStorage.setItem("alokpoth-theme", next);
-        updateThemeMetaColor(next === "system" ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark" : "light") : next);
-        const labels = currentLanguage === "en" ? {
-          system: "System Default (Auto)", dark: "Dark theme", sapphire: "Sapphire theme", oled: "OLED Black theme", eyecare: "Eye Care theme", light: "Light theme"
-        } : {
-          system: "সিস্টেম থিম (অটো)", dark: "ডার্ক থিম", sapphire: "স্যাফায়ার থিম", oled: "OLED ব্ল্যাক থিম", eyecare: "আই কেয়ার থিম", light: "লাইট থিম"
-        };
-        showToast(currentLanguage === "en" ? `${labels[next] || next} activated` : `${labels[next] || next} সক্রিয় করা হয়েছে`);
-      });
+      const allowed = ['dark', 'oled', 'light', 'eyecare', 'sapphire'];
+      return allowed.indexOf(raw) !== -1 ? raw : 'dark';
     }
 
-    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const BACKEND_URL = (isLocal && window.location.port === '5000') 
-      ? window.location.origin 
-      : (window.location.origin.includes('vercel.app') ? window.location.origin : "https://alora-backend-emw3.onrender.com");
-    const API_BASE = BACKEND_URL + "/api";
+    function applyThemeState() {
+      let raw = 'dark';
+      try {
+        const qTheme = new URLSearchParams(window.location.search).get('theme');
+        raw = qTheme || localStorage.getItem('alokpoth_theme') || 'dark';
+      } catch (e) {}
+      const effective = resolveEffectiveTheme(raw);
+      document.documentElement.setAttribute('data-theme', effective);
 
-    function scrollToRedeem() {
-      const el = document.getElementById("redeemSection");
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth" });
-        const input = document.getElementById("redeemInput");
-        if (input) setTimeout(() => input.focus(), 400);
+      const isLight = (effective === 'light' || effective === 'eyecare');
+      if (brandLogo) {
+        brandLogo.src = isLight ? '/logo_icon_black.png' : '/logo_icon_white.png';
+      }
+      if (themeIconSvg) {
+        themeIconSvg.innerHTML = isLight ? MOON_SVG_PATHS : SUN_SVG_PATHS;
       }
     }
+    applyThemeState();
 
-    const toastEl = document.getElementById("toastEl");
-    function showToast(msg, type = "success") {
-      toastEl.textContent = msg;
-      toastEl.className = "toast " + type;
-      toastEl.style.display = "block";
-      setTimeout(() => { toastEl.style.display = "none"; }, 3500);
+    document.getElementById('themeToggleBtn').addEventListener('click', () => {
+      const currentAttr = document.documentElement.getAttribute('data-theme') || 'dark';
+      const isCurrentlyLight = (currentAttr === 'light' || currentAttr === 'eyecare');
+      const nextTheme = isCurrentlyLight ? 'dark' : 'light';
+      try {
+        localStorage.setItem('alokpoth_theme', nextTheme);
+        localStorage.setItem('alokpoth-theme', nextTheme);
+      } catch (e) {}
+      applyThemeState();
+    });
+
+    if (window.matchMedia) {
+      try {
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyThemeState);
+      } catch (e) {}
     }
 
-    // Confetti Engine
-    let confettiAnimId = null;
-    function triggerConfetti() {
-      const canvas = document.getElementById("confettiCanvas");
-      if (!canvas) return;
-      if (confettiAnimId) cancelAnimationFrame(confettiAnimId);
-      const ctx = canvas.getContext("2d");
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+    // Close / Back button
+    document.getElementById('closePageBtn').addEventListener('click', (e) => {
+      try {
+        if (document.referrer &&
+            window.location.origin &&
+            document.referrer.indexOf(window.location.origin) === 0 &&
+            window.history.length > 1) {
+          e.preventDefault();
+          window.history.back();
+        }
+      } catch (err) {}
+    });
 
-      const particles = [];
-      const colors = ["#6366f1", "#a855f7", "#ec4899", "#3b82f6", "#10b981", "#f59e0b"];
+    // Segmented Pill Switcher (Personal | Redeem Voucher)
+    const tabPersonalBtn = document.getElementById('tabPersonalBtn');
+    const tabVoucherBtn = document.getElementById('tabVoucherBtn');
+    const sectionsStack = document.getElementById('sectionsStack');
+    const redeemSection = document.getElementById('redeemSection');
+    const redeemInput = document.getElementById('redeemInput');
 
-      for (let i = 0; i < 70; i++) {
-        particles.push({
-          x: canvas.width / 2 + (Math.random() - 0.5) * 80,
-          y: canvas.height * 0.4 + (Math.random() - 0.5) * 40,
-          vx: (Math.random() - 0.5) * 16,
-          vy: -Math.random() * 14 - 4,
-          size: Math.random() * 8 + 4,
-          color: colors[Math.floor(Math.random() * colors.length)],
-          rotation: Math.random() * 360,
-          rotSpeed: (Math.random() - 0.5) * 10,
-          alpha: 1
-        });
+    function setActiveTab(tabName, shouldFocusInput = false) {
+      const isVoucher = (tabName === 'voucher');
+      tabPersonalBtn.classList.toggle('active', !isVoucher);
+      tabPersonalBtn.setAttribute('aria-selected', String(!isVoucher));
+      tabVoucherBtn.classList.toggle('active', isVoucher);
+      tabVoucherBtn.setAttribute('aria-selected', String(isVoucher));
+      sectionsStack.classList.toggle('voucher-first', isVoucher);
+
+      if (shouldFocusInput) {
+        redeemSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => { redeemInput.focus(); }, 220);
+      }
+    }
+
+    tabPersonalBtn.addEventListener('click', () => setActiveTab('personal', false));
+    tabVoucherBtn.addEventListener('click', () => setActiveTab('voucher', true));
+
+    function jumpToVoucherRedeem() {
+      setActiveTab('voucher', true);
+    }
+
+    // Resolve User Plan & Admin State
+    function getLocalAuthInfo() {
+      let token = null;
+      let userObj = null;
+      try {
+        token = localStorage.getItem('alokpoth_token');
+        const rawUser = localStorage.getItem('alokpoth_user');
+        if (rawUser) userObj = JSON.parse(rawUser);
+      } catch (e) {}
+
+      if (!token) {
+        return { loggedIn: false, isAdmin: false, plan: 'Free' };
       }
 
-      function animate() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        let alive = false;
-        particles.forEach(p => {
-          p.x += p.vx;
-          p.y += p.vy;
-          p.vy += 0.4;
-          p.rotation += p.rotSpeed;
-          p.alpha -= 0.012;
-          if (p.alpha > 0) {
-            alive = true;
-            ctx.save();
-            ctx.globalAlpha = p.alpha;
-            ctx.translate(p.x, p.y);
-            ctx.rotate((p.rotation * Math.PI) / 180);
-            ctx.fillStyle = p.color;
-            ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
-            ctx.restore();
-          }
-        });
-        if (alive) {
-          confettiAnimId = requestAnimationFrame(animate);
-        } else {
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const adminEmails = ['zihanfakir@gmail.com', 'x@zihan.uk'];
+      const isAdmin = Boolean(
+        userObj && (
+          userObj.role === 'admin' ||
+          (userObj.email && adminEmails.indexOf(userObj.email.toLowerCase().trim()) !== -1)
+        )
+      );
+      if (isAdmin) {
+        return { loggedIn: true, isAdmin: true, plan: 'Max' };
+      }
+
+      let expiryStr = null;
+      try {
+        expiryStr = localStorage.getItem('alokpoth_plan_expiry') ||
+                    localStorage.getItem('alokpoth_plan_expires_at') ||
+                    (userObj && userObj.subscription && userObj.subscription.expires_at) ||
+                    null;
+      } catch (e) {}
+
+      if (expiryStr) {
+        const expMs = new Date(expiryStr).getTime();
+        if (!isNaN(expMs) && Date.now() >= expMs) {
+          try {
+            localStorage.removeItem('alokpoth_plan_expiry');
+            localStorage.removeItem('alokpoth_plan_expires_at');
+            localStorage.setItem('alokpoth_current_plan', 'Free');
+            localStorage.setItem('alokpoth_user_plan', 'Free');
+            localStorage.setItem('alokpoth_plan', 'Free');
+          } catch (e) {}
+          return { loggedIn: true, isAdmin: false, plan: 'Free' };
         }
       }
-      animate();
+
+      let resolved = 'Free';
+      try {
+        resolved = (userObj && userObj.subscription && userObj.subscription.plan_name) ||
+                   localStorage.getItem('alokpoth_current_plan') ||
+                   localStorage.getItem('alokpoth_user_plan') ||
+                   localStorage.getItem('alokpoth_plan') ||
+                   'Free';
+      } catch (e) {}
+
+      if (resolved !== 'Free' && resolved !== 'Pro' && resolved !== 'Max') {
+        resolved = 'Free';
+      }
+      return { loggedIn: true, isAdmin: false, plan: resolved };
     }
 
-    // Claim handler
-    const claimBtnEl = document.getElementById("claimBtn");
-    if (claimBtnEl) {
-      claimBtnEl.addEventListener("click", async () => {
-      const d = I18N_PLANS[currentLanguage] || I18N_PLANS.bn;
-      const token = localStorage.getItem("alokpoth_token");
+    let isRedeeming = false;
+
+    function renderAll() {
+      const d = I18N[currentLang] || I18N.en;
+      document.documentElement.setAttribute('lang', currentLang);
+      document.title = d.docTitle;
+
+      document.getElementById('langToggleText').textContent = d.langSwitchLabel;
+      document.getElementById('pageTitle').textContent = d.pageTitle;
+      tabPersonalBtn.textContent = d.tabPersonal;
+      tabVoucherBtn.textContent = d.tabVoucher;
+
+      // Static Card Copy
+      document.getElementById('nameFree').textContent = d.nameFree;
+      document.getElementById('priceFree').textContent = d.priceFree;
+      document.getElementById('priceMetaFree').textContent = d.priceMetaFree;
+      document.getElementById('taglineFree').textContent = d.taglineFree;
+      document.getElementById('featFree1').textContent = d.featFree1;
+      document.getElementById('featFree2').textContent = d.featFree2;
+      document.getElementById('featFree4').textContent = d.featFree4;
+
+      document.getElementById('namePro').textContent = d.namePro;
+      document.getElementById('pricePro').textContent = d.pricePro;
+      document.getElementById('priceMetaPro').textContent = d.priceMetaPro;
+      document.getElementById('taglinePro').textContent = d.taglinePro;
+      document.getElementById('featPro1').textContent = d.featPro1;
+      document.getElementById('featPro2').textContent = d.featPro2;
+      document.getElementById('featPro4').textContent = d.featPro4;
+      document.getElementById('featPro5').textContent = d.featPro5;
+
+      document.getElementById('nameMax').textContent = d.nameMax;
+      document.getElementById('priceMax').textContent = d.priceMax;
+      document.getElementById('priceMetaMax').textContent = d.priceMetaMax;
+      document.getElementById('taglineMax').textContent = d.taglineMax;
+      document.getElementById('featMax1').textContent = d.featMax1;
+      document.getElementById('featMax2').textContent = d.featMax2;
+      document.getElementById('featMax4').textContent = d.featMax4;
+      document.getElementById('featMax5').textContent = d.featMax5;
+
+      // Voucher Copy
+      document.getElementById('voucherTitle').textContent = d.voucherTitle;
+      document.getElementById('voucherDesc').textContent = d.voucherDesc;
+      redeemInput.placeholder = d.voucherPlaceholder;
+      if (!isRedeeming) {
+        document.getElementById('activateBtn').innerHTML = '<span id="activateBtnLabel">' + d.activatePlan + '</span>';
+      }
+      document.getElementById('feedbackChatLink').textContent = d.openAlora;
+      document.getElementById('pricingFootnote').innerHTML = d.footnoteHtml;
+
+      const auth = getLocalAuthInfo();
+
+      // Dynamic Quotas
+      document.getElementById('featFreeQuota').textContent =
+        d.quotaLine(planLimits.Free.message_limit, planLimits.Free.window_hours, planLimits.Free.image_limit, false);
+      document.getElementById('featProQuota').textContent =
+        d.quotaLine(planLimits.Pro.message_limit, planLimits.Pro.window_hours, planLimits.Pro.image_limit, false);
+      document.getElementById('featMaxQuota').textContent = auth.isAdmin
+        ? d.quotaAdmin
+        : d.quotaLine(planLimits.Max.message_limit, planLimits.Max.window_hours, planLimits.Max.image_limit, true);
+
+      // Header Plan Chip
+      const headerPlanChip = document.getElementById('headerPlanChip');
+      if (auth.loggedIn) {
+        headerPlanChip.textContent = auth.isAdmin ? d.adminBadge : auth.plan;
+        headerPlanChip.style.display = 'inline-flex';
+      } else {
+        headerPlanChip.style.display = 'none';
+      }
+
+      // Card Active States, Badges & CTAs
+      const cardFree = document.getElementById('cardFree');
+      const cardPro = document.getElementById('cardPro');
+      const cardMax = document.getElementById('cardMax');
+
+      const badgesFree = document.getElementById('badgesFree');
+      const badgesPro = document.getElementById('badgesPro');
+      const badgesMax = document.getElementById('badgesMax');
+
+      const ctaFree = document.getElementById('ctaFree');
+      const ctaPro = document.getElementById('ctaPro');
+      const ctaMax = document.getElementById('ctaMax');
+
+      const isFreeActive = (auth.plan === 'Free' && !auth.isAdmin);
+      const isProActive = (auth.plan === 'Pro' && !auth.isAdmin);
+      const isMaxActive = (auth.plan === 'Max' || auth.isAdmin);
+
+      cardFree.classList.toggle('current-active', isFreeActive);
+      cardPro.classList.toggle('current-active', isProActive);
+      cardMax.classList.toggle('current-active', isMaxActive);
+
+      badgesFree.innerHTML = isFreeActive
+        ? '<span class="mono-badge">' + d.currentBadge + '</span>'
+        : '';
+
+      badgesPro.innerHTML =
+        '<span class="mono-badge inverted">' + d.popularBadge + '</span>' +
+        (isProActive ? '<span class="mono-badge">' + d.currentBadge + '</span>' : '');
+
+      badgesMax.innerHTML =
+        '<span class="mono-badge">' + d.frontierBadge + '</span>' +
+        (auth.isAdmin
+          ? '<span class="mono-badge inverted">' + d.adminBadge + '</span>'
+          : (isMaxActive ? '<span class="mono-badge">' + d.currentBadge + '</span>' : ''));
+
+      // Free CTA
+      if (isFreeActive) {
+        ctaFree.textContent = d.ctaCurrent;
+        ctaFree.className = 'plan-cta-btn current';
+        ctaFree.disabled = true;
+        ctaFree.onclick = null;
+      } else {
+        ctaFree.textContent = d.ctaStayFree;
+        ctaFree.className = 'plan-cta-btn';
+        ctaFree.disabled = false;
+        ctaFree.onclick = () => { window.location.href = '/'; };
+      }
+
+      // Pro CTA
+      if (isProActive) {
+        ctaPro.textContent = d.ctaCurrent;
+        ctaPro.className = 'plan-cta-btn current';
+        ctaPro.disabled = true;
+        ctaPro.onclick = null;
+      } else {
+        ctaPro.textContent = d.ctaUpgradePro;
+        ctaPro.className = 'plan-cta-btn solid';
+        ctaPro.disabled = false;
+        ctaPro.onclick = jumpToVoucherRedeem;
+      }
+
+      // Max CTA
+      if (isMaxActive) {
+        ctaMax.textContent = d.ctaCurrent;
+        ctaMax.className = 'plan-cta-btn current';
+        ctaMax.disabled = true;
+        ctaMax.onclick = null;
+      } else {
+        ctaMax.textContent = d.ctaUpgradeMax;
+        ctaMax.className = 'plan-cta-btn';
+        ctaMax.disabled = false;
+        ctaMax.onclick = jumpToVoucherRedeem;
+      }
+    }
+
+    document.getElementById('langToggleBtn').addEventListener('click', () => {
+      currentLang = currentLang === 'en' ? 'bn' : 'en';
+      try { localStorage.setItem('alokpoth_lang', currentLang); } catch (e) {}
+      renderAll();
+    });
+
+    // Hydrate dynamic limits from GET /api/plans
+    async function syncPlansFromServer() {
+      try {
+        const res = await fetch(API_BASE + '/plans?_t=' + Date.now(), { cache: 'no-store' });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data && data.success && Array.isArray(data.plans)) {
+          data.plans.forEach(p => {
+            if (p && planLimits[p.name]) {
+              const lim = Number(p.message_limit);
+              const imgLim = Number(p.image_limit);
+              const hrs = Number(p.window_hours);
+              if (!isNaN(lim) && lim > 0) planLimits[p.name].message_limit = lim;
+              if (!isNaN(imgLim) && imgLim >= 0) planLimits[p.name].image_limit = imgLim;
+              if (!isNaN(hrs) && hrs > 0) planLimits[p.name].window_hours = hrs;
+            }
+          });
+          renderAll();
+        }
+      } catch (e) {}
+    }
+
+    // Hydrate current user from GET /api/auth/me (quietly clears expired token on 401 without redirecting)
+    async function syncUserStatusFromServer() {
+      let token = null;
+      try { token = localStorage.getItem('alokpoth_token'); } catch (e) {}
       if (!token) {
-        showToast(d.loginRequired, "error");
-        setTimeout(() => { window.location.href = "/"; }, 1000);
+        renderAll();
         return;
       }
-
-      const input = document.getElementById("redeemInput");
-      const rawCode = input.value.trim().toUpperCase();
-      if (!rawCode) {
-        showToast(d.codeEmpty, "error");
-        input.focus();
-        return;
-      }
-
-      const btn = document.getElementById("claimBtn");
-      btn.disabled = true;
-      btn.textContent = d.claimVerifying;
 
       try {
-        const res = await fetch(`${API_BASE}/redeem/claim`, {
-          method: "POST",
+        const res = await fetch(API_BASE + '/auth/me?_t=' + Date.now(), {
+          cache: 'no-store',
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+
+        if (res.status === 401) {
+          try {
+            localStorage.removeItem('alokpoth_token');
+            localStorage.setItem('alokpoth_current_plan', 'Free');
+          } catch (e) {}
+          renderAll();
+          return;
+        }
+
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!data || !data.success || !data.user) return;
+
+        const u = data.user;
+        try {
+          if (data.token) localStorage.setItem('alokpoth_token', data.token);
+          localStorage.setItem('alokpoth_user', JSON.stringify(u));
+
+          const adminEmails = ['zihanfakir@gmail.com', 'x@zihan.uk'];
+          const isAdmin = u.role === 'admin' || (u.email && adminEmails.indexOf(u.email.toLowerCase().trim()) !== -1);
+          let planName = isAdmin ? 'Max' : ((u.subscription && u.subscription.plan_name) || 'Free');
+
+          if (!isAdmin && u.subscription && u.subscription.expires_at) {
+            const expMs = new Date(u.subscription.expires_at).getTime();
+            if (!isNaN(expMs) && Date.now() >= expMs) {
+              planName = 'Free';
+              localStorage.removeItem('alokpoth_plan_expiry');
+              localStorage.removeItem('alokpoth_plan_expires_at');
+            } else {
+              localStorage.setItem('alokpoth_plan_expiry', u.subscription.expires_at);
+              localStorage.setItem('alokpoth_plan_expires_at', u.subscription.expires_at);
+            }
+          } else if (!isAdmin) {
+            localStorage.removeItem('alokpoth_plan_expiry');
+            localStorage.removeItem('alokpoth_plan_expires_at');
+          }
+
+          localStorage.setItem('alokpoth_current_plan', planName);
+          localStorage.setItem('alokpoth_user_plan', planName);
+          localStorage.setItem('alokpoth_plan', planName);
+        } catch (e) {}
+
+        renderAll();
+      } catch (e) {}
+    }
+
+    // Feedback helper for Voucher Redemption
+    const redeemFeedback = document.getElementById('redeemFeedback');
+    const redeemFeedbackText = document.getElementById('redeemFeedbackText');
+    const feedbackIcon = document.getElementById('feedbackIcon');
+    const feedbackChatLink = document.getElementById('feedbackChatLink');
+
+    const CHECK_CIRCLE_PATHS = '<circle cx="12" cy="12" r="10"/><polyline points="16 10 11 15 8 12"/>';
+    const ALERT_CIRCLE_PATHS = '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>';
+
+    function showRedeemFeedback(type, message) {
+      redeemFeedback.className = 'voucher-feedback ' + type;
+      feedbackIcon.innerHTML = type === 'success' ? CHECK_CIRCLE_PATHS : ALERT_CIRCLE_PATHS;
+      redeemFeedbackText.textContent = message;
+      feedbackChatLink.style.display = type === 'success' ? 'inline-flex' : 'none';
+      redeemFeedback.style.display = 'flex';
+    }
+
+    // Restore pending voucher if returning from login
+    try {
+      const pendingVoucher = sessionStorage.getItem('alora_pending_voucher');
+      if (pendingVoucher) {
+        redeemInput.value = pendingVoucher;
+        sessionStorage.removeItem('alora_pending_voucher');
+        setActiveTab('voucher', false);
+      }
+    } catch (e) {}
+
+    // Handle URL hash/query targeting voucher
+    if (window.location.hash === '#redeemSection' ||
+        window.location.hash === '#redeem' ||
+        window.location.search.indexOf('redeem') !== -1) {
+      setActiveTab('voucher', true);
+    }
+
+    // Submit Voucher Claim
+    document.getElementById('redeemForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (isRedeeming) return;
+
+      const d = I18N[currentLang] || I18N.en;
+      const rawCode = redeemInput.value.trim().toUpperCase();
+
+      let token = null;
+      try { token = localStorage.getItem('alokpoth_token'); } catch (err) {}
+
+      if (!token) {
+        if (rawCode) {
+          try { sessionStorage.setItem('alora_pending_voucher', rawCode); } catch (err) {}
+        }
+        window.location.href = '/auth/login?redirect=/pricing';
+        return;
+      }
+
+      if (!rawCode) {
+        showRedeemFeedback('error', d.errEmptyCode);
+        redeemInput.focus();
+        return;
+      }
+
+      redeemFeedback.style.display = 'none';
+      isRedeeming = true;
+      const activateBtn = document.getElementById('activateBtn');
+      activateBtn.disabled = true;
+      activateBtn.innerHTML =
+        '<svg class="spinner-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">' +
+        '<path d="M12 2a10 10 0 0 1 10 10"/>' +
+        '</svg>' +
+        '<span>' + d.activating + '</span>';
+
+      try {
+        const res = await fetch(API_BASE + '/redeem/claim', {
+          method: 'POST',
           headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
           },
           body: JSON.stringify({ code: rawCode })
         });
+
         if (res.status === 401) {
-          localStorage.removeItem("alokpoth_token");
-          showToast(currentLanguage === "en" ? "Session expired. Please log in again." : "লগইন সেশন শেষ হয়ে গেছে। অনুগ্রহ করে আবার লগইন করুন।", "error");
-          setTimeout(() => { window.location.href = "/"; }, 1500);
+          try {
+            localStorage.removeItem('alokpoth_token');
+            sessionStorage.setItem('alora_pending_voucher', rawCode);
+          } catch (err) {}
+          window.location.href = '/auth/login?redirect=/pricing';
           return;
         }
+
         const data = await res.json();
-        if (res.ok && data.success) {
-          const newPlan = data.plan_name || (data.subscription && data.subscription.plan_name) || "Pro";
-          const expiresAt = data.expires_at || (data.subscription && data.subscription.expires_at);
-
-          localStorage.setItem("alokpoth_current_plan", newPlan);
-          localStorage.setItem("alokpoth_user_plan", newPlan);
-          localStorage.setItem("alokpoth_plan", newPlan);
-          if (expiresAt) {
-            localStorage.setItem("alokpoth_plan_expiry", expiresAt);
-            localStorage.setItem("alokpoth_plan_expires_at", expiresAt);
-          } else {
-            localStorage.removeItem("alokpoth_plan_expiry");
-            localStorage.removeItem("alokpoth_plan_expires_at");
-          }
-          if (data.token) localStorage.setItem("alokpoth_token", data.token);
-
-          const userStr = localStorage.getItem("alokpoth_user");
-          if (userStr) {
-            try {
-              const u = JSON.parse(userStr);
-              if (!u.subscription) u.subscription = {};
-              u.subscription.plan_name = newPlan;
-              u.subscription.expires_at = expiresAt;
-              u.plan = newPlan;
-              localStorage.setItem("alokpoth_user", JSON.stringify(u));
-            } catch {}
-          }
-
-          input.value = "";
-          triggerConfetti();
-          const successMsg = currentLanguage === "en" 
-            ? (data.message || `Congratulations! Your '${newPlan}' plan is now active.`)
-            : (data.message || `অভিনন্দন! আপনার '${newPlan}' প্ল্যান সক্রিয় হয়েছে।`);
-          showToast(successMsg, "success");
-          setTimeout(() => { window.location.href = "subscription"; }, 1500);
-        } else {
-          showToast(data.error || (currentLanguage === "en" ? "Invalid or expired promo code!" : "অবৈধ বা মেয়াদোত্তীর্ণ রিডিম কোড!"), "error");
+        if (!res.ok || !data.success) {
+          showRedeemFeedback('error', (data && data.error) || d.errInvalidCode);
+          return;
         }
-      } catch {
-        showToast(d.serverErr, "error");
+
+        const newPlan = data.plan_name || (data.subscription && data.subscription.plan_name) || 'Pro';
+        const expiresAt = data.expires_at || (data.subscription && data.subscription.expires_at) || null;
+
+        try {
+          if (data.token) {
+            localStorage.setItem('alokpoth_token', data.token);
+          }
+          localStorage.setItem('alokpoth_current_plan', newPlan);
+          localStorage.setItem('alokpoth_user_plan', newPlan);
+          localStorage.setItem('alokpoth_plan', newPlan);
+
+          if (expiresAt) {
+            localStorage.setItem('alokpoth_plan_expiry', expiresAt);
+            localStorage.setItem('alokpoth_plan_expires_at', expiresAt);
+          } else {
+            localStorage.removeItem('alokpoth_plan_expiry');
+            localStorage.removeItem('alokpoth_plan_expires_at');
+          }
+
+          const userStr = localStorage.getItem('alokpoth_user');
+          if (userStr) {
+            const u = JSON.parse(userStr);
+            if (!u.subscription) u.subscription = {};
+            u.subscription.plan_name = newPlan;
+            u.subscription.expires_at = expiresAt;
+            u.plan = newPlan;
+            localStorage.setItem('alokpoth_user', JSON.stringify(u));
+          }
+        } catch (storageErr) {}
+
+        redeemInput.value = '';
+        renderAll();
+        await syncUserStatusFromServer();
+        showRedeemFeedback('success', data.message || d.successActivated(newPlan));
+      } catch (err) {
+        showRedeemFeedback('error', d.errNetwork);
       } finally {
-        btn.disabled = false;
-        btn.textContent = d.claimBtn;
+        isRedeeming = false;
+        activateBtn.disabled = false;
+        const dNow = I18N[currentLang] || I18N.en;
+        activateBtn.innerHTML = '<span id="activateBtnLabel">' + dNow.activatePlan + '</span>';
       }
     });
-  }
 
-    // Dynamic Plan Limits & User Sync
-    const dynamicPlanData = {
-      Free: { message_limit: 10, window_hours: 3, image_limit: 5 },
-      Pro: { message_limit: 30, window_hours: 3, image_limit: 25 },
-      Max: { message_limit: 50, window_hours: 1, image_limit: 100 }
-    };
-
-    function scrollToRedeem() {
-      const el = document.getElementById("redeemSection") || document.getElementById("redeemVoucherBox") || document.getElementById("voucherSection");
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-        const input = document.getElementById("redeemInput");
-        if (input) {
-          setTimeout(() => input.focus(), 350);
-        }
-      }
-    }
-    window.scrollToRedeem = scrollToRedeem;
-
-    function getResolvedPlan() {
-      const token = localStorage.getItem("alokpoth_token");
-      if (!token) return "Free";
-      const uStr = localStorage.getItem("alokpoth_user");
-      let isAdmin = false;
-      let userObj = null;
-      if (uStr) {
-        try {
-          userObj = JSON.parse(uStr);
-          const adminEmails = ["zihanfakir@gmail.com", "x@zihan.uk"];
-          isAdmin = userObj.role === "admin" || (userObj.email && adminEmails.includes(userObj.email.toLowerCase().trim()));
-        } catch {}
-      }
-      if (isAdmin) return "Max";
-
-      const expiryStr = localStorage.getItem("alokpoth_plan_expiry") || localStorage.getItem("alokpoth_plan_expires_at") || (userObj && userObj.subscription && userObj.subscription.expires_at);
-      if (expiryStr) {
-        const expTime = new Date(expiryStr).getTime();
-        if (!isNaN(expTime) && Date.now() >= expTime) {
-          try {
-            localStorage.removeItem("alokpoth_plan_expiry");
-            localStorage.removeItem("alokpoth_plan_expires_at");
-            localStorage.setItem("alokpoth_current_plan", "Free");
-            localStorage.setItem("alokpoth_user_plan", "Free");
-            localStorage.setItem("alokpoth_plan", "Free");
-          } catch {}
-          return "Free";
-        }
-      }
-
-      return (userObj && userObj.subscription && userObj.subscription.plan_name) ||
-             localStorage.getItem("alokpoth_current_plan") ||
-             localStorage.getItem("alokpoth_user_plan") ||
-             localStorage.getItem("alokpoth_plan") ||
-             "Free";
-    }
-
-    let userCurrentPlan = getResolvedPlan();
-
-    function toBnNum(num) {
-      if (currentLanguage === "en") return String(num);
-      const bn = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
-      return String(num).replace(/\d/g, (d) => bn[parseInt(d, 10)]);
-    }
-
-    function updatePlanCardsUI() {
-      const isEn = (currentLanguage === "en");
-
-      let isUserAdmin = false;
-      try {
-        const uStr = localStorage.getItem("alokpoth_user");
-        if (uStr) {
-          const userObj = JSON.parse(uStr);
-          const adminEmails = ["zihanfakir@gmail.com", "x@zihan.uk"];
-          isUserAdmin = userObj.role === "admin" || (userObj.email && adminEmails.includes(userObj.email.toLowerCase().trim()));
-        }
-      } catch {}
-
-      ["Free", "Pro", "Max"].forEach(name => {
-        const data = dynamicPlanData[name];
-        if (!data) return;
-
-        const lim = data.message_limit;
-        const hrs = data.window_hours;
-        const imgLim = data.image_limit;
-
-        const numEl = document.getElementById("quotaNum" + name);
-        if (numEl) {
-          if (name === "Max" && isUserAdmin) {
-            numEl.textContent = "∞";
-          } else {
-            numEl.textContent = isEn ? String(lim) : toBnNum(lim);
-          }
-        }
-
-        const unitEl = document.getElementById("quotaUnit" + name);
-        if (unitEl) {
-          if (name === "Max" && isUserAdmin) {
-            unitEl.textContent = isEn ? "Unlimited / No limit" : "সীমাহীন / কোনো কোটা নেই";
-          } else {
-            unitEl.textContent = isEn ? `msgs / ${hrs} hr${hrs > 1 ? 's' : ''}` : `বার্তা / ${toBnNum(hrs)} ঘণ্টা`;
-          }
-        }
-
-        const feat1 = document.querySelector(`#feat${name}1 span`);
-        if (feat1) {
-          if (name === "Max" && isUserAdmin) {
-            feat1.textContent = isEn ? "Unlimited messages (Lifetime)" : "সীমাহীন বার্তা ব্যবহারের সুবিধা";
-          } else {
-            feat1.textContent = isEn ? `${lim} messages per ${hrs} hour${hrs > 1 ? 's' : ''}` : `${toBnNum(lim)}টি বার্তা প্রতি ${toBnNum(hrs)} ঘণ্টায়`;
-          }
-        }
-
-        const featImg = document.getElementById(`feat${name}ImgText`);
-        if (featImg) {
-          if (name === "Max" && isUserAdmin) {
-            featImg.textContent = isEn ? "Unlimited image generations" : "সীমাহীন ছবি তৈরির সুবিধা";
-          } else {
-            featImg.textContent = isEn ? `${imgLim} images per ${hrs} hour${hrs > 1 ? 's' : ''}` : `${toBnNum(imgLim)}টি ছবি প্রতি ${toBnNum(hrs)} ঘণ্টায়`;
-          }
-        }
-
-        const imgPillText = document.getElementById(`quotaImgPillText${name}`);
-        if (imgPillText) {
-          if (name === "Max" && isUserAdmin) {
-            imgPillText.textContent = isEn ? "Unlimited images" : "সীমাহীন ছবি তৈরির সুবিধা";
-          } else {
-            imgPillText.textContent = isEn ? `${imgLim} images / ${hrs}h` : `${toBnNum(imgLim)}টি ছবি / ${toBnNum(hrs)} ঘণ্টা`;
-          }
-        }
-      });
-
-      updateUserPlanButtons();
-    }
-
-    function updateUserPlanButtons() {
-      userCurrentPlan = getResolvedPlan();
-      const isEn = (currentLanguage === "en");
-      const btnFree = document.getElementById("btnFree");
-      const btnPro = document.getElementById("btnPro");
-      const btnMax = document.getElementById("btnMax");
-
-      const cardFree = document.getElementById("planCardFree");
-      const cardPro = document.getElementById("planCardPro");
-      const cardMax = document.getElementById("planCardMax");
-
-      const badgeSlotFree = document.getElementById("badgeSlotFree");
-      const badgeSlotPro = document.getElementById("badgeSlotPro");
-      const badgeSlotMax = document.getElementById("badgeSlotMax");
-
-      let isUserAdmin = false;
-      try {
-        const uStr = localStorage.getItem("alokpoth_user");
-        if (uStr) {
-          const userObj = JSON.parse(uStr);
-          const adminEmails = ["zihanfakir@gmail.com", "x@zihan.uk"];
-          isUserAdmin = userObj.role === "admin" || (userObj.email && adminEmails.includes(userObj.email.toLowerCase().trim()));
-        }
-      } catch {}
-
-      if (badgeSlotFree) badgeSlotFree.innerHTML = "";
-      if (badgeSlotPro) badgeSlotPro.innerHTML = '<div class="popular-tag" id="popularTag">' + (isEn ? "Most Popular" : "সর্বাধিক জনপ্রিয়") + '</div>';
-      if (badgeSlotMax) badgeSlotMax.innerHTML = "";
-
-      if (cardFree) cardFree.classList.toggle("active-user-plan", userCurrentPlan === "Free" && !isUserAdmin);
-      if (cardPro) cardPro.classList.toggle("active-user-plan", userCurrentPlan === "Pro" && !isUserAdmin);
-      if (cardMax) {
-        cardMax.classList.toggle("active-user-plan", userCurrentPlan === "Max" || isUserAdmin);
-        cardMax.classList.toggle("admin-plan", isUserAdmin);
-      }
-
-      // Badges
-      if (isUserAdmin) {
-        if (badgeSlotMax) {
-          badgeSlotMax.innerHTML = '<div class="active-plan-badge-top admin">' + (isEn ? "Admin Unlimited" : "অ্যাডমিন (আনলিমিটেড)") + '</div>';
-        }
-      } else if (userCurrentPlan === "Max") {
-        if (badgeSlotMax) {
-          badgeSlotMax.innerHTML = '<div class="active-plan-badge-top">✓ ' + (isEn ? "Current Plan" : "সক্রিয় প্ল্যান") + '</div>';
-        }
-      } else if (userCurrentPlan === "Pro") {
-        if (badgeSlotPro) {
-          badgeSlotPro.innerHTML = '<div class="active-plan-badge-top">✓ ' + (isEn ? "Current Plan" : "সক্রিয় প্ল্যান") + '</div>';
-        }
-      } else if (userCurrentPlan === "Free") {
-        if (badgeSlotFree) {
-          badgeSlotFree.innerHTML = '<div class="active-plan-badge-top">✓ ' + (isEn ? "Current Plan" : "বর্তমান প্ল্যান") + '</div>';
-        }
-      }
-
-      // Free Button
-      if (btnFree) {
-        if (userCurrentPlan === "Free" && !isUserAdmin) {
-          btnFree.textContent = isEn ? "✓ Current Plan (Active)" : "✓ বর্তমান প্ল্যান (সক্রিয়)";
-          btnFree.className = "btn-plan active-plan-btn";
-          btnFree.onclick = () => { window.location.href = "/"; };
-        } else {
-          btnFree.textContent = isEn ? "Free Plan" : "ফ্রি প্ল্যান";
-          btnFree.className = "btn-plan";
-          btnFree.onclick = () => { window.location.href = "/"; };
-        }
-      }
-
-      // Pro Button
-      if (btnPro) {
-        if (userCurrentPlan === "Pro" && !isUserAdmin) {
-          btnPro.textContent = isEn ? "✓ Current Plan (Active)" : "✓ বর্তমান প্ল্যান (সক্রিয়)";
-          btnPro.className = "btn-plan active-plan-btn";
-          btnPro.onclick = () => { window.location.href = "subscription"; };
-        } else {
-          btnPro.textContent = isEn ? "Unlock with Redeem Code" : "রিডিম কোড দিয়ে আনলক করুন";
-          btnPro.className = "btn-plan primary";
-          btnPro.onclick = scrollToRedeem;
-        }
-      }
-
-      // Max Button
-      if (btnMax) {
-        if (isUserAdmin) {
-          btnMax.textContent = isEn ? "Admin Active (Unlimited)" : "অ্যাডমিন সক্রিয় (আনলিমিটেড)";
-          btnMax.className = "btn-plan active-admin-btn";
-          btnMax.onclick = () => { window.location.href = "subscription"; };
-        } else if (userCurrentPlan === "Max") {
-          btnMax.textContent = isEn ? "✓ Current Plan (Active)" : "✓ বর্তমান প্ল্যান (সক্রিয়)";
-          btnMax.className = "btn-plan active-plan-btn";
-          btnMax.onclick = () => { window.location.href = "subscription"; };
-        } else {
-          btnMax.textContent = isEn ? "Claim Max with Code" : "ম্যাক্স কোড রিডিম করুন";
-          btnMax.className = "btn-plan";
-          btnMax.style.background = "linear-gradient(135deg, #ec4899, #f59e0b)";
-          btnMax.style.color = "#ffffff";
-          btnMax.style.border = "none";
-          btnMax.onclick = scrollToRedeem;
-        }
-      }
-    }
-
-    async function syncPlansFromServer() {
-      try {
-        const res = await fetch(`${API_BASE}/plans?_t=${Date.now()}`, {
-          cache: "no-store",
-          headers: { "Cache-Control": "no-cache" }
-        });
-        if (!res.ok) return;
-        const data = await res.json();
-        if (data.success && Array.isArray(data.plans)) {
-          data.plans.forEach(p => {
-            if (dynamicPlanData[p.name]) {
-              dynamicPlanData[p.name] = {
-                message_limit: (p.message_limit !== undefined && !isNaN(Number(p.message_limit)))
-                  ? Number(p.message_limit) : dynamicPlanData[p.name].message_limit,
-                window_hours: (p.window_hours !== undefined && !isNaN(Number(p.window_hours)))
-                  ? Number(p.window_hours) : dynamicPlanData[p.name].window_hours,
-                image_limit: (p.image_limit !== undefined && !isNaN(Number(p.image_limit)))
-                  ? Number(p.image_limit) : dynamicPlanData[p.name].image_limit
-              };
-            }
-          });
-          updatePlanCardsUI();
-        }
-      } catch (e) {}
-    }
-
-    async function syncUserStatusFromServer() {
-      const token = localStorage.getItem("alokpoth_token");
-      if (!token) {
-        userCurrentPlan = "Free";
-        updateUserPlanButtons();
-        return;
-      }
-      try {
-        const res = await fetch(`${API_BASE}/auth/me?_t=${Date.now()}`, {
-          cache: "no-store",
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Cache-Control": "no-cache"
-          }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.success && data.user) {
-            if (data.token) {
-              try { localStorage.setItem("alokpoth_token", data.token); } catch {}
-            }
-            const u = data.user;
-            const adminEmails = ["zihanfakir@gmail.com", "x@zihan.uk"];
-            const isAdmin = u.role === "admin" || (u.email && adminEmails.includes(u.email.toLowerCase().trim()));
-            let planName = isAdmin ? "Max" : ((u.subscription && u.subscription.plan_name) || "Free");
-            if (!isAdmin && u.subscription && u.subscription.expires_at) {
-              const expTime = new Date(u.subscription.expires_at).getTime();
-              if (!isNaN(expTime) && Date.now() >= expTime) {
-                planName = "Free";
-                localStorage.removeItem("alokpoth_plan_expiry");
-                localStorage.removeItem("alokpoth_plan_expires_at");
-              } else {
-                localStorage.setItem("alokpoth_plan_expiry", u.subscription.expires_at);
-                localStorage.setItem("alokpoth_plan_expires_at", u.subscription.expires_at);
-              }
-            } else if (!isAdmin) {
-              localStorage.removeItem("alokpoth_plan_expiry");
-              localStorage.removeItem("alokpoth_plan_expires_at");
-            }
-            userCurrentPlan = planName;
-            try {
-              localStorage.setItem("alokpoth_current_plan", userCurrentPlan);
-              localStorage.setItem("alokpoth_user_plan", userCurrentPlan);
-              localStorage.setItem("alokpoth_plan", userCurrentPlan);
-              localStorage.setItem("alokpoth_user", JSON.stringify(u));
-            } catch {}
-            updateUserPlanButtons();
-          }
-        } else if (res.status === 401) {
-          localStorage.removeItem("alokpoth_token");
-          userCurrentPlan = "Free";
-          updateUserPlanButtons();
-        }
-      } catch (e) {}
-    }
-
-    // Run initial i18n & dynamic sync
-    applyPlansI18n();
+    // Initial render + live server hydration
+    renderAll();
     syncPlansFromServer();
     syncUserStatusFromServer();
-
-    if (window.location.hash === "#redeemSection" || window.location.search.includes("redeem")) {
-      setTimeout(scrollToRedeem, 350);
-    }
   </script>
 </body>
 </html>
-

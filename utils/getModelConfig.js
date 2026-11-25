@@ -56,37 +56,76 @@ function resolveModelAlias(rawId) {
 }
 
 async function getModelConfig(rawId) {
-  const modelId = resolveModelAlias(rawId);
+  if (!rawId) return null;
+  const { getIsMongoConnected } = require('../server/config/db');
 
-  // Check if model was deleted by admin
+  // Check if this exact model ID was deleted by admin
   const deletedSet = await getDeletedModelIds();
   const cleanRaw = String(rawId || '').toLowerCase().trim();
-  const cleanAlias = String(modelId || '').toLowerCase().trim();
-  if (deletedSet.has(cleanRaw) || deletedSet.has(cleanAlias)) {
+  if (deletedSet.has(cleanRaw)) {
     return null;
   }
 
-  // 1. Check persisted models (from Supabase / merged)
-  const allModels = await getPersistedModels();
-  let model = allModels.find(
-    m => m.id === modelId || m.model_id === modelId || m.id === rawId || m.model_id === rawId
-  );
+  let model = null;
 
-  // Fallback to memoryStore.models if not found in allModels
-  if (!model && Array.isArray(memoryStore?.models)) {
-    model = memoryStore.models.find(
-      m => m.id === modelId || m.model_id === modelId || m.id === rawId || m.model_id === rawId
-    );
+  // 1. Canonical MongoDB check first when connected
+  if (getIsMongoConnected()) {
+    try {
+      const AiModel = require('../server/models/AiModel');
+      const mongoDoc = await AiModel.findOne({ $or: [{ model_id: rawId }, { id: rawId }] }).lean();
+      if (mongoDoc) {
+        model = { ...mongoDoc, id: mongoDoc.id || mongoDoc.model_id, model_id: mongoDoc.model_id || mongoDoc.id };
+      }
+    } catch (e) {}
   }
 
-  // 2. Load API key from Supabase
-  let apiKey = await getApiKeyFromSupabase(modelId);
-  if (!apiKey && rawId !== modelId) {
+  // 2. Direct match in persisted models (Supabase / memoryStore) BEFORE resolving any alias
+  const allModels = await getPersistedModels();
+  if (!model) {
+    model = allModels.find(m => m && (m.id === rawId || m.model_id === rawId));
+  }
+  if (!model && Array.isArray(memoryStore?.models)) {
+    model = memoryStore.models.find(m => m && (m.id === rawId || m.model_id === rawId));
+  }
+
+  // 3. Only fall back to legacy alias if no direct match exists
+  if (!model) {
+    const aliasedId = resolveModelAlias(rawId);
+    if (aliasedId && aliasedId !== rawId) {
+      const cleanAlias = String(aliasedId).toLowerCase().trim();
+      if (!deletedSet.has(cleanAlias)) {
+        if (getIsMongoConnected()) {
+          try {
+            const AiModel = require('../server/models/AiModel');
+            const aliasDoc = await AiModel.findOne({ $or: [{ model_id: aliasedId }, { id: aliasedId }] }).lean();
+            if (aliasDoc) {
+              model = { ...aliasDoc, id: aliasDoc.id || aliasDoc.model_id, model_id: aliasDoc.model_id || aliasDoc.id };
+            }
+          } catch (e) {}
+        }
+        if (!model) {
+          model = allModels.find(m => m && (m.id === aliasedId || m.model_id === aliasedId));
+        }
+        if (!model && Array.isArray(memoryStore?.models)) {
+          model = memoryStore.models.find(m => m && (m.id === aliasedId || m.model_id === aliasedId));
+        }
+      }
+    }
+  }
+
+  const effectiveId = model ? (model.id || model.model_id) : rawId;
+
+  // 4. Load API key from model first, then Supabase if missing
+  let apiKey = (model && model.api_key) ? model.api_key : null;
+  if (!apiKey) {
+    apiKey = await getApiKeyFromSupabase(effectiveId);
+  }
+  if (!apiKey && rawId !== effectiveId) {
     apiKey = await getApiKeyFromSupabase(rawId);
   }
 
   if (model) {
-    return { ...model, api_key: model.api_key || apiKey || null };
+    return { ...model, api_key: apiKey || null };
   }
 
   if (apiKey) {
@@ -237,6 +276,27 @@ async function getPersistedModels() {
     });
   };
 
+  // 1. When MongoDB is connected, MongoDB is the canonical source of truth
+  const { getIsMongoConnected } = require('../server/config/db');
+  if (getIsMongoConnected()) {
+    try {
+      const AiModel = require('../server/models/AiModel');
+      const mongoModels = await AiModel.find().sort({ order: 1, createdAt: 1 }).lean();
+      if (Array.isArray(mongoModels) && (mongoModels.length > 0 || deletedSet.size > 0 || memoryStore.settings?.modelsInitialized)) {
+        const normalized = filterDeleted(mongoModels).map(m => ({
+          ...m,
+          id: m.id || m.model_id,
+          model_id: m.model_id || m.id
+        }));
+        modelsCache = normalized;
+        modelsCacheTs = now;
+        return normalized;
+      }
+    } catch (e) {
+      console.warn('[Mongo] getPersistedModels query warning:', e.message);
+    }
+  }
+
   if (supabase) {
     try {
       const { data, error } = await supabase
@@ -270,6 +330,12 @@ async function getPersistedModels() {
 async function savePersistedModels(models) {
   modelsCache = models;
   modelsCacheTs = Date.now();
+
+  // Mark models as explicitly initialized by Admin so empty arrays are respected and defaults never resurrect
+  if (!memoryStore.settings || typeof memoryStore.settings !== 'object') {
+    memoryStore.settings = {};
+  }
+  memoryStore.settings.modelsInitialized = true;
 
   // Also update memoryStore so it's in sync locally
   memoryStore.models = models;
@@ -517,12 +583,25 @@ async function getPersistedPlans() {
   }
 
   const defaultPlans = [
-    { name: 'Free', displayName: 'ফ্রি প্ল্যান', message_limit: 10, window_hours: 3, image_limit: 5, allowed_models: ['gemini-3.6-flash', 'llama-3.3-70b-versatile', 'qwen/qwen3.8-27b', 'gemini-3.5-flash-lite', 'openrouter/free', 'mimo-v2.5', 'hy3'], is_active: true },
+    { name: 'Free', displayName: 'ফ্রি প্ল্যান', message_limit: 10, window_hours: 3, image_limit: 5, allowed_models: ['*'], is_active: true },
     { name: 'Pro', displayName: 'প্রো প্ল্যান', message_limit: 30, window_hours: 3, image_limit: 25, allowed_models: ['*'], is_active: true },
     { name: 'Max', displayName: 'ম্যাক্স প্ল্যান', message_limit: 50, window_hours: 1, image_limit: 100, allowed_models: ['*'], is_active: true }
   ];
 
-  if (!supabase) return memoryStore.plans || defaultPlans;
+  const normalizePlanImageLimit = (p) => {
+    const fallback = p.name === 'Free' ? 5 : (p.name === 'Pro' ? 25 : 100);
+    if (p.image_limit === undefined || p.image_limit === null || isNaN(Number(p.image_limit)) || Number(p.image_limit) < 0) {
+      p.image_limit = fallback;
+    } else {
+      p.image_limit = Number(p.image_limit);
+    }
+  };
+
+  if (!supabase) {
+    const localPlans = memoryStore.plans && memoryStore.plans.length > 0 ? memoryStore.plans : defaultPlans;
+    localPlans.forEach(normalizePlanImageLimit);
+    return localPlans;
+  }
 
   try {
     const { data, error } = await supabase
@@ -534,14 +613,7 @@ async function getPersistedPlans() {
     if (!error && data && data.length > 0 && data[0].api_key) {
       const parsed = JSON.parse(data[0].api_key);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        parsed.forEach(p => {
-          const fallback = p.name === 'Free' ? 5 : (p.name === 'Pro' ? 25 : 100);
-          if (p.image_limit === undefined || p.image_limit === null || isNaN(Number(p.image_limit)) || Number(p.image_limit) <= 0) {
-            p.image_limit = fallback;
-          } else {
-            p.image_limit = Math.max(Number(p.image_limit), fallback);
-          }
-        });
+        parsed.forEach(normalizePlanImageLimit);
         plansCache = parsed;
         plansCacheTs = now;
         memoryStore.plans = parsed;
@@ -553,14 +625,7 @@ async function getPersistedPlans() {
   }
 
   const resPlans = memoryStore.plans && memoryStore.plans.length > 0 ? memoryStore.plans : defaultPlans;
-  resPlans.forEach(p => {
-    const fallback = p.name === 'Free' ? 5 : (p.name === 'Pro' ? 25 : 100);
-    if (p.image_limit === undefined || p.image_limit === null || isNaN(Number(p.image_limit)) || Number(p.image_limit) <= 0) {
-      p.image_limit = fallback;
-    } else {
-      p.image_limit = Math.max(Number(p.image_limit), fallback);
-    }
-  });
+  resPlans.forEach(normalizePlanImageLimit);
   return resPlans;
 }
 
@@ -869,9 +934,21 @@ async function autoPurgeOrphanedDatabaseCaches() {
 
   // 3. Clean orphaned redeem code references for deleted users
   try {
+    const { getIsMongoConnected } = require('../server/config/db');
     const currentUsers = await getPersistedUsers();
     const validUserIds = new Set(currentUsers.map(u => String(u._id || u.id)));
     const validEmails = new Set(currentUsers.filter(u => u.email).map(u => u.email.toLowerCase().trim()));
+
+    if (getIsMongoConnected()) {
+      try {
+        const User = require('../server/models/User');
+        const mongoUsers = await User.find().select('_id email').lean();
+        for (const mu of mongoUsers) {
+          if (mu._id) validUserIds.add(String(mu._id));
+          if (mu.email) validEmails.add(mu.email.toLowerCase().trim());
+        }
+      } catch (e) {}
+    }
 
     const codes = await getPersistedRedeemCodes();
     let codesChanged = false;

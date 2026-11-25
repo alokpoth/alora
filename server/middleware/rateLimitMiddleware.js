@@ -51,7 +51,28 @@ const checkRateLimit = async (req, res, next) => {
           error: 'ছবি তৈরি করতে অনুগ্রহ করে প্রথমে লগইন বা সাইন-আপ করুন।'
         });
       }
-      // Never block localhost testing
+      // Enforce model tier on Guest requests (Free models allowed; Pro/Max models require account & plan)
+      const guestReqModelId = (req.body && typeof req.body === 'object' && req.body.model) ? String(req.body.model).trim() : '';
+      if (guestReqModelId) {
+        let gModel = getCachedModel(guestReqModelId);
+        if (!gModel) {
+          if (getIsMongoConnected()) {
+            try { gModel = await AiModel.findOne({ $or: [{ model_id: guestReqModelId }, { id: guestReqModelId }] }).lean(); } catch {}
+          }
+          if (!gModel) gModel = await getModelConfig(guestReqModelId);
+          if (gModel) setCachedModel(guestReqModelId, gModel);
+        }
+        if (gModel && (gModel.efficient || gModel.premium)) {
+          const reqTier = gModel.efficient ? 'Max' : 'Pro';
+          return res.status(403).json({
+            success: false,
+            code: 'PLAN_UPGRADE_REQUIRED',
+            error: `'${gModel.name || guestReqModelId}' মডেলটি ব্যবহারের জন্য লগইন এবং ${reqTier} প্ল্যান প্রয়োজন।`
+          });
+        }
+      }
+
+      // Never rate-limit localhost testing
       if (cleanIp === '127_0_0_1' || cleanIp === 'localhost' || cleanIp === '_1') {
         req.guestId = guestId;
         req.currentPlan = { name: 'Free', displayName: 'গেস্ট ট্রায়াল', message_limit: 99999, image_limit: 0, window_hours: 3, allowed_models: ['*'] };
@@ -163,7 +184,7 @@ const checkRateLimit = async (req, res, next) => {
     plan.message_limit = Number(plan.message_limit) || 10;
     plan.window_hours = Number(plan.window_hours) || 3;
     const defaultImgLimit = (plan.name === 'Free' ? 5 : (plan.name === 'Pro' ? 25 : 100));
-    plan.image_limit = (plan.image_limit !== undefined && !isNaN(Number(plan.image_limit)) && Number(plan.image_limit) > 0) ? Math.max(Number(plan.image_limit), defaultImgLimit) : defaultImgLimit;
+    plan.image_limit = (plan.image_limit !== undefined && plan.image_limit !== null && !isNaN(Number(plan.image_limit)) && Number(plan.image_limit) >= 0) ? Number(plan.image_limit) : defaultImgLimit;
 
     const userId = String(user._id || user.id);
     const windowStart = new Date(Date.now() - plan.window_hours * 60 * 60 * 1000);
@@ -243,34 +264,30 @@ const checkRateLimit = async (req, res, next) => {
       }
     }
 
-    const isMaxModel = Boolean(aiModel && aiModel.efficient) || model_id === 'gpt-5.6';
+    const isMaxModel = Boolean(aiModel && aiModel.efficient);
     const isProModel = Boolean(aiModel && aiModel.premium) && !isMaxModel;
     const isFreeModel = !isMaxModel && !isProModel;
 
     const explicitlyAllowedByName = Array.isArray(plan.allowed_models) && (
-      plan.allowed_models.includes(model_id) || 
+      plan.allowed_models.includes(model_id) ||
       (aiModel && (plan.allowed_models.includes(aiModel.id) || plan.allowed_models.includes(aiModel.model_id)))
     );
-    const hasWildcard = Array.isArray(plan.allowed_models) && plan.allowed_models.includes('*');
+    const hasWildcard = !Array.isArray(plan.allowed_models) || plan.allowed_models.length === 0 || plan.allowed_models.includes('*');
 
     if (currentPlanName === 'Free') {
-      // Free users can ONLY use Free models. Pro and Max models are strictly forbidden.
+      // Free users can use any Free model (premium: false, efficient: false) configured by Admin
       if (isMaxModel) {
         return res.status(403).json({
           success: false,
+          code: 'PLAN_UPGRADE_REQUIRED',
           error: `'${aiModel?.name || model_id}' মডেলটি ব্যবহারের জন্য Max প্ল্যান প্রয়োজন। আপনার বর্তমান প্ল্যান: ${plan.displayName || 'ফ্রি প্ল্যান'}।`
         });
       }
       if (isProModel) {
         return res.status(403).json({
           success: false,
+          code: 'PLAN_UPGRADE_REQUIRED',
           error: `'${aiModel?.name || model_id}' মডেলটি ব্যবহারের জন্য Pro বা Max প্ল্যান প্রয়োজন। আপনার বর্তমান প্ল্যান: ${plan.displayName || 'ফ্রি প্ল্যান'}।`
-        });
-      }
-      if (!hasWildcard && Array.isArray(plan.allowed_models) && plan.allowed_models.length > 0 && !explicitlyAllowedByName) {
-        return res.status(403).json({
-          success: false,
-          error: `আপনার বর্তমান ${plan.displayName || 'ফ্রি প্ল্যান'}-এ '${aiModel?.name || model_id}' মডেল ব্যবহারের অনুমতি নেই।`
         });
       }
     } else if (currentPlanName === 'Pro') {

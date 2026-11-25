@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="oled">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
-  <meta name="theme-color" content="#000000">
+  <meta name="theme-color" content="#212121">
   <title>Sound Settings — Alora</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=3">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png?v=3">
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png?v=3">
-  <link rel="shortcut icon" href="favicon.ico?v=3">
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=3">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=3">
+  <link rel="shortcut icon" href="/favicon.ico?v=3">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -21,11 +21,12 @@
       --bg-card-hover: #1c1c22;
       --border-card: rgba(255, 255, 255, 0.09);
       --border-divider: rgba(255, 255, 255, 0.06);
-      --text-main: #ffffff;
+      --text-main: #ececec;
       --text-sub: #a1a1aa;
       --text-dim: #71717a;
-      --accent-blue: #3b82f6;
-      --accent-blue-hover: #2563eb;
+      --accent-blue: #ececec;
+      --accent-ink: #0d0d0d;
+      --accent-blue-hover: #ffffff;
       --font-main: 'Plus Jakarta Sans', 'Hind Siliguri', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
 
@@ -35,10 +36,11 @@
       --bg-card-hover: #1a1a20;
       --border-card: rgba(255, 255, 255, 0.1);
       --border-divider: rgba(255, 255, 255, 0.06);
-      --text-main: #ffffff;
+      --text-main: #ececec;
       --text-sub: #a1a1aa;
       --text-dim: #71717a;
-      --accent-blue: #3b82f6;
+      --accent-blue: #ececec;
+      --accent-ink: #0d0d0d;
     }
 
     [data-theme="sapphire"] {
@@ -50,19 +52,21 @@
       --text-main: #f8fafc;
       --text-sub: #94a3b8;
       --text-dim: #64748b;
-      --accent-blue: #38bdf8;
+      --accent-blue: #ececec;
+      --accent-ink: #0d0d0d;
     }
 
     [data-theme="light"] {
-      --bg-base: #f8fafc;
+      --bg-base: #ffffff;
       --bg-card: #ffffff;
-      --bg-card-hover: #f1f5f9;
+      --bg-card-hover: #ececec;
       --border-card: rgba(0, 0, 0, 0.08);
       --border-divider: rgba(0, 0, 0, 0.06);
-      --text-main: #09090b;
+      --text-main: #0d0d0d;
       --text-sub: #64748b;
       --text-dim: #94a3b8;
-      --accent-blue: #2563eb;
+      --accent-blue: #0d0d0d;
+      --accent-ink: #ffffff;
     }
 
     [data-theme="eyecare"] {
@@ -74,7 +78,8 @@
       --text-main: #4a3b2c;
       --text-sub: #7a6b5c;
       --text-dim: #9c8a77;
-      --accent-blue: #b45309;
+      --accent-blue: #2d2318;
+      --accent-ink: #f5eedc;
     }
 
     *, *::before, *::after {
@@ -263,9 +268,8 @@
       box-shadow: 0 2px 4px rgba(0,0,0,0.25);
     }
 
-    .toggle-switch input:checked + .toggle-slider {
-      background-color: var(--accent-blue);
-    }
+    .toggle-switch input:checked + .toggle-slider { background-color: var(--accent-blue); }
+    .toggle-switch input:checked + .toggle-slider::before { background-color: var(--accent-ink, #0d0d0d); }
 
     .toggle-switch input:checked + .toggle-slider::before {
       transform: translateX(18px);
@@ -287,7 +291,7 @@
       font-size: 0.84rem;
       font-weight: 700;
       color: var(--accent-blue);
-      background: rgba(59, 130, 246, 0.12);
+      background: rgba(255, 255, 255, 0.12);
       padding: 2px 8px;
       border-radius: 6px;
     }
@@ -359,7 +363,7 @@
     }
     .option-card.active {
       border-color: var(--accent-blue);
-      background: rgba(59, 130, 246, 0.08);
+      background: rgba(255, 255, 255, 0.08);
       box-shadow: 0 0 0 1px var(--accent-blue);
     }
     .option-card:focus-visible {
@@ -385,7 +389,7 @@
       flex-shrink: 0;
     }
     .option-card.active .option-icon-badge {
-      background: rgba(59, 130, 246, 0.16);
+      background: rgba(255, 255, 255, 0.16);
       border-color: var(--accent-blue);
     }
     .option-info {
@@ -409,7 +413,7 @@
       height: 22px;
       border-radius: 50%;
       background: var(--accent-blue);
-      color: #ffffff;
+      color: var(--accent-ink, #0d0d0d);
       display: none;
       align-items: center;
       justify-content: center;
@@ -434,7 +438,7 @@
       height: 48px;
       border-radius: 12px;
       background: var(--accent-blue);
-      color: #ffffff;
+      color: var(--accent-ink, #0d0d0d);
       border: none;
       font-size: 0.95rem;
       font-weight: 700;
@@ -446,7 +450,7 @@
       gap: 8px;
       transition: background 0.15s, transform 0.1s;
       margin: 8px 16px 16px;
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+      box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
     }
     .btn-test-sound:hover {
       background: var(--accent-blue-hover);
@@ -474,7 +478,7 @@
       backdrop-filter: blur(12px);
       white-space: nowrap;
     }
-    .toast.success { border-color: #10b981; }
+    .toast.success { border-color: rgba(255, 255, 255, 0.25);  }
   </style>
 
   <script>
@@ -489,12 +493,22 @@
   <script>
     (function() {
       try {
-        var saved = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "oled";
-        var valid = ["oled", "sapphire", "light", "eyecare"];
-        var mode = valid.indexOf(saved) !== -1 ? saved : "oled";
-        document.documentElement.setAttribute("data-theme-mode", mode);
+        var raw = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "dark";
+        var valid = ["dark", "oled", "sapphire", "light", "eyecare"];
+        var mode = raw;
+        if (raw === "system") {
+          mode = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? "dark" : "light";
+        } else if (valid.indexOf(raw) === -1) {
+          mode = "dark";
+        }
+        document.documentElement.setAttribute("data-theme-mode", raw);
         document.documentElement.setAttribute("data-theme", mode);
       } catch(e) {}
+      if (window.location.pathname.endsWith('.html')) {
+        var clean = window.location.pathname.replace(/\.html$/, '');
+        if (clean === '/index') clean = '/';
+        window.history.replaceState(null, '', clean + window.location.search + window.location.hash);
+      }
     })();
   </script>
 </head>
@@ -503,7 +517,7 @@
 
   <!-- Top Navigation -->
   <header class="settings-nav">
-    <a href="account" class="settings-back-link" id="backBtn">
+    <a href="/account" class="settings-back-link" id="backBtn">
       <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
       <span id="backText">Settings</span>
     </a>
@@ -584,7 +598,7 @@
         <!-- Subtle Pop -->
         <div class="option-card" data-tone-id="subtle" role="radio" tabindex="0" aria-checked="false">
           <div class="option-lead">
-            <div class="option-icon-badge"></div>
+            <div class="option-icon-badge"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v2"/><path d="M12 19v2"/><path d="M3 12h2"/><path d="M19 12h2"/></svg></div>
             <div class="option-info">
               <span class="option-title" id="soundToneSubtleTitle">Subtle Pop</span>
               <span class="option-desc" id="soundToneSubtleDesc">Gentle tactile click for discreet feedback</span>
@@ -596,7 +610,7 @@
         <!-- Soft Chime -->
         <div class="option-card" data-tone-id="chime" role="radio" tabindex="0" aria-checked="false">
           <div class="option-lead">
-            <div class="option-icon-badge"></div>
+            <div class="option-icon-badge"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
             <div class="option-info">
               <span class="option-title" id="soundToneChimeTitle">Soft Chime</span>
               <span class="option-desc" id="soundToneChimeDesc">Pleasant harmonic chime notification</span>
@@ -608,7 +622,7 @@
         <!-- Cosmic Pulse -->
         <div class="option-card" data-tone-id="cosmic" role="radio" tabindex="0" aria-checked="false">
           <div class="option-lead">
-            <div class="option-icon-badge"></div>
+            <div class="option-icon-badge"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h3l2.5-6 4 12 3.5-8 2.5 2H22"/></svg></div>
             <div class="option-info">
               <span class="option-title" id="soundToneCosmicTitle">Cosmic Pulse</span>
               <span class="option-desc" id="soundToneCosmicDesc">Futuristic sci-fi synthesizer pulse</span>

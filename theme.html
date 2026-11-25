@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="oled">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
-  <meta name="theme-color" content="#000000">
+  <meta name="theme-color" content="#212121">
   <title>Color Theme — Alora</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=3">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png?v=3">
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png?v=3">
-  <link rel="shortcut icon" href="favicon.ico?v=3">
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=3">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=3">
+  <link rel="shortcut icon" href="/favicon.ico?v=3">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -21,11 +21,12 @@
       --bg-card-hover: #1c1c22;
       --border-card: rgba(255, 255, 255, 0.09);
       --border-divider: rgba(255, 255, 255, 0.06);
-      --text-main: #ffffff;
+      --text-main: #ececec;
       --text-sub: #a1a1aa;
       --text-dim: #71717a;
-      --accent-blue: #3b82f6;
-      --accent-blue-hover: #2563eb;
+      --accent-blue: #ececec;
+      --accent-ink: #0d0d0d;
+      --accent-blue-hover: #ffffff;
       --font-main: 'Plus Jakarta Sans', 'Hind Siliguri', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
 
@@ -35,10 +36,11 @@
       --bg-card-hover: #1a1a20;
       --border-card: rgba(255, 255, 255, 0.1);
       --border-divider: rgba(255, 255, 255, 0.06);
-      --text-main: #ffffff;
+      --text-main: #ececec;
       --text-sub: #a1a1aa;
       --text-dim: #71717a;
-      --accent-blue: #3b82f6;
+      --accent-blue: #ececec;
+      --accent-ink: #0d0d0d;
     }
 
     [data-theme="sapphire"] {
@@ -50,19 +52,21 @@
       --text-main: #f8fafc;
       --text-sub: #94a3b8;
       --text-dim: #64748b;
-      --accent-blue: #38bdf8;
+      --accent-blue: #ececec;
+      --accent-ink: #0d0d0d;
     }
 
     [data-theme="light"] {
-      --bg-base: #f8fafc;
+      --bg-base: #ffffff;
       --bg-card: #ffffff;
-      --bg-card-hover: #f1f5f9;
+      --bg-card-hover: #ececec;
       --border-card: rgba(0, 0, 0, 0.08);
       --border-divider: rgba(0, 0, 0, 0.06);
-      --text-main: #09090b;
+      --text-main: #0d0d0d;
       --text-sub: #64748b;
       --text-dim: #94a3b8;
-      --accent-blue: #2563eb;
+      --accent-blue: #0d0d0d;
+      --accent-ink: #ffffff;
     }
 
     [data-theme="eyecare"] {
@@ -74,7 +78,8 @@
       --text-main: #4a3b2c;
       --text-sub: #7a6b5c;
       --text-dim: #9c8a77;
-      --accent-blue: #b45309;
+      --accent-blue: #2d2318;
+      --accent-ink: #f5eedc;
     }
 
     *, *::before, *::after {
@@ -243,13 +248,21 @@
       flex-shrink: 0;
       border: 1.5px solid rgba(255, 255, 255, 0.15);
     }
+    .theme-swatch.system {
+      background: linear-gradient(135deg, #212121 50%, #ffffff 50%);
+      border-color: var(--border-card);
+    }
+    .theme-swatch.dark {
+      background: #212121;
+      border-color: rgba(255, 255, 255, 0.28);
+    }
     .theme-swatch.oled {
       background: #000000;
-      border-color: #3b82f6;
+      border-color: rgba(255, 255, 255, 0.25);
     }
     .theme-swatch.sapphire {
       background: #070d19;
-      border-color: #38bdf8;
+      border-color: rgba(148, 163, 184, 0.45);
     }
     .theme-swatch.light {
       background: #ffffff;
@@ -286,7 +299,7 @@
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      color: #ffffff;
+      color: var(--accent-ink, #0d0d0d);
     }
     .theme-check svg {
       width: 14px;
@@ -311,6 +324,16 @@
       pointer-events: none;
       font-size: 0.76rem;
       border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .preview-system {
+      background: linear-gradient(90deg, #212121 50%, #f4f4f5 50%);
+      color: #e4e4e7;
+      border-color: #2f2f2f;
+    }
+    .preview-dark {
+      background: #212121;
+      color: #ececec;
+      border-color: #343434;
     }
     .preview-oled {
       background: #050505;
@@ -359,9 +382,9 @@
       font-weight: 500;
       font-size: 0.72rem;
     }
-    .preview-oled .preview-bubble-ai { background: rgba(59, 130, 246, 0.15); color: #93c5fd; }
+    .preview-oled .preview-bubble-ai { background: rgba(255, 255, 255, 0.15); color: #93c5fd; }
     .preview-sapphire .preview-bubble-ai { background: rgba(56, 189, 248, 0.15); color: #7dd3fc; }
-    .preview-light .preview-bubble-ai { background: rgba(37, 99, 235, 0.1); color: #1d4ed8; }
+    .preview-light .preview-bubble-ai { background: rgba(0, 0, 0, 0.1); color: #1d4ed8; }
     .preview-eyecare .preview-bubble-ai { background: rgba(180, 83, 9, 0.12); color: #92400e; }
 
     /* Toast */
@@ -400,7 +423,7 @@
 
   <!-- Top Navigation -->
   <header class="settings-nav">
-    <a href="account" class="settings-back-link" id="backBtn">
+    <a href="/account" class="settings-back-link" id="backBtn">
       <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
       <span id="backText">Settings</span>
     </a>
@@ -419,6 +442,50 @@
     </div>
 
     <div class="themes-grid" role="radiogroup" aria-labelledby="introTitle">
+      <!-- ChatGPT Default Dark Mode -->
+      <div class="theme-item" data-theme-id="dark" role="radio" tabindex="0" aria-checked="false">
+        <div class="theme-header">
+          <div class="theme-lead">
+            <div class="theme-swatch dark"></div>
+            <div class="theme-info">
+              <span class="theme-name" id="nameDark">Dark (Default)</span>
+              <span class="theme-desc" id="descDark">Classic charcoal monochrome workspace for day and night</span>
+            </div>
+          </div>
+          <div class="theme-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+        </div>
+        <div class="theme-preview-box preview-dark">
+          <div class="preview-chat-row">
+            <span class="preview-bubble-user" id="prevUser0">Compare REST vs GraphQL APIs</span>
+          </div>
+          <div class="preview-chat-row">
+            <span class="preview-bubble-ai" id="prevAi0">Structured comparison generated</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- System (Auto) Mode -->
+      <div class="theme-item" data-theme-id="system" role="radio" tabindex="0" aria-checked="false">
+        <div class="theme-header">
+          <div class="theme-lead">
+            <div class="theme-swatch system"></div>
+            <div class="theme-info">
+              <span class="theme-name" id="nameSystem">System (Auto)</span>
+              <span class="theme-desc" id="descSystem">Automatically matches your device Dark or Light setting</span>
+            </div>
+          </div>
+          <div class="theme-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+        </div>
+        <div class="theme-preview-box preview-system">
+          <div class="preview-chat-row">
+            <span class="preview-bubble-user" id="prevUser5">Sync appearance with system</span>
+          </div>
+          <div class="preview-chat-row">
+            <span class="preview-bubble-ai" id="prevAi5">Adaptive theme active</span>
+          </div>
+        </div>
+      </div>
+
       <!-- OLED Dark Mode -->
       <div class="theme-item" data-theme-id="oled" role="radio" tabindex="0" aria-checked="false">
         <div class="theme-header">
@@ -511,21 +578,24 @@
 
   <script>
     let currentLanguage = localStorage.getItem("alokpoth_lang") || "en";
-    let rawSaved = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "oled";
-    // Supported themes: oled, sapphire, light, eyecare
-    const validThemes = ["oled", "sapphire", "light", "eyecare"];
-    let activeTheme = validThemes.includes(rawSaved) ? rawSaved : (rawSaved === "dark" ? "oled" : "oled");
+    let rawSaved = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "dark";
+    const validThemes = ["system", "dark", "oled", "sapphire", "light", "eyecare"];
+    let activeTheme = validThemes.includes(rawSaved) ? rawSaved : "dark";
     
     function applyEffectiveTheme(themeId) {
+      const resolved = (themeId === "system")
+        ? ((window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? "dark" : "light")
+        : themeId;
       document.documentElement.setAttribute("data-theme-mode", themeId);
-      document.documentElement.setAttribute("data-theme", themeId);
+      document.documentElement.setAttribute("data-theme", resolved);
       
       const meta = document.querySelector('meta[name="theme-color"]');
       if (meta) {
-        if (themeId === "oled") meta.content = "#000000";
-        else if (themeId === "sapphire") meta.content = "#070d19";
-        else if (themeId === "light") meta.content = "#f8fafc";
-        else if (themeId === "eyecare") meta.content = "#f5eedc";
+        if (resolved === "oled") meta.content = "#000000";
+        else if (resolved === "dark") meta.content = "#212121";
+        else if (resolved === "sapphire") meta.content = "#070d19";
+        else if (resolved === "light") meta.content = "#ffffff";
+        else if (resolved === "eyecare") meta.content = "#f5eedc";
       }
     }
 
@@ -537,6 +607,14 @@
         pageTitle: "চেহারা (থিম)",
         introTitle: "থিম ও লুক নির্বাচন",
         introDesc: "আপনার পছন্দের থিম নির্বাচন করুন। এটি সাথে সাথে কার্যকর হবে।",
+        nameDark: "ডার্ক (ডিফল্ট)",
+        descDark: "ক্লিন চারকোল মনোক্রোম ডার্ক ইন্টারফেস",
+        nameSystem: "সিস্টেম (স্বয়ংক্রিয়)",
+        descSystem: "ডিভাইসের থিম অনুযায়ী স্বয়ংক্রিয়ভাবে পরিবর্তন হবে",
+        prevUser0: "REST এবং GraphQL API তুলনা করো",
+        prevAi0: "বিস্তারিত তুলনামূলক উত্তর তৈরি হয়েছে",
+        prevUser5: "সিস্টেম থিমের সাথে সিঙ্ক করো",
+        prevAi5: "অ্যাডাপ্টিভ থিম সক্রিয়",
         nameOled: "ডার্ক (AMOLED)",
         descOled: "পিওর অ্যামোলেড কালো (সর্বোচ্চ ব্যাটারি সেভিং)",
         nameSapphire: "ডিপ স্যাফায়ার",
@@ -560,6 +638,14 @@
         pageTitle: "Color Theme",
         introTitle: "Appearance & Palette",
         introDesc: "Select your preferred color theme. Changes apply instantly and synchronize with your session.",
+        nameDark: "Dark (Default)",
+        descDark: "Classic charcoal monochrome workspace for day and night",
+        nameSystem: "System (Auto)",
+        descSystem: "Automatically matches your device Dark or Light setting",
+        prevUser0: "Compare REST vs GraphQL APIs",
+        prevAi0: "Structured comparison generated",
+        prevUser5: "Sync appearance with system",
+        prevAi5: "Adaptive theme active",
         nameOled: "Dark (OLED)",
         descOled: "Pure AMOLED black for deep contrast & battery saving",
         nameSapphire: "Deep Sapphire",
@@ -608,6 +694,15 @@
       const introDesc = document.getElementById("introDesc");
       if (introDesc) introDesc.textContent = d.introDesc;
 
+      const nameDark = document.getElementById("nameDark");
+      if (nameDark) nameDark.textContent = d.nameDark;
+      const descDark = document.getElementById("descDark");
+      if (descDark) descDark.textContent = d.descDark;
+      const nameSystem = document.getElementById("nameSystem");
+      if (nameSystem) nameSystem.textContent = d.nameSystem;
+      const descSystem = document.getElementById("descSystem");
+      if (descSystem) descSystem.textContent = d.descSystem;
+
       const nameOled = document.getElementById("nameOled");
       if (nameOled) nameOled.textContent = d.nameOled;
       const descOled = document.getElementById("descOled");
@@ -628,7 +723,7 @@
       const descEyecare = document.getElementById("descEyecare");
       if (descEyecare) descEyecare.textContent = d.descEyecare;
 
-      for (let i = 1; i <= 4; i++) {
+      for (let i = 0; i <= 5; i++) {
         const u = document.getElementById(`prevUser${i}`);
         const a = document.getElementById(`prevAi${i}`);
         if (u && d[`prevUser${i}`]) u.textContent = d[`prevUser${i}`];

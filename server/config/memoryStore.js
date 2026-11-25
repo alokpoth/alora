@@ -14,9 +14,9 @@ const bcrypt = require('bcryptjs');
 const memoryStore = {
   users: [],
   plans: [
-    { name: 'Free', displayName: 'ফ্রি প্ল্যান', message_limit: 10, window_hours: 3, allowed_models: ['gemini-3.6-flash', 'llama-3.3-70b-versatile', 'qwen/qwen3.8-27b', 'gemini-3.5-flash-lite', 'openrouter/free', 'mimo-v2.5', 'hy3'], is_active: true },
-    { name: 'Pro', displayName: 'প্রো প্ল্যান', message_limit: 30, window_hours: 3, allowed_models: ['*'], is_active: true },
-    { name: 'Max', displayName: 'ম্যাক্স প্ল্যান', message_limit: 50, window_hours: 1, allowed_models: ['*'], is_active: true }
+    { name: 'Free', displayName: 'ফ্রি প্ল্যান', message_limit: 10, window_hours: 3, image_limit: 5, allowed_models: ['*'], is_active: true },
+    { name: 'Pro', displayName: 'প্রো প্ল্যান', message_limit: 30, window_hours: 3, image_limit: 25, allowed_models: ['*'], is_active: true },
+    { name: 'Max', displayName: 'ম্যাক্স প্ল্যান', message_limit: 50, window_hours: 1, image_limit: 100, allowed_models: ['*'], is_active: true }
   ],
   redeemCodes: [],
   usageLogs: [],
@@ -104,8 +104,16 @@ const seedDefaultAdmin = async () => {
         });
       }
       if (Array.isArray(data.deletedModelIds)) memoryStore.deletedModelIds = data.deletedModelIds;
-      if (!Array.isArray(memoryStore.models) || memoryStore.models.length === 0) {
-        memoryStore.models = [...DEFAULT_MEMORY_MODELS];
+      const deletedSet = new Set((memoryStore.deletedModelIds || []).map(x => String(x || '').toLowerCase().trim()));
+      const hasExplicitModelsArray = Array.isArray(data.models);
+      if (!hasExplicitModelsArray) {
+        memoryStore.models = DEFAULT_MEMORY_MODELS.filter(m => !deletedSet.has(String(m.id).toLowerCase()) && !deletedSet.has(String(m.name).toLowerCase()));
+      } else {
+        memoryStore.models = memoryStore.models.filter(m => {
+          const mId = String(m.id || m.model_id || '').toLowerCase().trim();
+          const mName = String(m.name || '').toLowerCase().trim();
+          return !deletedSet.has(mId) && !deletedSet.has(mName);
+        });
       }
       if (data.settings && typeof data.settings === 'object') memoryStore.settings = data.settings;
       console.log('[Memory DB] Restored data from local backup file.');
