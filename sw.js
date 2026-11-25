@@ -1,5 +1,5 @@
-/* Alora AI - Progressive Web App Service Worker (v3.6.0) */
-const CACHE_NAME = 'alora-ai-v3.6.0';
+/* Alora AI - Progressive Web App Service Worker (v3.6.1) */
+const CACHE_NAME = 'alora-ai-v3.6.1';
 
 // Core assets to pre-cache on service worker install
 const CORE_ASSETS = [
@@ -211,8 +211,7 @@ function isDynamicOrApiRequest(url, req) {
       host.includes('huggingface.co') ||
       host.includes('pollinations.ai') ||
       host.includes('onrender.com') ||
-      host.includes('render.com') ||
-      host.includes('supabase.co')
+      host.includes('render.com')
     ) {
       return true;
     }
