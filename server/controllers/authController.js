@@ -802,14 +802,37 @@ const getRequestOrigin = (req) => {
   return `${proto}://${req.get('host')}`;
 };
 
-const signOAuthState = (redirectPath = '/') => {
+const ALLOWED_FRONTEND_ORIGINS = new Set([
+  'https://alora.zihan.xyz',
+  'https://ai.zihan.xyz',
+  'https://alora-backend-emw3.onrender.com',
+  'http://localhost:5000',
+  'http://localhost:3000',
+  'http://127.0.0.1:5000'
+]);
+
+const resolveTrustedFrontendOrigin = (req) => {
+  const candidates = [req.query && req.query.origin, req.headers && req.headers.origin, req.headers && req.headers.referer];
+  for (const raw of candidates) {
+    if (!raw || typeof raw !== 'string') continue;
+    try {
+      const u = new URL(raw);
+      const origin = `${u.protocol}//${u.host}`.toLowerCase();
+      if (ALLOWED_FRONTEND_ORIGINS.has(origin)) return origin;
+    } catch (e) {}
+  }
+  return '';
+};
+
+const signOAuthState = (redirectPath = '/', frontendOrigin = '') => {
   const safeRedirect = (typeof redirectPath === 'string' && redirectPath.startsWith('/') && !redirectPath.startsWith('//')) ? redirectPath : '/';
-  const payloadB64 = Buffer.from(JSON.stringify({ r: safeRedirect, exp: Date.now() + 10 * 60 * 1000 }), 'utf8').toString('base64url');
+  const safeOrigin = ALLOWED_FRONTEND_ORIGINS.has(String(frontendOrigin || '').toLowerCase()) ? String(frontendOrigin).toLowerCase() : '';
+  const payloadB64 = Buffer.from(JSON.stringify({ r: safeRedirect, o: safeOrigin, exp: Date.now() + 10 * 60 * 1000 }), 'utf8').toString('base64url');
   const sig = crypto.createHmac('sha256', JWT_SECRET).update(payloadB64).digest('base64url');
   return `${payloadB64}.${sig}`;
 };
 
-const verifyOAuthState = (state) => {
+const verifyOAuthState = (state, returnObject = false) => {
   if (!state || typeof state !== 'string' || !state.includes('.')) return null;
   const [payloadB64, sig] = state.split('.', 2);
   if (!payloadB64 || !sig) return null;
@@ -821,7 +844,9 @@ const verifyOAuthState = (state) => {
     const parsed = JSON.parse(Buffer.from(payloadB64, 'base64url').toString('utf8'));
     if (!parsed || !parsed.exp || Date.now() > Number(parsed.exp)) return null;
     const r = String(parsed.r || '/');
-    return (r.startsWith('/') && !r.startsWith('//')) ? r : '/';
+    const safeRedirect = (r.startsWith('/') && !r.startsWith('//')) ? r : '/';
+    const safeOrigin = ALLOWED_FRONTEND_ORIGINS.has(String(parsed.o || '').toLowerCase()) ? String(parsed.o).toLowerCase() : '';
+    return returnObject ? { redirect: safeRedirect, origin: safeOrigin } : safeRedirect;
   } catch (e) {
     return null;
   }
@@ -833,7 +858,7 @@ const googleAuth = async (req, res) => {
     const clientSecret = String(process.env.GOOGLE_CLIENT_SECRET || '').trim();
     if (clientId && clientSecret) {
       const redirectUri = `${getRequestOrigin(req)}/api/auth/google/callback`;
-      const state = signOAuthState(req.query.redirect || '/');
+      const state = signOAuthState(req.query.redirect || '/', resolveTrustedFrontendOrigin(req));
       const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent('openid profile email')}&state=${encodeURIComponent(state)}&prompt=select_account`;
       return res.json({ success: true, url });
     }
@@ -848,7 +873,9 @@ const googleAuth = async (req, res) => {
 };
 
 const googleCallback = async (req, res) => {
-  const redirectError = (msg) => res.redirect(`/auth/login?oauth_error=${encodeURIComponent(msg)}`);
+  const stateInfo = verifyOAuthState(req.query.state, true);
+  const frontBase = (stateInfo && stateInfo.origin) ? stateInfo.origin : '';
+  const redirectError = (msg) => res.redirect(`${frontBase}/auth/login?oauth_error=${encodeURIComponent(msg)}`);
   try {
     const clientId = String(process.env.GOOGLE_CLIENT_ID || '').trim();
     const clientSecret = String(process.env.GOOGLE_CLIENT_SECRET || '').trim();
@@ -861,7 +888,7 @@ const googleCallback = async (req, res) => {
     }
 
     const code = String(req.query.code || '').trim();
-    const safeRedirect = verifyOAuthState(req.query.state);
+    const safeRedirect = stateInfo ? stateInfo.redirect : null;
     if (!code || safeRedirect === null) {
       return redirectError('Invalid or expired Google Sign-In session. Please try again.');
     }
@@ -964,7 +991,7 @@ const googleCallback = async (req, res) => {
     }
 
     const token = generateToken(user);
-    return res.redirect(`/auth/login#oauth_token=${encodeURIComponent(token)}&redirect=${encodeURIComponent(safeRedirect)}`);
+    return res.redirect(`${frontBase}/auth/login#oauth_token=${encodeURIComponent(token)}&redirect=${encodeURIComponent(safeRedirect)}`);
   } catch (error) {
     console.error('[Google OAuth Callback Error]:', error.message);
     return redirectError('Google Sign-In failed. Please try email login or try again.');
@@ -977,7 +1004,7 @@ const discordAuth = async (req, res) => {
     const clientSecret = String(process.env.DISCORD_CLIENT_SECRET || '').trim();
     if (clientId && clientSecret) {
       const redirectUri = `${getRequestOrigin(req)}/api/auth/discord/callback`;
-      const state = signOAuthState(req.query.redirect || '/');
+      const state = signOAuthState(req.query.redirect || '/', resolveTrustedFrontendOrigin(req));
       const url = `https://discord.com/api/oauth2/authorize?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent('identify email')}&state=${encodeURIComponent(state)}&prompt=consent`;
       return res.json({ success: true, url });
     }
@@ -992,7 +1019,9 @@ const discordAuth = async (req, res) => {
 };
 
 const discordCallback = async (req, res) => {
-  const redirectError = (msg) => res.redirect(`/auth/login?oauth_error=${encodeURIComponent(msg)}`);
+  const stateInfo = verifyOAuthState(req.query.state, true);
+  const frontBase = (stateInfo && stateInfo.origin) ? stateInfo.origin : '';
+  const redirectError = (msg) => res.redirect(`${frontBase}/auth/login?oauth_error=${encodeURIComponent(msg)}`);
   try {
     const clientId = String(process.env.DISCORD_CLIENT_ID || '').trim();
     const clientSecret = String(process.env.DISCORD_CLIENT_SECRET || '').trim();
@@ -1005,7 +1034,7 @@ const discordCallback = async (req, res) => {
     }
 
     const code = String(req.query.code || '').trim();
-    const safeRedirect = verifyOAuthState(req.query.state);
+    const safeRedirect = stateInfo ? stateInfo.redirect : null;
     if (!code || safeRedirect === null) {
       return redirectError('Invalid or expired Discord Sign-In session. Please try again.');
     }
@@ -1108,7 +1137,7 @@ const discordCallback = async (req, res) => {
     }
 
     const token = generateToken(user);
-    return res.redirect(`/auth/login#oauth_token=${encodeURIComponent(token)}&redirect=${encodeURIComponent(safeRedirect)}`);
+    return res.redirect(`${frontBase}/auth/login#oauth_token=${encodeURIComponent(token)}&redirect=${encodeURIComponent(safeRedirect)}`);
   } catch (error) {
     console.error('[Discord OAuth Callback Error]:', error.message);
     return redirectError('Discord Sign-In failed. Please try email login or try again.');
