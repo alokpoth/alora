@@ -68,8 +68,8 @@
       --sidebar-width: 260px;
       --header-height: 52px;
       --composer-width: 768px;
-      --radius-sm: 14px;
-      --radius-md: 18px;
+      --radius-sm: 16px;
+      --radius-md: 20px;
       --radius-lg: 28px;
       --radius-xl: 34px;
       --radius-pill: 32px;
@@ -345,8 +345,8 @@
       font-size: 0.96rem;
       letter-spacing: -0.015em;
       text-decoration: none;
-      padding: 4px 6px;
-      border-radius: 10px;
+      padding: 4px 10px;
+      border-radius: 9999px;
       min-width: 0;
     }
     .sidebar-brand:hover {
@@ -371,7 +371,7 @@
       justify-content: center;
       width: 34px;
       height: 34px;
-      border-radius: 10px;
+      border-radius: 9999px;
       color: var(--text-sub);
       flex-shrink: 0;
       transition: background var(--transition-fast), color var(--transition-fast);
@@ -433,6 +433,7 @@
         width: 38px !important;
         height: 38px;
         padding: 0 !important;
+        border-radius: 9999px;
         justify-content: center;
       }
       .chatgpt-sidebar.collapsed .sidebar-bottom-footer {
@@ -506,7 +507,7 @@
       justify-content: center;
       width: 24px;
       height: 24px;
-      border-radius: var(--radius-sm);
+      border-radius: 9999px;
       color: var(--text-muted);
     }
     .chatgpt-history-item:hover .history-item-menu-btn,
@@ -675,8 +676,8 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 6px 10px;
-      border-radius: 10px;
+      padding: 6px 12px;
+      border-radius: 9999px;
       color: var(--text-main);
       font-size: 1.06rem;
       font-weight: 600;
@@ -710,8 +711,8 @@
       display: inline-flex;
       align-items: center;
       gap: 2px;
-      padding: 2px;
-      border-radius: 12px;
+      padding: 3px;
+      border-radius: 9999px;
       background: rgba(128, 128, 128, 0.08);
       border: 1px solid var(--border-subtle);
       flex-shrink: 0;
@@ -940,7 +941,7 @@
     .assistant-markdown img {
       max-width: 100%;
       height: auto;
-      border-radius: 12px;
+      border-radius: 18px;
     }
     .assistant-markdown table {
       display: block;
@@ -949,6 +950,8 @@
       overflow-x: auto;
       border-collapse: collapse;
       margin: 12px 0;
+      border-radius: 16px;
+      border: 1px solid var(--border);
     }
     .assistant-markdown th,
     .assistant-markdown td {
@@ -1012,7 +1015,7 @@
       padding: 14px 16px;
       background: rgba(245, 158, 11, 0.08);
       border: 1px solid rgba(245, 158, 11, 0.22);
-      border-radius: 16px;
+      border-radius: 22px;
       margin: 8px 0;
       color: var(--text-main);
       max-width: 580px;
@@ -1116,9 +1119,13 @@
       cursor: pointer;
       color: var(--text-sub);
       background: none;
+      padding: 4px 10px;
+      border-radius: 9999px;
       font-size: 0.76rem;
+      transition: background var(--transition-fast), color var(--transition-fast);
     }
     .code-copy-action:hover {
+      background: rgba(255, 255, 255, 0.08);
       color: var(--text-main);
     }
     .assistant-markdown pre code {
@@ -1171,7 +1178,7 @@
       justify-content: center;
       width: 30px;
       height: 30px;
-      border-radius: var(--radius-sm);
+      border-radius: var(--radius-full);
       color: var(--text-muted);
       transition: background var(--transition-fast), color var(--transition-fast);
     }
@@ -1363,8 +1370,8 @@
       left: 4px;
       background: var(--modal-bg);
       border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 6px;
+      border-radius: 24px;
+      padding: 8px;
       display: none;
       flex-direction: column;
       gap: 2px;
@@ -1386,7 +1393,7 @@
       align-items: center;
       gap: 12px;
       padding: 9px 12px;
-      border-radius: 12px;
+      border-radius: 14px;
       font-size: 0.88rem;
       color: var(--text-main);
       cursor: pointer;
@@ -1430,8 +1437,8 @@
       width: min(246px, calc(100vw - 24px));
       background: var(--modal-bg);
       border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 6px;
+      border-radius: 24px;
+      padding: 8px;
       display: none;
       flex-direction: column;
       gap: 2px;
@@ -1452,7 +1459,7 @@
       align-items: center;
       gap: 10px;
       padding: 8px 10px;
-      border-radius: 12px;
+      border-radius: 16px;
       text-decoration: none;
       color: var(--text-main);
       transition: background var(--transition-fast);
@@ -1487,7 +1494,7 @@
       align-items: center;
       gap: 10px;
       padding: 9px 12px;
-      border-radius: 10px;
+      border-radius: 14px;
       font-size: 0.87rem;
       color: var(--text-main);
       cursor: pointer;
@@ -1512,8 +1519,8 @@
       left: 14px;
       background: var(--modal-bg);
       border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 6px;
+      border-radius: 24px;
+      padding: 8px;
       display: none;
       flex-direction: column;
       gap: 3px;
@@ -1943,7 +1950,7 @@
         line-height: 24px;
       }
       .chatgpt-user-popover,
-      .attach-menu,
+      .chatgpt-attach-menu,
       .model-dropdown-menu {
         max-width: calc(100vw - 24px);
       }
@@ -1961,9 +1968,9 @@
       }
       .model-selector-btn {
         font-size: 1rem;
-        padding: 4px 6px;
+        padding: 4px 10px;
       }
-      .chatgpt-dialog-backdrop {
+      #settingsDialogBackdrop.chatgpt-dialog-backdrop {
         padding: 0;
       }
       .chatgpt-settings-dialog {
@@ -2075,7 +2082,7 @@
       justify-content: space-between;
       width: 100%;
       padding: 9px 10px;
-      border-radius: 10px;
+      border-radius: 14px;
       color: var(--text-main);
       font-size: 0.875rem;
       font-weight: 500;
@@ -2123,8 +2130,8 @@
       background: var(--composer-bg);
       color: var(--text-main);
       border: 1px solid var(--composer-border-focus);
-      border-radius: 6px;
-      padding: 2px 6px;
+      border-radius: 10px;
+      padding: 3px 10px;
       font-size: 0.85rem;
       outline: none;
       font-family: inherit;
@@ -2137,8 +2144,8 @@
       min-width: 175px;
       background: var(--modal-bg);
       border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 6px;
+      border-radius: 20px;
+      padding: 7px;
       box-shadow: none;
       display: none;
       flex-direction: column;
@@ -2153,7 +2160,7 @@
       gap: 10px;
       width: 100%;
       padding: 8px 10px;
-      border-radius: 9px;
+      border-radius: 12px;
       color: var(--text-main);
       font-size: 0.85rem;
       font-weight: 500;
@@ -2176,7 +2183,7 @@
     .header-icon-action {
       width: 36px;
       height: 36px;
-      border-radius: 10px;
+      border-radius: 9999px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -2233,7 +2240,7 @@
     .user-msg-img-thumb {
       max-width: min(240px, 100%);
       max-height: 220px;
-      border-radius: 14px;
+      border-radius: 18px;
       object-fit: cover;
       border: 1px solid var(--border);
     }
@@ -2241,8 +2248,8 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 6px 12px;
-      border-radius: 12px;
+      padding: 6px 14px;
+      border-radius: 9999px;
       background: var(--card-bg);
       border: 1px solid var(--border);
       font-size: 0.8rem;
@@ -2272,7 +2279,7 @@
       max-width: 100%;
       background: var(--composer-bg);
       border: 1px solid var(--composer-border-focus);
-      border-radius: 18px;
+      border-radius: 24px;
       padding: 12px 14px;
       display: flex;
       flex-direction: column;
@@ -2343,7 +2350,7 @@
     .branch-nav-btn {
       width: 24px;
       height: 24px;
-      border-radius: 6px;
+      border-radius: 9999px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -2371,8 +2378,8 @@
       overflow-y: auto;
       background: var(--modal-bg);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 5px;
+      border-radius: 20px;
+      padding: 6px;
       box-shadow: none;
       z-index: 600;
       display: none;
@@ -2386,8 +2393,8 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 7px 10px;
-      border-radius: 8px;
+      padding: 8px 12px;
+      border-radius: 12px;
       font-size: 0.82rem;
       color: var(--text-main);
       text-align: left;
@@ -2406,7 +2413,7 @@
     }
     .generated-image-card img {
       width: 100%;
-      border-radius: 16px;
+      border-radius: 20px;
       border: 1px solid var(--border);
       display: block;
     }
@@ -2414,8 +2421,8 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
-      padding: 16px 18px;
-      border-radius: 16px;
+      padding: 18px 20px;
+      border-radius: 22px;
       background: var(--card-bg);
       border: 1px solid var(--border);
       max-width: 540px;
@@ -2467,8 +2474,8 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 6px 10px;
-      border-radius: 12px;
+      padding: 6px 12px 6px 8px;
+      border-radius: 16px;
       background: var(--modal-bg);
       border: 1px solid var(--border);
       font-size: 0.78rem;
@@ -2478,7 +2485,7 @@
     .composer-file-chip img {
       width: 36px;
       height: 36px;
-      border-radius: 8px;
+      border-radius: 12px;
       object-fit: cover;
       flex-shrink: 0;
     }
@@ -2515,7 +2522,7 @@
     }
     .chatgpt-drop-box {
       padding: 28px 36px;
-      border-radius: 20px;
+      border-radius: 28px;
       background: var(--modal-bg);
       border: 2px dashed var(--text-sub);
       color: var(--text-main);
@@ -2531,7 +2538,7 @@
       max-height: 78vh;
       background: var(--modal-bg);
       border: 1px solid var(--border);
-      border-radius: 18px;
+      border-radius: 26px;
       box-shadow: none;
       display: flex;
       flex-direction: column;
@@ -2567,8 +2574,8 @@
       justify-content: space-between;
       gap: 10px;
       width: 100%;
-      padding: 10px 12px;
-      border-radius: 10px;
+      padding: 10px 14px;
+      border-radius: 14px;
       color: var(--text-main);
       text-align: left;
     }
@@ -2579,8 +2586,8 @@
     /* Quota Track & Memory List inside Settings */
     .settings-quota-box {
       width: 100%;
-      padding: 14px;
-      border-radius: 14px;
+      padding: 14px 16px;
+      border-radius: 20px;
       background: var(--composer-bg);
       border: 1px solid var(--border-subtle);
       display: flex;
@@ -2604,8 +2611,8 @@
       align-items: center;
       justify-content: space-between;
       gap: 10px;
-      padding: 8px 12px;
-      border-radius: 10px;
+      padding: 8px 14px;
+      border-radius: 14px;
       background: var(--composer-bg);
       font-size: 0.84rem;
       color: var(--text-main);
@@ -3104,7 +3111,7 @@
         <p style="font-size:0.86rem; color:var(--text-sub); line-height:1.5;" id="shareModalDesc">
           Copy the conversation URL for this device or export the full transcript to share anywhere.
         </p>
-        <div style="display:flex; gap:8px; align-items:center; background:var(--composer-bg); border:1px solid var(--border); border-radius:12px; padding:8px 12px;">
+        <div style="display:flex; gap:8px; align-items:center; background:var(--composer-bg); border:1px solid var(--border); border-radius:9999px; padding:6px 8px 6px 16px;">
           <input type="text" id="shareUrlInput" readonly style="flex:1; background:transparent; border:none; color:var(--text-main); font-size:0.82rem; font-family:var(--font-code); outline:none;">
           <button type="button" class="btn-mono-primary" id="copyShareUrlBtn">Copy link</button>
         </div>
@@ -3123,13 +3130,13 @@
         <button type="button" class="sidebar-icon-btn" id="closeClaimOfferBtn" aria-label="Close">&times;</button>
       </div>
       <div style="display:flex; flex-direction:column; align-items:center; text-align:center; gap:8px; padding:4px 0;">
-        <div style="width:48px; height:48px; border-radius:14px; background:var(--composer-bg); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; color:var(--text-main);">
+        <div style="width:48px; height:48px; border-radius:18px; background:var(--composer-bg); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; color:var(--text-main);">
           <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C10 3 12 8 12 8s2-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg>
         </div>
         <h2 class="auth-card-title" id="claimOfferTitle">Claim your free trial</h2>
         <p class="auth-card-desc" id="claimOfferDesc" style="margin-top:0;">Try Pro features unlocked for free.</p>
       </div>
-      <div id="claimOfferDetailsBox" style="padding:12px 14px; border-radius:14px; background:var(--composer-bg); border:1px solid var(--border); font-size:0.84rem; color:var(--text-sub); display:flex; flex-direction:column; gap:6px;"></div>
+      <div id="claimOfferDetailsBox" style="padding:14px 16px; border-radius:20px; background:var(--composer-bg); border:1px solid var(--border); font-size:0.84rem; color:var(--text-sub); display:flex; flex-direction:column; gap:6px;"></div>
       <div id="claimOfferFeedback" style="display:none; font-size:0.84rem; color:var(--danger); text-align:center;"></div>
       <div style="display:flex; flex-direction:column; gap:8px;">
         <button type="button" class="auth-submit-btn" id="claimOfferConfirmBtn">Claim Free Trial</button>
@@ -3259,7 +3266,7 @@
               <div class="setting-label-title" data-i18n="customAboutTitle">Custom Instructions — About you</div>
               <div class="setting-label-sub" data-i18n="customAboutSub">What would you like Alora to know about you to provide better responses?</div>
             </div>
-            <textarea id="customAboutUser" rows="2" style="width:100%; background:var(--composer-bg); border:1px solid var(--border-subtle); color:var(--text-main); border-radius:10px; padding:10px; font-size:0.85rem; resize:vertical; outline:none;" placeholder="e.g. I am a software engineer studying AI and web development." data-i18n-placeholder="customAboutPlaceholder"></textarea>
+            <textarea id="customAboutUser" rows="2" style="width:100%; background:var(--composer-bg); border:1px solid var(--border-subtle); color:var(--text-main); border-radius:18px; padding:12px 14px; font-size:0.85rem; resize:vertical; outline:none;" placeholder="e.g. I am a software engineer studying AI and web development." data-i18n-placeholder="customAboutPlaceholder"></textarea>
           </div>
 
           <div class="setting-row" style="flex-direction:column; align-items:flex-start; gap:8px;">
@@ -3267,7 +3274,7 @@
               <div class="setting-label-title" data-i18n="customPrefTitle">Response Preferences</div>
               <div class="setting-label-sub" data-i18n="customPrefSub">How would you like Alora to respond? (tone, brevity, format)</div>
             </div>
-            <textarea id="customResponsePref" rows="3" style="width:100%; background:var(--composer-bg); border:1px solid var(--border-subtle); color:var(--text-main); border-radius:10px; padding:10px; font-size:0.85rem; resize:vertical; outline:none;" placeholder="e.g. Be concise, write production-ready code with no placeholders." data-i18n-placeholder="customPrefPlaceholder"></textarea>
+            <textarea id="customResponsePref" rows="3" style="width:100%; background:var(--composer-bg); border:1px solid var(--border-subtle); color:var(--text-main); border-radius:18px; padding:12px 14px; font-size:0.85rem; resize:vertical; outline:none;" placeholder="e.g. Be concise, write production-ready code with no placeholders." data-i18n-placeholder="customPrefPlaceholder"></textarea>
           </div>
 
           <div class="setting-row" style="flex-direction:column; align-items:flex-start; gap:8px;">
@@ -3276,7 +3283,7 @@
               <div class="setting-label-sub" data-i18n="memoriesSub">Facts Alora remembers across conversations</div>
             </div>
             <div style="display:flex; gap:8px; width:100%;">
-              <input type="text" id="newMemoryInput" placeholder="Add a fact to remember..." data-i18n-placeholder="newMemoryPlaceholder" style="flex:1; background:var(--composer-bg); border:1px solid var(--border-subtle); color:var(--text-main); border-radius:10px; padding:8px 12px; font-size:0.84rem; outline:none;">
+              <input type="text" id="newMemoryInput" placeholder="Add a fact to remember..." data-i18n-placeholder="newMemoryPlaceholder" style="flex:1; background:var(--composer-bg); border:1px solid var(--border-subtle); color:var(--text-main); border-radius:9999px; padding:8px 16px; font-size:0.84rem; outline:none;">
               <button type="button" class="theme-opt-chip" id="addMemoryBtn" data-i18n="addBtn">Add</button>
             </div>
             <div id="savedMemoriesList" style="width:100%; display:flex; flex-direction:column; gap:6px; margin-top:4px;"></div>
@@ -3322,7 +3329,7 @@
               <div class="setting-label-title" data-i18n="speechVoiceTitle">Read Aloud Voice</div>
               <div class="setting-label-sub" data-i18n="speechVoiceSub">Select Web Speech voice for reading replies</div>
             </div>
-            <select id="speechVoiceSelect" style="max-width:220px; background:var(--composer-bg); border:1px solid var(--border); color:var(--text-main); border-radius:10px; padding:6px 10px; font-size:0.82rem; outline:none;">
+            <select id="speechVoiceSelect" style="max-width:220px; background:var(--composer-bg); border:1px solid var(--border); color:var(--text-main); border-radius:9999px; padding:8px 14px; font-size:0.82rem; outline:none;">
               <option value="" data-i18n="speechDefaultOption">System Default (Auto EN/BN)</option>
             </select>
           </div>
@@ -6481,7 +6488,19 @@
       if (userRow && userPopover) {
         userRow.addEventListener("click", (e) => {
           e.stopPropagation();
-          userPopover.classList.toggle("open");
+          const willOpen = !userPopover.classList.contains("open");
+          userPopover.classList.toggle("open", willOpen);
+          if (willOpen) {
+            const rect = userRow.getBoundingClientRect();
+            const isCollapsedDesktop = window.innerWidth > 768 && document.getElementById("sidebar")?.classList.contains("collapsed");
+            if (isCollapsedDesktop) {
+              userPopover.style.left = "64px";
+              userPopover.style.bottom = `${Math.max(12, window.innerHeight - rect.bottom)}px`;
+            } else {
+              userPopover.style.left = `${Math.max(10, rect.left)}px`;
+              userPopover.style.bottom = `${Math.max(16, window.innerHeight - rect.top + 8)}px`;
+            }
+          }
         });
         document.addEventListener("click", (e) => {
           if (!userPopover.contains(e.target) && !userRow.contains(e.target)) {
