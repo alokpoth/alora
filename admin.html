@@ -1110,6 +1110,7 @@
         <button type="button" class="tab-btn" data-target="secModels">মডেল সেটিংস</button>
         <button type="button" class="tab-btn" data-target="secSettings">ইমেজ ও সার্চ API</button>
         <button type="button" class="tab-btn" data-target="secSystemPrompt">️ সিস্টেম প্রম্পট</button>
+        <button type="button" class="tab-btn" data-target="secFreeTrial">ফ্রি ট্রায়াল অফার</button>
       </div>
     </div>
 
@@ -1535,6 +1536,51 @@
         <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: 6px;">
           <button type="submit" id="btnSaveSystemPrompt" class="btn btn-primary" style="padding: 9px 24px;">
             প্রম্পট সংরক্ষণ করুন
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Section 7: Free Trial / Claim Offer -->
+    <div class="section" id="secFreeTrial">
+      <div class="section-header-wrap">
+        <h3>ফ্রি ট্রায়াল অফার (Claim offer)</h3>
+        <span class="section-subtitle">চালু থাকলে ইউজাররা সাইডবার ও হেডারে "Claim offer" বাটন দেখবে; বন্ধ থাকলে "Upgrade plan" দেখাবে।</span>
+      </div>
+
+      <form id="freeTrialSettingsForm" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); padding: 20px; border-radius: 14px; display: flex; flex-direction: column; gap: 16px;">
+        <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:600;">
+          <input type="checkbox" id="settingTrialEnabled" style="width:18px; height:18px;">
+          ফ্রি ট্রায়াল অফার চালু করুন
+        </label>
+
+        <div class="form-row">
+          <div class="form-group" style="flex: 1; min-width: 160px;">
+            <label>ট্রায়াল প্ল্যান</label>
+            <select id="settingTrialPlan" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text-primary); font-size: 0.9rem;">
+              <option value="Pro">Pro</option>
+              <option value="Max">Max</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex: 1; min-width: 140px;">
+            <label>মেয়াদ (দিন)</label>
+            <input type="number" id="settingTrialDays" min="1" max="365" value="7">
+          </div>
+          <div class="form-group" style="flex: 1.4; min-width: 200px;">
+            <label>বাটনের লেখা</label>
+            <input type="text" id="settingTrialLabel" maxlength="40" placeholder="Claim offer">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>অফারের বিবরণ</label>
+          <input type="text" id="settingTrialDescription" maxlength="200" placeholder="Try Pro free for 7 days">
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <span id="trialClaimCount" style="font-size:0.8rem; color:var(--text-muted);"></span>
+          <button type="submit" id="btnSaveTrialSettings" class="btn btn-primary" style="padding: 9px 24px;">
+            অফার সেটিংস সংরক্ষণ করুন
           </button>
         </div>
       </form>
@@ -3204,6 +3250,24 @@
           // System Prompt Field
           const inputSystemPrompt = document.getElementById("settingSystemPrompt");
           if (inputSystemPrompt) inputSystemPrompt.value = s.system_prompt || "";
+
+          // Free Trial Offer Fields
+          const trialEnabled = document.getElementById("settingTrialEnabled");
+          if (trialEnabled) trialEnabled.checked = s.free_trial_enabled === true || s.free_trial_enabled === "true";
+          const trialPlan = document.getElementById("settingTrialPlan");
+          if (trialPlan) trialPlan.value = s.free_trial_plan === "Max" ? "Max" : "Pro";
+          const trialDays = document.getElementById("settingTrialDays");
+          if (trialDays) trialDays.value = String(s.free_trial_days || 7);
+          const trialLabel = document.getElementById("settingTrialLabel");
+          if (trialLabel) trialLabel.value = s.free_trial_label || "";
+          const trialDesc = document.getElementById("settingTrialDescription");
+          if (trialDesc) trialDesc.value = s.free_trial_description || "";
+          const trialCount = document.getElementById("trialClaimCount");
+          if (trialCount) {
+            const claimedList = Array.isArray(s.free_trial_claimed) ? s.free_trial_claimed : [];
+            const emails = claimedList.filter(k => String(k).includes("@")).length;
+            trialCount.textContent = `এ পর্যন্ত ক্লেইম করেছেন: ${emails} জন`;
+          }
         }
       } catch (err) {
         console.warn("Failed to load settings:", err);
@@ -3313,6 +3377,37 @@
           }
         } catch (err) {
           showToast("সার্ভারে সমস্যা হয়েছে", "error");
+        } finally {
+          if (btn) btn.disabled = false;
+        }
+      });
+    }
+
+    // Save Free Trial Offer Settings
+    const freeTrialSettingsForm = document.getElementById("freeTrialSettingsForm");
+    if (freeTrialSettingsForm) {
+      freeTrialSettingsForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById("btnSaveTrialSettings");
+        if (btn) btn.disabled = true;
+        const payload = {
+          free_trial_enabled: !!document.getElementById("settingTrialEnabled")?.checked,
+          free_trial_plan: document.getElementById("settingTrialPlan")?.value === "Max" ? "Max" : "Pro",
+          free_trial_days: Math.min(Math.max(parseInt(document.getElementById("settingTrialDays")?.value || "7", 10) || 7, 1), 365),
+          free_trial_label: (document.getElementById("settingTrialLabel")?.value || "").trim(),
+          free_trial_description: (document.getElementById("settingTrialDescription")?.value || "").trim()
+        };
+        try {
+          const res = await authFetch(`${API_BASE}/admin/settings`, { method: "PUT", body: JSON.stringify(payload) });
+          const data = await res.json();
+          if (data.success) {
+            showToast(payload.free_trial_enabled ? "ফ্রি ট্রায়াল অফার চালু হয়েছে" : "ফ্রি ট্রায়াল অফার বন্ধ করা হয়েছে", "success");
+            loadSettings();
+          } else {
+            showToast(data.error || "সেভ করতে সমস্যা হয়েছে", "error");
+          }
+        } catch (err) {
+          showToast("সার্ভারে সমস্যা হয়েছে", "error");
         } finally {
           if (btn) btn.disabled = false;
         }

@@ -286,7 +286,8 @@
        ========================================================================== */
     .chatgpt-shell {
       display: flex;
-      width: 100vw;
+      width: 100%;
+      max-width: 100%;
       height: 100vh;
       height: 100dvh;
       overflow: hidden;
@@ -294,39 +295,67 @@
     }
 
     /* ==========================================================================
-       4. CHATGPT SIDEBAR (EXACT 1:1)
+       4. CHATGPT SIDEBAR & COLLAPSED MINI RAIL
        ========================================================================== */
     .chatgpt-sidebar {
       width: var(--sidebar-width);
       min-width: var(--sidebar-width);
       height: 100%;
       background-color: var(--sidebar-bg);
+      border-right: 1px solid var(--border-subtle);
       display: flex;
       flex-direction: column;
       z-index: 50;
-      transition: margin-left var(--transition-fast), transform var(--transition-fast);
+      transition: width var(--transition-fast), min-width var(--transition-fast), transform var(--transition-fast);
       position: relative;
-    }
-
-    .chatgpt-sidebar.collapsed {
-      margin-left: calc(-1 * var(--sidebar-width));
+      flex-shrink: 0;
     }
 
     .sidebar-top-bar {
-      padding: 12px 14px 8px;
+      padding: 12px 10px 8px 14px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 6px;
+    }
+    .sidebar-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-main);
+      font-weight: 600;
+      font-size: 0.96rem;
+      letter-spacing: -0.015em;
+      text-decoration: none;
+      padding: 4px 6px;
+      border-radius: 10px;
+      min-width: 0;
+    }
+    .sidebar-brand:hover {
+      background: var(--sidebar-hover);
+    }
+    .sidebar-brand-icon {
+      width: 22px;
+      height: 22px;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+    .sidebar-top-actions {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      flex-shrink: 0;
     }
 
     .sidebar-icon-btn {
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 36px;
-      height: 36px;
-      border-radius: var(--radius-sm);
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
       color: var(--text-sub);
+      flex-shrink: 0;
       transition: background var(--transition-fast), color var(--transition-fast);
     }
     .sidebar-icon-btn:hover {
@@ -334,29 +363,73 @@
       color: var(--text-main);
     }
 
-    /* New Chat Button */
-    .sidebar-new-chat-row {
-      padding: 4px 12px 10px;
-    }
-    .chatgpt-new-chat-btn {
+    /* Side-by-side New Chat + Temporary Chat row */
+    .sidebar-newchat-pair {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      gap: 6px;
       width: 100%;
-      padding: 9px 12px;
-      border-radius: var(--radius-sm);
+    }
+    .sidebar-newchat-btn {
+      flex: 1;
+      min-width: 0;
+    }
+    .sidebar-temp-btn {
+      width: auto !important;
+      flex-shrink: 0;
+      padding: 9px 10px !important;
+      border: 1px solid transparent;
+    }
+    .sidebar-temp-btn.active {
+      background: var(--sidebar-active);
+      border-color: var(--composer-border-focus);
       color: var(--text-main);
-      font-size: 0.9rem;
-      font-weight: 500;
-      transition: background var(--transition-fast);
     }
-    .chatgpt-new-chat-btn:hover {
-      background: var(--sidebar-hover);
-    }
-    .chatgpt-new-chat-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
+
+    /* Desktop collapsed icon-only rail (matches modern ChatGPT) */
+    @media (min-width: 769px) {
+      .chatgpt-sidebar.collapsed {
+        width: 56px;
+        min-width: 56px;
+      }
+      .chatgpt-sidebar.collapsed .sb-label,
+      .chatgpt-sidebar.collapsed .sb-hide-collapsed,
+      .chatgpt-sidebar.collapsed .sidebar-history-scroll,
+      .chatgpt-sidebar.collapsed .sidebar-brand {
+        display: none !important;
+      }
+      .chatgpt-sidebar.collapsed .sidebar-top-bar {
+        justify-content: center;
+        padding: 12px 0 8px;
+      }
+      .chatgpt-sidebar.collapsed .sidebar-nav-actions {
+        padding: 4px 8px 8px;
+        align-items: center;
+        border-bottom: none;
+      }
+      .chatgpt-sidebar.collapsed .sidebar-newchat-pair {
+        flex-direction: column;
+        gap: 4px;
+      }
+      .chatgpt-sidebar.collapsed .sidebar-quick-btn {
+        width: 38px !important;
+        height: 38px;
+        padding: 0 !important;
+        justify-content: center;
+      }
+      .chatgpt-sidebar.collapsed .sidebar-bottom-footer {
+        padding: 8px 0 12px;
+        align-items: center;
+      }
+      .chatgpt-sidebar.collapsed .chatgpt-user-row {
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        justify-content: center;
+      }
+      .chatgpt-sidebar.collapsed .chatgpt-user-left {
+        justify-content: center;
+      }
     }
 
     /* Chat History Section */
@@ -432,31 +505,45 @@
       padding: 8px 10px 12px;
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 6px;
       border-top: 1px solid var(--border-subtle);
     }
 
-    .upgrade-plan-row {
+    .sidebar-offer-btn {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 9px 10px;
-      border-radius: var(--radius-sm);
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 8px 12px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--border);
+      background: var(--composer-bg);
       color: var(--text-main);
-      font-size: 0.88rem;
-      font-weight: 500;
+      font-size: 0.84rem;
+      font-weight: 600;
       cursor: pointer;
-      transition: background var(--transition-fast);
+      transition: background var(--transition-fast), border-color var(--transition-fast);
     }
-    .upgrade-plan-row:hover {
-      background: var(--sidebar-hover);
+    .sidebar-offer-btn:hover {
+      background: var(--card-bg);
+      border-color: var(--composer-border-focus);
+    }
+    .sidebar-offer-btn.trial-active {
+      border-color: rgba(147, 197, 253, 0.35);
+      color: #93c5fd;
+    }
+    [data-theme="light"] .sidebar-offer-btn.trial-active,
+    [data-theme="eyecare"] .sidebar-offer-btn.trial-active {
+      border-color: rgba(37, 99, 235, 0.35);
+      color: #1d4ed8;
     }
 
     .chatgpt-user-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 8px 10px;
+      padding: 7px 10px;
       border-radius: var(--radius-sm);
       cursor: pointer;
       transition: background var(--transition-fast);
@@ -469,6 +556,7 @@
       align-items: center;
       gap: 10px;
       overflow: hidden;
+      min-width: 0;
     }
     .chatgpt-user-avatar {
       width: 32px;
@@ -483,10 +571,23 @@
       font-size: 0.85rem;
       flex-shrink: 0;
     }
+    .chatgpt-user-meta {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      line-height: 1.25;
+    }
     .chatgpt-user-name {
-      font-size: 0.88rem;
-      font-weight: 500;
+      font-size: 0.86rem;
+      font-weight: 600;
       color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .chatgpt-user-plan {
+      font-size: 0.72rem;
+      color: var(--text-muted);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -509,6 +610,8 @@
        ========================================================================== */
     .chatgpt-main {
       flex: 1;
+      min-width: 0;
+      width: 100%;
       height: 100%;
       display: flex;
       flex-direction: column;
@@ -519,10 +622,12 @@
 
     .chatgpt-header {
       height: var(--header-height);
-      padding: 0 16px;
+      min-height: var(--header-height);
+      padding: 0 14px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 8px;
       position: sticky;
       top: 0;
       z-index: 30;
@@ -532,29 +637,40 @@
     .header-left {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
+      min-width: 0;
+      flex: 1;
     }
 
-    /* Hide header sidebar toggle & new chat on desktop when sidebar is open */
+    /* On desktop collapsed rail already holds New Chat/Temp Chat, keep header toggle hidden */
     @media (min-width: 769px) {
-      .chatgpt-sidebar:not(.collapsed) + .chatgpt-main #headerSidebarToggleBtn,
-      .chatgpt-sidebar:not(.collapsed) + .chatgpt-main #headerNewChatBtn {
+      #headerSidebarToggleBtn {
         display: none !important;
+      }
+      .chatgpt-sidebar:not(.collapsed) + .chatgpt-main .header-chat-pair {
+        display: none;
       }
     }
 
     /* Alora Model Selector Dropdown Trigger */
     .model-selector-btn {
-      display: flex;
+      display: inline-flex;
       align-items: center;
       gap: 6px;
       padding: 6px 10px;
-      border-radius: var(--radius-sm);
+      border-radius: 10px;
       color: var(--text-main);
-      font-size: 1.15rem;
+      font-size: 1.06rem;
       font-weight: 600;
       letter-spacing: -0.015em;
+      min-width: 0;
+      max-width: 100%;
       transition: background var(--transition-fast);
+    }
+    .model-selector-btn #headerModelLabel {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .model-selector-btn:hover {
       background: var(--composer-bg);
@@ -562,18 +678,62 @@
     .model-selector-btn svg {
       color: var(--text-muted);
       margin-top: 1px;
+      flex-shrink: 0;
     }
 
     .header-right {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .header-chat-pair {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      padding: 2px;
+      border-radius: 12px;
+      background: rgba(128, 128, 128, 0.08);
+      border: 1px solid var(--border-subtle);
+      flex-shrink: 0;
+    }
+
+    .header-offer-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-main);
+      font-size: 0.82rem;
+      font-weight: 600;
+      white-space: nowrap;
+      flex-shrink: 0;
+      cursor: pointer;
+      transition: background var(--transition-fast), border-color var(--transition-fast);
+    }
+    .header-offer-btn:hover {
+      background: var(--composer-bg);
+    }
+    .header-offer-btn.trial-active {
+      color: #93c5fd;
+      border-color: rgba(147, 197, 253, 0.3);
+      background: rgba(147, 197, 253, 0.08);
+    }
+    [data-theme="light"] .header-offer-btn.trial-active,
+    [data-theme="eyecare"] .header-offer-btn.trial-active {
+      color: #1d4ed8;
+      border-color: rgba(37, 99, 235, 0.3);
+      background: rgba(37, 99, 235, 0.08);
     }
 
     .header-pill-btn {
       padding: 6px 14px;
       border-radius: var(--radius-full);
-      font-size: 0.86rem;
+      font-size: 0.84rem;
       font-weight: 600;
       transition: all var(--transition-fast);
       display: inline-flex;
@@ -603,90 +763,109 @@
        ========================================================================== */
     .chatgpt-scroll-area {
       flex: 1;
+      width: 100%;
+      min-width: 0;
       overflow-y: auto;
-      padding: 24px 16px 140px;
+      overflow-x: hidden;
+      padding: 20px 16px 148px;
       display: flex;
       flex-direction: column;
       align-items: center;
       scroll-behavior: smooth;
     }
 
-    /* When in empty state, center the welcome screen and composer vertically */
+    /* When in empty state, center the welcome screen and composer cleanly inside viewport */
     .chatgpt-main.empty-state .chatgpt-scroll-area {
-      justify-content: center;
-      padding: 24px 16px 50px;
+      padding: 16px 16px 64px;
     }
 
     .chatgpt-feed {
       width: 100%;
+      min-width: 0;
       max-width: var(--composer-width);
+      margin: 0 auto;
       display: flex;
       flex-direction: column;
       gap: 24px;
     }
+    .chatgpt-main.empty-state .chatgpt-feed {
+      margin: auto;
+    }
 
-    /* Empty Welcome Screen (Alora Exact 1:1) */
+    /* Empty Welcome Screen (Centered Modern ChatGPT) */
     .chatgpt-welcome-screen {
       width: 100%;
       max-width: var(--composer-width);
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
       text-align: center;
-      margin: 0 auto;
-      padding: 10px 16px;
+      margin: auto;
+      padding: 0;
     }
     .welcome-hero-top {
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin-bottom: 24px;
+      margin-bottom: 22px;
+      width: 100%;
     }
     .chatgpt-brand-emblem {
-      width: 56px;
-      height: 56px;
+      width: 40px;
+      height: 40px;
       border-radius: var(--radius-full);
-      margin-bottom: 20px;
+      margin-bottom: 14px;
       object-fit: contain;
     }
     .chatgpt-welcome-title {
-      font-size: 1.85rem;
+      font-size: clamp(1.38rem, 2.8vw, 1.85rem);
       font-weight: 600;
       letter-spacing: -0.025em;
+      line-height: 1.25;
       color: var(--text-main);
+      max-width: 100%;
     }
 
     .composer-center-slot {
       width: 100%;
+      max-width: var(--composer-width);
       display: flex;
       justify-content: center;
-      margin-bottom: 20px;
+      margin: 0 auto 18px;
     }
 
     .prompt-suggestions-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 8px;
       justify-content: center;
+      width: 100%;
       max-width: 680px;
+      margin: 0 auto;
     }
     .prompt-chip-btn {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 8px 16px;
+      justify-content: center;
+      gap: 7px;
+      padding: 8px 14px;
       border-radius: var(--radius-full);
       background: var(--composer-bg);
       border: 1px solid var(--border);
       color: var(--text-main);
-      font-size: 0.86rem;
+      font-size: 0.84rem;
       font-weight: 500;
-      transition: all var(--transition-fast);
+      min-width: 0;
+      max-width: 100%;
+      transition: background var(--transition-fast), border-color var(--transition-fast);
+    }
+    .prompt-chip-btn svg {
+      flex-shrink: 0;
     }
     .prompt-chip-btn:hover {
-      border-color: rgba(255, 255, 255, 0.25);
+      border-color: var(--composer-border-focus);
       background: var(--card-bg);
-      transform: translateY(-1px);
     }
 
     .chatgpt-main.empty-state .composer-wrapper {
@@ -701,6 +880,7 @@
     /* Message Rows */
     .chatgpt-row {
       width: 100%;
+      min-width: 0;
       display: flex;
       gap: 14px;
     }
@@ -723,6 +903,7 @@
 
     .chatgpt-assistant-container {
       width: 100%;
+      min-width: 0;
       display: flex;
       flex-direction: column;
       gap: 8px;
@@ -733,7 +914,30 @@
       font-size: 1rem;
       line-height: 1.65;
       color: var(--text-main);
+      min-width: 0;
+      max-width: 100%;
+      overflow-wrap: anywhere;
       word-break: break-word;
+    }
+    .assistant-markdown img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 12px;
+    }
+    .assistant-markdown table {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      overflow-x: auto;
+      border-collapse: collapse;
+      margin: 12px 0;
+    }
+    .assistant-markdown th,
+    .assistant-markdown td {
+      border: 1px solid var(--border);
+      padding: 7px 10px;
+      text-align: left;
+      font-size: 0.88rem;
     }
 
     /* Thinking / Waiting Breathing Bubble (no glow) */
@@ -1020,20 +1224,22 @@
     /* Composer Main Row */
     .composer-input-row {
       display: flex;
-      align-items: flex-end;
+      align-items: center;
       gap: 8px;
       width: 100%;
+      min-width: 0;
     }
 
     .composer-textarea {
       flex: 1;
+      min-width: 0;
       max-height: 180px;
-      min-height: 26px;
+      min-height: 24px;
       resize: none;
-      line-height: 1.5;
-      font-size: 0.98rem;
+      line-height: 24px;
+      font-size: 0.96rem;
       color: var(--text-main);
-      padding: 3px 0;
+      padding: 5px 0;
       overflow-y: auto;
     }
     .composer-textarea::placeholder {
@@ -1043,8 +1249,35 @@
     .composer-btn-group {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
       flex-shrink: 0;
+    }
+
+    .composer-think-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      height: 32px;
+      padding: 0 10px;
+      border-radius: var(--radius-full);
+      border: 1px solid transparent;
+      color: var(--text-sub);
+      font-size: 0.8rem;
+      font-weight: 500;
+      transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+    }
+    .composer-think-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+    }
+    [data-theme="light"] .composer-think-btn:hover,
+    [data-theme="eyecare"] .composer-think-btn:hover {
+      background: rgba(0, 0, 0, 0.06);
+    }
+    .composer-think-btn.active {
+      background: rgba(59, 130, 246, 0.16);
+      border-color: rgba(59, 130, 246, 0.35);
+      color: #60a5fa;
     }
 
     .composer-tool-btn {
@@ -1104,21 +1337,28 @@
       letter-spacing: 0.01em;
     }
 
-    /* Attach Menu Popup (Alora Exact) */
+    /* Attach Menu Popup (opens downward in centered welcome, upward when docked at bottom) */
     .chatgpt-attach-menu {
       position: absolute;
       bottom: calc(100% + 10px);
-      left: 8px;
+      top: auto;
+      left: 4px;
       background: var(--modal-bg);
       border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
+      border-radius: 18px;
       padding: 6px;
       display: none;
       flex-direction: column;
       gap: 2px;
       box-shadow: none;
       z-index: 60;
-      min-width: 230px;
+      width: min(320px, calc(100vw - 32px));
+      max-height: min(55vh, 360px);
+      overflow-y: auto;
+    }
+    .chatgpt-main.empty-state .chatgpt-attach-menu {
+      top: calc(100% + 8px);
+      bottom: auto;
     }
     .chatgpt-attach-menu.open {
       display: flex;
@@ -1126,9 +1366,9 @@
     .attach-item-btn {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       padding: 9px 12px;
-      border-radius: var(--radius-sm);
+      border-radius: 12px;
       font-size: 0.88rem;
       color: var(--text-main);
       cursor: pointer;
@@ -1139,33 +1379,98 @@
     .attach-item-btn:hover {
       background: var(--composer-bg);
     }
+    .attach-item-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      color: var(--text-sub);
+      flex-shrink: 0;
+    }
+    .attach-item-copy {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      line-height: 1.3;
+    }
+    .attach-item-title {
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: var(--text-main);
+    }
+    .attach-item-sub {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+    }
 
-    /* User Profile Popover Menu (Alora Exact) */
+    /* User Profile Popover Menu (Matches ChatGPT popover, never clipped by collapsed rail) */
     .chatgpt-user-popover {
-      position: absolute;
-      bottom: 64px;
+      position: fixed;
+      bottom: 66px;
       left: 10px;
-      width: 240px;
+      width: min(246px, calc(100vw - 24px));
       background: var(--modal-bg);
       border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
+      border-radius: 18px;
       padding: 6px;
       display: none;
       flex-direction: column;
       gap: 2px;
       box-shadow: none;
-      z-index: 80;
+      z-index: 120;
     }
     .chatgpt-user-popover.open {
       display: flex;
+    }
+    @media (min-width: 769px) {
+      .chatgpt-sidebar.collapsed .chatgpt-user-popover {
+        left: 64px;
+        bottom: 12px;
+      }
+    }
+    .user-popover-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      text-decoration: none;
+      color: var(--text-main);
+      transition: background var(--transition-fast);
+    }
+    .user-popover-head:hover {
+      background: var(--composer-bg);
+    }
+    .popover-head-meta {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.25;
+    }
+    .popover-head-name {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .popover-head-sub {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .user-popover-item {
       display: flex;
       align-items: center;
       gap: 10px;
       padding: 9px 12px;
-      border-radius: var(--radius-sm);
-      font-size: 0.88rem;
+      border-radius: 10px;
+      font-size: 0.87rem;
       color: var(--text-main);
       cursor: pointer;
       transition: background var(--transition-fast);
@@ -1182,11 +1487,11 @@
       margin: 4px 0;
     }
 
-    /* Model Dropdown Menu (Alora Exact) */
+    /* Model Dropdown Menu */
     .model-dropdown-menu {
       position: absolute;
       top: 50px;
-      left: 16px;
+      left: 14px;
       background: var(--modal-bg);
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
@@ -1196,7 +1501,10 @@
       gap: 3px;
       box-shadow: none;
       z-index: 70;
-      min-width: 270px;
+      min-width: 260px;
+      max-width: calc(100vw - 28px);
+      max-height: min(65vh, 420px);
+      overflow-y: auto;
     }
     .model-dropdown-menu.open {
       display: flex;
@@ -1562,6 +1870,8 @@
         left: 0;
         top: 0;
         bottom: 0;
+        width: min(272px, 84vw);
+        min-width: 0;
         transform: translateX(-100%);
         margin-left: 0 !important;
         box-shadow: none;
@@ -1574,18 +1884,18 @@
         opacity: 1;
       }
       .chatgpt-scroll-area {
-        padding: 16px 12px 130px;
+        padding: 16px 12px 136px;
       }
-      .chatgpt-welcome-screen {
-        padding: 6px 10px;
+      .chatgpt-main.empty-state .chatgpt-scroll-area {
+        padding: 16px 12px 58px;
       }
       .chatgpt-welcome-title {
-        font-size: 1.5rem;
+        font-size: 1.45rem;
       }
       .chatgpt-brand-emblem {
-        width: 48px;
-        height: 48px;
-        margin-bottom: 14px;
+        width: 36px;
+        height: 36px;
+        margin-bottom: 12px;
       }
       .prompt-suggestions-row {
         gap: 8px;
@@ -1595,14 +1905,14 @@
         font-size: 0.82rem;
       }
       .chatgpt-user-bubble {
-        max-width: 88%;
+        max-width: 100%;
       }
       .composer-wrapper {
-        padding: 6px 10px calc(8px + env(safe-area-inset-bottom, 0px));
+        padding: 6px 12px calc(8px + env(safe-area-inset-bottom, 0px));
       }
       .chatgpt-composer-pill {
         padding: 6px 10px;
-        border-radius: 24px;
+        border-radius: 26px;
       }
       .composer-legal-note {
         font-size: 0.68rem;
@@ -1612,8 +1922,12 @@
         padding: 5px 10px;
         font-size: 0.78rem;
       }
+      .header-offer-btn {
+        padding: 5px 10px;
+        font-size: 0.78rem;
+      }
       .model-selector-btn {
-        font-size: 1.02rem;
+        font-size: 1rem;
         padding: 4px 6px;
       }
       .chatgpt-dialog-backdrop {
@@ -1629,40 +1943,75 @@
       }
     }
 
-    @media (max-width: 480px) {
+    @media (max-width: 520px) {
       .chatgpt-header {
         padding: 0 8px;
+        gap: 4px;
+      }
+      .header-left {
+        gap: 2px;
       }
       .header-right {
         gap: 4px;
       }
-      .header-pill-btn {
-        padding: 4px 8px;
-        font-size: 0.72rem;
+      .header-icon-action {
+        width: 30px;
+        height: 30px;
       }
-      .header-apk-btn span {
+      .header-pill-btn {
+        padding: 5px 10px;
+        font-size: 0.75rem;
+      }
+      #headerSignupBtn {
         display: none;
+      }
+      .header-offer-btn {
+        padding: 5px 9px;
+        font-size: 0.73rem;
+        gap: 4px;
+      }
+      body.is-guest .header-offer-btn:not(.trial-active) {
+        display: none !important;
+      }
+      .model-selector-btn {
+        font-size: 0.94rem;
+        padding: 4px 6px;
+        gap: 4px;
+      }
+      .think-btn-label {
+        display: none;
+      }
+      .composer-think-btn {
+        width: 32px;
+        padding: 0;
+        justify-content: center;
       }
       .prompt-suggestions-row {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 8px;
         width: 100%;
       }
       .prompt-chip-btn {
         width: 100%;
-        justify-content: flex-start;
+        justify-content: center;
         padding: 8px 10px;
         font-size: 0.78rem;
-        white-space: nowrap;
+      }
+      .prompt-chip-btn span {
         overflow: hidden;
         text-overflow: ellipsis;
+        white-space: nowrap;
       }
       .chatgpt-auth-card {
         padding: 20px 16px;
       }
       .upgrade-plans-grid {
         grid-template-columns: 1fr;
+      }
+      .setting-row {
+        flex-wrap: wrap;
+        gap: 10px;
       }
     }
 
@@ -1835,7 +2184,8 @@
       display: flex;
       flex-direction: column;
       align-items: flex-end;
-      max-width: 72%;
+      min-width: 0;
+      max-width: min(76%, 100%);
       gap: 6px;
     }
     .chatgpt-user-attachments {
@@ -1843,9 +2193,10 @@
       flex-wrap: wrap;
       justify-content: flex-end;
       gap: 8px;
+      max-width: 100%;
     }
     .user-msg-img-thumb {
-      max-width: 240px;
+      max-width: min(240px, 100%);
       max-height: 220px;
       border-radius: 14px;
       object-fit: cover;
@@ -1861,9 +2212,14 @@
       border: 1px solid var(--border);
       font-size: 0.8rem;
       color: var(--text-sub);
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .chatgpt-user-bubble {
       max-width: 100%;
+      overflow-wrap: anywhere;
     }
     .user-turn-actions {
       display: flex;
@@ -1877,7 +2233,8 @@
       opacity: 1;
     }
     .user-edit-box {
-      width: min(560px, 85vw);
+      width: min(560px, 100%);
+      max-width: 100%;
       background: var(--composer-bg);
       border: 1px solid var(--composer-border-focus);
       border-radius: 18px;
@@ -2036,12 +2393,12 @@
       margin-top: 4px;
     }
 
-    /* Floating Scroll-to-Bottom Button */
+    /* Floating Scroll-to-Bottom Button (centered relative to .chatgpt-main) */
     .scroll-to-bottom-btn {
-      position: fixed;
-      right: 50%;
-      transform: translateX(50%);
-      bottom: 132px;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 126px;
       width: 34px;
       height: 34px;
       border-radius: 50%;
@@ -2266,22 +2623,19 @@
          CHATGPT SIDEBAR (1:1 REPLICA)
          ====================================================================== -->
     <aside class="chatgpt-sidebar" id="sidebar">
-      <!-- Top Bar: Toggle, Search & New Chat Icons -->
+      <!-- Top Bar: Brand, Search & Collapse/Expand -->
       <div class="sidebar-top-bar">
-        <button type="button" class="sidebar-icon-btn" id="sidebarCollapseBtn" title="Close sidebar">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m14 9-3 3 3 3"/>
-          </svg>
-        </button>
-        <div style="display:flex; align-items:center; gap:4px;">
-          <button type="button" class="sidebar-icon-btn" id="sidebarSearchIconBtn" title="Search chats (Ctrl+K)">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
-            </svg>
+        <a href="/" class="sidebar-brand" id="sidebarBrandLink" title="Alora">
+          <img src="/logo_icon_white.png" alt="Alora" class="sidebar-brand-icon" id="sidebarBrandIcon">
+          <span class="sb-label">Alora</span>
+        </a>
+        <div class="sidebar-top-actions">
+          <button type="button" class="sidebar-icon-btn sb-hide-collapsed" id="sidebarSearchIconBtn" title="Search chats (Ctrl+K)" aria-label="Search chats">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
           </button>
-          <button type="button" class="sidebar-icon-btn" id="sidebarNewChatIconBtn" title="New chat (Ctrl+Shift+O)">
+          <button type="button" class="sidebar-icon-btn" id="sidebarCollapseBtn" title="Toggle sidebar" aria-label="Toggle sidebar">
             <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+              <rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/>
             </svg>
           </button>
         </div>
@@ -2289,30 +2643,42 @@
 
       <!-- Quick ChatGPT Navigation Actions -->
       <div class="sidebar-nav-actions">
-        <button type="button" class="sidebar-quick-btn" id="newChatFullBtn">
+        <!-- New Chat + Temporary Chat side by side -->
+        <div class="sidebar-newchat-pair">
+          <button type="button" class="sidebar-quick-btn sidebar-newchat-btn" id="newChatFullBtn" title="New chat (Ctrl+Shift+O)">
+            <span class="sidebar-quick-left">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+              </svg>
+              <span class="sb-label" id="newChatLabel">New chat</span>
+            </span>
+          </button>
+          <button type="button" class="sidebar-quick-btn sidebar-temp-btn" id="sidebarTempChatBtn" title="Temporary chat" aria-label="Temporary chat">
+            <span class="sidebar-quick-left">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="3 3" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+              <span class="sb-label" id="sidebarTempLabel">Temp</span>
+            </span>
+          </button>
+        </div>
+
+        <button type="button" class="sidebar-quick-btn" id="searchChatsFullBtn" title="Search chats (Ctrl+K)">
           <span class="sidebar-quick-left">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>
-            </svg>
-            <span id="newChatLabel">New chat</span>
-          </span>
-          <span class="sidebar-quick-kbd">Ctrl+Shift+O</span>
-        </button>
-        <button type="button" class="sidebar-quick-btn" id="searchChatsFullBtn">
-          <span class="sidebar-quick-left">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
             </svg>
-            <span id="searchChatsLabel">Search chats</span>
+            <span class="sb-label" id="searchChatsLabel">Search chats</span>
           </span>
-          <span class="sidebar-quick-kbd">Ctrl+K</span>
+          <span class="sidebar-quick-kbd sb-label">Ctrl+K</span>
         </button>
-        <button type="button" class="sidebar-quick-btn" id="imageModeNavBtn">
+
+        <button type="button" class="sidebar-quick-btn" id="imageModeNavBtn" title="Images">
           <span class="sidebar-quick-left">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
             </svg>
-            <span id="sidebarImageLabel">Images</span>
+            <span class="sb-label" id="sidebarImageLabel">Images</span>
           </span>
         </button>
       </div>
@@ -2322,56 +2688,69 @@
         <!-- Rendered dynamically via JS -->
       </div>
 
-      <!-- Sidebar Bottom: Plan & User -->
+      <!-- Sidebar Bottom: User & Offer / Upgrade CTA -->
       <div class="sidebar-bottom-footer">
-        <div class="upgrade-plan-row" id="upgradePlanRow">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-          </svg>
-          <span id="planLabelText">Upgrade plan</span>
-        </div>
-
-        <div class="chatgpt-user-row" id="userRowBtn">
+        <div class="chatgpt-user-row" id="userRowBtn" role="button" tabindex="0" aria-haspopup="menu">
           <div class="chatgpt-user-left">
             <div class="chatgpt-user-avatar" id="userAvatarCircle">G</div>
-            <span class="chatgpt-user-name" id="userNameLabel">Guest User</span>
+            <div class="chatgpt-user-meta sb-label">
+              <span class="chatgpt-user-name" id="userNameLabel">Guest User</span>
+              <span class="chatgpt-user-plan" id="userPlanSubLabel">Free</span>
+            </div>
           </div>
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-muted);">
+          <svg class="sb-label" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-muted); flex-shrink:0;">
             <circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>
           </svg>
         </div>
+
+        <button type="button" class="sidebar-offer-btn sb-hide-collapsed" id="upgradePlanRow">
+          <svg id="sidebarOfferIcon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3l1.9 5.8L20 10l-6.1 1.2L12 17l-1.9-5.8L4 10l6.1-1.2z"/>
+          </svg>
+          <span id="planLabelText">Upgrade to Pro</span>
+        </button>
       </div>
 
-      <!-- User Popover Menu -->
-      <div class="chatgpt-user-popover" id="userPopover">
-        <div id="popoverUserEmailHeader" style="padding:8px 10px 6px; font-size:0.78rem; color:var(--text-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:none;"></div>
-        <a href="/account" class="user-popover-item" id="popoverAccountLink" style="display:none; text-decoration:none;">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-          </svg>
-          <span id="popoverAccountText">My Account</span>
+      <!-- User Popover Menu (Matches ChatGPT profile menu) -->
+      <div class="chatgpt-user-popover" id="userPopover" role="menu">
+        <a href="/account" class="user-popover-head" id="popoverAccountLink">
+          <div class="chatgpt-user-avatar" id="popoverAvatarCircle">G</div>
+          <div class="popover-head-meta">
+            <span class="popover-head-name" id="popoverUserName">Guest User</span>
+            <span class="popover-head-sub" id="popoverUserEmailHeader">Free</span>
+          </div>
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-muted); flex-shrink:0;"><path d="m9 18 6-6-6-6"/></svg>
+        </a>
+        <div class="user-popover-divider"></div>
+        <button type="button" class="user-popover-item" id="popoverUpgradeBtn">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.8L20 10l-6.1 1.2L12 17l-1.9-5.8L4 10l6.1-1.2z"/></svg>
+          <span id="popoverUpgradeText">Upgrade to Pro</span>
+        </button>
+        <button type="button" class="user-popover-item" id="popoverPersonalizationBtn">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          <span id="popoverPersonalizationText">Personalization</span>
+        </button>
+        <a href="/profile" class="user-popover-item" id="popoverProfileLink">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="10" r="3"/><path d="M6.2 18.4a7 7 0 0 1 11.6 0"/></svg>
+          <span id="popoverAccountText">Profile</span>
         </a>
         <button type="button" class="user-popover-item" id="popoverSettingsBtn">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
           </svg>
           <span id="popoverSettingsText">Settings</span>
         </button>
-        <button type="button" class="user-popover-item" id="popoverUpgradeBtn">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-          </svg>
-          <span id="popoverUpgradeText">Upgrade plan</span>
-        </button>
-        <a href="/download" class="user-popover-item" style="text-decoration:none;">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-          </svg>
-          <span id="popoverDownloadText">Download App (APK)</span>
+        <a href="/download" class="user-popover-item">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg>
+          <span id="popoverDownloadText">Download app</span>
         </a>
         <div class="user-popover-divider"></div>
+        <a href="/help" class="user-popover-item">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+          <span id="popoverHelpText">Help</span>
+        </a>
         <button type="button" class="user-popover-item" id="popoverAuthActionBtn">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>
           </svg>
           <span id="popoverAuthText">Log in</span>
@@ -2387,53 +2766,53 @@
       <!-- Header -->
       <header class="chatgpt-header">
         <div class="header-left">
-          <button type="button" class="sidebar-icon-btn" id="headerSidebarToggleBtn" title="Toggle sidebar">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+          <button type="button" class="sidebar-icon-btn" id="headerSidebarToggleBtn" title="Toggle sidebar" aria-label="Toggle sidebar">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/>
-            </svg>
-          </button>
-
-          <button type="button" class="sidebar-icon-btn" id="headerNewChatBtn" title="New chat">
-            <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>
             </svg>
           </button>
 
           <!-- Alora Dynamic Model Dropdown Trigger -->
           <button type="button" class="model-selector-btn" id="modelSelectorBtn">
             <span id="headerModelLabel">Alora</span>
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4">
               <path d="m6 9 6 6 6-6"/>
             </svg>
           </button>
         </div>
 
         <div class="header-right">
+          <!-- Free Trial / Upgrade CTA -->
+          <button type="button" class="header-offer-btn" id="headerOfferBtn" style="display:none;">
+            <svg id="headerOfferIcon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C10 3 12 8 12 8s2-5 4.5-5a2.5 2.5 0 0 1 0 5"/>
+            </svg>
+            <span id="headerOfferText">Claim offer</span>
+          </button>
+
           <!-- Share Current Chat Button (Visible when chat has messages) -->
-          <button type="button" class="header-icon-action" id="headerShareBtn" title="Share chat" style="display:none;">
+          <button type="button" class="header-icon-action" id="headerShareBtn" title="Share chat" aria-label="Share chat" style="display:none;">
             <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>
             </svg>
           </button>
 
-          <!-- Header Quick Temporary Chat Toggle -->
-          <button type="button" class="header-icon-action" id="headerTempChatBtn" title="Temporary chat">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="3 3" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-            </svg>
-          </button>
-
-          <!-- Fast APK Download Button -->
-          <a href="/download" class="header-pill-btn login header-apk-btn" style="font-size:0.8rem; text-decoration:none; display:inline-flex; align-items:center; gap:5px;" title="Download APK">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
-              <line x1="12" y1="18" x2="12.01" y2="18"></line>
-            </svg>
-            <span>APK</span>
-          </a>
+          <!-- New Chat + Temporary Chat Side by Side -->
+          <div class="header-chat-pair" role="group" aria-label="New chat and Temporary chat">
+            <button type="button" class="header-icon-action" id="headerNewChatBtn" title="New chat (Ctrl+Shift+O)" aria-label="New chat">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+              </svg>
+            </button>
+            <button type="button" class="header-icon-action" id="headerTempChatBtn" title="Temporary chat" aria-label="Temporary chat">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="3 3" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+            </button>
+          </div>
 
           <!-- Direct Login / Sign Up Page Links -->
-          <div id="guestHeaderActions" style="display:flex; gap:8px;">
+          <div id="guestHeaderActions" style="display:flex; align-items:center; gap:6px;">
             <a href="/auth/login" class="header-pill-btn login" id="headerLoginBtn" style="text-decoration:none;">Log in</a>
             <a href="/auth/signup" class="header-pill-btn signup" id="headerSignupBtn" style="text-decoration:none;">Sign up</a>
           </div>
@@ -2554,7 +2933,14 @@
                 placeholder="Ask anything..."></textarea>
 
               <div class="composer-btn-group">
-                <button type="button" class="composer-tool-btn" id="micBtn" title="Voice dictation">
+                <button type="button" class="composer-think-btn" id="composerThinkBtn" title="Deep thinking" aria-label="Think">
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7z"/><line x1="9" y1="22" x2="15" y2="22"/>
+                  </svg>
+                  <span class="think-btn-label" id="composerThinkLabel">Think</span>
+                </button>
+
+                <button type="button" class="composer-tool-btn" id="micBtn" title="Voice dictation" aria-label="Voice dictation">
                   <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
                     <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
@@ -2562,7 +2948,7 @@
                   </svg>
                 </button>
 
-                <button type="button" class="chatgpt-send-btn" id="sendBtn" title="Send message">
+                <button type="button" class="chatgpt-send-btn" id="sendBtn" title="Send message" aria-label="Send message">
                   <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>
                   </svg>
@@ -2570,31 +2956,51 @@
               </div>
             </div>
 
-            <!-- Attach Popup Menu (1:1 ChatGPT Tools) -->
+            <!-- Attach Popup Menu (Modern ChatGPT Tools) -->
             <div class="chatgpt-attach-menu" id="attachMenu">
               <button type="button" class="attach-item-btn" id="attachFileOpt">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
-                </svg>
-                <span id="attachFileLabel">Add photos & files</span>
+                <span class="attach-item-icon">
+                  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                  </svg>
+                </span>
+                <span class="attach-item-copy">
+                  <span class="attach-item-title" id="attachFileLabel">Add photos &amp; files</span>
+                  <span class="attach-item-sub" id="attachFileSub">Upload images, code, or docs</span>
+                </span>
               </button>
               <button type="button" class="attach-item-btn" id="attachImageGenOpt">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
-                </svg>
-                <span id="attachImageGenLabel">Create image</span>
-              </button>
-              <button type="button" class="attach-item-btn" id="attachThinkOpt">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7z"/><line x1="9" y1="22" x2="15" y2="22"/>
-                </svg>
-                <span id="attachThinkLabel">Think (Deep reasoning)</span>
+                <span class="attach-item-icon">
+                  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                  </svg>
+                </span>
+                <span class="attach-item-copy">
+                  <span class="attach-item-title" id="attachImageGenLabel">Create image</span>
+                  <span class="attach-item-sub" id="attachImageGenSub">Generate artwork from a prompt</span>
+                </span>
               </button>
               <button type="button" class="attach-item-btn" id="attachWebSearchOpt">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-                </svg>
-                <span id="attachWebSearchLabel">Search the web</span>
+                <span class="attach-item-icon">
+                  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                  </svg>
+                </span>
+                <span class="attach-item-copy">
+                  <span class="attach-item-title" id="attachWebSearchLabel">Web search</span>
+                  <span class="attach-item-sub" id="attachWebSearchSub">Find real-time news and info</span>
+                </span>
+              </button>
+              <button type="button" class="attach-item-btn" id="attachThinkOpt">
+                <span class="attach-item-icon">
+                  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7z"/><line x1="9" y1="22" x2="15" y2="22"/>
+                  </svg>
+                </span>
+                <span class="attach-item-copy">
+                  <span class="attach-item-title" id="attachThinkLabel">Thinking</span>
+                  <span class="attach-item-sub" id="attachThinkSub">For detailed reasoning answers</span>
+                </span>
               </button>
             </div>
 
@@ -2639,7 +3045,7 @@
   </div>
 
   <!-- MODAL: Search Chats (Ctrl+K) -->
-  <div class="chatgpt-dialog-backdrop" id="searchModalBackdrop">
+  <div class="chatgpt-dialog-backdrop" id="searchModalBackdrop" role="dialog" aria-modal="true">
     <div class="chatgpt-search-card">
       <div class="search-modal-input-row">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-muted); flex-shrink:0;">
@@ -2653,7 +3059,7 @@
   </div>
 
   <!-- MODAL: Share Chat -->
-  <div class="chatgpt-dialog-backdrop" id="shareModalBackdrop">
+  <div class="chatgpt-dialog-backdrop" id="shareModalBackdrop" role="dialog" aria-modal="true">
     <div class="chatgpt-search-card" style="max-width:500px;">
       <div class="settings-dialog-header">
         <h2 class="settings-dialog-title" id="shareModalTitle">Share chat</h2>
@@ -2674,10 +3080,33 @@
     </div>
   </div>
 
+  <!-- MODAL: Claim Free Trial Offer -->
+  <div class="chatgpt-dialog-backdrop" id="claimOfferBackdrop" role="dialog" aria-modal="true">
+    <div class="chatgpt-auth-card" style="max-width:440px;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span style="display:inline-flex; align-items:center; gap:6px; font-size:0.74rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; padding:3px 10px; border-radius:9999px; background:var(--composer-bg); border:1px solid var(--border);" id="claimOfferBadge">FREE TRIAL</span>
+        <button type="button" class="sidebar-icon-btn" id="closeClaimOfferBtn" aria-label="Close">&times;</button>
+      </div>
+      <div style="display:flex; flex-direction:column; align-items:center; text-align:center; gap:8px; padding:4px 0;">
+        <div style="width:48px; height:48px; border-radius:14px; background:var(--composer-bg); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; color:var(--text-main);">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C10 3 12 8 12 8s2-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg>
+        </div>
+        <h2 class="auth-card-title" id="claimOfferTitle">Claim your free trial</h2>
+        <p class="auth-card-desc" id="claimOfferDesc" style="margin-top:0;">Try Pro features unlocked for free.</p>
+      </div>
+      <div id="claimOfferDetailsBox" style="padding:12px 14px; border-radius:14px; background:var(--composer-bg); border:1px solid var(--border); font-size:0.84rem; color:var(--text-sub); display:flex; flex-direction:column; gap:6px;"></div>
+      <div id="claimOfferFeedback" style="display:none; font-size:0.84rem; color:var(--danger); text-align:center;"></div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <button type="button" class="auth-submit-btn" id="claimOfferConfirmBtn">Claim Free Trial</button>
+        <a href="/pricing" class="btn-mono-secondary" style="text-align:center; text-decoration:none; padding:10px 14px;" id="claimOfferPlansLink">View all plans</a>
+      </div>
+    </div>
+  </div>
+
   <!-- ======================================================================
        MODAL 1: CHATGPT IN-PAGE SETTINGS DIALOG (/#settings/:tab)
        ====================================================================== -->
-  <div class="chatgpt-dialog-backdrop" id="settingsDialogBackdrop">
+  <div class="chatgpt-dialog-backdrop" id="settingsDialogBackdrop" role="dialog" aria-modal="true" aria-labelledby="settingsModalHeading">
     <div class="chatgpt-settings-dialog">
       <div class="settings-dialog-header">
         <h2 class="settings-dialog-title" id="settingsModalHeading" data-i18n="settingsTitle">Settings</h2>
@@ -2729,7 +3158,7 @@
             </div>
             <div style="display:flex; gap:8px;">
               <button type="button" class="theme-opt-chip" id="soundToggleChip">Mute Audio</button>
-              <a href="/sound" class="theme-opt-chip" style="text-decoration:none;" data-i18n="customizeBtn">Customize</a>
+              <button type="button" class="theme-opt-chip" id="customizeSpeechShortcutBtn" data-i18n="customizeBtn">Customize</button>
             </div>
           </div>
         </div>
@@ -2939,18 +3368,25 @@
     const I18N_UI = {
       en: {
         newChat: "New chat",
+        tempShort: "Temp",
         searchChats: "Search chats",
         imagesNav: "Images",
-        upgradePlan: "Upgrade plan",
+        upgradePlan: "Upgrade to Pro",
+        upgradeToMax: "Upgrade to Max",
+        claimOfferDefault: "Claim offer",
         guestUser: "Guest User",
         memberUser: "Alora Member",
         myAccount: "My Account",
+        profileLabel: "Profile",
+        personalizationLabel: "Personalization",
         settings: "Settings",
         downloadApp: "Download App",
+        helpLabel: "Help",
         logIn: "Log in",
         signUp: "Sign up",
         logOut: "Log out",
         welcomeTitle: "What can I help with?",
+        welcomeUserGreeting: "Hey, {name}. Ready to dive in?",
         tempTitle: "Temporary Chat",
         tempBanner: "Temporary Chat — This conversation won't appear in history",
         tempOptTitle: "Temporary chat",
@@ -2959,9 +3395,19 @@
         imagePlaceholder: "Describe the image you want to create...",
         legal: "Alora can make mistakes. Check important info.",
         attachFile: "Add photos & files",
+        attachFileSub: "Upload images, code, or docs",
         createImage: "Create image",
-        thinkOpt: "Think (Deep reasoning)",
-        webOpt: "Search the web",
+        createImageSub: "Generate artwork from a prompt",
+        thinkOpt: "Thinking",
+        thinkOptSub: "For detailed reasoning answers",
+        webOpt: "Web search",
+        webOptSub: "Find real-time news and info",
+        thinkBtnLabel: "Think",
+        claimTrialBadge: "FREE TRIAL",
+        claimTrialHeading: "Claim your free trial",
+        claimTrialLoginBtn: "Log in to claim free trial",
+        claimTrialConfirmBtn: "Claim Free Trial",
+        claimTrialPlansBtn: "View all plans",
         webChip: "Search",
         thinkChip: "Think",
         imageChip: "Create image",
@@ -3089,18 +3535,25 @@
       },
       bn: {
         newChat: "নতুন চ্যাট",
+        tempShort: "অস্থায়ী",
         searchChats: "চ্যাট খুঁজুন",
         imagesNav: "ছবি তৈরি",
-        upgradePlan: "প্ল্যান আপগ্রেড",
+        upgradePlan: "Pro-তে আপগ্রেড",
+        upgradeToMax: "Max-এ আপগ্রেড",
+        claimOfferDefault: "ফ্রি ট্রায়াল নিন",
         guestUser: "গেস্ট ইউজার",
         memberUser: "সদস্য",
         myAccount: "আমার অ্যাকাউন্ট",
+        profileLabel: "প্রোফাইল",
+        personalizationLabel: "পার্সোনালাইজেশন",
         settings: "সেটিংস",
         downloadApp: "অ্যাপ ডাউনলোড",
+        helpLabel: "সহায়তা",
         logIn: "লগইন",
         signUp: "সাইন আপ",
         logOut: "লগআউট",
         welcomeTitle: "কীভাবে সাহায্য করতে পারি?",
+        welcomeUserGreeting: "হ্যালো, {name}। শুরু করা যাক?",
         tempTitle: "অস্থায়ী চ্যাট",
         tempBanner: "অস্থায়ী চ্যাট — এই কথোপকথন ইতিহাসে সংরক্ষিত হবে না",
         tempOptTitle: "অস্থায়ী চ্যাট",
@@ -3109,9 +3562,19 @@
         imagePlaceholder: "আপনি কেমন ছবি তৈরি করতে চান বর্ণনা করুন...",
         legal: "Alora ভুল করতে পারে। গুরুত্বপূর্ণ তথ্য যাচাই করুন।",
         attachFile: "ছবি ও ফাইল যোগ করুন",
+        attachFileSub: "ছবি, কোড বা ডকুমেন্ট আপলোড করুন",
         createImage: "ছবি তৈরি করুন",
-        thinkOpt: "গভীর চিন্তা (Reasoning)",
-        webOpt: "ওয়েব সার্চ করুন",
+        createImageSub: "টেক্সট থেকে ছবি তৈরি করুন",
+        thinkOpt: "চিন্তা (Thinking)",
+        thinkOptSub: "গভীর বিশ্লেষণ ও বিস্তারিত উত্তরের জন্য",
+        webOpt: "ওয়েব সার্চ",
+        webOptSub: "সাম্প্রতিক তথ্য ও সংবাদ খুঁজুন",
+        thinkBtnLabel: "চিন্তা",
+        claimTrialBadge: "ফ্রি ট্রায়াল",
+        claimTrialHeading: "আপনার ফ্রি ট্রায়াল নিন",
+        claimTrialLoginBtn: "ট্রায়াল নিতে লগইন করুন",
+        claimTrialConfirmBtn: "ফ্রি ট্রায়াল সক্রিয় করুন",
+        claimTrialPlansBtn: "সকল প্ল্যান দেখুন",
         webChip: "সার্চ",
         thinkChip: "চিন্তা",
         imageChip: "ছবি তৈরি",
@@ -3265,6 +3728,15 @@
       Max: { limit: 50, image_limit: 100, hours: 1 }
     };
 
+    let promoOfferState = {
+      enabled: false,
+      plan: "Pro",
+      days: 7,
+      label: "Claim offer",
+      description: "",
+      alreadyClaimed: false
+    };
+
     let activeAudioButton = null;
     let isSpeaking = false;
     let contextTargetSessionId = null;
@@ -3283,7 +3755,7 @@
         const spaRedirect = sessionStorage.getItem("alora_spa_redirect");
         if (spaRedirect) {
           sessionStorage.removeItem("alora_spa_redirect");
-          if (/^\/(auth\/(login|signup)|pricing|plans|account|profile|security|subscription|usage|redeem|download|theme|sound|personalization|language|help|admin)/.test(spaRedirect)) {
+          if (/^\/(auth\/(login|signup)|pricing|plans|account|profile|security|redeem|download|personalization|help|admin)/.test(spaRedirect)) {
             window.location.replace(spaRedirect);
             return;
           }
@@ -3372,11 +3844,12 @@
     function showToast(msg) {
       const box = document.getElementById("toastBox");
       if (!box) return;
+      box.innerHTML = "";
       const item = document.createElement("div");
       item.className = "toast-item";
       item.textContent = msg;
       box.appendChild(item);
-      setTimeout(() => item.remove(), 2800);
+      setTimeout(() => { if (item.parentNode) item.remove(); }, 2800);
     }
 
     function setTheme(rawTheme) {
@@ -3404,10 +3877,25 @@
       const iconPath = isLightSurface ? "/logo_icon_black.png" : "/logo_icon_white.png";
       const emblem = document.getElementById("brandEmblemImg");
       if (emblem) emblem.src = iconPath;
+      const sbIcon = document.getElementById("sidebarBrandIcon");
+      if (sbIcon) sbIcon.src = iconPath;
 
       document.querySelectorAll(".theme-opt-chip[data-theme]").forEach(chip => {
         chip.classList.toggle("active", chip.getAttribute("data-theme") === chosen);
       });
+    }
+
+    function getWelcomeTitleText() {
+      if (isTemporaryChat) return t("tempTitle");
+      try {
+        const token = getAuthToken();
+        const user = JSON.parse(localStorage.getItem(KEYS.USER) || "null");
+        if (token && user && user.name) {
+          const firstName = String(user.name).trim().split(/\s+/)[0];
+          if (firstName) return t("welcomeUserGreeting").replace("{name}", firstName);
+        }
+      } catch(e) {}
+      return t("welcomeTitle");
     }
 
     function applyLiveI18n() {
@@ -3417,12 +3905,14 @@
       }
       const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
       setEl("newChatLabel", t("newChat"));
+      setEl("sidebarTempLabel", t("tempShort"));
       setEl("searchChatsLabel", t("searchChats"));
       setEl("sidebarImageLabel", t("imagesNav"));
-      setEl("popoverAccountText", t("myAccount"));
+      setEl("popoverAccountText", t("profileLabel"));
+      setEl("popoverPersonalizationText", t("personalizationLabel"));
       setEl("popoverSettingsText", t("settings"));
-      setEl("popoverUpgradeText", t("upgradePlan"));
       setEl("popoverDownloadText", t("downloadApp"));
+      setEl("popoverHelpText", t("helpLabel"));
       setEl("headerLoginBtn", t("logIn"));
       setEl("headerSignupBtn", t("signUp"));
       setEl("tempChatBannerText", t("tempBanner"));
@@ -3430,9 +3920,14 @@
       setEl("tempChatOptionDesc", t("tempOptDesc"));
       setEl("legalDisclaimer", t("legal"));
       setEl("attachFileLabel", t("attachFile"));
+      setEl("attachFileSub", t("attachFileSub"));
       setEl("attachImageGenLabel", t("createImage"));
+      setEl("attachImageGenSub", t("createImageSub"));
       setEl("attachThinkLabel", t("thinkOpt"));
+      setEl("attachThinkSub", t("thinkOptSub"));
       setEl("attachWebSearchLabel", t("webOpt"));
+      setEl("attachWebSearchSub", t("webOptSub"));
+      setEl("composerThinkLabel", t("thinkBtnLabel"));
       setEl("webChipLabel", t("webChip"));
       setEl("thinkChipLabel", t("thinkChip"));
       setEl("imageGenChipLabel", t("imageChip"));
@@ -3443,6 +3938,8 @@
       setEl("ctxDeleteText", t("ctxDelete"));
       setEl("shareModalTitle", t("shareTitle"));
       setEl("shareModalDesc", t("shareDesc"));
+      setEl("claimOfferBadge", t("claimTrialBadge"));
+      setEl("claimOfferPlansLink", t("claimTrialPlansBtn"));
 
       document.querySelectorAll("[data-i18n]").forEach(el => {
         const key = el.getAttribute("data-i18n");
@@ -3463,7 +3960,7 @@
       if (searchInp) searchInp.placeholder = t("searchPlaceholder");
 
       const headline = document.getElementById("welcomeHeadline");
-      if (headline) headline.textContent = isTemporaryChat ? t("tempTitle") : t("welcomeTitle");
+      if (headline) headline.textContent = getWelcomeTitleText();
 
       const msgInput = document.getElementById("messageInput");
       if (msgInput) msgInput.placeholder = isImageGenActive ? t("imagePlaceholder") : t("askPlaceholder");
@@ -3498,6 +3995,67 @@
       return av;
     }
 
+    const GIFT_ICON_PATHS = '<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C10 3 12 8 12 8s2-5 4.5-5a2.5 2.5 0 0 1 0 5"/>';
+    const SPARK_ICON_PATHS = '<path d="M12 3l1.9 5.8L20 10l-6.1 1.2L12 17l-1.9-5.8L4 10l6.1-1.2z"/>';
+
+    function getOfferState(planName, isAdmin) {
+      if (isAdmin || planName === "Max") {
+        return { mode: "none", isTrial: false, text: "" };
+      }
+      const tierRank = { Free: 1, Pro: 2, Max: 3 };
+      const currentTier = tierRank[planName] || 1;
+      const promoTier = tierRank[promoOfferState.plan] || 2;
+      if (promoOfferState.enabled && !promoOfferState.alreadyClaimed && currentTier < promoTier) {
+        const customLabel = (promoOfferState.label || "").trim();
+        const label = (customLabel && customLabel.toLowerCase() !== "claim offer")
+          ? customLabel
+          : t("claimOfferDefault");
+        return { mode: "trial", isTrial: true, text: label };
+      }
+      return {
+        mode: "upgrade",
+        isTrial: false,
+        text: planName === "Pro" ? t("upgradeToMax") : t("upgradePlan")
+      };
+    }
+
+    function applyOfferCTA(planName, isAdmin) {
+      const offer = getOfferState(planName, isAdmin);
+      const sbOfferBtn = document.getElementById("upgradePlanRow");
+      const sbOfferText = document.getElementById("planLabelText");
+      const sbOfferIcon = document.getElementById("sidebarOfferIcon");
+      const hdrOfferBtn = document.getElementById("headerOfferBtn");
+      const hdrOfferText = document.getElementById("headerOfferText");
+      const hdrOfferIcon = document.getElementById("headerOfferIcon");
+      const popOfferBtn = document.getElementById("popoverUpgradeBtn");
+      const popOfferText = document.getElementById("popoverUpgradeText");
+
+      if (offer.mode === "none") {
+        if (sbOfferBtn) sbOfferBtn.style.display = "none";
+        if (hdrOfferBtn) hdrOfferBtn.style.display = "none";
+        if (popOfferBtn) popOfferBtn.style.display = "none";
+        return;
+      }
+
+      const iconSvg = offer.isTrial ? GIFT_ICON_PATHS : SPARK_ICON_PATHS;
+      if (sbOfferBtn) {
+        sbOfferBtn.style.display = "flex";
+        sbOfferBtn.classList.toggle("trial-active", offer.isTrial);
+      }
+      if (sbOfferText) sbOfferText.textContent = offer.text;
+      if (sbOfferIcon) sbOfferIcon.innerHTML = iconSvg;
+
+      if (hdrOfferBtn) {
+        hdrOfferBtn.style.display = "inline-flex";
+        hdrOfferBtn.classList.toggle("trial-active", offer.isTrial);
+      }
+      if (hdrOfferText) hdrOfferText.textContent = offer.text;
+      if (hdrOfferIcon) hdrOfferIcon.innerHTML = iconSvg;
+
+      if (popOfferBtn) popOfferBtn.style.display = "flex";
+      if (popOfferText) popOfferText.textContent = offer.text;
+    }
+
     function syncUserUI() {
       const token = getAuthToken();
       let user = null;
@@ -3506,12 +4064,15 @@
       } catch(e) {}
 
       const userAvatar = document.getElementById("userAvatarCircle");
+      const popAvatar = document.getElementById("popoverAvatarCircle");
       const userName = document.getElementById("userNameLabel");
-      const planLabel = document.getElementById("planLabelText");
+      const userPlanSub = document.getElementById("userPlanSubLabel");
+      const popName = document.getElementById("popoverUserName");
       const guestActions = document.getElementById("guestHeaderActions");
       const popoverAuthText = document.getElementById("popoverAuthText");
       const popoverEmail = document.getElementById("popoverUserEmailHeader");
       const popoverAccountLink = document.getElementById("popoverAccountLink");
+      const popoverProfileLink = document.getElementById("popoverProfileLink");
       const settingsPlan = document.getElementById("settingsCurrentPlanLabel");
       const settingsEmail = document.getElementById("settingsEmailLabel");
       const settingsAuthBtn = document.getElementById("settingsAuthActionBtn");
@@ -3521,27 +4082,29 @@
       const settingsNameInput = document.getElementById("settingsNameInput");
 
       if (token && user) {
+        document.body.classList.remove("is-guest");
         const displayName = user.name || t("memberUser");
         const isAdmin = user.role === "admin";
         const plan = isAdmin ? "Max" : ((user.subscription && user.subscription.plan_name) || localStorage.getItem(KEYS.PLAN) || "Free");
 
         if (userName) userName.textContent = displayName;
-        if (userAvatar) {
-          const avUrl = normalizeAvatarUrl(user.avatar || localStorage.getItem("alokpoth_user_avatar"));
-          if (avUrl) {
-            userAvatar.innerHTML = `<img src="${escapeHtml(avUrl)}" alt="">`;
-          } else {
-            userAvatar.textContent = displayName.trim().charAt(0).toUpperCase() || "U";
-          }
-        }
-        if (planLabel) planLabel.textContent = isAdmin ? t("adminUnlimited") : `${plan} ${t("planSuffix")}`;
+        if (popName) popName.textContent = displayName;
+        if (userPlanSub) userPlanSub.textContent = isAdmin ? "Admin" : plan;
+        const avUrl = normalizeAvatarUrl(user.avatar || localStorage.getItem("alokpoth_user_avatar"));
+        const setAv = (el) => {
+          if (!el) return;
+          if (avUrl) el.innerHTML = `<img src="${escapeHtml(avUrl)}" alt="">`;
+          else el.textContent = displayName.trim().charAt(0).toUpperCase() || "U";
+        };
+        setAv(userAvatar);
+        setAv(popAvatar);
+
+        applyOfferCTA(plan, isAdmin);
         if (guestActions) guestActions.style.display = "none";
         if (popoverAuthText) popoverAuthText.textContent = t("logOut");
-        if (popoverEmail) {
-          popoverEmail.textContent = user.email || "";
-          popoverEmail.style.display = user.email ? "block" : "none";
-        }
-        if (popoverAccountLink) popoverAccountLink.style.display = "flex";
+        if (popoverEmail) popoverEmail.textContent = isAdmin ? "Admin" : `${plan} · ${user.email || ""}`.replace(/\s·\s$/, "");
+        if (popoverAccountLink) popoverAccountLink.href = "/account";
+        if (popoverProfileLink) popoverProfileLink.style.display = "flex";
         if (settingsPlan) settingsPlan.textContent = isAdmin ? t("adminUnlimited") : `${plan} ${t("planSuffix")}`;
         if (settingsEmail) settingsEmail.textContent = user.email || t("activeUser");
         if (settingsAuthBtn) settingsAuthBtn.textContent = t("logOut");
@@ -3552,13 +4115,18 @@
 
         renderQuotaWidget(user, plan, isAdmin);
       } else {
+        document.body.classList.add("is-guest");
         if (userName) userName.textContent = t("guestUser");
+        if (popName) popName.textContent = t("guestUser");
+        if (userPlanSub) userPlanSub.textContent = "Free";
         if (userAvatar) userAvatar.textContent = "G";
-        if (planLabel) planLabel.textContent = t("upgradePlan");
+        if (popAvatar) popAvatar.textContent = "G";
+        applyOfferCTA("Free", false);
         if (guestActions) guestActions.style.display = "flex";
         if (popoverAuthText) popoverAuthText.textContent = t("logIn");
-        if (popoverEmail) popoverEmail.style.display = "none";
-        if (popoverAccountLink) popoverAccountLink.style.display = "none";
+        if (popoverEmail) popoverEmail.textContent = t("guestTrialPlan");
+        if (popoverAccountLink) popoverAccountLink.href = "/auth/login";
+        if (popoverProfileLink) popoverProfileLink.style.display = "none";
         if (settingsPlan) settingsPlan.textContent = t("guestTrialPlan");
         if (settingsEmail) settingsEmail.textContent = t("guestStatus");
         if (settingsAuthBtn) settingsAuthBtn.textContent = t("logIn");
@@ -3577,6 +4145,9 @@
         if (imgEl) imgEl.textContent = t("imagesLoginRequired");
         if (rstEl) rstEl.textContent = t("guestQuotaLabel");
       }
+
+      const headline = document.getElementById("welcomeHeadline");
+      if (headline) headline.textContent = getWelcomeTitleText();
     }
 
     function renderQuotaWidget(user, planName, isAdmin) {
@@ -3655,7 +4226,68 @@
       } catch(e) {}
     }
 
+    async function fetchPromoOffer() {
+      try {
+        const token = getAuthToken();
+        const headers = token ? { "Authorization": `Bearer ${token}` } : {};
+        const res = await fetch(`${API_BASE}/redeem/promo?_t=${Date.now()}`, { headers });
+        const data = await res.json();
+        if (res.ok && data.success && data.promo) {
+          promoOfferState = {
+            enabled: Boolean(data.promo.enabled),
+            plan: data.promo.plan || "Pro",
+            days: Number(data.promo.days) || 7,
+            label: data.promo.label || "Claim offer",
+            description: data.promo.description || "",
+            alreadyClaimed: Boolean(data.promo.alreadyClaimed)
+          };
+          syncUserUI();
+        }
+      } catch(e) {}
+    }
+
+    function openClaimOfferModal() {
+      const bd = document.getElementById("claimOfferBackdrop");
+      if (!bd) { window.location.href = "/pricing"; return; }
+      const plan = promoOfferState.plan || "Pro";
+      const days = promoOfferState.days || 7;
+      const pInfo = cachedPlanLimits[plan] || cachedPlanLimits.Pro;
+      const titleEl = document.getElementById("claimOfferTitle");
+      const descEl = document.getElementById("claimOfferDesc");
+      const detailsEl = document.getElementById("claimOfferDetailsBox");
+      const fbEl = document.getElementById("claimOfferFeedback");
+      const btn = document.getElementById("claimOfferConfirmBtn");
+      if (fbEl) { fbEl.style.display = "none"; fbEl.textContent = ""; }
+      if (titleEl) titleEl.textContent = t("claimTrialHeading");
+      if (descEl) descEl.textContent = promoOfferState.description || `Try ${plan} free for ${days} days`;
+      if (detailsEl) {
+        detailsEl.innerHTML = `
+          <div>• ${escapeHtml(plan)} Plan unlocked for ${days} days</div>
+          <div>• ${pInfo.limit} messages / ${pInfo.hours}h &amp; ${pInfo.image_limit} images</div>
+          <div>• No payment required — instant activation</div>
+        `;
+      }
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = getAuthToken() ? t("claimTrialConfirmBtn") : t("claimTrialLoginBtn");
+      }
+      bd.classList.add("open");
+    }
+
+    function closeClaimOfferModal() {
+      document.getElementById("claimOfferBackdrop")?.classList.remove("open");
+    }
+
     function openUpgradeDialog() {
+      let user = null;
+      try { user = JSON.parse(localStorage.getItem(KEYS.USER) || "null"); } catch(e) {}
+      const isAdmin = user && user.role === "admin";
+      const plan = isAdmin ? "Max" : ((user && user.subscription && user.subscription.plan_name) || localStorage.getItem(KEYS.PLAN) || "Free");
+      const offer = getOfferState(plan, isAdmin);
+      if (offer.isTrial) {
+        openClaimOfferModal();
+        return;
+      }
       window.location.href = "/pricing";
     }
 
@@ -3666,6 +4298,7 @@
         "alokpoth_user_avatar", "alokpoth_account_name"
       ].forEach(k => localStorage.removeItem(k));
       syncUserUI();
+      fetchPromoOffer();
       if (!silent) showToast(currentLanguage === "bn" ? "লগআউট সফল হয়েছে" : "Logged out successfully.");
     }
 
@@ -3926,12 +4559,14 @@
       }
       const tempBtn = document.getElementById("headerTempChatBtn");
       if (tempBtn) tempBtn.classList.toggle("active", isTemporaryChat);
+      const sbTempBtn = document.getElementById("sidebarTempChatBtn");
+      if (sbTempBtn) sbTempBtn.classList.toggle("active", isTemporaryChat);
 
       const banner = document.getElementById("tempChatBanner");
       if (banner) banner.classList.toggle("visible", isTemporaryChat);
 
       const headline = document.getElementById("welcomeHeadline");
-      if (headline) headline.textContent = isTemporaryChat ? t("tempTitle") : t("welcomeTitle");
+      if (headline) headline.textContent = getWelcomeTitleText();
 
       const ind = document.getElementById("tempToggleIndicator");
       const circle = document.getElementById("tempToggleCircle");
@@ -5350,6 +5985,7 @@
       if (webChip) webChip.style.display = isWebSearchActive ? "inline-flex" : "none";
       if (thinkChip) thinkChip.style.display = isThinkingActive ? "inline-flex" : "none";
       if (imgChip) imgChip.style.display = isImageGenActive ? "inline-flex" : "none";
+      document.getElementById("composerThinkBtn")?.classList.toggle("active", isThinkingActive);
 
       const input = document.getElementById("messageInput");
       if (input) input.placeholder = isImageGenActive ? t("imagePlaceholder") : t("askPlaceholder");
@@ -5385,6 +6021,8 @@
     }
 
     function closeSidebar() {
+      const toggleSidebarFn_userClose = document.getElementById("userPopover");
+      if (toggleSidebarFn_userClose) toggleSidebarFn_userClose.classList.remove("open");
       document.getElementById("sidebar")?.classList.remove("open");
       document.getElementById("mobileBackdrop")?.classList.remove("active");
     }
@@ -5634,8 +6272,18 @@
       updateComposerPosition();
       loadDynamicModels(true);
       fetchPlanLimits();
+      fetchPromoOffer();
       refreshUserFromServer();
       applyRouteFromLocation(true);
+
+      // Auto-open trial offer modal when returning from login with ?claim=trial
+      if (new URLSearchParams(window.location.search).get("claim") === "trial") {
+        fetchPromoOffer().then(() => {
+          const cleanUrl = window.location.pathname + window.location.hash;
+          window.history.replaceState(null, "", cleanUrl || "/");
+          openUpgradeDialog();
+        });
+      }
 
       if ("speechSynthesis" in window && window.speechSynthesis.onvoiceschanged !== undefined) {
         window.speechSynthesis.onvoiceschanged = populateSpeechVoices;
@@ -5728,6 +6376,7 @@
           : (currentLanguage === "bn" ? "অস্থায়ী চ্যাট বন্ধ করা হয়েছে" : "Temporary chat disabled"));
       };
       document.getElementById("headerTempChatBtn")?.addEventListener("click", toggleTempMode);
+      document.getElementById("sidebarTempChatBtn")?.addEventListener("click", toggleTempMode);
       document.getElementById("tempChatToggleItem")?.addEventListener("click", (e) => {
         e.stopPropagation();
         toggleTempMode();
@@ -5767,10 +6416,58 @@
         userPopover?.classList.remove("open");
         openSettingsModal("general", true);
       });
+      document.getElementById("popoverPersonalizationBtn")?.addEventListener("click", () => {
+        userPopover?.classList.remove("open");
+        openSettingsModal("custom", true);
+      });
+      document.getElementById("customizeSpeechShortcutBtn")?.addEventListener("click", () => {
+        openSettingsModal("speech", true);
+      });
       document.getElementById("upgradePlanRow")?.addEventListener("click", openUpgradeDialog);
+      document.getElementById("headerOfferBtn")?.addEventListener("click", openUpgradeDialog);
       document.getElementById("popoverUpgradeBtn")?.addEventListener("click", () => {
         userPopover?.classList.remove("open");
         openUpgradeDialog();
+      });
+      document.getElementById("closeClaimOfferBtn")?.addEventListener("click", closeClaimOfferModal);
+      document.getElementById("claimOfferBackdrop")?.addEventListener("click", (e) => {
+        if (e.target.id === "claimOfferBackdrop") closeClaimOfferModal();
+      });
+      document.getElementById("claimOfferConfirmBtn")?.addEventListener("click", async () => {
+        const token = getAuthToken();
+        if (!token) {
+          window.location.href = "/auth/login?redirect=" + encodeURIComponent("/?claim=trial");
+          return;
+        }
+        const btn = document.getElementById("claimOfferConfirmBtn");
+        const fb = document.getElementById("claimOfferFeedback");
+        if (btn) { btn.disabled = true; btn.textContent = "Activating..."; }
+        if (fb) fb.style.display = "none";
+        try {
+          const res = await fetch(`${API_BASE}/redeem/trial`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` }
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok || !data.success) {
+            throw new Error(localizeServerError(data.error, "busyDesc") || "Could not activate trial.");
+          }
+          if (data.token) localStorage.setItem(KEYS.TOKEN, data.token);
+          if (data.plan_name) localStorage.setItem(KEYS.PLAN, data.plan_name);
+          promoOfferState.alreadyClaimed = true;
+          closeClaimOfferModal();
+          await Promise.all([refreshUserFromServer(), fetchPromoOffer()]);
+          showToast(data.message || `${data.plan_name || "Pro"} free trial activated!`);
+        } catch(err) {
+          if (fb) {
+            fb.style.display = "block";
+            fb.textContent = err.message || "Activation failed";
+          }
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = t("claimTrialConfirmBtn");
+          }
+        }
       });
       document.getElementById("closeSettingsDialogBtn")?.addEventListener("click", () => closeSettingsModal(true));
       document.getElementById("settingsDialogBackdrop")?.addEventListener("click", (e) => {
@@ -6089,6 +6786,11 @@
         isThinkingActive = !isThinkingActive;
         updateChipsUI();
       });
+      document.getElementById("composerThinkBtn")?.addEventListener("click", () => {
+        isThinkingActive = !isThinkingActive;
+        updateChipsUI();
+        input?.focus();
+      });
       document.getElementById("attachImageGenOpt")?.addEventListener("click", () => {
         attachMenu?.classList.remove("open");
         isImageGenActive = !isImageGenActive;
@@ -6132,6 +6834,7 @@
         } else if (e.key === "Escape") {
           document.getElementById("searchModalBackdrop")?.classList.remove("open");
           document.getElementById("shareModalBackdrop")?.classList.remove("open");
+          closeClaimOfferModal();
           closeSettingsModal(true);
           closeHistoryContextMenu();
           modelMenu?.classList.remove("open");

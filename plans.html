@@ -640,7 +640,64 @@
       align-items: flex-start;
       gap: 10px;
       flex: 1;
-      min-width: 200px;
+      min-width: 0;
+    }
+
+    .trial-offer-banner {
+      width: 100%;
+      background: var(--card);
+      border: 1px solid var(--border-featured);
+      border-radius: 22px;
+      padding: 20px 24px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      order: -1;
+    }
+    .trial-offer-banner.visible {
+      display: flex;
+    }
+    .trial-offer-copy {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      flex: 1;
+      min-width: 220px;
+    }
+    .trial-offer-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: var(--subtle-pill-bg);
+      border: 1px solid var(--border);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--text-main);
+    }
+    .trial-offer-cta {
+      height: 42px;
+      padding: 0 22px;
+      border-radius: 9999px;
+      border: none;
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      font-family: inherit;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background-color 0.15s ease, opacity 0.15s ease;
+    }
+    .trial-offer-cta:hover:not(:disabled) {
+      background: var(--btn-hover);
+    }
+    .trial-offer-cta:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
 
     .voucher-feedback svg {
@@ -739,6 +796,23 @@
     </div>
 
     <div class="sections-stack" id="sectionsStack">
+      <!-- Dynamic Free Trial Banner (controlled from Admin Panel) -->
+      <section class="trial-offer-banner" id="freeTrialBanner" aria-label="Free trial offer">
+        <div class="trial-offer-copy">
+          <div class="trial-offer-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C10 3 12 8 12 8s2-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg>
+          </div>
+          <div>
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:4px;">
+              <span class="mono-badge inverted" id="trialBannerBadge">FREE TRIAL</span>
+              <h2 class="voucher-title" id="trialBannerTitle" style="margin:0;">Claim your free trial</h2>
+            </div>
+            <p class="voucher-desc" id="trialBannerDesc" style="margin:0;">Try Pro unlocked free for a limited time.</p>
+          </div>
+        </div>
+        <button type="button" class="trial-offer-cta" id="trialBannerClaimBtn">Claim Free Trial</button>
+      </section>
+
       <!-- 3 Monochrome ChatGPT Pricing Cards -->
       <section class="plans-grid" id="plansGrid" aria-label="Subscription plans">
 
@@ -1355,6 +1429,7 @@
       currentLang = currentLang === 'en' ? 'bn' : 'en';
       try { localStorage.setItem('alokpoth_lang', currentLang); } catch (e) {}
       renderAll();
+      syncTrialBanner();
     });
 
     // Hydrate dynamic limits from GET /api/plans
@@ -1578,10 +1653,93 @@
       }
     });
 
+    // Hydrate admin-controlled Free Trial banner
+    async function syncTrialBanner() {
+      const banner = document.getElementById('freeTrialBanner');
+      const titleEl = document.getElementById('trialBannerTitle');
+      const descEl = document.getElementById('trialBannerDesc');
+      const badgeEl = document.getElementById('trialBannerBadge');
+      const claimBtn = document.getElementById('trialBannerClaimBtn');
+      if (!banner || !claimBtn) return;
+
+      try {
+        let token = null;
+        try { token = localStorage.getItem('alokpoth_token'); } catch (e) {}
+        const res = await fetch(API_BASE + '/redeem/promo?_t=' + Date.now(), {
+          cache: 'no-store',
+          headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+        });
+        const data = await res.json();
+        const promo = data && data.success ? data.promo : null;
+        const auth = getLocalAuthInfo();
+        const tierRank = { Free: 1, Pro: 2, Max: 3 };
+        const userTier = tierRank[auth.plan] || 1;
+        const promoTier = tierRank[(promo && promo.plan) || 'Pro'] || 2;
+
+        if (!promo || !promo.enabled || promo.alreadyClaimed || auth.isAdmin || userTier >= promoTier) {
+          banner.classList.remove('visible');
+          return;
+        }
+
+        const isBn = currentLang === 'bn';
+        if (badgeEl) badgeEl.textContent = isBn ? 'ফ্রি ট্রায়াল' : 'FREE TRIAL';
+        if (titleEl) titleEl.textContent = (promo.label && promo.label.toLowerCase() !== 'claim offer')
+          ? promo.label
+          : (isBn ? `${promo.days} দিনের ${promo.plan} ফ্রি ট্রায়াল` : `${promo.plan} Free Trial (${promo.days} days)`);
+        if (descEl) descEl.textContent = promo.description || (isBn
+          ? `সম্পূর্ণ বিনামূল্যে ${promo.days} দিনের জন্য ${promo.plan} প্ল্যান ব্যবহার করে দেখুন।`
+          : `Try ${promo.plan} free for ${promo.days} days with instant activation.`);
+        claimBtn.disabled = false;
+        claimBtn.textContent = token
+          ? (isBn ? 'ফ্রি ট্রায়াল সক্রিয় করুন' : 'Claim Free Trial')
+          : (isBn ? 'ট্রায়াল নিতে লগইন করুন' : 'Log in to claim free trial');
+
+        claimBtn.onclick = async () => {
+          if (!token) {
+            window.location.href = '/auth/login?redirect=/pricing';
+            return;
+          }
+          claimBtn.disabled = true;
+          claimBtn.textContent = isBn ? 'সক্রিয় হচ্ছে...' : 'Activating...';
+          try {
+            const cRes = await fetch(API_BASE + '/redeem/trial', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
+            });
+            const cData = await cRes.json().catch(() => ({}));
+            if (!cRes.ok || !cData.success) {
+              showRedeemFeedback('error', (cData && cData.error) || 'Could not activate trial.');
+              claimBtn.disabled = false;
+              claimBtn.textContent = isBn ? 'ফ্রি ট্রায়াল সক্রিয় করুন' : 'Claim Free Trial';
+              return;
+            }
+            if (cData.token) localStorage.setItem('alokpoth_token', cData.token);
+            const newPlan = cData.plan_name || promo.plan || 'Pro';
+            localStorage.setItem('alokpoth_current_plan', newPlan);
+            localStorage.setItem('alokpoth_user_plan', newPlan);
+            localStorage.setItem('alokpoth_plan', newPlan);
+            if (cData.expires_at) {
+              localStorage.setItem('alokpoth_plan_expiry', cData.expires_at);
+              localStorage.setItem('alokpoth_plan_expires_at', cData.expires_at);
+            }
+            banner.classList.remove('visible');
+            await syncUserStatusFromServer();
+            showRedeemFeedback('success', cData.message || `${newPlan} free trial activated!`);
+          } catch (err) {
+            showRedeemFeedback('error', (I18N[currentLang] || I18N.en).errNetwork);
+            claimBtn.disabled = false;
+          }
+        };
+
+        banner.classList.add('visible');
+      } catch (e) {}
+    }
+
     // Initial render + live server hydration
     renderAll();
     syncPlansFromServer();
     syncUserStatusFromServer();
+    syncTrialBanner();
   </script>
 </body>
 </html>
