@@ -71,6 +71,35 @@ router.get('/models', async (req, res) => {
   }
 });
 
+// Public App Configuration for Notifications & Ads Controls (Zero Secrets)
+router.get('/app-config', async (req, res) => {
+  try {
+    const { getSystemSettings } = require('../../utils/getModelConfig');
+    const settings = await getSystemSettings();
+    const notifEnabled = settings.app_notification_enabled === true || settings.app_notification_enabled === 'true';
+    const adsEnabled = settings.ads_enabled === true || settings.ads_enabled === 'true';
+    return res.json({
+      success: true,
+      notification: {
+        enabled: notifEnabled,
+        id: notifEnabled ? String(settings.app_notification_id || '') : '',
+        title: notifEnabled ? String(settings.app_notification_title || '') : '',
+        body: notifEnabled ? String(settings.app_notification_body || '') : ''
+      },
+      ads: {
+        enabled: adsEnabled,
+        note: String(settings.ads_note || '')
+      }
+    });
+  } catch (err) {
+    return res.json({
+      success: true,
+      notification: { enabled: false, id: '', title: '', body: '' },
+      ads: { enabled: false, note: '' }
+    });
+  }
+});
+
 const pingCache = new Map();
 const PING_CACHE_TTL_MS = 60000; // 60s cache
 const setPingCache = (key, data) => {
