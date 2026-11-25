@@ -9,6 +9,8 @@ const { memoryStore } = require('./config/memoryStore');
 const Plan = require('./models/Plan');
 const AiModel = require('./models/AiModel');
 const { createRateLimiter } = require('./middleware/ipRateLimiter');
+const { compressionMiddleware } = require('./middleware/compress');
+const { sendServerError } = require('./utils/safeError');
 const { protect } = require('./middleware/authMiddleware');
 const { adminOnly } = require('./middleware/adminMiddleware');
 
@@ -38,7 +40,9 @@ const apiLimiter = createRateLimiter({
 });
 
 // Middleware
+app.disable('x-powered-by');
 app.use(cors());
+app.use(compressionMiddleware);
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
@@ -176,7 +180,7 @@ app.get('/api/debug-models', protect, adminOnly, async (req, res) => {
       mongoList
     });
   } catch(e) {
-    res.status(500).json({ error: e.message, stack: e.stack });
+    return sendServerError(res, e, 'Internal server error', '[Debug Models Error]:');
   }
 });
 
@@ -216,8 +220,13 @@ app.get('/api/plans', async (req, res) => {
 });
 
 const ROOT_DIR = path.join(__dirname, '..');
-app.use('/avatars', express.static(path.join(ROOT_DIR, 'avatars')));
-app.use('/logo', express.static(path.join(ROOT_DIR, 'logo')));
+app.use('/avatars', express.static(path.join(ROOT_DIR, 'avatars'), { maxAge: '7d' }));
+app.use('/logo', express.static(path.join(ROOT_DIR, 'logo'), { maxAge: '7d' }));
+
+function sendHtmlPage(res, fileName) {
+  res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+  return res.sendFile(path.join(ROOT_DIR, fileName));
+}
 
 // Serve logo images, app icons, favicons, and mobile packages safely
 const STATIC_ASSETS = [
@@ -238,37 +247,46 @@ STATIC_ASSETS.forEach(file => {
     if (file.endsWith('.apk')) {
       res.setHeader('Content-Type', 'application/vnd.android.package-archive');
       res.setHeader('Content-Disposition', `attachment; filename="${file}"`);
+      res.setHeader('Cache-Control', 'public, max-age=300, must-revalidate');
     } else if (file.endsWith('.ipa')) {
       res.setHeader('Content-Type', 'application/octet-stream');
       res.setHeader('Content-Disposition', `attachment; filename="${file}"`);
+      res.setHeader('Cache-Control', 'public, max-age=300, must-revalidate');
     } else if (file.endsWith('.ico')) {
       res.setHeader('Content-Type', 'image/x-icon');
+      res.setHeader('Cache-Control', 'public, max-age=604800, stale-while-revalidate=86400');
     } else if (file.endsWith('.svg')) {
       res.setHeader('Content-Type', 'image/svg+xml');
+      res.setHeader('Cache-Control', 'public, max-age=604800, stale-while-revalidate=86400');
     } else if (file.endsWith('.png')) {
       res.setHeader('Content-Type', 'image/png');
+      res.setHeader('Cache-Control', 'public, max-age=604800, stale-while-revalidate=86400');
     }
     res.sendFile(filePath);
   });
 });
 
-app.get('/', (req, res) => res.sendFile(path.join(ROOT_DIR, 'index.html')));
-app.get('/index.html', (req, res) => res.sendFile(path.join(ROOT_DIR, 'index.html')));
-app.get('/admin.html', (req, res) => res.sendFile(path.join(ROOT_DIR, 'admin.html')));
-app.get('/login.html', (req, res) => res.sendFile(path.join(ROOT_DIR, 'login.html')));
-app.get('/account.html', (req, res) => res.sendFile(path.join(ROOT_DIR, 'account.html')));
-app.get('/plans.html', (req, res) => res.sendFile(path.join(ROOT_DIR, 'plans.html')));
-app.get('/manifest.json', (req, res) => res.sendFile(path.join(ROOT_DIR, 'manifest.json')));
+app.get('/', (req, res) => sendHtmlPage(res, 'index.html'));
+app.get('/index.html', (req, res) => sendHtmlPage(res, 'index.html'));
+app.get('/admin.html', (req, res) => sendHtmlPage(res, 'admin.html'));
+app.get('/login.html', (req, res) => sendHtmlPage(res, 'login.html'));
+app.get('/account.html', (req, res) => sendHtmlPage(res, 'account.html'));
+app.get('/plans.html', (req, res) => sendHtmlPage(res, 'plans.html'));
+app.get('/manifest.json', (req, res) => {
+  res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+  res.sendFile(path.join(ROOT_DIR, 'manifest.json'));
+});
 app.get('/sw.js', (req, res) => {
   res.setHeader('Service-Worker-Allowed', '/');
   res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.sendFile(path.join(ROOT_DIR, 'sw.js'));
 });
 
 // Dedicated settings and feature pages
-app.get('/profile.html', (req, res) => res.sendFile(path.join(ROOT_DIR, 'profile.html')));
-app.get('/security.html', (req, res) => res.sendFile(path.join(ROOT_DIR, 'security.html')));
-app.get('/personalization.html', (req, res) => res.sendFile(path.join(ROOT_DIR, 'personalization.html')));
+app.get('/profile.html', (req, res) => sendHtmlPage(res, 'profile.html'));
+app.get('/security.html', (req, res) => sendHtmlPage(res, 'security.html'));
+app.get('/personalization.html', (req, res) => sendHtmlPage(res, 'personalization.html'));
 
 // Legacy standalone settings pages were merged into the in-app Settings dialog.
 const LEGACY_SETTINGS_REDIRECTS = {
@@ -277,26 +295,26 @@ const LEGACY_SETTINGS_REDIRECTS = {
 Object.entries(LEGACY_SETTINGS_REDIRECTS).forEach(([page, tab]) => {
   app.get([`/${page}`, `/${page}.html`], (req, res) => res.redirect(302, `/#settings/${tab}`));
 });
-app.get('/help.html', (req, res) => res.sendFile(path.join(ROOT_DIR, 'help.html')));
-app.get('/redeem.html', (req, res) => res.sendFile(path.join(ROOT_DIR, 'redeem.html')));
-app.get('/download.html', (req, res) => res.sendFile(path.join(ROOT_DIR, 'download.html')));
-app.get('/download', (req, res) => res.sendFile(path.join(ROOT_DIR, 'download.html')));
-app.get('/app', (req, res) => res.sendFile(path.join(ROOT_DIR, 'download.html')));
+app.get('/help.html', (req, res) => sendHtmlPage(res, 'help.html'));
+app.get('/redeem.html', (req, res) => sendHtmlPage(res, 'redeem.html'));
+app.get('/download.html', (req, res) => sendHtmlPage(res, 'download.html'));
+app.get('/download', (req, res) => sendHtmlPage(res, 'download.html'));
+app.get('/app', (req, res) => sendHtmlPage(res, 'download.html'));
 
 // ChatGPT Exact SPA & Auth/Pricing URL Routes
 app.get(['/c/:chatId', '/c/*', '/g/:gptId', '/share/:shareId', '/settings', '/settings/*'], (req, res) => {
-  res.sendFile(path.join(ROOT_DIR, 'index.html'));
+  sendHtmlPage(res, 'index.html');
 });
 app.get(['/auth/login', '/auth/signup', '/signup'], (req, res) => {
-  res.sendFile(path.join(ROOT_DIR, 'login.html'));
+  sendHtmlPage(res, 'login.html');
 });
 app.get(['/pricing'], (req, res) => {
-  res.sendFile(path.join(ROOT_DIR, 'plans.html'));
+  sendHtmlPage(res, 'plans.html');
 });
 
 // Extensionless Clean Page Routes (with optional trailing slash handled by Express)
 ['plans', 'login', 'account', 'profile', 'security', 'personalization', 'help', 'redeem', 'admin'].forEach(p => {
-  app.get(`/${p}`, (req, res) => res.sendFile(path.join(ROOT_DIR, `${p}.html`)));
+  app.get(`/${p}`, (req, res) => sendHtmlPage(res, `${p}.html`));
 });
 
 // 404 handler — serve the styled 404 page to page navigations, JSON to API/asset callers

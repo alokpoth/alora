@@ -8,6 +8,7 @@ const { memoryStore, debouncedSave, saveBackup } = require('../config/memoryStor
 const supabase = require('../config/supabase');
 const { invalidateModelKeyCache, invalidateUsersCache, invalidateUserUsageCache } = require('../../utils/getModelConfig');
 const { invalidateCachedUser, invalidateCachedPlans, invalidateCachedModels } = require('../config/dbCache');
+const { sendServerError, redactSecrets } = require('../utils/safeError');
 
 const SUPER_ADMIN_EMAILS = ['zihanfakir@gmail.com', 'x@zihan.uk'];
 const isSuperAdminEmail = (email) => !!email && SUPER_ADMIN_EMAILS.includes(String(email).toLowerCase().trim());
@@ -104,7 +105,7 @@ const getAdminStats = async (req, res) => {
       return res.json({ success: true, stats });
     }
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return sendServerError(res, error, 'Internal server error', '[Admin Error]:');
   }
 };
 
@@ -120,7 +121,7 @@ const getUsers = async (req, res) => {
       return res.json({ success: true, count: users.length, users });
     }
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return sendServerError(res, error, 'Internal server error', '[Admin Error]:');
   }
 };
 
@@ -256,7 +257,7 @@ const updateUserPlan = async (req, res) => {
       });
     }
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return sendServerError(res, error, 'Internal server error', '[Admin Error]:');
   }
 };
 
@@ -347,7 +348,7 @@ const updateUserRole = async (req, res) => {
       });
     }
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return sendServerError(res, error, 'Internal server error', '[Admin Error]:');
   }
 };
 
@@ -439,7 +440,7 @@ const toggleBlockUser = async (req, res) => {
       });
     }
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return sendServerError(res, error, 'Internal server error', '[Admin Error]:');
   }
 };
 
@@ -559,7 +560,7 @@ const deleteUser = async (req, res) => {
 
     return res.json({ success: true, message: 'ইউজার অ্যাকাউন্ট ডাটাবেস থেকে সম্পূর্ণ মুছে ফেলা হয়েছে।' });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return sendServerError(res, error, 'Internal server error', '[Admin Error]:');
   }
 };
 
@@ -581,7 +582,7 @@ const getPlans = async (req, res) => {
     });
     return res.json({ success: true, count: plans.length, plans });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return sendServerError(res, error, 'Internal server error', '[Admin Error]:');
   }
 };
 
@@ -736,7 +737,7 @@ const updatePlanLimits = async (req, res) => {
       });
     }
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return sendServerError(res, error, 'Internal server error', '[Admin Error]:');
   }
 };
 
@@ -831,7 +832,7 @@ const generateRedeemCodes = async (req, res) => {
       codes: createdCodes
     });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return sendServerError(res, error, 'Internal server error', '[Admin Error]:');
   }
 };
 
@@ -858,7 +859,7 @@ const getRedeemCodes = async (req, res) => {
       return res.json({ success: true, count: codes.length, codes });
     }
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return sendServerError(res, error, 'Internal server error', '[Admin Error]:');
   }
 };
 
@@ -904,7 +905,7 @@ const deleteRedeemCode = async (req, res) => {
 
     res.json({ success: true, message: 'রিডিম কোডটি ডাটাবেস থেকে সম্পূর্ণ মুছে ফেলা হয়েছে।' });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return sendServerError(res, error, 'Internal server error', '[Admin Error]:');
   }
 };
 
@@ -1006,7 +1007,7 @@ const createCustomRedeemCode = async (req, res) => {
       });
     }
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return sendServerError(res, error, 'Internal server error', '[Admin Error]:');
   }
 };
 
@@ -1055,7 +1056,7 @@ const getModels = async (req, res) => {
     const sorted = models.sort((a, b) => (a.order || 0) - (b.order || 0));
     return res.json({ success: true, models: sorted });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return sendServerError(res, error, 'Internal server error', '[Admin Error]:');
   }
 };
 
@@ -1283,7 +1284,7 @@ const updateModel = async (req, res) => {
 
     return res.json({ success: true, message: 'মডেল ও ৩টি API কনফিগারেশন সফলভাবে আপডেট হয়েছে', model });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return sendServerError(res, error, 'Internal server error', '[Admin Error]:');
   }
 };
 
@@ -1395,7 +1396,7 @@ const addModel = async (req, res) => {
 
     return res.status(201).json({ success: true, message: 'নতুন মডেল সফলভাবে যোগ করা হয়েছে', model: newModel });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return sendServerError(res, error, 'Internal server error', '[Admin Error]:');
   }
 };
 
@@ -1535,7 +1536,7 @@ const deleteModel = async (req, res) => {
       remaining_count: models.length
     });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return sendServerError(res, error, 'Internal server error', '[Admin Error]:');
   }
 };
 
@@ -1634,7 +1635,7 @@ const reorderModels = async (req, res) => {
 
     return res.status(400).json({ success: false, error: 'সঠিক তথ্য দিন' });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return sendServerError(res, error, 'Internal server error', '[Admin Error]:');
   }
 };
 
@@ -1644,7 +1645,7 @@ const getSettings = async (req, res) => {
     const settings = await getSystemSettings();
     return res.json({ success: true, settings });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return sendServerError(res, error, 'Internal server error', '[Admin Error]:');
   }
 };
 
@@ -1656,7 +1657,7 @@ const updateSettings = async (req, res) => {
     debouncedSave();
     return res.json({ success: true, settings: saved, message: 'সিস্টেম সেটিংস সফলভাবে আপডেট হয়েছে' });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return sendServerError(res, error, 'Internal server error', '[Admin Error]:');
   }
 };
 
@@ -1674,7 +1675,7 @@ const testWebSearchSetting = async (req, res) => {
     const result = await executeSearch(cleanQuery, forcedSettings);
     return res.json({ success: true, ...result });
   } catch (error) {
-    return res.status(500).json({ success: false, error: error.message });
+    return res.status(500).json({ success: false, error: redactSecrets(error.message) });
   }
 };
 
@@ -1692,7 +1693,7 @@ const testImageGenSetting = async (req, res) => {
     const result = await executeImageGeneration(cleanPrompt, forcedSettings);
     return res.json({ success: true, ...result });
   } catch (error) {
-    return res.status(500).json({ success: false, error: error.message });
+    return res.status(500).json({ success: false, error: redactSecrets(error.message) });
   }
 };
 
@@ -1725,7 +1726,7 @@ const getApiKeys = async (req, res) => {
     }
     return res.json({ success: true, keys: result });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return sendServerError(res, error, 'Internal server error', '[Admin Error]:');
   }
 };
 
@@ -1750,7 +1751,7 @@ const saveApiKey = async (req, res) => {
       configured: Boolean(cleanKey)
     });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return sendServerError(res, error, 'Internal server error', '[Admin Error]:');
   }
 };
 
@@ -1773,7 +1774,7 @@ const deleteApiKey = async (req, res) => {
 
     return res.json({ success: true, message: `${cleanProvider.toUpperCase()} API Key মুছে ফেলা হয়েছে` });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return sendServerError(res, error, 'Internal server error', '[Admin Error]:');
   }
 };
 
@@ -1803,7 +1804,7 @@ const getSystemLogs = async (req, res) => {
       }))
     });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return sendServerError(res, error, 'Internal server error', '[Admin Error]:');
   }
 };
 

@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Alora</string>
-    <string name="error_offline_title">ইন্টারনেট সংযোগ নেই</string>
-    <string name="error_offline_desc">অনুগ্রহ করে আপনার ইন্টারনেট বা Wi-Fi কানেকশন চেক করে আবার চেষ্টা করুন।</string>
-    <string name="retry_button">আবার চেষ্টা করুন</string>
-    <string name="exit_prompt">অ্যাপ থেকে বের হতে আবার ব্যাক চাপুন</string>
-    <string name="download_started">ডাউনলোড শুরু হয়েছে…</string>
-    <string name="download_complete">ডাউনলোড সম্পন্ন হয়েছে</string>
-    <string name="file_chooser_title">ফাইল বা ছবি নির্বাচন করুন</string>
-    <string name="permission_camera_mic">ক্যামেরা ও মাইক্রোফোন ব্যবহারের অনুমতি দিন</string>
+    <string name="error_offline_title">No internet connection</string>
+    <string name="error_offline_desc">Please check your Wi-Fi or mobile data connection and try again.</string>
+    <string name="retry_button">Try again</string>
+    <string name="exit_prompt">Press back again to exit</string>
+    <string name="download_started">Download started…</string>
+    <string name="download_complete">Download complete</string>
+    <string name="download_failed">Could not start download</string>
+    <string name="save_failed">Could not save file</string>
+    <string name="file_chooser_title">Choose a file or image</string>
+    <string name="permission_camera_mic">Allow camera and microphone access</string>
 </resources>

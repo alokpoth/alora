@@ -6,6 +6,7 @@ const { getIsMongoConnected } = require('../config/db');
 const { memoryStore, debouncedSave } = require('../config/memoryStore');
 const { JWT_SECRET } = require('../config/jwtSecret');
 const { getCachedPlan, setCachedPlan, getCachedUser, setCachedUser, invalidateCachedUser } = require('../config/dbCache');
+const { sendServerError } = require('../utils/safeError');
 
 const generateToken = (user) => {
   const payload = (user && typeof user === 'object') ? {
@@ -147,7 +148,7 @@ const registerUser = async (req, res) => {
       });
     }
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return sendServerError(res, error, 'সার্ভারে ত্রুটি হয়েছে। অনুগ্রহ করে পরে আবার চেষ্টা করুন।', '[Auth Error]:');
   }
 };
 
@@ -265,7 +266,7 @@ const loginUser = async (req, res) => {
       });
     }
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return sendServerError(res, error, 'সার্ভারে ত্রুটি হয়েছে। অনুগ্রহ করে পরে আবার চেষ্টা করুন।', '[Auth Error]:');
   }
 };
 
@@ -510,7 +511,7 @@ const getMe = async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return sendServerError(res, error, 'সার্ভারে ত্রুটি হয়েছে। অনুগ্রহ করে পরে আবার চেষ্টা করুন।', '[Auth Error]:');
   }
 };
 
@@ -636,7 +637,7 @@ const updateProfile = async (req, res) => {
       user: { _id: user._id || user.id, id: user._id || user.id, name: user.name, email: user.email, role: user.role, subscription: user.subscription, avatar: user.avatar }
     });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return sendServerError(res, error, 'সার্ভারে ত্রুটি হয়েছে। অনুগ্রহ করে পরে আবার চেষ্টা করুন।', '[Auth Error]:');
   }
 };
 
@@ -747,7 +748,7 @@ const changePassword = async (req, res) => {
 
     return res.json({ success: true, message: 'পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে' });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return sendServerError(res, error, 'সার্ভারে ত্রুটি হয়েছে। অনুগ্রহ করে পরে আবার চেষ্টা করুন।', '[Auth Error]:');
   }
 };
 
@@ -768,7 +769,7 @@ const forgotPassword = async (req, res) => {
       message: 'পাসওয়ার্ড রিসেটের অনুরোধ গ্রহণ করা হয়েছে। নির্দেশনার জন্য আপনার ইমেইল চেক করুন অথবা সহায়তার জন্য অ্যাডমিনের সাথে যোগাযোগ করুন: x@zihan.uk'
     });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return sendServerError(res, error, 'সার্ভারে ত্রুটি হয়েছে। অনুগ্রহ করে পরে আবার চেষ্টা করুন।', '[Auth Error]:');
   }
 };
 
@@ -785,7 +786,7 @@ const googleAuth = async (req, res) => {
       error: 'Google OAuth configuration is currently pending on the server. Please log in with your email and password or continue as Guest.'
     });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return sendServerError(res, error, 'সার্ভারে ত্রুটি হয়েছে। অনুগ্রহ করে পরে আবার চেষ্টা করুন।', '[Auth Error]:');
   }
 };
 
@@ -845,7 +846,7 @@ const deleteAccount = async (req, res) => {
 
     return res.json({ success: true, message: 'আপনার অ্যাকাউন্ট সম্পূর্ণ মুছে ফেলা হয়েছে।' });
   } catch (error) {
-    return res.status(500).json({ success: false, error: error.message });
+    return sendServerError(res, error, 'সার্ভারে ত্রুটি হয়েছে। অনুগ্রহ করে পরে আবার চেষ্টা করুন।', '[Auth Error]:');
   }
 };
 

@@ -80,10 +80,10 @@
       ]
     },
     {
-      "name": "সেটিংস",
-      "short_name": "সেটিংস",
-      "description": "অ্যাকাউন্ট ও প্রেফারেন্স সেটিংস",
-      "url": "/account",
+      "name": "Settings",
+      "short_name": "Settings",
+      "description": "Account and preference settings",
+      "url": "/#settings/general",
       "icons": [
         {
           "src": "/favicon.png",
@@ -92,9 +92,9 @@
       ]
     },
     {
-      "name": "অ্যাপ ডাউনলোড",
-      "short_name": "ডাউনলোড",
-      "description": "মোবাইল ও ডেস্কটপ অ্যাপ ডাউনলোড",
+      "name": "Download App",
+      "short_name": "Download",
+      "description": "Download Android & Web app",
       "url": "/download",
       "icons": [
         {
