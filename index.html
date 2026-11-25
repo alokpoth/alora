@@ -2353,6 +2353,30 @@
       #settingsDialogBackdrop.mobile-subview .settings-tab-content {
         padding: 16px 16px max(28px, env(safe-area-inset-bottom, 28px));
       }
+      /* ChatGPT-style standalone red logout button */
+      .mset-logout-btn {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 14px;
+        width: 100%;
+        height: 52px;
+        padding: 0 18px;
+        border-radius: 26px;
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        color: var(--danger, #ef4444);
+        font-size: 0.96rem;
+        font-weight: 500;
+        transition: background 0.14s ease, opacity 0.14s ease;
+        cursor: pointer;
+      }
+      .mset-logout-btn:not(.mset-row-danger) {
+        color: var(--text-main);
+      }
+      .mset-logout-btn:active {
+        opacity: 0.75;
+      }
     }
 
     /* ==========================================================================
@@ -3468,7 +3492,9 @@
           <button type="button" class="settings-tab-btn" data-tab="notifications" data-i18n="tabNotifications">Notifications</button>
           <button type="button" class="settings-tab-btn" data-tab="custom" data-i18n="tabCustom">Personalization</button>
           <button type="button" class="settings-tab-btn" data-tab="security" data-i18n="tabSecurity">Security</button>
+          <button type="button" class="settings-tab-btn" data-tab="safety" data-i18n="msetSafetyLabel">Safety</button>
           <button type="button" class="settings-tab-btn" data-tab="speech" data-i18n="tabSpeech">Speech</button>
+          <button type="button" class="settings-tab-btn" data-tab="storage" data-i18n="msetStorageLabel">Storage</button>
           <button type="button" class="settings-tab-btn" data-tab="data" data-i18n="tabData">Data controls</button>
           <button type="button" class="settings-tab-btn" data-tab="ads" data-i18n="tabAds">Ads controls</button>
         </div>
@@ -3567,7 +3593,27 @@
               <span class="mset-row-right"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></span>
             </button>
 
-            <button type="button" class="mset-row" data-mset-tab="data" data-search="history data archive export json markdown clear chats">
+            <button type="button" class="mset-row" data-mset-tab="safety" data-search="safety content filter harmful hate violence self-harm">
+              <span class="mset-row-left">
+                <span class="mset-row-icon">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </span>
+                <span class="mset-row-copy"><span class="mset-row-title" data-i18n="msetSafetyLabel">Safety</span></span>
+              </span>
+              <span class="mset-row-right"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></span>
+            </button>
+
+            <button type="button" class="mset-row" data-mset-tab="storage" data-search="storage cache offline space local memory">
+              <span class="mset-row-left">
+                <span class="mset-row-icon">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="7" y1="16" x2="7.01" y2="16"/></svg>
+                </span>
+                <span class="mset-row-copy"><span class="mset-row-title" data-i18n="msetStorageLabel">Storage</span></span>
+              </span>
+              <span class="mset-row-right"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></span>
+            </button>
+
+            <button type="button" class="mset-row" data-mset-tab="data" data-search="history data archive export json markdown clear chats privacy center">
               <span class="mset-row-left">
                 <span class="mset-row-icon">
                   <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg>
@@ -3588,16 +3634,11 @@
             </button>
           </div>
 
-          <div class="mset-group" data-mset-group>
-            <button type="button" class="mset-row mset-row-danger" id="msetAuthActionRow" data-search="log out logout login sign in sign out">
-              <span class="mset-row-left">
-                <span class="mset-row-icon">
-                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                </span>
-                <span class="mset-row-copy"><span class="mset-row-title" id="msetAuthActionText">Log in</span></span>
-              </span>
-            </button>
-          </div>
+          <!-- Log out standalone button (ChatGPT-style red pill) -->
+          <button type="button" class="mset-logout-btn" id="msetAuthActionRow" data-search="log out logout login sign in sign out">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            <span id="msetAuthActionText">Log out</span>
+          </button>
         </div>
 
         <!-- General Tab -->
@@ -3890,6 +3931,42 @@
           </div>
         </div>
 
+        <!-- Safety Tab -->
+        <div class="settings-tab-content" id="tabSafetyContent" style="display:none;">
+          <div class="setting-row">
+            <div>
+              <div class="setting-label-title" data-i18n="safetyGuardTitle">Malicious & Abuse Protection</div>
+              <div class="setting-label-sub" data-i18n="safetyGuardSub">Blocks phishing, malware, and harmful exploit generation automatically</div>
+            </div>
+            <span style="font-size:0.82rem; color:var(--text-main); background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:9999px;" data-i18n="enforcedBadge">Enforced</span>
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label-title" data-i18n="safetyIdentityTitle">Model Privacy Shield</div>
+              <div class="setting-label-sub" data-i18n="safetyIdentitySub">Prevents upstream provider leaks and verifies ground-truth citations</div>
+            </div>
+            <span style="font-size:0.82rem; color:var(--text-main); background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:9999px;" data-i18n="enforcedBadge">Enforced</span>
+          </div>
+        </div>
+
+        <!-- Storage Tab -->
+        <div class="settings-tab-content" id="tabStorageContent" style="display:none;">
+          <div class="setting-row">
+            <div>
+              <div class="setting-label-title" data-i18n="storageLocalTitle">Local Device Storage</div>
+              <div class="setting-label-sub" id="localStorageSizeLabel">Calculating cached chat & preference usage...</div>
+            </div>
+            <span id="localStorageCountBadge" style="font-size:0.82rem; color:var(--text-main); background:rgba(255,255,255,0.08); padding:4px 10px; border-radius:9999px;">0 KB</span>
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label-title" data-i18n="storageCacheTitle">Offline App Cache</div>
+              <div class="setting-label-sub" data-i18n="storageCacheSub">Refresh cached assets and service worker files without deleting chats</div>
+            </div>
+            <button type="button" class="theme-opt-chip" id="clearAppCacheBtn" data-i18n="clearCacheBtn">Clear Cache</button>
+          </div>
+        </div>
+
       </div>
 
       <!-- Sticky bottom search bar (Mobile Settings Home only) -->
@@ -4108,7 +4185,17 @@
         msetUsageLimits: "Usage and limits",
         msetVoiceLabel: "Voice",
         msetSecurityLabel: "Security and login",
+        msetSafetyLabel: "Safety",
+        msetStorageLabel: "Storage",
         msetDataLabel: "History and data",
+        safetyGuardTitle: "Malicious & Abuse Protection",
+        safetyGuardSub: "Blocks phishing, malware, and harmful exploit generation automatically",
+        safetyIdentityTitle: "Model Privacy Shield",
+        safetyIdentitySub: "Prevents upstream provider leaks and verifies ground-truth citations",
+        storageLocalTitle: "Local Device Storage",
+        storageCacheTitle: "Offline App Cache",
+        storageCacheSub: "Refresh cached assets and service worker files without deleting chats",
+        clearCacheBtn: "Clear Cache",
         mobileCustomize: "Customize",
         mobileChat: "Chat",
         searchSettingsPlaceholder: "Search settings",
@@ -4302,7 +4389,17 @@
         msetUsageLimits: "ব্যবহার ও সীমা",
         msetVoiceLabel: "ভয়েস",
         msetSecurityLabel: "নিরাপত্তা ও লগইন",
+        msetSafetyLabel: "সুরক্ষা",
+        msetStorageLabel: "স্টোরেজ",
         msetDataLabel: "ইতিহাস ও ডাটা",
+        safetyGuardTitle: "ক্ষতিকর কনটেন্ট প্রতিরোধ",
+        safetyGuardSub: "ফিশিং, ম্যালওয়্যার ও ক্ষতিকর কোড তৈরির অনুরোধ স্বয়ংক্রিয়ভাবে ব্লক করে",
+        safetyIdentityTitle: "মডেল প্রাইভেসি শিল্ড",
+        safetyIdentitySub: "ব্যাকএন্ড প্রোভাইডার লিক রোধ করে এবং নির্ভুল তথ্য যাচাই করে",
+        storageLocalTitle: "লোকাল ডিভাইস স্টোরেজ",
+        storageCacheTitle: "অফলাইন অ্যাপ ক্যাশ",
+        storageCacheSub: "চ্যাট না মুছে অ্যাপ ক্যাশ ও সার্ভিস ওয়ার্কার রিফ্রেশ করুন",
+        clearCacheBtn: "ক্যাশ পরিষ্কার",
         mobileCustomize: "কাস্টমাইজ",
         mobileChat: "চ্যাট",
         searchSettingsPlaceholder: "সেটিংস খুঁজুন",
@@ -4891,11 +4988,16 @@
         const displayName = user.name || t("memberUser");
         const isAdmin = user.role === "admin";
         const plan = isAdmin ? "Max" : ((user.subscription && user.subscription.plan_name) || localStorage.getItem(KEYS.PLAN) || "Free");
+        const isDirectPaid = Boolean(!isAdmin && user.subscription && user.subscription.payment_source === "direct_payment" && plan !== "Free");
+        const paidMarkHtml = isDirectPaid ? ` <span title="Verified Paid" aria-label="Verified Paid" style="color:#22c55e;font-weight:700;">✓</span>` : "";
 
         if (userName) userName.textContent = displayName;
         if (popName) popName.textContent = displayName;
         if (msetName) msetName.textContent = displayName;
-        if (userPlanSub) userPlanSub.textContent = isAdmin ? "Admin" : plan;
+        if (userPlanSub) {
+          if (isAdmin) userPlanSub.textContent = "Admin";
+          else userPlanSub.innerHTML = escapeHtml(plan) + paidMarkHtml;
+        }
         const avUrl = normalizeAvatarUrl(user.avatar || localStorage.getItem("alokpoth_user_avatar"));
         const setAv = (el) => {
           if (!el) return;
@@ -4911,10 +5013,13 @@
         if (popoverAuthText) popoverAuthText.textContent = t("logOut");
         if (msetAuthText) msetAuthText.textContent = t("logOut");
         if (msetAuthRow) msetAuthRow.classList.add("mset-row-danger");
-        if (popoverEmail) popoverEmail.textContent = isAdmin ? "Admin" : `${plan} · ${user.email || ""}`.replace(/\s·\s$/, "");
+        if (popoverEmail) popoverEmail.textContent = isAdmin ? "Admin" : `${plan}${isDirectPaid ? " ✓ Paid" : ""} · ${user.email || ""}`.replace(/\s·\s$/, "");
         if (popoverAccountLink) popoverAccountLink.href = "/account";
         if (popoverProfileLink) popoverProfileLink.style.display = "flex";
-        if (settingsPlan) settingsPlan.textContent = isAdmin ? t("adminUnlimited") : `${plan} ${t("planSuffix")}`;
+        if (settingsPlan) {
+          if (isAdmin) settingsPlan.textContent = t("adminUnlimited");
+          else settingsPlan.innerHTML = escapeHtml(`${plan} ${t("planSuffix")}`) + (isDirectPaid ? ` <span style="color:#22c55e;font-weight:700;">✓ Paid</span>` : "");
+        }
         if (settingsEmail) settingsEmail.textContent = user.email || t("activeUser");
         if (settingsAuthBtn) settingsAuthBtn.textContent = t("logOut");
         if (settingsAccountPortalLink) settingsAccountPortalLink.style.display = "inline-flex";
@@ -5420,6 +5525,27 @@
       if (hl) hl.textContent = isTemporaryChat ? `${baseLabel} (Temp)` : baseLabel;
     }
 
+    function syncStorageUI() {
+      let totalBytes = 0;
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i) || "";
+          const v = localStorage.getItem(k) || "";
+          totalBytes += (k.length + v.length) * 2;
+        }
+      } catch (e) {}
+      const kb = (totalBytes / 1024).toFixed(1);
+      const sessions = loadSessions();
+      const badge = document.getElementById("localStorageCountBadge");
+      const label = document.getElementById("localStorageSizeLabel");
+      if (badge) badge.textContent = `${kb} KB`;
+      if (label) {
+        label.textContent = currentLanguage === "bn"
+          ? `${sessions.length}টি সংরক্ষিত চ্যাট (${kb} KB ব্যবহৃত)`
+          : `${sessions.length} saved chats (${kb} KB used)`;
+      }
+    }
+
     function filterMobileSettings(query = "") {
       const q = (query || "").trim().toLowerCase();
       document.querySelectorAll("#mobileSettingsHome [data-mset-group]").forEach(group => {
@@ -5433,6 +5559,12 @@
         });
         group.style.display = anyVisible ? "flex" : "none";
       });
+      const authBtn = document.getElementById("msetAuthActionRow");
+      if (authBtn) {
+        const kw = (authBtn.getAttribute("data-search") || "").toLowerCase();
+        const tx = (authBtn.textContent || "").toLowerCase();
+        authBtn.style.display = (!q || kw.includes(q) || tx.includes(q)) ? "flex" : "none";
+      }
     }
 
     function openSettingsModal(tabName, updateHash = true) {
@@ -5451,6 +5583,8 @@
         notifications: t("tabNotifications"),
         speech: t("msetVoiceLabel"),
         security: t("msetSecurityLabel"),
+        safety: t("msetSafetyLabel"),
+        storage: t("msetStorageLabel"),
         data: t("msetDataLabel"),
         ads: t("tabAds")
       };
@@ -5478,7 +5612,9 @@
         custom: "tabCustomContent",
         notifications: "tabNotificationsContent",
         security: "tabSecurityContent",
+        safety: "tabSafetyContent",
         speech: "tabSpeechContent",
+        storage: "tabStorageContent",
         data: "tabDataContent",
         ads: "tabAdsContent"
       };
@@ -5491,6 +5627,8 @@
         refreshUserFromServer();
       } else if (normalized === "data") {
         renderArchivedChatsList();
+      } else if (normalized === "storage") {
+        syncStorageUI();
       } else if (normalized === "custom") {
         loadCustomSettingsInputs();
         renderSavedMemories();
@@ -6983,6 +7121,7 @@
       let recording = false;
       let usingNative = false;
       let rec = null;
+      let lastMicToggleMs = 0;
 
       function setMicState(active, nativeMode = false) {
         recording = !!active;
@@ -6990,7 +7129,7 @@
         micBtn.classList.toggle("recording", recording);
         micBtn.classList.remove("active");
         micBtn.setAttribute("aria-pressed", recording ? "true" : "false");
-        if (!recording && document.activeElement === micBtn) {
+        if (!recording) {
           try { micBtn.blur(); } catch (e) {}
         }
       }
@@ -7043,10 +7182,14 @@
       micBtn.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
+        const now = Date.now();
+        if (now - lastMicToggleMs < 320) return;
+        lastMicToggleMs = now;
+
         const lang = currentLanguage === "bn" ? "bn-BD" : "en-US";
         const bridge = getNativeAndroidBridge();
 
-        if (recording) {
+        if (recording || micBtn.classList.contains("recording")) {
           const wasNative = usingNative;
           setMicState(false);
           if (wasNative && bridge && typeof bridge.stopNativeVoice === "function") {
@@ -7055,6 +7198,7 @@
           if (rec) {
             try { rec.abort(); } catch (err) { try { rec.stop(); } catch (err2) {} }
           }
+          showToast(currentLanguage === "bn" ? "মাইক্রোফোন বন্ধ করা হয়েছে" : "Microphone stopped");
           return;
         }
 
@@ -7558,6 +7702,20 @@
       });
       document.getElementById("mobileSettingsSearchInput")?.addEventListener("input", (e) => {
         filterMobileSettings(e.target.value);
+      });
+      document.getElementById("clearAppCacheBtn")?.addEventListener("click", async () => {
+        try {
+          if ("caches" in window) {
+            const keys = await caches.keys();
+            await Promise.all(keys.map(k => caches.delete(k)));
+          }
+          if ("serviceWorker" in navigator) {
+            const regs = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(regs.map(r => r.update().catch(() => {})));
+          }
+        } catch (err) {}
+        syncStorageUI();
+        showToast(currentLanguage === "bn" ? "অ্যাপ ক্যাশ পরিষ্কার করা হয়েছে" : "App cache refreshed");
       });
 
       document.getElementById("notifMasterToggle")?.addEventListener("change", (e) => {

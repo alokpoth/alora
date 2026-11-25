@@ -58,6 +58,15 @@ const UserSchema = new mongoose.Schema({
     is_active: {
       type: Boolean,
       default: true
+    },
+    payment_source: {
+      type: String,
+      enum: ['free', 'direct_payment', 'redeem_code', 'trial', 'admin_grant'],
+      default: 'free'
+    },
+    order_id: {
+      type: String,
+      default: ''
     }
   }
 }, { timestamps: true });

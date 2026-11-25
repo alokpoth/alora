@@ -19,6 +19,7 @@ const chatRoutes = require('./routes/chatRoutes');
 const redeemRoutes = require('./routes/redeemRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const searchRoutes = require('./routes/searchRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
 
 const app = express();
 
@@ -142,7 +143,9 @@ app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/redeem', (req, res, next) => (req.method === 'GET' ? next() : redeemLimiter(req, res, next)), redeemRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/zihan', adminRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // Health check
 const serverHealthHandler = (req, res) => {
@@ -159,7 +162,7 @@ app.head('/api/health', (req, res) => res.status(200).end());
 app.get('/health', serverHealthHandler);
 app.head('/health', (req, res) => res.status(200).end());
 
-// Diagnostic debug-models endpoint (admin only: the documents contain provider API keys)
+// Diagnostic debug-models endpoint (admin only, secrets redacted)
 app.get('/api/debug-models', protect, adminOnly, async (req, res) => {
   try {
     const { getPersistedModels, getDeletedModelIds } = require('../utils/getModelConfig');
@@ -168,7 +171,15 @@ app.get('/api/debug-models', protect, adminOnly, async (req, res) => {
     const persisted = await getPersistedModels();
     let mongoList = [];
     if (isMongo) {
-      mongoList = await AiModel.find().lean().catch(e => ({ error: e.message }));
+      const rawMongoList = await AiModel.find().lean().catch(e => ({ error: e.message }));
+      mongoList = Array.isArray(rawMongoList)
+        ? rawMongoList.map(({ api_key, fallback_key_1, fallback_key_2, ...rest }) => ({
+            ...rest,
+            has_api_key: Boolean(api_key && String(api_key).trim()),
+            has_fallback_key_1: Boolean(fallback_key_1 && String(fallback_key_1).trim()),
+            has_fallback_key_2: Boolean(fallback_key_2 && String(fallback_key_2).trim())
+          }))
+        : rawMongoList;
     }
     res.json({
       success: true,
@@ -212,8 +223,9 @@ const ROOT_DIR = path.join(__dirname, '..');
 app.use('/avatars', express.static(path.join(ROOT_DIR, 'avatars'), { maxAge: '7d' }));
 app.use('/logo', express.static(path.join(ROOT_DIR, 'logo'), { maxAge: '7d' }));
 
-function sendHtmlPage(res, fileName) {
-  res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+function sendHtmlPage(res, fileName, extraHeaders = {}) {
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  Object.entries(extraHeaders).forEach(([k, v]) => res.setHeader(k, v));
   return res.sendFile(path.join(ROOT_DIR, fileName));
 }
 
@@ -257,10 +269,16 @@ STATIC_ASSETS.forEach(file => {
 
 app.get('/', (req, res) => sendHtmlPage(res, 'index.html'));
 app.get('/index.html', (req, res) => sendHtmlPage(res, 'index.html'));
-app.get('/admin.html', (req, res) => sendHtmlPage(res, 'admin.html'));
+app.get(['/admin', '/admin/*', '/admin.html', '/zihan.html'], (req, res) => res.redirect(302, '/'));
+app.get(['/zihan', '/zihan/'], (req, res) => sendHtmlPage(res, 'zihan.html', {
+  'X-Frame-Options': 'DENY',
+  'X-Robots-Tag': 'noindex, nofollow, noarchive',
+  'Referrer-Policy': 'no-referrer'
+}));
 app.get('/login.html', (req, res) => sendHtmlPage(res, 'login.html'));
 app.get('/account.html', (req, res) => sendHtmlPage(res, 'account.html'));
 app.get('/plans.html', (req, res) => sendHtmlPage(res, 'plans.html'));
+app.get('/checkout.html', (req, res) => sendHtmlPage(res, 'checkout.html'));
 app.get('/manifest.json', (req, res) => {
   res.setHeader('Cache-Control', 'no-cache, must-revalidate');
   res.sendFile(path.join(ROOT_DIR, 'manifest.json'));
@@ -302,16 +320,16 @@ app.get(['/pricing'], (req, res) => {
 });
 
 // Extensionless Clean Page Routes (with optional trailing slash handled by Express)
-['plans', 'login', 'account', 'profile', 'security', 'personalization', 'help', 'redeem', 'admin'].forEach(p => {
+['plans', 'checkout', 'login', 'account', 'profile', 'security', 'personalization', 'help', 'redeem'].forEach(p => {
   app.get(`/${p}`, (req, res) => sendHtmlPage(res, `${p}.html`));
 });
 
-// 404 handler — serve the styled 404 page to page navigations, JSON to API/asset callers
+// Catch-all handler: unknown page/route redirects straight into Home Chat (/); API or static asset callers get 404 JSON
 app.use((req, res) => {
   const isApiRequest = req.path === '/api' || req.path.startsWith('/api/');
-  const acceptsHtml = String(req.headers.accept || '').includes('text/html');
-  if (!isApiRequest && acceptsHtml && (req.method === 'GET' || req.method === 'HEAD')) {
-    return res.status(404).sendFile(path.join(ROOT_DIR, '404.html'));
+  const isStaticAssetExt = /\.[a-z0-9]{1,8}$/i.test(req.path) && !req.path.endsWith('.html');
+  if (!isApiRequest && !isStaticAssetExt && (req.method === 'GET' || req.method === 'HEAD')) {
+    return res.redirect(302, '/');
   }
   res.status(404).json({ success: false, error: 'Route not found' });
 });
@@ -334,6 +352,6 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`=================================================`);
   console.log(`[Alora AI Server] Running on http://localhost:${PORT}`);
-  console.log(`[Admin Panel] Open http://localhost:${PORT}/admin.html`);
+  console.log(`[Secret Admin Panel] Open http://localhost:${PORT}/zihan`);
   console.log(`=================================================`);
 });

@@ -1183,13 +1183,15 @@
     })();
 
     const planLimits = {
-      Guest: { message_limit: 10, image_limit: 0, window_hours: 3, price_bdt: 0, tagline: '' },
-      Free:  { message_limit: 10, image_limit: 5, window_hours: 3, price_bdt: 0, tagline: '' },
-      Go:    { message_limit: 20, image_limit: 15, window_hours: 3, price_bdt: 699, tagline: '' },
-      Plus:  { message_limit: 30, image_limit: 25, window_hours: 3, price_bdt: 2500, tagline: '' },
-      Pro:   { message_limit: 40, image_limit: 50, window_hours: 2, price_bdt: 6900, tagline: '' },
-      Max:   { message_limit: 50, image_limit: 100, window_hours: 1, price_bdt: 15000, tagline: '' }
+      Guest: { message_limit: 10, image_limit: 0, window_hours: 3, price_usd: 0, price_bdt: 0, tagline: '' },
+      Free:  { message_limit: 10, image_limit: 5, window_hours: 3, price_usd: 0, price_bdt: 0, tagline: '' },
+      Go:    { message_limit: 20, image_limit: 15, window_hours: 3, price_usd: 5, price_bdt: 699, tagline: '' },
+      Plus:  { message_limit: 30, image_limit: 25, window_hours: 3, price_usd: 20, price_bdt: 2500, tagline: '' },
+      Pro:   { message_limit: 40, image_limit: 50, window_hours: 2, price_usd: 55, price_bdt: 6900, tagline: '' },
+      Max:   { message_limit: 50, image_limit: 100, window_hours: 1, price_usd: 120, price_bdt: 15000, tagline: '' }
     };
+
+    let billingRates = { usd_to_bdt_rate: 120, usd_to_usdt_rate: 1 };
 
     let promoState = null;
 
@@ -1362,15 +1364,23 @@
 
     const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>';
 
-    function formatPriceDisplay(priceNum, d) {
-      const n = Number(priceNum) || 0;
-      if (n <= 0) {
-        return { figure: currentLang === 'bn' ? '৳০' : 'BDT 0', meta: d.foreverFree };
+    function formatPriceDisplay(limObj, d) {
+      const usd = Number(limObj && limObj.price_usd) || 0;
+      if (usd <= 0) {
+        return { figure: '$0', meta: d.foreverFree, subMeta: '' };
       }
-      const formatted = n.toLocaleString('en-US');
+      const usdtRate = Number(billingRates.usd_to_usdt_rate) || 1;
+      const bdtRate = Number(billingRates.usd_to_bdt_rate) || 120;
+      const usdtVal = Math.round(usd * usdtRate * 100) / 100;
+      const bdtVal = Math.round(usd * bdtRate);
+      const usdtFormatted = Number.isInteger(usdtVal) ? usdtVal.toLocaleString('en-US') : usdtVal.toFixed(2);
+      const bdtFormatted = bdtVal.toLocaleString('en-US');
       return {
-        figure: currentLang === 'bn' ? ('৳' + toBnDigits(formatted)) : ('BDT ' + formatted),
-        meta: d.perMonth
+        figure: '$' + usdtFormatted + ' USDT',
+        meta: d.perMonth,
+        subMeta: currentLang === 'bn'
+          ? ('≈ ৳' + toBnDigits(bdtFormatted) + ' BDT (১ USD = ৳' + toBnDigits(bdtRate) + ')')
+          : ('≈ ৳' + bdtFormatted + ' BDT (1 USD = ৳' + bdtRate + ')')
       };
     }
 
@@ -1407,7 +1417,12 @@
       // Header Plan Chip
       const headerPlanChip = document.getElementById('headerPlanChip');
       if (auth.loggedIn) {
-        headerPlanChip.textContent = auth.isAdmin ? d.adminBadge : auth.plan;
+        let isPaidVerified = false;
+        try {
+          const uRaw = JSON.parse(localStorage.getItem('alokpoth_user') || 'null');
+          isPaidVerified = Boolean(uRaw && uRaw.subscription && uRaw.subscription.payment_source === 'direct_payment');
+        } catch (e) {}
+        headerPlanChip.textContent = (auth.isAdmin ? d.adminBadge : auth.plan) + (isPaidVerified ? ' ✓' : '');
         headerPlanChip.style.display = 'inline-flex';
       } else {
         headerPlanChip.style.display = 'none';
@@ -1424,7 +1439,7 @@
           const isFeatured = (tierName === 'Plus' || tierName === 'Pro');
           const isTrialTier = Boolean(canClaimTrial && promoState.plan === tierName);
 
-          const priceDisp = formatPriceDisplay(limObj.price_bdt, d);
+          const priceDisp = formatPriceDisplay(limObj, d);
           const taglineText = (currentLang === 'en' && limObj.tagline) ? limObj.tagline : meta.tagline;
           const quotaText = (tierName === 'Max' && auth.isAdmin)
             ? d.quotaAdmin
@@ -1457,6 +1472,7 @@
               <span class="price-figure">${escapeHtml(priceDisp.figure)}</span>
               <span class="price-meta">${escapeHtml(priceDisp.meta)}</span>
             </div>
+            ${priceDisp.subMeta ? `<div style="font-size:0.78rem; color:var(--text-muted); margin-top:-10px;">${escapeHtml(priceDisp.subMeta)}</div>` : ''}
             <button type="button" class="plan-cta-btn" data-tier="${escapeHtml(tierName)}"></button>
             <div class="feature-list">
               <div class="feature-inherit-label">${escapeHtml(meta.inherit || '')}</div>
@@ -1481,10 +1497,7 @@
             ctaBtn.textContent = d.ctaUpgradeTier(tierName);
             ctaBtn.className = 'plan-cta-btn' + (isFeatured ? ' solid' : '');
             ctaBtn.onclick = () => {
-              if (redeemInput && !redeemInput.value.trim()) {
-                redeemInput.placeholder = 'ALO-' + tierName.toUpperCase() + '-XXXX';
-              }
-              jumpToVoucherRedeem();
+              window.location.href = '/checkout?plan=' + encodeURIComponent(tierName);
             };
           }
 
@@ -1532,22 +1545,34 @@
       syncTrialBanner();
     });
 
-    // Hydrate dynamic limits from GET /api/plans (Guest, Free, Go, Plus, Pro, Max)
+    // Hydrate dynamic limits from GET /api/plans & exchange rates from GET /api/payments/config
     async function syncPlansFromServer() {
       try {
-        const res = await fetch(API_BASE + '/plans?_t=' + Date.now(), { cache: 'no-store' });
-        if (!res.ok) return;
-        const data = await res.json();
+        const [plansRes, payRes] = await Promise.all([
+          fetch(API_BASE + '/plans?_t=' + Date.now(), { cache: 'no-store' }),
+          fetch(API_BASE + '/payments/config?_t=' + Date.now(), { cache: 'no-store' }).catch(() => null)
+        ]);
+        if (payRes && payRes.ok) {
+          const pData = await payRes.json().catch(() => null);
+          if (pData && pData.success && pData.billing) {
+            if (Number(pData.billing.usd_to_bdt_rate) > 0) billingRates.usd_to_bdt_rate = Number(pData.billing.usd_to_bdt_rate);
+            if (Number(pData.billing.usd_to_usdt_rate) > 0) billingRates.usd_to_usdt_rate = Number(pData.billing.usd_to_usdt_rate);
+          }
+        }
+        if (!plansRes.ok) return;
+        const data = await plansRes.json();
         if (data && data.success && Array.isArray(data.plans)) {
           data.plans.forEach(p => {
             if (p && planLimits[p.name]) {
               const lim = Number(p.message_limit);
               const imgLim = Number(p.image_limit);
               const hrs = Number(p.window_hours);
+              const priceUsd = Number(p.price_usd);
               const price = Number(p.price_bdt);
               if (!isNaN(lim) && (p.name === 'Guest' ? lim >= 0 : lim > 0)) planLimits[p.name].message_limit = lim;
               if (!isNaN(imgLim) && imgLim >= 0) planLimits[p.name].image_limit = imgLim;
               if (!isNaN(hrs) && hrs > 0) planLimits[p.name].window_hours = hrs;
+              if (!isNaN(priceUsd) && priceUsd >= 0) planLimits[p.name].price_usd = priceUsd;
               if (!isNaN(price) && price >= 0) planLimits[p.name].price_bdt = price;
               if (typeof p.tagline === 'string' && p.tagline.trim()) planLimits[p.name].tagline = p.tagline.trim();
             }

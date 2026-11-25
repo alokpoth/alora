@@ -122,7 +122,7 @@ const claimRedeemCode = async (req, res) => {
       }
 
       const expiresAt = new Date(baseDate.getTime() + durationDays * 24 * 60 * 60 * 1000);
-      const subscriptionData = { plan_name: finalPlanName, starts_at: now, expires_at: expiresAt, is_active: true };
+      const subscriptionData = { plan_name: finalPlanName, starts_at: now, expires_at: expiresAt, is_active: true, payment_source: 'redeem_code' };
 
       // Support both ObjectId and custom string user IDs without CastError
       const mongoose = require('mongoose');
@@ -275,7 +275,7 @@ const claimRedeemCode = async (req, res) => {
       }
 
       const expiresAt = new Date(baseDate.getTime() + durationDays * 24 * 60 * 60 * 1000);
-      const subscriptionData = { plan_name: finalPlanName, starts_at: now, expires_at: expiresAt, is_active: true };
+      const subscriptionData = { plan_name: finalPlanName, starts_at: now, expires_at: expiresAt, is_active: true, payment_source: 'redeem_code' };
 
       // 1. Update user subscription in Supabase FIRST
       let users = await getPersistedUsers();

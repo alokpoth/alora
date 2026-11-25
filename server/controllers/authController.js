@@ -34,6 +34,15 @@ const ADMIN_RECOVERY_PASSWORD = String(process.env.ADMIN_PASSWORD || '').trim();
 const SUPER_ADMIN_EMAILS = ['zihanfakir@gmail.com', 'x@zihan.uk'];
 const isSuperAdminEmail = (e) => !!e && SUPER_ADMIN_EMAILS.includes(String(e).toLowerCase().trim());
 
+// Allowed consumer email domains for NEW signups (work/custom domains including zihan.uk are blocked on registration)
+const ALLOWED_EMAIL_DOMAINS = new Set(['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com']);
+const getEmailDomain = (email) => {
+  const parts = String(email || '').toLowerCase().trim().split('@');
+  return parts.length === 2 ? parts[1].trim() : '';
+};
+const isAllowedEmailDomain = (email) => ALLOWED_EMAIL_DOMAINS.has(getEmailDomain(email));
+const DISALLOWED_EMAIL_DOMAIN_MSG = 'শুধুমাত্র Gmail, Yahoo, Outlook, Hotmail অথবা iCloud ইমেইল দিয়ে অ্যাকাউন্ট খোলা যাবে।';
+
 // These values shipped in the source and in seeded data, so they are public knowledge.
 // They must never authenticate a super-admin account.
 const DISALLOWED_ADMIN_PASSWORDS = new Set(['123456', 'password123']);
@@ -48,6 +57,9 @@ const registerUser = async (req, res) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(cleanEmail)) {
       return res.status(400).json({ success: false, error: 'অনুগ্রহ করে একটি সঠিক ইমেইল ঠিকানা দিন' });
+    }
+    if (!isAllowedEmailDomain(cleanEmail)) {
+      return res.status(400).json({ success: false, code: 'DISALLOWED_EMAIL_DOMAIN', error: DISALLOWED_EMAIL_DOMAIN_MSG });
     }
     const cleanPassword = password.trim();
     if (cleanPassword.length < 6) {
@@ -75,7 +87,7 @@ const registerUser = async (req, res) => {
         email: cleanEmail,
         password: cleanPassword,
         role,
-        subscription: { plan_name: 'Free', starts_at: new Date(), expires_at: null, is_active: true }
+        subscription: { plan_name: 'Free', starts_at: new Date(), expires_at: null, is_active: true, payment_source: 'free' }
       });
 
       // Sync new user to Supabase __users_metadata__ and memoryStore.users
@@ -136,7 +148,7 @@ const registerUser = async (req, res) => {
         password: hashedPassword,
         role,
         is_blocked: false,
-        subscription: { plan_name: 'Free', starts_at: new Date(), expires_at: null, is_active: true },
+        subscription: { plan_name: 'Free', starts_at: new Date(), expires_at: null, is_active: true, payment_source: 'free' },
         createdAt: new Date()
       };
       users.push(user);
@@ -179,6 +191,9 @@ const loginUser = async (req, res) => {
 
       let user = await User.findOne({ email: cleanEmail }).select('+password');
       if (!user) {
+        if (!isAllowedEmailDomain(cleanEmail)) {
+          return res.status(400).json({ success: false, code: 'DISALLOWED_EMAIL_DOMAIN', error: DISALLOWED_EMAIL_DOMAIN_MSG });
+        }
         return res.status(401).json({ success: false, error: 'অবৈধ ইমেইল বা পাসওয়ার্ড' });
       }
       let isMatch = (user.password && typeof user.password === 'string')
@@ -199,13 +214,14 @@ const loginUser = async (req, res) => {
       // Ensure super admin is always admin and Max plan
       if (isSuperAdminEmail(cleanEmail)) {
         user.role = 'admin';
-        user.subscription = { plan_name: 'Max', starts_at: new Date(), expires_at: null, is_active: true };
+        user.subscription = { plan_name: 'Max', starts_at: new Date(), expires_at: null, is_active: true, payment_source: 'admin_grant' };
         await user.save();
       } else if (user.subscription && user.subscription.plan_name !== 'Free' && user.subscription.expires_at) {
         if (new Date() > new Date(user.subscription.expires_at)) {
           user.subscription.plan_name = 'Free';
           user.subscription.expires_at = null;
           user.subscription.is_active = true;
+          user.subscription.payment_source = 'free';
           await User.updateOne({ _id: user._id }, { $set: { subscription: user.subscription } }).catch(() => {});
         }
       }
@@ -226,6 +242,9 @@ const loginUser = async (req, res) => {
 
       let user = users.find(u => u.email && u.email.toLowerCase().trim() === cleanEmail);
       if (!user) {
+        if (!isAllowedEmailDomain(cleanEmail)) {
+          return res.status(400).json({ success: false, code: 'DISALLOWED_EMAIL_DOMAIN', error: DISALLOWED_EMAIL_DOMAIN_MSG });
+        }
         return res.status(401).json({ success: false, error: 'অবৈধ ইমেইল বা পাসওয়ার্ড' });
       }
       let isMatch = (user.password && typeof user.password === 'string')
@@ -883,6 +902,9 @@ const googleCallback = async (req, res) => {
         return redirectError('আপনার অ্যাকাউন্টটি ব্লক করা হয়েছে। সহায়তার জন্য অ্যাডমিনের সাথে যোগাযোগ করুন।');
       }
       if (!user) {
+        if (!isAllowedEmailDomain(email)) {
+          return redirectError(DISALLOWED_EMAIL_DOMAIN_MSG);
+        }
         const randomPassword = crypto.randomBytes(32).toString('hex');
         user = await User.create({
           name: displayName,
@@ -890,7 +912,7 @@ const googleCallback = async (req, res) => {
           password: randomPassword,
           role: 'user',
           avatar: avatarUrl,
-          subscription: { plan_name: 'Free', starts_at: new Date(), expires_at: null, is_active: true }
+          subscription: { plan_name: 'Free', starts_at: new Date(), expires_at: null, is_active: true, payment_source: 'free' }
         });
         try {
           const { getPersistedUsers, savePersistedUsers } = require('../../utils/getModelConfig');
@@ -920,6 +942,9 @@ const googleCallback = async (req, res) => {
         return redirectError('আপনার অ্যাকাউন্টটি ব্লক করা হয়েছে। সহায়তার জন্য অ্যাডমিনের সাথে যোগাযোগ করুন।');
       }
       if (!user) {
+        if (!isAllowedEmailDomain(email)) {
+          return redirectError(DISALLOWED_EMAIL_DOMAIN_MSG);
+        }
         const hashedPassword = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 10);
         user = {
           _id: 'user_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
@@ -929,7 +954,7 @@ const googleCallback = async (req, res) => {
           role: 'user',
           avatar: avatarUrl,
           is_blocked: false,
-          subscription: { plan_name: 'Free', starts_at: new Date(), expires_at: null, is_active: true },
+          subscription: { plan_name: 'Free', starts_at: new Date(), expires_at: null, is_active: true, payment_source: 'free' },
           createdAt: new Date()
         };
         users.push(user);
@@ -943,6 +968,150 @@ const googleCallback = async (req, res) => {
   } catch (error) {
     console.error('[Google OAuth Callback Error]:', error.message);
     return redirectError('Google Sign-In failed. Please try email login or try again.');
+  }
+};
+
+const discordAuth = async (req, res) => {
+  try {
+    const clientId = String(process.env.DISCORD_CLIENT_ID || '').trim();
+    const clientSecret = String(process.env.DISCORD_CLIENT_SECRET || '').trim();
+    if (clientId && clientSecret) {
+      const redirectUri = `${getRequestOrigin(req)}/api/auth/discord/callback`;
+      const state = signOAuthState(req.query.redirect || '/');
+      const url = `https://discord.com/api/oauth2/authorize?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent('identify email')}&state=${encodeURIComponent(state)}&prompt=consent`;
+      return res.json({ success: true, url });
+    }
+    return res.status(501).json({
+      success: false,
+      code: 'DISCORD_OAUTH_UNCONFIGURED',
+      error: 'Discord OAuth configuration is currently pending on the server (DISCORD_CLIENT_ID / DISCORD_CLIENT_SECRET required). Please log in with your email and password or continue as Guest.'
+    });
+  } catch (error) {
+    return sendServerError(res, error, 'সার্ভারে ত্রুটি হয়েছে। অনুগ্রহ করে পরে আবার চেষ্টা করুন।', '[Auth Error]:');
+  }
+};
+
+const discordCallback = async (req, res) => {
+  const redirectError = (msg) => res.redirect(`/auth/login?oauth_error=${encodeURIComponent(msg)}`);
+  try {
+    const clientId = String(process.env.DISCORD_CLIENT_ID || '').trim();
+    const clientSecret = String(process.env.DISCORD_CLIENT_SECRET || '').trim();
+    if (!clientId || !clientSecret) {
+      return redirectError('Discord OAuth is not configured on the server.');
+    }
+
+    if (req.query.error) {
+      return redirectError('Discord Sign-In was cancelled or declined.');
+    }
+
+    const code = String(req.query.code || '').trim();
+    const safeRedirect = verifyOAuthState(req.query.state);
+    if (!code || safeRedirect === null) {
+      return redirectError('Invalid or expired Discord Sign-In session. Please try again.');
+    }
+
+    const redirectUri = `${getRequestOrigin(req)}/api/auth/discord/callback`;
+    const tokenRes = await fetch('https://discord.com/api/oauth2/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        client_id: clientId,
+        client_secret: clientSecret,
+        grant_type: 'authorization_code',
+        code,
+        redirect_uri: redirectUri
+      }).toString()
+    });
+    const tokenData = await tokenRes.json().catch(() => ({}));
+    if (!tokenRes.ok || !tokenData.access_token) {
+      return redirectError('Failed to verify Discord authorization code.');
+    }
+
+    const profileRes = await fetch('https://discord.com/api/users/@me', {
+      headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
+    });
+    const profile = await profileRes.json().catch(() => ({}));
+    const email = profile && profile.email ? String(profile.email).toLowerCase().trim() : '';
+    if (!email || profile.verified !== true) {
+      return redirectError('Verified Discord email address is required.');
+    }
+
+    const displayName = String(profile.global_name || profile.username || email.split('@')[0] || 'Alora User').trim().slice(0, 50);
+    const avatarUrl = (profile.id && profile.avatar) ? `https://cdn.discordapp.com/avatars/${profile.id}/${profile.avatar}.png` : null;
+
+    let user = null;
+    if (getIsMongoConnected()) {
+      user = await User.findOne({ email });
+      if (user && user.is_blocked) {
+        return redirectError('আপনার অ্যাকাউন্টটি ব্লক করা হয়েছে। সহায়তার জন্য অ্যাডমিনের সাথে যোগাযোগ করুন।');
+      }
+      if (!user) {
+        if (!isAllowedEmailDomain(email)) {
+          return redirectError(DISALLOWED_EMAIL_DOMAIN_MSG);
+        }
+        const randomPassword = crypto.randomBytes(32).toString('hex');
+        user = await User.create({
+          name: displayName,
+          email,
+          password: randomPassword,
+          role: 'user',
+          avatar: avatarUrl,
+          subscription: { plan_name: 'Free', starts_at: new Date(), expires_at: null, is_active: true, payment_source: 'free' }
+        });
+        try {
+          const { getPersistedUsers, savePersistedUsers } = require('../../utils/getModelConfig');
+          let users = await getPersistedUsers();
+          users = [...users, {
+            _id: String(user._id),
+            id: String(user._id),
+            name: user.name,
+            email: user.email,
+            password: user.password,
+            role: user.role,
+            avatar: user.avatar,
+            is_blocked: false,
+            subscription: user.subscription,
+            createdAt: user.createdAt
+          }];
+          await savePersistedUsers(users);
+          debouncedSave();
+        } catch (syncErr) {}
+      }
+    } else {
+      const { getPersistedUsers, savePersistedUsers } = require('../../utils/getModelConfig');
+      let users = await getPersistedUsers();
+      users = [...users];
+      user = users.find(u => u.email && u.email.toLowerCase().trim() === email);
+      if (user && user.is_blocked) {
+        return redirectError('আপনার অ্যাকাউন্টটি ব্লক করা হয়েছে। সহায়তার জন্য অ্যাডমিনের সাথে যোগাযোগ করুন।');
+      }
+      if (!user) {
+        if (!isAllowedEmailDomain(email)) {
+          return redirectError(DISALLOWED_EMAIL_DOMAIN_MSG);
+        }
+        const hashedPassword = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 10);
+        user = {
+          _id: 'user_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+          name: displayName,
+          email,
+          password: hashedPassword,
+          role: 'user',
+          avatar: avatarUrl,
+          is_blocked: false,
+          subscription: { plan_name: 'Free', starts_at: new Date(), expires_at: null, is_active: true, payment_source: 'free' },
+          createdAt: new Date()
+        };
+        users.push(user);
+        await savePersistedUsers(users);
+        debouncedSave();
+      }
+    }
+
+    const token = generateToken(user);
+    return res.redirect(`/auth/login#oauth_token=${encodeURIComponent(token)}&redirect=${encodeURIComponent(safeRedirect)}`);
+  } catch (error) {
+    console.error('[Discord OAuth Callback Error]:', error.message);
+    return redirectError('Discord Sign-In failed. Please try email login or try again.');
   }
 };
 
@@ -1006,7 +1175,7 @@ const deleteAccount = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, loginUser, getMe, updateProfile, changePassword, forgotPassword, googleAuth, googleCallback, deleteAccount };
+module.exports = { registerUser, loginUser, getMe, updateProfile, changePassword, forgotPassword, googleAuth, googleCallback, discordAuth, discordCallback, deleteAccount };
 
 
 

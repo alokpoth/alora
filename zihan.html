@@ -739,53 +739,223 @@
       padding-right: env(safe-area-inset-right, 0px);
     }
 
+    html, body { max-width: 100%; overflow-x: hidden; }
+
+    /* Clickable Plan Model Chips & Diagnostics */
+    .plan-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid var(--border-color);
+    }
+    .plan-quick-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .plan-quick-chip {
+      padding: 5px 11px;
+      border-radius: 999px !important;
+      font-size: 0.76rem;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #e4e4e7;
+      cursor: pointer;
+    }
+    .plan-quick-chip:hover {
+      background: rgba(59, 130, 246, 0.18);
+      border-color: rgba(59, 130, 246, 0.45);
+      color: #93c5fd;
+    }
+    .plan-sync-notice {
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-size: 0.83rem;
+      line-height: 1.45;
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      color: #fde68a;
+      display: none;
+    }
+    .plan-sync-notice.ok {
+      background: rgba(16, 185, 129, 0.08);
+      border-color: rgba(16, 185, 129, 0.3);
+      color: #a7f3d0;
+    }
+    .plan-model-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .plan-model-chip {
+      padding: 4px 10px;
+      border-radius: 999px !important;
+      font-size: 0.72rem;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-sub);
+      cursor: pointer;
+    }
+    .plan-model-chip.active {
+      background: rgba(59, 130, 246, 0.18);
+      border-color: rgba(59, 130, 246, 0.5);
+      color: #93c5fd;
+    }
+
     @media (max-width: 900px) {
-      .container { padding: 18px 14px; gap: 18px; }
+      .container { padding: 16px 12px; gap: 16px; }
       .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
       .stat-card { padding: 16px 18px; }
       .stat-val { font-size: 1.7rem; }
-      .section { padding: 20px; border-radius: 16px; }
+      .section { padding: 18px; border-radius: 16px; }
     }
 
-    @media (max-width: 640px) {
+    @media (max-width: 768px) {
       .navbar {
-        padding-top: max(16px, calc(env(safe-area-inset-top, 0px) + 8px));
+        padding-top: max(14px, calc(env(safe-area-inset-top, 0px) + 8px));
         padding-bottom: 12px;
-        padding-left: max(14px, env(safe-area-inset-left, 14px));
-        padding-right: max(14px, env(safe-area-inset-right, 14px));
+        padding-left: max(12px, env(safe-area-inset-left, 12px));
+        padding-right: max(12px, env(safe-area-inset-right, 12px));
         flex-wrap: wrap;
         gap: 10px;
       }
       .navbar > div:last-child {
         flex-wrap: wrap;
-        gap: 8px !important;
-        justify-content: flex-end;
+        gap: 6px !important;
+        justify-content: flex-start;
         width: 100%;
       }
+      .navbar .btn {
+        min-height: 36px;
+        padding: 6px 11px;
+        font-size: 0.78rem;
+      }
       #adminName {
-        max-width: 130px;
+        max-width: 120px;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
         font-size: 0.78rem !important;
       }
-      .container { padding: 14px 10px; gap: 14px; }
+      .container { padding: 12px 10px 28px; gap: 14px; }
       .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-      .stat-card { padding: 14px 16px; border-radius: 14px; }
-      .stat-val { font-size: 1.45rem; }
-      .stat-lbl { font-size: 0.7rem; }
-      .tabs { gap: 2px; }
-      .tab-btn { padding: 6px 12px; font-size: 0.8rem; }
-      .section { padding: 16px 14px; border-radius: 14px; gap: 16px; }
-      .section h3 { font-size: 1.05rem; }
+      .stat-card { padding: 14px; border-radius: 14px; }
+      .stat-val { font-size: 1.4rem; }
+      .stat-lbl { font-size: 0.68rem; }
+
+      /* Mobile Navigation Tabs: wrap cleanly in 2-column grid so all 8 tabs are immediately visible */
+      .tabs-wrap {
+        overflow-x: visible;
+        padding-bottom: 12px;
+      }
+      .tabs {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+        gap: 6px;
+        padding: 6px;
+      }
+      .tab-btn {
+        padding: 9px 8px;
+        font-size: 0.78rem;
+        white-space: normal;
+        text-align: center;
+        justify-content: center;
+        line-height: 1.25;
+        min-height: 40px;
+      }
+
+      .section { padding: 15px 12px; border-radius: 14px; gap: 16px; }
+      .section h3 { font-size: 1.02rem; }
       .form-row { flex-direction: column; align-items: stretch; gap: 10px; }
-      .form-group input, .form-group select { width: 100%; }
+      .form-group { width: 100%; min-width: 0 !important; }
+      .form-group input, .form-group select, .form-group textarea,
+      #userSearchInput {
+        width: 100% !important;
+        max-width: 100% !important;
+        font-size: 16px !important;
+        min-height: 42px;
+      }
       #planCardsContainer { grid-template-columns: 1fr !important; gap: 14px !important; }
-      table { font-size: 0.82rem; }
-      th, td { padding: 10px 12px; }
-      .btn { padding: 6px 12px; font-size: 0.82rem; }
-      .custom-modal-card { padding: 22px 18px; border-radius: 18px; }
-      .login-box { padding: 26px 20px; border-radius: 18px; }
+      .plan-toolbar { flex-direction: column; align-items: stretch; }
+      .plan-toolbar-actions { display: flex; gap: 8px; width: 100%; }
+      .plan-toolbar-actions .btn { flex: 1; min-height: 40px; }
+      .btn { padding: 8px 14px; font-size: 0.84rem; min-height: 40px; }
+
+      /* Responsive Card-Tables on Mobile: zero clipped action columns */
+      .table-container {
+        background: transparent;
+        border: none;
+        max-height: none !important;
+        overflow: visible;
+      }
+      .responsive-cards-table,
+      .responsive-cards-table tbody,
+      .responsive-cards-table tr,
+      .responsive-cards-table td {
+        display: block;
+        width: 100%;
+      }
+      .responsive-cards-table thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+      }
+      .responsive-cards-table tbody tr {
+        background: rgba(255, 255, 255, 0.025);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        padding: 10px 12px;
+        margin-bottom: 12px;
+      }
+      .responsive-cards-table tbody tr:last-child { margin-bottom: 0; }
+      .responsive-cards-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        padding: 7px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        text-align: right;
+        word-break: break-word;
+      }
+      .responsive-cards-table td:last-child { border-bottom: none; }
+      .responsive-cards-table td[data-label]::before {
+        content: attr(data-label);
+        font-size: 0.74rem;
+        color: var(--text-sub);
+        font-weight: 600;
+        text-align: left;
+        flex-shrink: 0;
+      }
+      .responsive-cards-table td.td-stack {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: left;
+      }
+      .responsive-cards-table td.td-stack input,
+      .responsive-cards-table td.td-stack select {
+        width: 100% !important;
+        font-size: 16px !important;
+      }
+      .responsive-cards-table td[colspan] {
+        justify-content: center;
+        text-align: center;
+      }
+      .responsive-cards-table td[colspan]::before { display: none; }
+
+      .custom-modal-card { padding: 20px 16px; border-radius: 18px; width: 100%; }
+      .login-box { padding: 26px 18px; border-radius: 18px; }
       .toast-container {
         top: max(16px, calc(env(safe-area-inset-top, 0px) + 10px));
         right: 10px; left: 10px; width: auto;
@@ -795,7 +965,8 @@
 
     @media (max-width: 380px) {
       .stats-grid { grid-template-columns: 1fr; }
-      .tab-btn { padding: 5px 9px; font-size: 0.75rem; }
+      .tabs { grid-template-columns: 1fr; }
+      .tab-btn { padding: 8px 10px; font-size: 0.78rem; }
     }
 
     div[style*="overflow-x: auto"]::-webkit-scrollbar,
@@ -953,11 +1124,14 @@
 
         <!-- API 1: Primary API Card -->
         <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px;">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
             <div style="font-weight: 700; font-size: 0.9rem; color: #60a5fa; display: flex; align-items: center; gap: 6px;">
               <span>API ১ (প্রধান / Primary API)</span>
             </div>
-            <span class="tag" style="background: rgba(59,130,246,0.2); color: #93c5fd; border: 1px solid rgba(59,130,246,0.3); font-size: 0.7rem;">প্রথম অগ্রাধিকার</span>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span class="tag" style="background: rgba(59,130,246,0.2); color: #93c5fd; border: 1px solid rgba(59,130,246,0.3); font-size: 0.7rem;">প্রথম অগ্রাধিকার</span>
+              <button type="button" class="btn btn-danger" style="padding: 4px 10px; font-size: 0.75rem;" onclick="clearModelModalSlot(1)">✕ Key ক্লিয়ার</button>
+            </div>
           </div>
           <div class="form-row">
             <div class="form-group" style="flex: 1; min-width: 180px;">
@@ -970,10 +1144,10 @@
             </div>
           </div>
           <div class="form-group">
-            <label>API Key</label>
+            <label style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span>API Key</span><span id="modalApiKey1SavedBadge" style="display:none;font-size:0.7rem;padding:2px 8px;border-radius:999px;background:rgba(34,197,94,0.14);color:#4ade80;border:1px solid rgba(34,197,94,0.3);">✓ Key সংরক্ষিত (লুকানো)</span></label>
             <div style="display: flex; gap: 6px;">
               <input type="password" id="modalApiKey1" placeholder="sk-..." style="flex: 1;">
-              <button type="button" class="btn-icon" title="API Key দেখুন" onclick="toggleKeyVisibility(this)"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+              <button type="button" id="toggleModalApiKey1" class="btn-icon" title="API Key দেখুন" onclick="toggleKeyVisibility(this)"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
             </div>
           </div>
         </div>
@@ -998,10 +1172,10 @@
             </div>
           </div>
           <div class="form-group">
-            <label>ফলব্যাক API Key (ঐচ্ছিক)</label>
+            <label style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span>ফলব্যাক API Key (ঐচ্ছিক)</span><span id="modalApiKey2SavedBadge" style="display:none;font-size:0.7rem;padding:2px 8px;border-radius:999px;background:rgba(34,197,94,0.14);color:#4ade80;border:1px solid rgba(34,197,94,0.3);">✓ Key সংরক্ষিত (লুকানো)</span></label>
             <div style="display: flex; gap: 6px;">
               <input type="password" id="modalApiKey2" placeholder="gsk-... বা ফাঁকা রাখুন" style="flex: 1;">
-              <button type="button" class="btn-icon" title="API Key দেখুন" onclick="toggleKeyVisibility(this)"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+              <button type="button" id="toggleModalApiKey2" class="btn-icon" title="API Key দেখুন" onclick="toggleKeyVisibility(this)"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
             </div>
           </div>
         </div>
@@ -1026,10 +1200,10 @@
             </div>
           </div>
           <div class="form-group">
-            <label>ফলব্যাক API Key (ঐচ্ছিক)</label>
+            <label style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span>ফলব্যাক API Key (ঐচ্ছিক)</span><span id="modalApiKey3SavedBadge" style="display:none;font-size:0.7rem;padding:2px 8px;border-radius:999px;background:rgba(34,197,94,0.14);color:#4ade80;border:1px solid rgba(34,197,94,0.3);">✓ Key সংরক্ষিত (লুকানো)</span></label>
             <div style="display: flex; gap: 6px;">
               <input type="password" id="modalApiKey3" placeholder="sk-or-... বা ফাঁকা রাখুন" style="flex: 1;">
-              <button type="button" class="btn-icon" title="API Key দেখুন" onclick="toggleKeyVisibility(this)"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+              <button type="button" id="toggleModalApiKey3" class="btn-icon" title="API Key দেখুন" onclick="toggleKeyVisibility(this)"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
             </div>
           </div>
         </div>
@@ -1121,18 +1295,20 @@
       <div class="tabs">
         <button type="button" class="tab-btn active" data-target="secUsers">ইউজার ম্যানেজমেন্ট</button>
         <button type="button" class="tab-btn" data-target="secPlans">ডাইনামিক প্ল্যান সেটিংস</button>
-        <button type="button" class="tab-btn" data-target="secRedeem">️ রিডিম কোড জেনারেটর</button>
+        <button type="button" class="tab-btn" data-target="secRedeem">রিডিম কোড</button>
         <button type="button" class="tab-btn" data-target="secModels">মডেল সেটিংস</button>
         <button type="button" class="tab-btn" data-target="secSettings">ইমেজ ও সার্চ API</button>
-        <button type="button" class="tab-btn" data-target="secSystemPrompt">️ সিস্টেম প্রম্পট</button>
+        <button type="button" class="tab-btn" data-target="secSystemPrompt">সিস্টেম প্রম্পট</button>
         <button type="button" class="tab-btn" data-target="secFreeTrial">ফ্রি ট্রায়াল অফার</button>
+        <button type="button" class="tab-btn" data-target="secAppNotifyAds">নোটিফিকেশন ও অ্যাডস</button>
+        <button type="button" class="tab-btn" data-target="secBilling">পেমেন্ট, রেট ও অর্ডার</button>
       </div>
     </div>
 
     <!-- Section 1: User Management -->
     <div class="section active" id="secUsers">
       <div class="section-header-wrap">
-        <h3>ইউজার তালিকা ও অ্যাকাউন্ট নিয়ন্ত্রণ</h3>
+        <h3 id="usersSectionHeader">ইউজার তালিকা ও অ্যাকাউন্ট নিয়ন্ত্রণ</h3>
         <span class="section-subtitle">সকল ইউজারের তথ্য, সাবস্ক্রিপশন প্ল্যান ও অ্যাকাউন্টের অ্যাক্টিভ স্ট্যাটাস পরিচালনা করুন</span>
       </div>
       <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
@@ -1140,7 +1316,7 @@
         <span id="userCountBadge" style="font-size: 0.8rem; color: var(--text-muted);"></span>
       </div>
       <div class="table-container">
-        <table>
+        <table class="responsive-cards-table">
           <thead>
             <tr>
               <th>নাম</th>
@@ -1161,9 +1337,19 @@
     <!-- Section 2: Dynamic Plan Editing -->
     <div class="section" id="secPlans">
       <div class="section-header-wrap">
-        <h3>ডাইনামিক সাবস্ক্রিপশন লিমিট ও রেট-লিমিটিং</h3>
-        <span class="section-subtitle">Guest, Free, Go, Plus, Pro এবং Max টায়ারের জন্য উইন্ডো লিমিট, মেসেজ, ইমেজ ও মূল্য পরিবর্তন করুন</span>
+        <h3 id="plansSectionHeader">ডাইনামিক সাবস্ক্রিপশন লিমিট ও রেট-লিমিটিং</h3>
+        <span class="section-subtitle">Guest, Free, Go, Plus, Pro এবং Max টায়ারের জন্য উইন্ডো লিমিট, মেসেজ, ইমেজ, মূল্য ও মডেল পরিবর্তন করুন</span>
       </div>
+      <div class="plan-toolbar">
+        <div class="plan-quick-chips" id="planQuickChips">
+          <!-- Tier jump buttons dynamically rendered -->
+        </div>
+        <div class="plan-toolbar-actions" style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button type="button" class="btn btn-ghost" id="btnReloadPlans" onclick="loadPlans()">রিফ্রেশ</button>
+          <button type="button" class="btn btn-primary" id="btnSaveAllPlans" onclick="saveAllPlans(this)">সব প্ল্যান সেভ করুন</button>
+        </div>
+      </div>
+      <div id="plansSyncNotice" class="plan-sync-notice"></div>
       <div id="planCardsContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
         <!-- Dynamically rendered -->
       </div>
@@ -1240,7 +1426,7 @@
 
       <h4 style="margin-top: 12px; font-size: 0.95rem; color: #cbd5e1;">বিদ্যমান রিডিম কোডসমূহ</h4>
       <div class="table-container" style="max-height: 420px;">
-        <table>
+        <table class="responsive-cards-table">
           <thead>
             <tr>
               <th>কোড</th>
@@ -1308,7 +1494,10 @@
               </div>
               <div class="form-group" style="flex: 1; min-width: 150px;">
                 <label>API Key</label>
-                <input type="password" id="newModelKey" placeholder="sk-...">
+                <div style="display:flex;gap:6px;align-items:center;">
+                  <input type="password" id="newModelKey" placeholder="sk-..." style="flex:1;">
+                  <button type="button" class="btn-icon" title="API Key দেখুন" onclick="toggleKeyVisibility(this)"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                </div>
               </div>
             </div>
           </div>
@@ -1327,7 +1516,10 @@
               </div>
               <div class="form-group" style="flex: 1; min-width: 150px;">
                 <label>ফলব্যাক API Key (ঐচ্ছিক)</label>
-                <input type="password" id="newModelFbKey1" placeholder="gsk-... বা ফাঁকা রাখুন">
+                <div style="display:flex;gap:6px;align-items:center;">
+                  <input type="password" id="newModelFbKey1" placeholder="gsk-... বা ফাঁকা রাখুন" style="flex:1;">
+                  <button type="button" class="btn-icon" title="API Key দেখুন" onclick="toggleKeyVisibility(this)"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                </div>
               </div>
             </div>
           </div>
@@ -1346,7 +1538,10 @@
               </div>
               <div class="form-group" style="flex: 1; min-width: 150px;">
                 <label>ফলব্যাক API Key (ঐচ্ছিক)</label>
-                <input type="password" id="newModelFbKey2" placeholder="sk-or-... বা ফাঁকা রাখুন">
+                <div style="display:flex;gap:6px;align-items:center;">
+                  <input type="password" id="newModelFbKey2" placeholder="sk-or-... বা ফাঁকা রাখুন" style="flex:1;">
+                  <button type="button" class="btn-icon" title="API Key দেখুন" onclick="toggleKeyVisibility(this)"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                </div>
               </div>
             </div>
           </div>
@@ -1358,7 +1553,7 @@
       </form>
 
       <div class="table-container" style="margin-top: 12px;">
-        <table>
+        <table class="responsive-cards-table">
           <thead>
             <tr>
               <th style="width: 70px; text-align: center;">ক্রম</th>
@@ -1442,13 +1637,18 @@
           </div>
 
           <div class="form-group" style="flex: 1.2; min-width: 220px;">
-            <label>ইমেজ API Key</label>
-            <div style="position: relative; display: flex; align-items: center;">
-              <input type="password" id="settingImageKey" placeholder="sk-... বা vyce API key" style="width: 100%; padding-right: 40px;">
-              <button type="button" class="btn-icon" onclick="togglePasswordVisibility('settingImageKey')" style="position: absolute; right: 6px; background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px;" title="পাসওয়ার্ড দেখান / লুকান">
-                </button>
+            <label style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <span>ইমেজ API Key</span>
+              <span id="settingImageKeySavedBadge" style="display:none;font-size:0.7rem;padding:2px 8px;border-radius:999px;background:rgba(34,197,94,0.14);color:#4ade80;border:1px solid rgba(34,197,94,0.3);">✓ Key সংরক্ষিত (লুকানো)</span>
+            </label>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <div style="position: relative; display: flex; align-items: center; flex: 1;">
+                <input type="password" id="settingImageKey" placeholder="sk-... বা vyce API key" style="width: 100%; padding-right: 40px;">
+                <button type="button" id="toggleSettingImageKeyBtn" class="btn-icon" onclick="togglePasswordVisibility('settingImageKey')" style="position: absolute; right: 6px; background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px;" title="পাসওয়ার্ড দেখান / লুকান"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+              </div>
+              <button type="button" id="clearSettingImageKeyBtn" class="btn btn-danger" style="display:none;padding:8px 10px;font-size:0.75rem;" onclick="clearSavedSystemKey('image')">✕ ক্লিয়ার</button>
             </div>
-            <span style="font-size: 0.76rem; color: var(--text-muted); margin-top: 4px;">সার্ভারে সুরক্ষিত এনক্রিপশনে সংরক্ষিত হয়।</span>
+            <span style="font-size: 0.76rem; color: var(--text-muted); margin-top: 4px;">সেভ করার পর Key সম্পূর্ণ লুকানো থাকে এবং আর দেখা যায় না।</span>
           </div>
         </div>
 
@@ -1494,13 +1694,18 @@
           </div>
 
           <div class="form-group" style="flex: 1.3; min-width: 240px;">
-            <label>সার্চ API Key (Search API Key)</label>
-            <div style="position: relative; display: flex; align-items: center;">
-              <input type="password" id="settingSearchKey" placeholder="tvly-... বা serper key" style="width: 100%; padding-right: 40px;">
-              <button type="button" class="btn-icon" onclick="togglePasswordVisibility('settingSearchKey')" style="position: absolute; right: 6px; background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px;" title="পাসওয়ার্ড দেখান / লুকান">
-                </button>
+            <label style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <span>সার্চ API Key (Search API Key)</span>
+              <span id="settingSearchKeySavedBadge" style="display:none;font-size:0.7rem;padding:2px 8px;border-radius:999px;background:rgba(34,197,94,0.14);color:#4ade80;border:1px solid rgba(34,197,94,0.3);">✓ Key সংরক্ষিত (লুকানো)</span>
+            </label>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <div style="position: relative; display: flex; align-items: center; flex: 1;">
+                <input type="password" id="settingSearchKey" placeholder="tvly-... বা serper key" style="width: 100%; padding-right: 40px;">
+                <button type="button" id="toggleSettingSearchKeyBtn" class="btn-icon" onclick="togglePasswordVisibility('settingSearchKey')" style="position: absolute; right: 6px; background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px;" title="পাসওয়ার্ড দেখান / লুকান"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+              </div>
+              <button type="button" id="clearSettingSearchKeyBtn" class="btn btn-danger" style="display:none;padding:8px 10px;font-size:0.75rem;" onclick="clearSavedSystemKey('search')">✕ ক্লিয়ার</button>
             </div>
-            <span style="font-size: 0.76rem; color: var(--text-muted); margin-top: 4px;">DuckDuckGo সিলেক্ট থাকলে এটি ফাঁকা রাখতে পারেন।</span>
+            <span style="font-size: 0.76rem; color: var(--text-muted); margin-top: 4px;">সেভ করার পর Key আর দেখা যায় না। DuckDuckGo সিলেক্ট থাকলে ফাঁকা রাখুন।</span>
           </div>
 
           <div class="form-group" style="flex: 0.7; min-width: 140px;">
@@ -1563,7 +1768,7 @@
     <!-- Section 7: Free Trial / Claim Offer -->
     <div class="section" id="secFreeTrial">
       <div class="section-header-wrap">
-        <h3>ফ্রি ট্রায়াল অফার (Claim offer)</h3>
+        <h3 id="trialSectionHeader">ফ্রি ট্রায়াল অফার (Claim offer)</h3>
         <span class="section-subtitle">চালু থাকলে ইউজাররা সাইডবার ও হেডারে "Claim offer" বাটন দেখবে; বন্ধ থাকলে "Upgrade plan" দেখাবে।</span>
       </div>
 
@@ -1609,7 +1814,7 @@
 
     <div class="section" id="secAppNotifyAds">
       <div class="section-header-wrap">
-        <h3>অ্যাপ নোটিফিকেশন ও অ্যাডস কন্ট্রোল</h3>
+        <h3 id="notifyAdsSectionHeader">অ্যাপ নোটিফিকেশন ও অ্যাডস কন্ট্রোল</h3>
         <span class="section-subtitle">অ্যাপে নোটিফিকেশন পাঠাতে বা ভবিষ্যতে অ্যাডস সিস্টেম চালু/বন্ধ করতে এখান থেকে নিয়ন্ত্রণ করুন।</span>
       </div>
 
@@ -1650,14 +1855,183 @@
       </form>
     </div>
 
+    <!-- Section 9: Billing Rates, Payment Methods, Promo Codes & Orders Approval -->
+    <div class="section" id="secBilling">
+      <div class="section-header-wrap">
+        <h3 id="billingSectionHeader">পেমেন্ট মাধ্যম, কারেন্সি রেট, ডিসকাউন্ট ও অর্ডার</h3>
+        <span class="section-subtitle">USD/USDT থেকে BDT/USDT রেট, Crypto (BSC BEP-20 ও TRC-20), Binance/Bybit Pay, bKash, ডিসকাউন্ট কোড ও অর্ডার অনুমোদন পরিচালনা করুন।</span>
+      </div>
+
+      <!-- Card 1: Rates & Payment Wallets -->
+      <form id="billingSettingsForm" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); padding: 20px; border-radius: 14px; display: flex; flex-direction: column; gap: 16px;">
+        <h4 style="color: #60a5fa; font-size: 1rem; margin: 0;">১. লাইভ কারেন্সি রেট ও পেমেন্ট ওয়ালেট</h4>
+        <div class="form-row">
+          <div class="form-group" style="flex: 1; min-width: 180px;">
+            <label>১ USD সমান কত BDT? (1 USD = BDT)</label>
+            <input type="number" step="0.01" min="1" id="settingUsdToBdtRate" value="120" required>
+          </div>
+          <div class="form-group" style="flex: 1; min-width: 180px;">
+            <label>১ USD সমান কত USDT? (1 USD = USDT)</label>
+            <input type="number" step="0.0001" min="0.01" id="settingUsdToUsdtRate" value="1" required>
+          </div>
+        </div>
+
+        <div style="background: rgba(59,130,246,0.06); border: 1px solid rgba(59,130,246,0.22); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 12px;">
+          <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:700; color:#93c5fd;">
+            <input type="checkbox" id="settingCryptoEnabled" style="width:18px; height:18px;" checked>
+            Direct Crypto (USDT) চালু রাখুন (BSC BEP-20 & TRC-20)
+          </label>
+          <div class="form-row">
+            <div class="form-group" style="flex: 1.2; min-width: 210px;">
+              <label>BSC (BEP-20) ওয়ালেট অ্যাড্রেস</label>
+              <input type="text" id="settingCryptoBscAddress" placeholder="0x...">
+            </div>
+            <div class="form-group" style="flex: 1; min-width: 200px;">
+              <label>BSC (BEP-20) USDT পেমেন্ট URL (ঐচ্ছিক)</label>
+              <input type="text" id="settingCryptoBscUrl" placeholder="https://...">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group" style="flex: 1.2; min-width: 210px;">
+              <label>TRON (TRC-20) ওয়ালেট অ্যাড্রেস</label>
+              <input type="text" id="settingCryptoTrc20Address" placeholder="T...">
+            </div>
+            <div class="form-group" style="flex: 1; min-width: 200px;">
+              <label>TRON (TRC-20) USDT পেমেন্ট URL (ঐচ্ছিক)</label>
+              <input type="text" id="settingCryptoTrc20Url" placeholder="https://...">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group" style="flex: 1; min-width: 200px; background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.22); border-radius: 12px; padding: 12px;">
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:700; color:#fbbf24; margin-bottom:6px;">
+              <input type="checkbox" id="settingBinanceEnabled" style="width:16px; height:16px;" checked> Binance Pay
+            </label>
+            <input type="text" id="settingBinancePayId" placeholder="Binance Pay ID / Email">
+          </div>
+          <div class="form-group" style="flex: 1; min-width: 200px; background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.22); border-radius: 12px; padding: 12px;">
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:700; color:#34d399; margin-bottom:6px;">
+              <input type="checkbox" id="settingBybitEnabled" style="width:16px; height:16px;" checked> Bybit Pay
+            </label>
+            <input type="text" id="settingBybitPayId" placeholder="Bybit UID / Pay ID">
+          </div>
+        </div>
+
+        <div style="background: rgba(236,72,153,0.06); border: 1px solid rgba(236,72,153,0.22); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px;">
+          <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:700; color:#f472b6;">
+            <input type="checkbox" id="settingBkashEnabled" style="width:18px; height:18px;" checked> bKash পেমেন্ট চালু রাখুন
+          </label>
+          <div class="form-row">
+            <div class="form-group" style="flex: 1.3; min-width: 200px;">
+              <label>bKash নম্বর (Personal / Merchant)</label>
+              <input type="text" id="settingBkashNumber" placeholder="017XXXXXXXX">
+            </div>
+            <div class="form-group" style="flex: 0.9; min-width: 150px;">
+              <label>পেমেন্ট ধরন</label>
+              <select id="settingBkashType">
+                <option value="Send Money">Send Money</option>
+                <option value="Payment">Payment</option>
+                <option value="Cash Out">Cash Out</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end;">
+          <button type="submit" id="btnSaveBillingSettings" class="btn btn-primary" style="padding: 9px 24px;">পেমেন্ট ও রেট সেটিংস সেভ করুন</button>
+        </div>
+      </form>
+
+      <!-- Card 2: Promo / Discount Codes -->
+      <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); padding: 20px; border-radius: 14px; display: flex; flex-direction: column; gap: 14px;">
+        <h4 style="color: #c084fc; font-size: 1rem; margin: 0;">২. চেকআউট ডিসকাউন্ট / প্রোমো কোড</h4>
+        <form id="promoCodeForm" class="form-row" style="align-items:flex-end;">
+          <div class="form-group" style="flex: 1.1; min-width: 140px;">
+            <label>কোড *</label>
+            <input type="text" id="newPromoCode" placeholder="SAVE20" maxlength="50" style="text-transform: uppercase;" required>
+          </div>
+          <div class="form-group" style="flex: 1; min-width: 130px;">
+            <label>ডিসকাউন্ট ধরন</label>
+            <select id="newPromoType">
+              <option value="percent">শতাংশ (%)</option>
+              <option value="fixed_usd">নির্দিষ্ট USD ($)</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex: 0.8; min-width: 110px;">
+            <label>পরিমাণ *</label>
+            <input type="number" step="0.01" min="0.01" id="newPromoValue" value="20" required>
+          </div>
+          <div class="form-group" style="flex: 0.8; min-width: 100px;">
+            <label>সর্বোচ্চ ব্যবহার</label>
+            <input type="number" min="1" id="newPromoMaxUses" value="100" required>
+          </div>
+          <div class="form-group" style="flex: 0.9; min-width: 110px;">
+            <label>মেয়াদ (দিন, 0=না)</label>
+            <input type="number" min="0" id="newPromoExpDays" value="0">
+          </div>
+          <button type="submit" class="btn btn-primary" style="padding: 10px 18px;">+ প্রোমো তৈরি</button>
+        </form>
+        <div class="table-container">
+          <table class="responsive-cards-table">
+            <thead>
+              <tr>
+                <th>কোড</th>
+                <th>ডিসকাউন্ট</th>
+                <th>ব্যবহার (Used/Max)</th>
+                <th>মেয়াদ</th>
+                <th>অ্যাকশন</th>
+              </tr>
+            </thead>
+            <tbody id="promoCodesTableBody">
+              <tr><td colspan="5" style="text-align:center;">লোড হচ্ছে...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Card 3: Payment Orders Approval Queue -->
+      <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); padding: 20px; border-radius: 14px; display: flex; flex-direction: column; gap: 14px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+          <h4 style="color: #34d399; font-size: 1rem; margin: 0;">৩. ডাইরেক্ট পেমেন্ট অর্ডার ও অনুমোদন</h4>
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <select id="ordersFilterStatus" onchange="loadPaymentOrders()" style="padding:7px 12px; font-size:0.84rem;">
+              <option value="all">সকল অর্ডার</option>
+              <option value="pending">পেন্ডিং (Pending)</option>
+              <option value="approved">অনুমোদিত (Approved)</option>
+              <option value="rejected">বাতিল (Rejected)</option>
+            </select>
+            <button type="button" class="btn btn-ghost" onclick="loadPaymentOrders()" style="padding:7px 14px; font-size:0.82rem;">রিফ্রেশ</button>
+          </div>
+        </div>
+        <div class="table-container">
+          <table class="responsive-cards-table">
+            <thead>
+              <tr>
+                <th>অর্ডার আইডি</th>
+                <th>ইউজার</th>
+                <th>প্ল্যান ও মাধ্যম</th>
+                <th>পরিমাণ</th>
+                <th>প্রেরক ও TrxID</th>
+                <th>স্ট্যাটাস</th>
+                <th>অ্যাকশন</th>
+              </tr>
+            </thead>
+            <tbody id="paymentOrdersTableBody">
+              <tr><td colspan="7" style="text-align:center;">লোড হচ্ছে...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <script>
-    // Smart API Base: On Static Host (alora.zihan.xyz), route to backend.
+    // Smart API Base: Same-origin on localhost (any port), Render, or Vercel; static custom domain routes to Render backend.
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const BACKEND_URL = (isLocal && window.location.port === '5000') 
-      ? window.location.origin 
-      : (window.location.origin.includes('vercel.app') ? window.location.origin : "https://alora-backend-emw3.onrender.com");
+    const isSameOriginHost = isLocal || window.location.hostname.endsWith('.onrender.com') || window.location.hostname.endsWith('.vercel.app');
+    const BACKEND_URL = isSameOriginHost ? window.location.origin : "https://alora-backend-emw3.onrender.com";
     const API_BASE = BACKEND_URL + "/api";
     let token = localStorage.getItem("alokpoth_admin_token") || localStorage.getItem("alokpoth_token") || null;
     let currentModelsList = [];
@@ -1801,7 +2175,7 @@
         if (storedName) document.getElementById('adminName').textContent = storedName;
 
         try {
-          const res = await fetch(`${API_BASE}/admin/stats`, {
+          const res = await fetch(`${API_BASE}/zihan/stats`, {
             headers: { "Authorization": `Bearer ${token}` }
           });
           if (res.ok) {
@@ -1850,16 +2224,22 @@
         statMessages: "Total Message History",
         tabUsers: "User Management",
         tabPlans: "Plan Settings",
-        tabRedeem: "️ Redeem Codes",
+        tabRedeem: "Redeem Codes",
         tabModels: "AI Models",
         tabSettings: "Image & Search APIs",
-        tabSystemPrompt: "️ System Prompt",
+        tabSystemPrompt: "System Prompt",
+        tabTrial: "Free Trial Offer",
+        tabNotifyAds: "Notify & Ads",
+        tabBilling: "Payments & Orders",
         usersHeader: "User Directory & Account Controls",
-        plansHeader: "Dynamic Plan Settings",
+        plansHeader: "Dynamic Plan Settings (6 Tiers)",
         redeemHeader: "Redeem Code Generator",
         modelsHeader: "AI Model Settings",
         settingsHeader: "Image Model & Web Search API Configuration",
         systemPromptHeader: "System Prompt Settings",
+        trialHeader: "Free Trial Offer (Claim offer)",
+        notifyAdsHeader: "App Notifications & Ads Controls",
+        billingHeader: "Payments, Currency Rates, Promo Codes & Orders",
         searchUserPlaceholder: "Search users (name, email, or plan)...",
         thName: "Name",
         thEmail: "Email",
@@ -1880,16 +2260,22 @@
         statMessages: "মোট মেসেজ হিস্ট্রি",
         tabUsers: "ইউজার ম্যানেজমেন্ট",
         tabPlans: "প্ল্যান সেটিংস",
-        tabRedeem: "️ রিডিম কোড",
+        tabRedeem: "রিডিম কোড",
         tabModels: "AI মডেল",
         tabSettings: "ইমেজ ও সার্চ API",
-        tabSystemPrompt: "️ সিস্টেম প্রম্পট",
+        tabSystemPrompt: "সিস্টেম প্রম্পট",
+        tabTrial: "ফ্রি ট্রায়াল অফার",
+        tabNotifyAds: "নোটিফিকেশন ও অ্যাডস",
+        tabBilling: "পেমেন্ট, রেট ও অর্ডার",
         usersHeader: "ইউজার তালিকা ও অ্যাকাউন্ট নিয়ন্ত্রণ",
-        plansHeader: "ডাইনামিক প্ল্যান সেটিংস",
+        plansHeader: "ডাইনামিক সাবস্ক্রিপশন লিমিট ও রেট-লিমিটিং",
         redeemHeader: "রিডিম কোড জেনারেটর",
         modelsHeader: "AI মডেল সেটিংস",
         settingsHeader: "ইমেজ মডেল ও ওয়েব সার্চ API কনফিগারেশন",
         systemPromptHeader: "সিস্টেম প্রম্পট সেটিংস",
+        trialHeader: "ফ্রি ট্রায়াল অফার (Claim offer)",
+        notifyAdsHeader: "অ্যাপ নোটিফিকেশন ও অ্যাডস কন্ট্রোল",
+        billingHeader: "পেমেন্ট মাধ্যম, কারেন্সি রেট, ডিসকাউন্ট ও অর্ডার",
         searchUserPlaceholder: "ইউজার খুঁজুন (নাম, ইমেইল বা প্ল্যান)...",
         thName: "নাম",
         thEmail: "ইমেইল",
@@ -1930,22 +2316,34 @@
         statLabels[4].textContent = d.statMessages;
       }
 
-      // Tab buttons
+      // Tab buttons (All 9 tabs)
       const tabBtns = document.querySelectorAll(".tab-btn");
-      if (tabBtns && tabBtns.length >= 6) {
+      if (tabBtns && tabBtns.length >= 9) {
         tabBtns[0].textContent = d.tabUsers;
         tabBtns[1].textContent = d.tabPlans;
         tabBtns[2].textContent = d.tabRedeem;
         tabBtns[3].textContent = d.tabModels;
         tabBtns[4].textContent = d.tabSettings;
         tabBtns[5].textContent = d.tabSystemPrompt;
+        tabBtns[6].textContent = d.tabTrial;
+        tabBtns[7].textContent = d.tabNotifyAds;
+        tabBtns[8].textContent = d.tabBilling;
       }
 
+      const uHead = document.getElementById("usersSectionHeader");
+      if (uHead) uHead.textContent = d.usersHeader;
+      const pHead = document.getElementById("plansSectionHeader");
+      if (pHead) pHead.textContent = d.plansHeader;
       const sHead = document.getElementById("settingsSectionHeader");
       if (sHead) sHead.textContent = d.settingsHeader;
-      
       const spHead = document.getElementById("systemPromptSectionHeader");
       if (spHead) spHead.textContent = d.systemPromptHeader;
+      const trHead = document.getElementById("trialSectionHeader");
+      if (trHead) trHead.textContent = d.trialHeader;
+      const naHead = document.getElementById("notifyAdsSectionHeader");
+      if (naHead) naHead.textContent = d.notifyAdsHeader;
+      const bHead = document.getElementById("billingSectionHeader");
+      if (bHead) bHead.textContent = d.billingHeader;
 
       const uSearch = document.getElementById("userSearchInput");
       if (uSearch) uSearch.placeholder = d.searchUserPlaceholder;
@@ -2040,11 +2438,13 @@
       loadRedeemCodes();
       loadModels();
       loadSettings();
+      loadPromoCodes();
+      loadPaymentOrders();
     }
 
     async function loadStats() {
       try {
-        const res = await authFetch(`${API_BASE}/admin/stats`);
+        const res = await authFetch(`${API_BASE}/zihan/stats`);
         const data = await res.json();
         if (data.success && data.stats) {
           const s = data.stats;
@@ -2067,8 +2467,9 @@
     }
 
     function toggleKeyVisibility(btn) {
-      const input = btn.parentElement.querySelector('.model-input-key');
-      if (!input) return;
+      const wrap = btn && btn.parentElement;
+      const input = wrap ? (wrap.querySelector('.model-input-key') || wrap.querySelector('input')) : null;
+      if (!input || input.dataset.keySaved === 'true') return;
       if (input.type === 'password') {
         input.type = 'text';
         btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/></svg>`;
@@ -2131,12 +2532,40 @@
       return list;
     }
 
+    let modalSlotClearFlags = { 1: false, 2: false, 3: false };
+
+    function applyWriteOnlyKeyState(inputEl, toggleBtn, badgeEl, isSaved, emptyPlaceholder) {
+      if (!inputEl) return;
+      inputEl.value = "";
+      inputEl.type = "password";
+      inputEl.dataset.keySaved = isSaved ? "true" : "false";
+      inputEl.placeholder = isSaved ? "✓ Key সেভড (লুকানো) — নতুন লিখলে আপডেট হবে" : (emptyPlaceholder || "sk-...");
+      if (badgeEl) badgeEl.style.display = isSaved ? "inline-block" : "none";
+      if (toggleBtn) toggleBtn.style.display = isSaved ? "none" : "inline-flex";
+      if (!inputEl.dataset.writeOnlyBound) {
+        inputEl.dataset.writeOnlyBound = "1";
+        inputEl.addEventListener("input", () => {
+          const hasTyped = inputEl.value.length > 0;
+          const saved = inputEl.dataset.keySaved === "true";
+          const btn = toggleBtn || (inputEl.parentElement && inputEl.parentElement.querySelector(".btn-icon"));
+          if (hasTyped) {
+            inputEl.dataset.keySaved = "false";
+            if (btn) btn.style.display = "inline-flex";
+          } else if (saved) {
+            inputEl.type = "password";
+            if (btn) btn.style.display = "none";
+          }
+        });
+      }
+    }
+
     function openModelApiModal(modelId) {
       const modal = document.getElementById("modelApiModalOverlay");
       if (!modal) return;
       const m = currentModelsList.find(item => (item.id === modelId || item.model_id === modelId));
       if (!m) return;
 
+      modalSlotClearFlags = { 1: false, 2: false, 3: false };
       document.getElementById("modalTargetModelId").value = modelId;
       document.getElementById("modalModelTitle").textContent = `মডেল: ${m.name || modelId}`;
       document.getElementById("modalModelSubtitle").textContent = `মডেল আইডি: ${modelId} | অভ্যন্তরীণ ৩টি API স্লট সেটিংস`;
@@ -2144,17 +2573,35 @@
       // API 1
       document.getElementById("modalApiModel1").value = m.api_model_1 || m.model_id || m.id || "";
       document.getElementById("modalApiUrl1").value = m.base_url || "";
-      document.getElementById("modalApiKey1").value = m.api_key || "";
+      applyWriteOnlyKeyState(
+        document.getElementById("modalApiKey1"),
+        document.getElementById("toggleModalApiKey1"),
+        document.getElementById("modalApiKey1SavedBadge"),
+        Boolean(m.has_api_key),
+        "sk-..."
+      );
 
       // API 2
       document.getElementById("modalApiModel2").value = m.api_model_2 || m.fallback_model_1 || "";
       document.getElementById("modalApiUrl2").value = m.fallback_url_1 || "";
-      document.getElementById("modalApiKey2").value = m.fallback_key_1 || "";
+      applyWriteOnlyKeyState(
+        document.getElementById("modalApiKey2"),
+        document.getElementById("toggleModalApiKey2"),
+        document.getElementById("modalApiKey2SavedBadge"),
+        Boolean(m.has_fallback_key_1),
+        "gsk-... বা ফাঁকা রাখুন"
+      );
 
       // API 3
       document.getElementById("modalApiModel3").value = m.api_model_3 || m.fallback_model_2 || "";
       document.getElementById("modalApiUrl3").value = m.fallback_url_2 || "";
-      document.getElementById("modalApiKey3").value = m.fallback_key_2 || "";
+      applyWriteOnlyKeyState(
+        document.getElementById("modalApiKey3"),
+        document.getElementById("toggleModalApiKey3"),
+        document.getElementById("modalApiKey3SavedBadge"),
+        Boolean(m.has_fallback_key_2),
+        "sk-or-... বা ফাঁকা রাখুন"
+      );
 
       modal.classList.add("open");
     }
@@ -2165,15 +2612,39 @@
     }
 
     function clearModelModalSlot(slot) {
-      if (slot === 2) {
+      if (slot === 1) {
+        modalSlotClearFlags[1] = true;
+        applyWriteOnlyKeyState(
+          document.getElementById("modalApiKey1"),
+          document.getElementById("toggleModalApiKey1"),
+          document.getElementById("modalApiKey1SavedBadge"),
+          false,
+          "sk-..."
+        );
+        showToast("API ১ এর সংরক্ষিত Key ক্লিয়ার হিসেবে চিহ্নিত হয়েছে। কার্যকর করতে সংরক্ষণে ক্লিক করুন।", "info");
+      } else if (slot === 2) {
+        modalSlotClearFlags[2] = true;
         document.getElementById("modalApiModel2").value = "";
         document.getElementById("modalApiUrl2").value = "";
-        document.getElementById("modalApiKey2").value = "";
+        applyWriteOnlyKeyState(
+          document.getElementById("modalApiKey2"),
+          document.getElementById("toggleModalApiKey2"),
+          document.getElementById("modalApiKey2SavedBadge"),
+          false,
+          "gsk-... বা ফাঁকা রাখুন"
+        );
         showToast("API ২ (ফলব্যাক ১) এর তথ্য মুছে দেওয়া হয়েছে। সেভ করতে সংরক্ষণে ক্লিক করুন।", "info");
       } else if (slot === 3) {
+        modalSlotClearFlags[3] = true;
         document.getElementById("modalApiModel3").value = "";
         document.getElementById("modalApiUrl3").value = "";
-        document.getElementById("modalApiKey3").value = "";
+        applyWriteOnlyKeyState(
+          document.getElementById("modalApiKey3"),
+          document.getElementById("toggleModalApiKey3"),
+          document.getElementById("modalApiKey3SavedBadge"),
+          false,
+          "sk-or-... বা ফাঁকা রাখুন"
+        );
         showToast("API ৩ (ফলব্যাক ২) এর তথ্য মুছে দেওয়া হয়েছে। সেভ করতে সংরক্ষণে ক্লিক করুন।", "info");
       }
     }
@@ -2207,28 +2678,28 @@
       const payload = {
         api_model_1,
         base_url,
-        api_key,
-        clear_api_key: !api_key,
+        clear_api_key: !api_key && Boolean(modalSlotClearFlags[1]),
         api_model_2,
         fallback_model_1,
         fallback_url_1,
-        fallback_key_1,
-        clear_fallback_key_1: !fallback_key_1,
+        clear_fallback_key_1: !fallback_key_1 && Boolean(modalSlotClearFlags[2]),
         api_model_3,
         fallback_model_2,
         fallback_url_2,
-        fallback_key_2,
-        clear_fallback_key_2: !fallback_key_2
+        clear_fallback_key_2: !fallback_key_2 && Boolean(modalSlotClearFlags[3])
       };
+      if (api_key) payload.api_key = api_key;
+      if (fallback_key_1) payload.fallback_key_1 = fallback_key_1;
+      if (fallback_key_2) payload.fallback_key_2 = fallback_key_2;
 
       try {
-        const res = await authFetch(`${API_BASE}/admin/models/${encodeURIComponent(modelId)}`, {
+        const res = await authFetch(`${API_BASE}/zihan/models/${encodeURIComponent(modelId)}`, {
           method: "PUT",
           body: JSON.stringify(payload)
         });
         const data = await res.json();
         if (data.success) {
-          showToast(`'${modelId}' এর ৩টি API সফলভাবে সংরক্ষিত হয়েছে!`, "success");
+          showToast(`'${modelId}' এর ৩টি API সফলভাবে সংরক্ষিত হয়েছে! Key নিরাপত্তার কারণে এখন লুকানো।`, "success");
           closeModelApiModal();
           loadModels();
         } else {
@@ -2280,39 +2751,41 @@
         const tr = document.createElement("tr");
         tr.setAttribute("data-model-id", mId);
         tr.innerHTML = `
-          <td style="text-align: center;">
+          <td data-label="ক্রম" style="text-align: center;">
             <div style="display: flex; align-items: center; justify-content: center; gap: 6px;">
               <span class="tag" style="font-weight: 700; font-size: 0.75rem; min-width: 32px; text-align: center; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; padding: 2px 5px;">#${idx + 1}</span>
-              <div style="display: flex; flex-direction: column; gap: 2px;">
+              <div style="display: flex; gap: 2px;">
                 <button type="button" class="btn-icon btn-move" title="উপরে নিন" onclick="moveModel('${escapeHtml(mId)}', 'up')" ${isFirst ? 'disabled style="opacity: 0.25; cursor: not-allowed;"' : ''}>▲</button>
                 <button type="button" class="btn-icon btn-move" title="নিচে নিন" onclick="moveModel('${escapeHtml(mId)}', 'down')" ${isLast ? 'disabled style="opacity: 0.25; cursor: not-allowed;"' : ''}>▼</button>
               </div>
             </div>
           </td>
-          <td><div class="code-chip" style="font-size: 0.75rem;">${escapeHtml(mId)}</div></td>
-          <td><input type="text" class="model-input-name" value="${escapeHtml(m.name || '')}" style="width: 130px; padding: 6px 8px; font-size: 0.82rem;"></td>
-          <td><input type="text" class="model-input-url" value="${escapeHtml(m.base_url || '')}" placeholder="API Base URL" onblur="if(this.value.trim()) this.value = normalizeApiUrl(this.value)" style="width: 140px; padding: 6px 8px; font-size: 0.82rem;"></td>
-          <td>
-            <div style="display: flex; align-items: center; gap: 4px;">
-              <input type="password" class="model-input-key" value="${escapeHtml(m.api_key || '')}" placeholder="API Key" style="width: 90px; padding: 6px 8px; font-size: 0.82rem;">
-              <button type="button" class="btn-icon" style="padding: 4px 6px; font-size: 0.75rem; display: inline-flex; align-items: center; justify-content: center;" title="API Key দেখুন" onclick="toggleKeyVisibility(this)"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <td data-label="মডেল আইডি"><div class="code-chip" style="font-size: 0.75rem;">${escapeHtml(mId)}</div></td>
+          <td data-label="প্রদর্শিত নাম" class="td-stack"><input type="text" class="model-input-name" value="${escapeHtml(m.name || '')}" style="width: 130px; padding: 6px 8px; font-size: 0.82rem;"></td>
+          <td data-label="API URL" class="td-stack"><input type="text" class="model-input-url" value="${escapeHtml(m.base_url || '')}" placeholder="API Base URL" onblur="if(this.value.trim()) this.value = normalizeApiUrl(this.value)" style="width: 140px; padding: 6px 8px; font-size: 0.82rem;"></td>
+          <td data-label="API Key" class="td-stack">
+            <div style="display: flex; align-items: center; gap: 4px; width: 100%;">
+              <input type="password" class="model-input-key" value="" data-key-saved="${m.has_api_key ? 'true' : 'false'}" placeholder="${m.has_api_key ? '✓ সেভড (লুকানো)' : 'API Key'}" style="width: 105px; padding: 6px 8px; font-size: 0.82rem; flex: 1;">
+              <button type="button" class="btn-icon model-key-eye-btn" style="padding: 4px 6px; font-size: 0.75rem; display: ${m.has_api_key ? 'none' : 'inline-flex'}; align-items: center; justify-content: center;" title="API Key দেখুন" onclick="toggleKeyVisibility(this)"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
             </div>
           </td>
-          <td>
-            <div style="display: flex; flex-direction: column; gap: 4px; min-width: 180px;">
+          <td data-label="৩টি API" class="td-stack">
+            <div style="display: flex; flex-direction: column; gap: 4px; width: 100%;">
               <div style="display: flex; gap: 4px; flex-wrap: wrap;">
                 <span class="tag" style="background: rgba(59,130,246,0.15); color: #93c5fd; font-size: 0.68rem;" title="API ১ (প্রধান): ${escapeHtml(curApi1)}">১: ${escapeHtml(curApi1).slice(0, 11)}</span>
                 <span class="tag" style="background: ${hasFb1 ? 'rgba(245,158,11,0.15)' : 'rgba(255,255,255,0.05)'}; color: ${hasFb1 ? '#fbbf24' : '#64748b'}; font-size: 0.68rem;" title="API ২ (ফলব্যাক ১): ${hasFb1 ? escapeHtml(curFb1) : 'খালি'}">২: ${hasFb1 ? escapeHtml(curFb1).slice(0, 11) : '—'}</span>
                 <span class="tag" style="background: ${hasFb2 ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.05)'}; color: ${hasFb2 ? '#34d399' : '#64748b'}; font-size: 0.68rem;" title="API ৩ (ফলব্যাক ২): ${hasFb2 ? escapeHtml(curFb2) : 'খালি'}">৩: ${hasFb2 ? escapeHtml(curFb2).slice(0, 11) : '—'}</span>
               </div>
-              <button type="button" class="btn" style="padding: 4px 8px; font-size: 0.74rem; background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); border-radius: 6px;" onclick="openModelApiModal('${escapeHtml(mId)}')">️ ৩টি API কনফিগার</button>
+              <button type="button" class="btn" style="padding: 4px 8px; font-size: 0.74rem; background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); border-radius: 6px;" onclick="openModelApiModal('${escapeHtml(mId)}')">৩টি API কনফিগার</button>
             </div>
           </td>
-          <td>
-            <label style="font-size: 0.78rem; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; margin-bottom: 3px;"><input type="checkbox" class="model-input-prem" ${m.premium ? 'checked' : ''}> <span class="tag tag-pro" style="padding: 1px 5px; font-size: 0.65rem;">PRO</span></label><br>
-            <label style="font-size: 0.78rem; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;"><input type="checkbox" class="model-input-eff" ${m.efficient ? 'checked' : ''}> <span class="tag tag-max" style="padding: 1px 5px; font-size: 0.65rem;">MAX</span></label>
+          <td data-label="ব্যাজ">
+            <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+              <label style="font-size: 0.78rem; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;"><input type="checkbox" class="model-input-prem" ${m.premium ? 'checked' : ''}> <span class="tag tag-pro" style="padding: 1px 5px; font-size: 0.65rem;">PRO</span></label>
+              <label style="font-size: 0.78rem; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;"><input type="checkbox" class="model-input-eff" ${m.efficient ? 'checked' : ''}> <span class="tag tag-max" style="padding: 1px 5px; font-size: 0.65rem;">MAX</span></label>
+            </div>
           </td>
-          <td>
+          <td data-label="অ্যাকশন">
             <div style="display: flex; gap: 6px;">
               <button type="button" class="btn btn-success model-save-btn" style="padding: 6px 12px; font-size: 0.78rem;">Save</button>
               <button type="button" class="btn btn-danger model-del-btn" style="padding: 6px 10px; font-size: 0.78rem;">মুছুন</button>
@@ -2323,6 +2796,21 @@
         const delBtn = tr.querySelector(".model-del-btn");
         const premCb = tr.querySelector(".model-input-prem");
         const effCb = tr.querySelector(".model-input-eff");
+        const keyInput = tr.querySelector(".model-input-key");
+        const eyeBtn = tr.querySelector(".model-key-eye-btn");
+
+        if (keyInput && eyeBtn) {
+          keyInput.addEventListener("input", () => {
+            if (keyInput.value.length > 0) {
+              keyInput.dataset.keySaved = "false";
+              eyeBtn.style.display = "inline-flex";
+            } else if (m.has_api_key) {
+              keyInput.type = "password";
+              keyInput.dataset.keySaved = "true";
+              eyeBtn.style.display = "none";
+            }
+          });
+        }
 
         if (premCb && effCb) {
           premCb.addEventListener("change", () => { if (premCb.checked) effCb.checked = false; });
@@ -2337,11 +2825,12 @@
 
     async function loadModels() {
       try {
-        const res = await authFetch(`${API_BASE}/admin/models?_t=${Date.now()}`);
+        const res = await authFetch(`${API_BASE}/zihan/models?_t=${Date.now()}`);
         const data = await res.json();
         if (data.success && data.models) {
           currentModelsList = data.models;
           renderModelsTable(data.models);
+          if (typeof refreshAllPlanModelChips === "function") refreshAllPlanModelChips();
         }
       } catch (err) {
         console.error(err);
@@ -2469,7 +2958,7 @@
         renderModelsTable(list);
 
         const modelIds = list.map(m => m.id || m.model_id);
-        const res = await authFetch(`${API_BASE}/admin/models/reorder`, {
+        const res = await authFetch(`${API_BASE}/zihan/models/reorder`, {
           method: "PUT",
           body: JSON.stringify({ modelIds })
         });
@@ -2529,13 +3018,11 @@
         payload.fallback_model_1 = payload.api_model_2;
       }
       if (currentMod.fallback_url_1) payload.fallback_url_1 = currentMod.fallback_url_1;
-      if (currentMod.fallback_key_1) payload.fallback_key_1 = currentMod.fallback_key_1;
       if (currentMod.api_model_3 || currentMod.fallback_model_2) {
         payload.api_model_3 = currentMod.api_model_3 || currentMod.fallback_model_2;
         payload.fallback_model_2 = payload.api_model_3;
       }
       if (currentMod.fallback_url_2) payload.fallback_url_2 = currentMod.fallback_url_2;
-      if (currentMod.fallback_key_2) payload.fallback_key_2 = currentMod.fallback_key_2;
 
       const saveBtn = tr.querySelector(".model-save-btn");
       if (saveBtn) {
@@ -2544,21 +3031,29 @@
       }
 
       try {
-        const res = await authFetch(`${API_BASE}/admin/models/${encodeURIComponent(modelId)}`, {
+        const res = await authFetch(`${API_BASE}/zihan/models/${encodeURIComponent(modelId)}`, {
           method: "PUT",
           body: JSON.stringify(payload)
         });
         const data = await res.json();
         if (data.success) {
-          showToast(`'${name || modelId}' সফলভাবে সেভ হয়েছে!`, "success");
-          // Update in-memory model object
+          showToast(`'${name || modelId}' সফলভাবে সেভ হয়েছে! Key নিরাপত্তার জন্য লুকানো।`, "success");
+          const keyEl = tr.querySelector(".model-input-key");
+          const eyeEl = tr.querySelector(".model-key-eye-btn");
           const target = currentModelsList.find(m => (m.id === modelId || m.model_id === modelId));
           if (target) {
             target.name = name;
             target.base_url = base_url;
-            if (api_key) target.api_key = api_key;
+            if (api_key) target.has_api_key = true;
             target.premium = premium;
             target.efficient = efficient;
+          }
+          if (keyEl && api_key) {
+            keyEl.value = "";
+            keyEl.type = "password";
+            keyEl.dataset.keySaved = "true";
+            keyEl.placeholder = "✓ সেভড (লুকানো)";
+            if (eyeEl) eyeEl.style.display = "none";
           }
         } else {
           showToast(data.error || "আপডেট করতে সমস্যা হয়েছে", "error");
@@ -2583,7 +3078,7 @@
       }
 
       try {
-        const res = await authFetch(`${API_BASE}/admin/models/${encodeURIComponent(modelId)}`, {
+        const res = await authFetch(`${API_BASE}/zihan/models/${encodeURIComponent(modelId)}`, {
           method: "DELETE",
           body: JSON.stringify({ modelId })
         });
@@ -2646,7 +3141,7 @@
       }
 
       try {
-        const res = await authFetch(`${API_BASE}/admin/models`, {
+        const res = await authFetch(`${API_BASE}/zihan/models`, {
           method: "POST",
           body: JSON.stringify({
             model_id,
@@ -2724,19 +3219,25 @@
         const uId = u._id || u.id;
         const plan = u.subscription?.plan_name || 'Free';
         const safePlanTag = escapeHtml(plan).toLowerCase();
-        const planBadge = `<span class="tag tag-${safePlanTag}">${escapeHtml(plan)}</span>`;
+        const paySrc = u.subscription?.payment_source || '';
+        const sourceBadge = paySrc === 'direct_payment'
+          ? ' <span class="tag" style="background:rgba(34,197,94,0.16);color:#4ade80;border:1px solid rgba(34,197,94,0.35);font-size:0.68rem;" title="Verified Direct Payment">✓ Paid</span>'
+          : (paySrc === 'redeem_code'
+            ? ' <span class="tag" style="background:rgba(139,92,246,0.14);color:#c084fc;border:1px solid rgba(139,92,246,0.3);font-size:0.66rem;">Voucher</span>'
+            : (paySrc === 'trial' ? ' <span class="tag" style="background:rgba(59,130,246,0.14);color:#93c5fd;border:1px solid rgba(59,130,246,0.3);font-size:0.66rem;">Trial</span>' : ''));
+        const planBadge = `<span class="tag tag-${safePlanTag}">${escapeHtml(plan)}</span>${sourceBadge}`;
         const expDate = u.subscription?.expires_at ? new Date(u.subscription.expires_at) : null;
         const exp = (expDate && !isNaN(expDate.getTime())) ? expDate.toLocaleDateString("bn-BD") : "সীমাহীন";
         
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td><strong>${escapeHtml(u.name)}</strong> ${u.role === 'admin' ? '<span class="admin-badge" style="font-size:0.65rem;">ADMIN</span>' : ''}</td>
-          <td>${escapeHtml(u.email)}</td>
-          <td>${planBadge}</td>
-          <td>${exp}</td>
-          <td>${u.is_blocked ? '<span class="status-pill status-pill-blocked"><span style="width:6px;height:6px;border-radius:50%;background:#ef4444;display:inline-block;"></span> ব্লকড</span>' : '<span class="status-pill status-pill-active"><span style="width:6px;height:6px;border-radius:50%;background:#10b981;display:inline-block;"></span> সক্রিয়</span>'}</td>
-          <td>
-            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+          <td data-label="নাম"><strong>${escapeHtml(u.name)}</strong> ${u.role === 'admin' ? '<span class="admin-badge" style="font-size:0.65rem;">ADMIN</span>' : ''}</td>
+          <td data-label="ইমেইল">${escapeHtml(u.email)}</td>
+          <td data-label="প্ল্যান">${planBadge}</td>
+          <td data-label="মেয়াদ">${exp}</td>
+          <td data-label="স্ট্যাটাস">${u.is_blocked ? '<span class="status-pill status-pill-blocked"><span style="width:6px;height:6px;border-radius:50%;background:#ef4444;display:inline-block;"></span> ব্লকড</span>' : '<span class="status-pill status-pill-active"><span style="width:6px;height:6px;border-radius:50%;background:#10b981;display:inline-block;"></span> সক্রিয়</span>'}</td>
+          <td data-label="অ্যাকশন" class="td-stack">
+            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; width: 100%;">
               <select class="user-plan-select" data-user-id="${escapeHtml(uId)}" style="padding: 4px 8px; font-size: 0.8rem;">
                 <option value="Free" ${plan === 'Free' ? 'selected' : ''}>Free (অনন্তকাল)</option>
                 <option value="Go" ${plan === 'Go' ? 'selected' : ''}>Go (কাস্টম মেয়াদ)</option>
@@ -2793,7 +3294,7 @@
 
     async function loadUsers() {
       try {
-        const res = await authFetch(`${API_BASE}/admin/users`);
+        const res = await authFetch(`${API_BASE}/zihan/users`);
         const data = await res.json();
         if (!data.success || !data.users) {
           renderUserTable([]);
@@ -2825,7 +3326,7 @@
     async function updateUserRole(userId, newRole) {
       if (!userId || !newRole) return;
       try {
-        const res = await authFetch(`${API_BASE}/admin/users/${encodeURIComponent(userId)}/role`, {
+        const res = await authFetch(`${API_BASE}/zihan/users/${encodeURIComponent(userId)}/role`, {
           method: "PUT",
           body: JSON.stringify({ role: newRole })
         });
@@ -2861,7 +3362,7 @@
       }
       
       try {
-        const res = await authFetch(`${API_BASE}/admin/users/${userId}/plan`, {
+        const res = await authFetch(`${API_BASE}/zihan/users/${userId}/plan`, {
           method: "PUT",
           body: JSON.stringify({ plan_name, duration_days: duration })
         });
@@ -2885,7 +3386,7 @@
       const confirmed = await customConfirm(`আপনি কি নিশ্চিত এই ইউজারকে ${action} করতে চান?`, `${action} নিশ্চিতকরণ`);
       if (!confirmed) return;
       try {
-        const res = await authFetch(`${API_BASE}/admin/users/${userId}/block`, {
+        const res = await authFetch(`${API_BASE}/zihan/users/${userId}/block`, {
           method: "PUT",
           body: JSON.stringify({ is_blocked })
         });
@@ -2911,7 +3412,7 @@
       }
 
       try {
-        const res = await authFetch(`${API_BASE}/admin/users/${encodeURIComponent(userId)}`, {
+        const res = await authFetch(`${API_BASE}/zihan/users/${encodeURIComponent(userId)}`, {
           method: "DELETE"
         });
         const data = await res.json();
@@ -2932,84 +3433,209 @@
       }
     }
 
-    async function loadPlans() {
-      try {
-        const res = await authFetch(`${API_BASE}/admin/plans?_t=${Date.now()}`);
-        const data = await res.json();
-        const container = document.getElementById("planCardsContainer");
-        if (!data.success || !data.plans) return;
-        container.innerHTML = "";
-        data.plans.forEach(p => {
-          const safeDisplayName = escapeHtml(p.displayName || p.name);
-          const safeName = escapeHtml(p.name);
-          const safeId = safeName.replace(/[^a-zA-Z0-9_-]/g, '_');
-          const allowedModelsStr = Array.isArray(p.allowed_models) ? p.allowed_models.join(', ') : (p.allowed_models || '*');
-          const isActive = p.is_active !== false;
-          const msgLimitVal = (p.message_limit !== undefined && p.message_limit !== null && !isNaN(Number(p.message_limit))) ? Number(p.message_limit) : 10;
-          const imageLimitVal = (p.image_limit !== undefined && p.image_limit !== null && !isNaN(Number(p.image_limit))) ? Number(p.image_limit) : (p.name === 'Guest' ? 0 : 5);
-          const priceVal = (p.price_bdt !== undefined && p.price_bdt !== null && !isNaN(Number(p.price_bdt))) ? Number(p.price_bdt) : 0;
-          const taglineVal = escapeHtml(p.tagline || '');
+    const ADMIN_CANONICAL_PLANS = [
+      { name: 'Guest', displayName: 'গেস্ট ট্রায়াল', message_limit: 10, image_limit: 0, window_hours: 3, price_usd: 0, price_bdt: 0, tagline: 'অ্যাকাউন্ট ছাড়াই ফ্রি ব্যবহার', allowed_models: ['*'], is_active: true },
+      { name: 'Free', displayName: 'Alora Free', message_limit: 10, image_limit: 5, window_hours: 3, price_usd: 0, price_bdt: 0, tagline: 'দৈনন্দিন কাজের জন্য ফ্রি এআই অ্যাক্সেস', allowed_models: ['*'], is_active: true },
+      { name: 'Go', displayName: 'Alora Go', message_limit: 20, image_limit: 15, window_hours: 3, price_usd: 5, price_bdt: 699, tagline: 'লেখালেখি, পড়াশোনা ও নিয়মিত কাজের জন্য', allowed_models: ['*'], is_active: true },
+      { name: 'Plus', displayName: 'Alora Plus', message_limit: 30, image_limit: 25, window_hours: 3, price_usd: 20, price_bdt: 2500, tagline: 'বড় সীমা ও দ্রুত কাজের পার্সোনালাইজড AI', allowed_models: ['*'], is_active: true },
+      { name: 'Pro', displayName: 'Alora Pro', message_limit: 40, image_limit: 50, window_hours: 2, price_usd: 55, price_bdt: 6900, tagline: 'সকল প্রিমিয়াম মডেল ও সর্বোচ্চ গতি', allowed_models: ['*'], is_active: true },
+      { name: 'Max', displayName: 'Alora Max', message_limit: 50, image_limit: 100, window_hours: 1, price_usd: 120, price_bdt: 15000, tagline: 'পাওয়ার ইউজারদের জন্য সর্বোচ্চ লিমিট ও প্রায়োরিটি', allowed_models: ['*'], is_active: true }
+    ];
 
-          const card = document.createElement("div");
-          card.className = "stat-card";
-          card.style.gap = "12px";
-          card.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <h4 style="font-size: 1.05rem; color: var(--accent);">${safeDisplayName}</h4>
-              <span class="tag tag-${safeName.toLowerCase()}">${safeName}</span>
-            </div>
-            <div class="form-group">
-              <label>প্ল্যানের নাম (Display Name)</label>
-              <input type="text" id="display_${safeId}" value="${safeDisplayName}">
-            </div>
-            <div class="form-row" style="gap:10px; margin:0;">
-              <div class="form-group" style="flex:1; min-width:110px;">
-                <label>মেসেজ লিমিট${safeName === 'Guest' ? ' (0 = লগইন)' : ''}</label>
-                <input type="number" min="${safeName === 'Guest' ? 0 : 1}" id="limit_${safeId}" value="${msgLimitVal}">
-              </div>
-              <div class="form-group" style="flex:1; min-width:110px;">
-                <label>ছবি লিমিট</label>
-                <input type="number" min="0" id="img_limit_${safeId}" value="${imageLimitVal}">
-              </div>
-            </div>
-            <div class="form-row" style="gap:10px; margin:0;">
-              <div class="form-group" style="flex:1; min-width:110px;">
-                <label>রিসেট উইন্ডো (ঘণ্টা)</label>
-                <input type="number" min="1" max="168" id="window_${safeId}" value="${Number(p.window_hours) || 3}">
-              </div>
-              <div class="form-group" style="flex:1; min-width:110px;">
-                <label>মাসিক মূল্য (BDT)</label>
-                <input type="number" min="0" id="price_${safeId}" value="${priceVal}">
-              </div>
-            </div>
-            <div class="form-group">
-              <label>সংক্ষিপ্ত বিবরণ (Tagline)</label>
-              <input type="text" id="tagline_${safeId}" maxlength="120" value="${taglineVal}">
-            </div>
-            <div class="form-group">
-              <label>অনুমোদিত মডেল (Allowed Models, * = All)</label>
-              <input type="text" id="models_${safeId}" value="${escapeHtml(allowedModelsStr)}">
-            </div>
-            <div style="display: flex; align-items: center; justify-content: space-between; padding: 4px 0;">
-              <label style="font-size: 0.85rem; color: var(--text-sub);">প্ল্যান সক্রিয় (Active Status)</label>
-              <label class="switch">
-                <input type="checkbox" id="active_${safeId}" ${isActive ? 'checked' : ''}>
-                <span class="slider"></span>
-              </label>
-            </div>
-            <button type="button" class="btn btn-primary" onclick="savePlanLimits('${safeName}', this)" style="margin-top: 6px;">সংরক্ষণ করুন</button>
-          `;
-          container.appendChild(card);
-        });
-      } catch(err) { console.error('[Alokpoth]', err); }
+    let renderedPlanNames = [];
+
+    function renderPlanModelChipsForCard(planName) {
+      const safeId = String(planName).replace(/[^a-zA-Z0-9_-]/g, '_');
+      const box = document.getElementById(`model_chips_${safeId}`);
+      const inp = document.getElementById(`models_${safeId}`);
+      if (!box || !inp) return;
+      const curList = inp.value.split(',').map(x => x.trim()).filter(Boolean);
+      const isAll = curList.length === 0 || curList.includes('*');
+
+      const chipsHtml = [
+        `<button type="button" class="plan-model-chip ${isAll ? 'active' : ''}" onclick="togglePlanModelChip('${escapeHtml(planName)}', '*')">All (*)</button>`
+      ];
+      (currentModelsList || []).forEach(m => {
+        const mId = String(m.id || m.model_id || '').trim();
+        const mName = String(m.name || mId).trim();
+        if (!mId) return;
+        const active = !isAll && curList.includes(mId);
+        chipsHtml.push(`<button type="button" class="plan-model-chip ${active ? 'active' : ''}" onclick="togglePlanModelChip('${escapeHtml(planName)}', '${escapeHtml(mId)}')" title="${escapeHtml(mId)}">${escapeHtml(mName)}</button>`);
+      });
+      box.innerHTML = chipsHtml.join('');
     }
 
-    async function savePlanLimits(planName, btn) {
+    function refreshAllPlanModelChips() {
+      renderedPlanNames.forEach(pName => renderPlanModelChipsForCard(pName));
+    }
+
+    function togglePlanModelChip(planName, modelId) {
+      const safeId = String(planName).replace(/[^a-zA-Z0-9_-]/g, '_');
+      const inp = document.getElementById(`models_${safeId}`);
+      if (!inp) return;
+      if (modelId === '*') {
+        inp.value = '*';
+      } else {
+        let cur = inp.value.split(',').map(x => x.trim()).filter(x => x && x !== '*');
+        if (cur.includes(modelId)) {
+          cur = cur.filter(x => x !== modelId);
+        } else {
+          cur.push(modelId);
+        }
+        inp.value = cur.length ? cur.join(', ') : '*';
+      }
+      renderPlanModelChipsForCard(planName);
+    }
+
+    function scrollToPlanCard(planName) {
+      const safeId = String(planName).replace(/[^a-zA-Z0-9_-]/g, '_');
+      const el = document.getElementById(`planCard_${safeId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.style.borderColor = 'var(--accent)';
+        setTimeout(() => { el.style.borderColor = ''; }, 1400);
+      }
+    }
+
+    async function loadPlans() {
+      const container = document.getElementById("planCardsContainer");
+      const noticeEl = document.getElementById("plansSyncNotice");
+      const quickEl = document.getElementById("planQuickChips");
+      let serverPlans = [];
+      let fetchFailed = false;
+      let errText = '';
+
+      try {
+        const res = await authFetch(`${API_BASE}/zihan/plans?_t=${Date.now()}`);
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.success && Array.isArray(data.plans)) {
+          serverPlans = data.plans;
+        } else {
+          fetchFailed = true;
+          errText = data.error || `HTTP ${res.status}`;
+        }
+      } catch (err) {
+        fetchFailed = true;
+        errText = err.message || 'Network error';
+      }
+
+      const byName = new Map(serverPlans.map(p => [p.name, p]));
+      const hasAll6 = ADMIN_CANONICAL_PLANS.every(d => byName.has(d.name));
+
+      if (noticeEl) {
+        noticeEl.style.display = 'block';
+        if (fetchFailed) {
+          noticeEl.className = 'plan-sync-notice';
+          noticeEl.textContent = `সার্ভার (${BACKEND_URL}) থেকে প্ল্যান লোড করা যায়নি (${errText})। নিচে ডিফল্ট ৬-টিয়ার প্রিভিউ দেখানো হচ্ছে — আগে লগইন ও সার্ভার সংযোগ নিশ্চিত করুন।`;
+        } else if (!hasAll6) {
+          const gotNames = serverPlans.map(p => p.name).join(', ') || 'None';
+          noticeEl.className = 'plan-sync-notice';
+          noticeEl.textContent = `লাইভ ব্যাকএন্ড (${BACKEND_URL}) এখনো পুরনো প্ল্যান তালিকা (${gotNames}) পাঠাচ্ছে। নতুন Guest/Go/Plus সেভ ও সিঙ্ক করতে Render সার্ভিসটি GitHub master ব্রাঞ্চ থেকে Deploy/Restart করুন।`;
+        } else {
+          noticeEl.className = 'plan-sync-notice ok';
+          noticeEl.textContent = `সংযুক্ত ব্যাকএন্ড: ${BACKEND_URL} — সব ৬টি প্ল্যান টায়ার (Guest, Free, Go, Plus, Pro, Max) সম্পূর্ণ সিঙ্ক অবস্থায় আছে।`;
+        }
+      }
+
+      const mergedPlans = ADMIN_CANONICAL_PLANS.map(def => {
+        const srv = byName.get(def.name);
+        return srv ? { ...def, ...srv } : { ...def, _missingOnBackend: true };
+      });
+
+      renderedPlanNames = mergedPlans.map(p => p.name);
+      if (quickEl) {
+        quickEl.innerHTML = mergedPlans.map(p => {
+          const msg = (p.message_limit !== undefined && !isNaN(Number(p.message_limit))) ? Number(p.message_limit) : 10;
+          const win = Number(p.window_hours) || 3;
+          return `<button type="button" class="plan-quick-chip" onclick="scrollToPlanCard('${escapeHtml(p.name)}')">${escapeHtml(p.name)} (${msg}/${win}h)</button>`;
+        }).join('');
+      }
+
+      if (!container) return;
+      container.innerHTML = "";
+      mergedPlans.forEach(p => {
+        const safeDisplayName = escapeHtml(p.displayName || p.name);
+        const safeName = escapeHtml(p.name);
+        const safeId = safeName.replace(/[^a-zA-Z0-9_-]/g, '_');
+        const allowedModelsStr = Array.isArray(p.allowed_models) ? p.allowed_models.join(', ') : (p.allowed_models || '*');
+        const isActive = p.is_active !== false;
+        const msgLimitVal = (p.message_limit !== undefined && p.message_limit !== null && !isNaN(Number(p.message_limit))) ? Number(p.message_limit) : 10;
+        const imageLimitVal = (p.image_limit !== undefined && p.image_limit !== null && !isNaN(Number(p.image_limit))) ? Number(p.image_limit) : (p.name === 'Guest' ? 0 : 5);
+        const priceUsdVal = (p.price_usd !== undefined && p.price_usd !== null && !isNaN(Number(p.price_usd))) ? Number(p.price_usd) : 0;
+        const priceVal = (p.price_bdt !== undefined && p.price_bdt !== null && !isNaN(Number(p.price_bdt))) ? Number(p.price_bdt) : 0;
+        const taglineVal = escapeHtml(p.tagline || '');
+        const pendingBadge = p._missingOnBackend ? `<span class="tag" style="background:rgba(245,158,11,0.18);color:#fde68a;border:1px solid rgba(245,158,11,0.35);">সার্ভার আপডেট পেন্ডিং</span>` : '';
+
+        const card = document.createElement("div");
+        card.className = "stat-card";
+        card.id = `planCard_${safeId}`;
+        card.style.gap = "12px";
+        card.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <h4 style="font-size: 1.05rem; color: var(--accent);">${safeDisplayName}</h4>
+            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+              ${pendingBadge}
+              <span class="tag tag-${safeName.toLowerCase()}">${safeName}</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>প্ল্যানের নাম (Display Name)</label>
+            <input type="text" id="display_${safeId}" value="${safeDisplayName}">
+          </div>
+          <div class="form-row" style="gap:10px; margin:0;">
+            <div class="form-group" style="flex:1; min-width:110px;">
+              <label>মেসেজ লিমিট${safeName === 'Guest' ? ' (0 = লগইন)' : ''}</label>
+              <input type="number" min="${safeName === 'Guest' ? 0 : 1}" id="limit_${safeId}" value="${msgLimitVal}">
+            </div>
+            <div class="form-group" style="flex:1; min-width:110px;">
+              <label>ছবি লিমিট</label>
+              <input type="number" min="0" id="img_limit_${safeId}" value="${imageLimitVal}">
+            </div>
+          </div>
+          <div class="form-row" style="gap:10px; margin:0;">
+            <div class="form-group" style="flex:1; min-width:95px;">
+              <label>উইন্ডো (ঘণ্টা)</label>
+              <input type="number" min="1" max="168" id="window_${safeId}" value="${Number(p.window_hours) || 3}">
+            </div>
+            <div class="form-group" style="flex:1; min-width:105px;">
+              <label>মূল্য (USD / USDT)</label>
+              <input type="number" step="0.01" min="0" id="price_usd_${safeId}" value="${priceUsdVal}">
+            </div>
+            <div class="form-group" style="flex:1; min-width:105px;">
+              <label>ফলব্যাক (BDT)</label>
+              <input type="number" min="0" id="price_${safeId}" value="${priceVal}">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>সংক্ষিপ্ত বিবরণ (Tagline)</label>
+            <input type="text" id="tagline_${safeId}" maxlength="120" value="${taglineVal}">
+          </div>
+          <div class="form-group">
+            <label>অনুমোদিত মডেল (Allowed Models, * = সব)</label>
+            <input type="text" id="models_${safeId}" value="${escapeHtml(allowedModelsStr)}" oninput="renderPlanModelChipsForCard('${safeName}')">
+            <div class="plan-model-chips" id="model_chips_${safeId}"></div>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 4px 0;">
+            <label style="font-size: 0.85rem; color: var(--text-sub);">প্ল্যান সক্রিয় (Active Status)</label>
+            <label class="switch">
+              <input type="checkbox" id="active_${safeId}" ${isActive ? 'checked' : ''}>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <button type="button" class="btn btn-primary" onclick="savePlanLimits('${safeName}', this)" style="margin-top: 6px; width: 100%;">সংরক্ষণ করুন</button>
+        `;
+        container.appendChild(card);
+        renderPlanModelChipsForCard(p.name);
+      });
+    }
+
+    function readPlanPayloadFromCard(planName) {
       const safeId = String(planName).replace(/[^a-zA-Z0-9_-]/g, '_');
       const displayInput = document.getElementById(`display_${safeId}`);
       const limitInput = document.getElementById(`limit_${safeId}`);
       const imgLimitInput = document.getElementById(`img_limit_${safeId}`);
       const windowInput = document.getElementById(`window_${safeId}`);
+      const priceUsdInput = document.getElementById(`price_usd_${safeId}`);
       const priceInput = document.getElementById(`price_${safeId}`);
       const taglineInput = document.getElementById(`tagline_${safeId}`);
       const modelsInput = document.getElementById(`models_${safeId}`);
@@ -3019,23 +3645,37 @@
       const message_limit = limitInput ? parseInt(limitInput.value, 10) : NaN;
       const image_limit = imgLimitInput ? parseInt(imgLimitInput.value, 10) : NaN;
       const window_hours = windowInput ? parseInt(windowInput.value, 10) : NaN;
+      const price_usd = priceUsdInput ? parseFloat(priceUsdInput.value) : 0;
       const price_bdt = priceInput ? parseInt(priceInput.value, 10) : 0;
       const tagline = taglineInput ? taglineInput.value.trim() : "";
-      const allowed_models = modelsInput ? modelsInput.value.split(',').map(m => m.trim()).filter(Boolean) : ['*'];
+      const rawModels = modelsInput ? modelsInput.value.split(',').map(m => m.trim()).filter(Boolean) : ['*'];
+      const allowed_models = rawModels.length ? rawModels : ['*'];
       const is_active = activeInput ? activeInput.checked : true;
 
       const minMsg = planName === 'Guest' ? 0 : 1;
       if (isNaN(message_limit) || message_limit < minMsg) {
-        return showToast(`সঠিক মেসেজ লিমিট (${minMsg} বা তার বেশি) লিখুন`, "error");
+        return { error: `${planName}: সঠিক মেসেজ লিমিট (${minMsg} বা তার বেশি) লিখুন` };
       }
       if (isNaN(image_limit) || image_limit < 0) {
-        return showToast("সঠিক ছবি তৈরির লিমিট (০ বা ধনাত্মক সংখ্যা) লিখুন", "error");
+        return { error: `${planName}: সঠিক ছবি তৈরির লিমিট (০ বা ধনাত্মক) লিখুন` };
       }
-      if (isNaN(window_hours) || window_hours <= 0) {
-        return showToast("সঠিক সময়সীমা (ঘণ্টা) লিখুন", "error");
+      if (isNaN(window_hours) || window_hours <= 0 || window_hours > 168) {
+        return { error: `${planName}: সঠিক সময়সীমা (১-১৬৮ ঘণ্টা) লিখুন` };
+      }
+      if (isNaN(price_usd) || price_usd < 0) {
+        return { error: `${planName}: সঠিক USD মূল্য লিখুন` };
       }
       if (isNaN(price_bdt) || price_bdt < 0) {
-        return showToast("সঠিক মাসিক মূল্য (০ বা ধনাত্মক) লিখুন", "error");
+        return { error: `${planName}: সঠিক মাসিক মূল্য লিখুন` };
+      }
+      return { payload: { displayName, message_limit, image_limit, window_hours, price_usd, price_bdt, tagline, allowed_models, is_active } };
+    }
+
+    async function savePlanLimits(planName, btn, silent = false) {
+      const parsed = readPlanPayloadFromCard(planName);
+      if (parsed.error) {
+        showToast(parsed.error, "error");
+        return false;
       }
 
       if (btn) {
@@ -3044,25 +3684,55 @@
       }
 
       try {
-        const res = await authFetch(`${API_BASE}/admin/plans/${planName}`, {
+        const res = await authFetch(`${API_BASE}/zihan/plans/${encodeURIComponent(planName)}`, {
           method: "PUT",
-          body: JSON.stringify({ displayName, message_limit, image_limit, window_hours, price_bdt, tagline, allowed_models, is_active })
+          body: JSON.stringify(parsed.payload)
         });
-        const data = await res.json();
-        if (data.success) {
-          showToast(data.message || "প্ল্যান আপডেট হয়েছে", "success");
-          loadPlans();
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.success) {
+          if (!silent) {
+            showToast(data.message || "প্ল্যান আপডেট হয়েছে", "success");
+            loadPlans();
+          }
+          return true;
         } else {
-          showToast(data.error || "প্ল্যান আপডেট ব্যর্থ হয়েছে", "error");
+          if (!silent) showToast(data.error || `${planName} আপডেট ব্যর্থ হয়েছে (${res.status})`, "error");
+          return false;
         }
       } catch (err) {
-        showToast("সার্ভার ত্রুটি", "error");
+        if (!silent) showToast("সার্ভার ত্রুটি", "error");
+        return false;
       } finally {
         if (btn) {
           btn.disabled = false;
           btn.textContent = "সংরক্ষণ করুন";
         }
       }
+    }
+
+    async function saveAllPlans(btn) {
+      const names = renderedPlanNames.length ? renderedPlanNames : ADMIN_CANONICAL_PLANS.map(p => p.name);
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = "সব সেভ হচ্ছে...";
+      }
+      let okCount = 0;
+      let failCount = 0;
+      for (const pName of names) {
+        const ok = await savePlanLimits(pName, null, true);
+        if (ok) okCount++;
+        else failCount++;
+      }
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = "সব প্ল্যান সেভ করুন";
+      }
+      if (failCount === 0) {
+        showToast(`সবগুলো (${okCount}টি) প্ল্যান সফলভাবে আপডেট হয়েছে!`, "success");
+      } else {
+        showToast(`${okCount}টি প্ল্যান আপডেট হয়েছে, ${failCount}টি ব্যর্থ (সার্ভার আপডেট পেন্ডিং থাকতে পারে)`, "error");
+      }
+      loadPlans();
     }
 
     const generateCodeFormEl = document.getElementById("generateCodeForm");
@@ -3080,7 +3750,7 @@
         }
 
         try {
-          const res = await authFetch(`${API_BASE}/admin/redeem/generate`, {
+          const res = await authFetch(`${API_BASE}/zihan/redeem/generate`, {
             method: "POST",
             body: JSON.stringify({ plan_name, duration_days, count })
           });
@@ -3124,7 +3794,7 @@
         }
 
         try {
-          const res = await authFetch(`${API_BASE}/admin/redeem/custom`, {
+          const res = await authFetch(`${API_BASE}/zihan/redeem/custom`, {
             method: "POST",
             body: JSON.stringify({ custom_code, plan_name, duration_days, max_uses })
           });
@@ -3182,7 +3852,7 @@
 
     async function loadRedeemCodes() {
       try {
-        const res = await authFetch(`${API_BASE}/admin/redeem/list`);
+        const res = await authFetch(`${API_BASE}/zihan/redeem/list`);
         const data = await res.json();
         const tbody = document.getElementById("redeemTableBody");
         if (!data.success || !data.codes || !data.codes.length) {
@@ -3222,16 +3892,18 @@
           
           const tr = document.createElement("tr");
           tr.innerHTML = `
-            <td>
-              <span class="code-chip" style="cursor:pointer;" onclick="copyToClipboard('${safeCode}')" title="কপি করতে ক্লিক করুন">${safeCode}</span>
-              <button type="button" class="btn" style="padding:2px 8px; font-size:11px; margin-left:4px; display:inline-flex; align-items:center; gap:3px;" onclick="copyToClipboard('${safeCode}')"><svg viewBox="0 0 24 24" style="width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span>কপি</span></button>
+            <td data-label="কোড">
+              <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; justify-content:flex-end;">
+                <span class="code-chip" style="cursor:pointer;" onclick="copyToClipboard('${safeCode}')" title="কপি করতে ক্লিক করুন">${safeCode}</span>
+                <button type="button" class="btn" style="padding:2px 8px; font-size:11px; display:inline-flex; align-items:center; gap:3px;" onclick="copyToClipboard('${safeCode}')"><svg viewBox="0 0 24 24" style="width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span>কপি</span></button>
+              </div>
             </td>
-            <td><strong>${escapeHtml(c.plan_name)}</strong></td>
-            <td>${c.duration_days} দিন</td>
-            <td>${codeType}</td>
-            <td>${status}</td>
-            <td>${safeUsedBy}</td>
-            <td>
+            <td data-label="প্ল্যান"><strong>${escapeHtml(c.plan_name)}</strong></td>
+            <td data-label="মেয়াদ">${c.duration_days} দিন</td>
+            <td data-label="ধরন">${codeType}</td>
+            <td data-label="স্ট্যাটাস">${status}</td>
+            <td data-label="ব্যবহারকারী">${safeUsedBy}</td>
+            <td data-label="অ্যাকশন">
               <button type="button" class="btn btn-danger" onclick="deleteCode('${safeCode}', this)">মুছুন</button>
             </td>
           `;
@@ -3252,7 +3924,7 @@
       }
 
       try {
-        const res = await authFetch(`${API_BASE}/admin/redeem/${encodeURIComponent(codeId)}`, { method: "DELETE" });
+        const res = await authFetch(`${API_BASE}/zihan/redeem/${encodeURIComponent(codeId)}`, { method: "DELETE" });
         const data = await res.json();
         if (data.success) {
           showToast("রিডিম কোড মুছে ফেলা হয়েছে", "info");
@@ -3278,13 +3950,62 @@
 
     function togglePasswordVisibility(inputId) {
       const el = document.getElementById(inputId);
-      if (!el) return;
+      if (!el || el.dataset.keySaved === "true") return;
       el.type = el.type === "password" ? "text" : "password";
+    }
+
+    function applyWriteOnlySystemKey(inputId, toggleBtnId, badgeId, clearBtnId, isSaved, emptyPlaceholder) {
+      const el = document.getElementById(inputId);
+      const toggleBtn = document.getElementById(toggleBtnId);
+      const badgeEl = document.getElementById(badgeId);
+      const clearBtn = document.getElementById(clearBtnId);
+      if (!el) return;
+      el.value = "";
+      el.type = "password";
+      el.dataset.keySaved = isSaved ? "true" : "false";
+      el.placeholder = isSaved ? "✓ Key সংরক্ষিত (লুকানো) — নতুন লিখলে আপডেট" : emptyPlaceholder;
+      if (badgeEl) badgeEl.style.display = isSaved ? "inline-block" : "none";
+      if (clearBtn) clearBtn.style.display = isSaved ? "inline-flex" : "none";
+      if (toggleBtn) toggleBtn.style.display = isSaved ? "none" : "inline-flex";
+      if (!el.dataset.writeOnlySysBound) {
+        el.dataset.writeOnlySysBound = "1";
+        el.addEventListener("input", () => {
+          const saved = el.dataset.keySaved === "true";
+          if (el.value.length > 0) {
+            el.dataset.keySaved = "false";
+            if (toggleBtn) toggleBtn.style.display = "inline-flex";
+          } else if (saved) {
+            el.type = "password";
+            if (toggleBtn) toggleBtn.style.display = "none";
+          }
+        });
+      }
+    }
+
+    async function clearSavedSystemKey(kind) {
+      const confirmed = await customConfirm("আপনি কি নিশ্চিত সংরক্ষিত API Key টি স্থায়ীভাবে মুছে ফেলতে চান?", "API Key ক্লিয়ার");
+      if (!confirmed) return;
+      const payload = kind === "image" ? { clear_image_api_key: true } : { clear_web_search_api_key: true };
+      try {
+        const res = await authFetch(`${API_BASE}/zihan/settings`, {
+          method: "PUT",
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast("সংরক্ষিত API Key সফলভাবে মুছে ফেলা হয়েছে", "info");
+          loadSettings();
+        } else {
+          showToast(data.error || "Key মুছতে সমস্যা হয়েছে", "error");
+        }
+      } catch (err) {
+        showToast("সার্ভারে সমস্যা হয়েছে", "error");
+      }
     }
 
     async function loadSettings() {
       try {
-        const res = await authFetch(`${API_BASE}/admin/settings`);
+        const res = await authFetch(`${API_BASE}/zihan/settings`);
         const data = await res.json();
         if (data.success && data.settings) {
           currentSystemSettings = data.settings;
@@ -3309,13 +4030,14 @@
           const inputImgUrl = document.getElementById("settingImageUrl");
           if (inputImgUrl) inputImgUrl.value = s.image_api_url || (imgModel.includes("pollinations") ? "https://image.pollinations.ai/prompt" : "https://vyceai.com/v1/images/generations");
 
-          const inputImgKey = document.getElementById("settingImageKey");
-          if (inputImgKey) {
-            inputImgKey.value = s.image_api_key || "";
-            if (imgModel.includes("pollinations")) {
-              inputImgKey.placeholder = "API Key প্রয়োজন নেই (Pollinations সম্পূর্ণ ফ্রি)";
-            }
-          }
+          applyWriteOnlySystemKey(
+            "settingImageKey",
+            "toggleSettingImageKeyBtn",
+            "settingImageKeySavedBadge",
+            "clearSettingImageKeyBtn",
+            Boolean(s.has_image_api_key),
+            imgModel.includes("pollinations") ? "API Key প্রয়োজন নেই (Pollinations সম্পূর্ণ ফ্রি)" : "sk-... বা vyce API key"
+          );
 
           const inputImgSize = document.getElementById("settingImageSize");
           if (inputImgSize) inputImgSize.value = s.image_size || "1024x1024";
@@ -3325,8 +4047,14 @@
           const selectSearchProvider = document.getElementById("settingSearchProvider");
           if (selectSearchProvider) selectSearchProvider.value = searchProvider;
 
-          const inputSearchKey = document.getElementById("settingSearchKey");
-          if (inputSearchKey) inputSearchKey.value = s.web_search_api_key || "";
+          applyWriteOnlySystemKey(
+            "settingSearchKey",
+            "toggleSettingSearchKeyBtn",
+            "settingSearchKeySavedBadge",
+            "clearSettingSearchKeyBtn",
+            Boolean(s.has_web_search_api_key),
+            "tvly-... বা serper key"
+          );
 
           const selectMaxResults = document.getElementById("settingSearchMaxResults");
           if (selectMaxResults) selectMaxResults.value = String(s.web_search_max_results || "4");
@@ -3373,6 +4101,36 @@
           if (adsEnabled) adsEnabled.checked = s.ads_enabled === true || s.ads_enabled === "true";
           const adsNote = document.getElementById("settingAdsNote");
           if (adsNote) adsNote.value = s.ads_note || "";
+
+          // Billing Rates & Wallets Fields
+          const bdtRateEl = document.getElementById("settingUsdToBdtRate");
+          if (bdtRateEl) bdtRateEl.value = String(s.usd_to_bdt_rate || 120);
+          const usdtRateEl = document.getElementById("settingUsdToUsdtRate");
+          if (usdtRateEl) usdtRateEl.value = String(s.usd_to_usdt_rate || 1);
+          const cryptoOnEl = document.getElementById("settingCryptoEnabled");
+          if (cryptoOnEl) cryptoOnEl.checked = s.payment_crypto_enabled !== false && s.payment_crypto_enabled !== "false";
+          const bscAddrEl = document.getElementById("settingCryptoBscAddress");
+          if (bscAddrEl) bscAddrEl.value = s.crypto_bsc_address || "";
+          const bscUrlEl = document.getElementById("settingCryptoBscUrl");
+          if (bscUrlEl) bscUrlEl.value = s.crypto_bsc_url || "";
+          const trcAddrEl = document.getElementById("settingCryptoTrc20Address");
+          if (trcAddrEl) trcAddrEl.value = s.crypto_trc20_address || "";
+          const trcUrlEl = document.getElementById("settingCryptoTrc20Url");
+          if (trcUrlEl) trcUrlEl.value = s.crypto_trc20_url || "";
+          const binOnEl = document.getElementById("settingBinanceEnabled");
+          if (binOnEl) binOnEl.checked = s.payment_binance_enabled !== false && s.payment_binance_enabled !== "false";
+          const binIdEl = document.getElementById("settingBinancePayId");
+          if (binIdEl) binIdEl.value = s.binance_pay_id || "";
+          const bybOnEl = document.getElementById("settingBybitEnabled");
+          if (bybOnEl) bybOnEl.checked = s.payment_bybit_enabled !== false && s.payment_bybit_enabled !== "false";
+          const bybIdEl = document.getElementById("settingBybitPayId");
+          if (bybIdEl) bybIdEl.value = s.bybit_pay_id || "";
+          const bkOnEl = document.getElementById("settingBkashEnabled");
+          if (bkOnEl) bkOnEl.checked = s.payment_bkash_enabled !== false && s.payment_bkash_enabled !== "false";
+          const bkNumEl = document.getElementById("settingBkashNumber");
+          if (bkNumEl) bkNumEl.value = s.bkash_number || "";
+          const bkTypeEl = document.getElementById("settingBkashType");
+          if (bkTypeEl) bkTypeEl.value = s.bkash_account_type || "Send Money";
         }
       } catch (err) {
         console.warn("Failed to load settings:", err);
@@ -3426,28 +4184,28 @@
         const btn = document.getElementById("btnSaveImageSettings");
         if (btn) btn.disabled = true;
 
+        const imgKeyVal = (document.getElementById("settingImageKey")?.value || "").trim();
         const payload = {
           image_model: (document.getElementById("settingImageModel")?.value || "").trim(),
           image_api_url: (document.getElementById("settingImageUrl")?.value || "").trim(),
-          image_api_key: (document.getElementById("settingImageKey")?.value || "").trim(),
           image_size: (document.getElementById("settingImageSize")?.value || "1024x1024").trim()
         };
+        if (imgKeyVal) payload.image_api_key = imgKeyVal;
 
         try {
-          const res = await authFetch(`${API_BASE}/admin/settings`, {
+          const res = await authFetch(`${API_BASE}/zihan/settings`, {
             method: "PUT",
             body: JSON.stringify(payload)
           });
           const data = await res.json();
           if (data.success) {
-            showToast("ইমেজ মডেল সেটিংস সফলভাবে সংরক্ষিত হয়েছে", "success");
+            showToast(imgKeyVal ? "ইমেজ মডেল ও API Key সংরক্ষিত হয়েছে (Key এখন লুকানো)" : "ইমেজ মডেল সেটিংস সফলভাবে সংরক্ষিত হয়েছে", "success");
             loadSettings();
           } else {
             showToast(data.error || "সেভ করতে সমস্যা হয়েছে", "error");
           }
         } catch (err) {
           showToast("সার্ভারে সমস্যা হয়েছে", "error");
-    // Save Image Generation Settings (uses preceding handler cleanly)
         } finally {
           if (btn) btn.disabled = false;
         }
@@ -3462,21 +4220,22 @@
         const btn = document.getElementById("btnSaveSearchSettings");
         if (btn) btn.disabled = true;
 
+        const searchKeyVal = (document.getElementById("settingSearchKey")?.value || "").trim();
         const payload = {
           web_search_provider: (document.getElementById("settingSearchProvider")?.value || "duckduckgo").trim(),
-          web_search_api_key: (document.getElementById("settingSearchKey")?.value || "").trim(),
           web_search_max_results: parseInt(document.getElementById("settingSearchMaxResults")?.value || "4", 10),
           web_search_custom_url: (document.getElementById("settingSearchCustomUrl")?.value || "").trim()
         };
+        if (searchKeyVal) payload.web_search_api_key = searchKeyVal;
 
         try {
-          const res = await authFetch(`${API_BASE}/admin/settings`, {
+          const res = await authFetch(`${API_BASE}/zihan/settings`, {
             method: "PUT",
             body: JSON.stringify(payload)
           });
           const data = await res.json();
           if (data.success) {
-            showToast("ওয়েব সার্চ সেটিংস সফলভাবে সংরক্ষিত হয়েছে", "success");
+            showToast(searchKeyVal ? "ওয়েব সার্চ ও API Key সংরক্ষিত হয়েছে (Key এখন লুকানো)" : "ওয়েব সার্চ সেটিংস সফলভাবে সংরক্ষিত হয়েছে", "success");
             loadSettings();
           } else {
             showToast(data.error || "সেভ করতে সমস্যা হয়েছে", "error");
@@ -3505,7 +4264,7 @@
           free_trial_description: (document.getElementById("settingTrialDescription")?.value || "").trim()
         };
         try {
-          const res = await authFetch(`${API_BASE}/admin/settings`, { method: "PUT", body: JSON.stringify(payload) });
+          const res = await authFetch(`${API_BASE}/zihan/settings`, { method: "PUT", body: JSON.stringify(payload) });
           const data = await res.json();
           if (data.success) {
             showToast(payload.free_trial_enabled ? "ফ্রি ট্রায়াল অফার চালু হয়েছে" : "ফ্রি ট্রায়াল অফার বন্ধ করা হয়েছে", "success");
@@ -3534,7 +4293,7 @@
         };
 
         try {
-          const res = await authFetch(`${API_BASE}/admin/settings`, {
+          const res = await authFetch(`${API_BASE}/zihan/settings`, {
             method: "PUT",
             body: JSON.stringify(payload)
           });
@@ -3572,7 +4331,7 @@
           ads_note: (document.getElementById("settingAdsNote")?.value || "").trim()
         };
         try {
-          const res = await authFetch(`${API_BASE}/admin/settings`, { method: "PUT", body: JSON.stringify(payload) });
+          const res = await authFetch(`${API_BASE}/zihan/settings`, { method: "PUT", body: JSON.stringify(payload) });
           const data = await res.json();
           if (data.success) {
             showToast("নোটিফিকেশন ও অ্যাডস সেটিংস সেভ করা হয়েছে", "success");
@@ -3608,7 +4367,7 @@
         };
 
         try {
-          const res = await authFetch(`${API_BASE}/admin/settings/test-image`, {
+          const res = await authFetch(`${API_BASE}/zihan/settings/test-image`, {
             method: "POST",
             body: JSON.stringify(payload)
           });
@@ -3658,7 +4417,7 @@
         };
 
         try {
-          const res = await authFetch(`${API_BASE}/admin/settings/test-search`, {
+          const res = await authFetch(`${API_BASE}/zihan/settings/test-search`, {
             method: "POST",
             body: JSON.stringify(payload)
           });
@@ -3678,6 +4437,226 @@
           btnTestWebSearch.textContent = "টেস্ট সার্চ করুন";
         }
       });
+    }
+
+    /* ===================================================
+       Billing Rates, Payment Methods, Promo Codes & Orders
+       =================================================== */
+    const billingSettingsForm = document.getElementById("billingSettingsForm");
+    if (billingSettingsForm) {
+      billingSettingsForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById("btnSaveBillingSettings");
+        if (btn) btn.disabled = true;
+        const payload = {
+          usd_to_bdt_rate: parseFloat(document.getElementById("settingUsdToBdtRate")?.value || "120") || 120,
+          usd_to_usdt_rate: parseFloat(document.getElementById("settingUsdToUsdtRate")?.value || "1") || 1,
+          payment_crypto_enabled: !!document.getElementById("settingCryptoEnabled")?.checked,
+          crypto_bsc_address: (document.getElementById("settingCryptoBscAddress")?.value || "").trim(),
+          crypto_bsc_url: (document.getElementById("settingCryptoBscUrl")?.value || "").trim(),
+          crypto_trc20_address: (document.getElementById("settingCryptoTrc20Address")?.value || "").trim(),
+          crypto_trc20_url: (document.getElementById("settingCryptoTrc20Url")?.value || "").trim(),
+          payment_binance_enabled: !!document.getElementById("settingBinanceEnabled")?.checked,
+          binance_pay_id: (document.getElementById("settingBinancePayId")?.value || "").trim(),
+          payment_bybit_enabled: !!document.getElementById("settingBybitEnabled")?.checked,
+          bybit_pay_id: (document.getElementById("settingBybitPayId")?.value || "").trim(),
+          payment_bkash_enabled: !!document.getElementById("settingBkashEnabled")?.checked,
+          bkash_number: (document.getElementById("settingBkashNumber")?.value || "").trim(),
+          bkash_account_type: (document.getElementById("settingBkashType")?.value || "Send Money").trim()
+        };
+        try {
+          const res = await authFetch(`${API_BASE}/zihan/settings`, {
+            method: "PUT",
+            body: JSON.stringify(payload)
+          });
+          const data = await res.json();
+          if (data.success) {
+            showToast("পেমেন্ট ও রেট সেটিংস সফলভাবে সংরক্ষিত হয়েছে!", "success");
+            loadSettings();
+          } else {
+            showToast(data.error || "সেভ করতে সমস্যা হয়েছে", "error");
+          }
+        } catch (err) {
+          showToast("সার্ভারে সমস্যা হয়েছে", "error");
+        } finally {
+          if (btn) btn.disabled = false;
+        }
+      });
+    }
+
+    async function loadPromoCodes() {
+      const tbody = document.getElementById("promoCodesTableBody");
+      if (!tbody) return;
+      try {
+        const res = await authFetch(`${API_BASE}/zihan/promo-codes`);
+        const data = await res.json();
+        if (!data.success || !Array.isArray(data.promos) || data.promos.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">কোনো প্রোমো কোড নেই</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = "";
+        data.promos.forEach(p => {
+          const discStr = p.discount_type === "fixed_usd" ? `$${p.discount_value} USD ছাড়` : `${p.discount_value}% ছাড়`;
+          const expStr = p.expires_at ? new Date(p.expires_at).toLocaleDateString("bn-BD") : "মেয়াদহীন";
+          const safeCode = escapeHtml(p.code);
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td data-label="কোড"><span class="code-chip">${safeCode}</span></td>
+            <td data-label="ডিসকাউন্ট">${escapeHtml(discStr)}</td>
+            <td data-label="ব্যবহার">${p.use_count || 0} / ${p.max_uses || 100}</td>
+            <td data-label="মেয়াদ">${escapeHtml(expStr)}</td>
+            <td data-label="অ্যাকশন">
+              <button type="button" class="btn btn-danger" onclick="deletePromoCode('${safeCode}', this)">মুছুন</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">লোড করতে সমস্যা হয়েছে</td></tr>`;
+      }
+    }
+
+    const promoCodeForm = document.getElementById("promoCodeForm");
+    if (promoCodeForm) {
+      promoCodeForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const code = (document.getElementById("newPromoCode")?.value || "").trim().toUpperCase();
+        const discount_type = document.getElementById("newPromoType")?.value || "percent";
+        const discount_value = parseFloat(document.getElementById("newPromoValue")?.value || "0");
+        const max_uses = parseInt(document.getElementById("newPromoMaxUses")?.value || "100", 10);
+        const expires_days = parseInt(document.getElementById("newPromoExpDays")?.value || "0", 10);
+        try {
+          const res = await authFetch(`${API_BASE}/zihan/promo-codes`, {
+            method: "POST",
+            body: JSON.stringify({ code, discount_type, discount_value, max_uses, expires_days })
+          });
+          const data = await res.json();
+          if (data.success) {
+            showToast(data.message || "প্রোমো কোড তৈরি হয়েছে!", "success");
+            promoCodeForm.reset();
+            document.getElementById("newPromoValue").value = "20";
+            document.getElementById("newPromoMaxUses").value = "100";
+            document.getElementById("newPromoExpDays").value = "0";
+            loadPromoCodes();
+          } else {
+            showToast(data.error || "কোড তৈরি ব্যর্থ হয়েছে", "error");
+          }
+        } catch (err) {
+          showToast("সার্ভারে সমস্যা হয়েছে", "error");
+        }
+      });
+    }
+
+    async function deletePromoCode(code, btn) {
+      const confirmed = await customConfirm(`আপনি কি প্রোমো কোড '${code}' মুছে ফেলতে চান?`, "প্রোমো কোড মুছুন");
+      if (!confirmed) return;
+      if (btn) btn.disabled = true;
+      try {
+        const res = await authFetch(`${API_BASE}/zihan/promo-codes/${encodeURIComponent(code)}`, { method: "DELETE" });
+        const data = await res.json();
+        if (data.success) {
+          showToast("প্রোমো কোড মুছে ফেলা হয়েছে", "info");
+          loadPromoCodes();
+        } else {
+          showToast(data.error || "মুছতে সমস্যা হয়েছে", "error");
+        }
+      } catch (e) {
+        showToast("সার্ভারে সমস্যা হয়েছে", "error");
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    async function loadPaymentOrders() {
+      const tbody = document.getElementById("paymentOrdersTableBody");
+      if (!tbody) return;
+      const status = document.getElementById("ordersFilterStatus")?.value || "all";
+      try {
+        const res = await authFetch(`${API_BASE}/zihan/orders?status=${encodeURIComponent(status)}`);
+        const data = await res.json();
+        if (!data.success || !Array.isArray(data.orders) || data.orders.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">কোনো পেমেন্ট অর্ডার নেই</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = "";
+        data.orders.forEach(o => {
+          const amt = o.currency === "BDT"
+            ? `৳${Number(o.payable_amount).toLocaleString("en-US")} BDT`
+            : `${Number(o.payable_amount).toFixed(2)} USDT`;
+          const statusPill = o.status === "approved"
+            ? `<span class="status-pill status-pill-active">✓ Approved</span>`
+            : (o.status === "rejected"
+              ? `<span class="status-pill status-pill-blocked">✕ Rejected</span>`
+              : `<span class="status-pill" style="background:rgba(245,158,11,0.16);color:#fbbf24;border:1px solid rgba(245,158,11,0.35);">Pending</span>`);
+          const actionBtns = o.status === "pending"
+            ? `<div style="display:flex; gap:6px; flex-wrap:wrap;">
+                 <button type="button" class="btn btn-success" onclick="approvePaymentOrder('${escapeHtml(o.order_id)}', this)" style="padding:5px 10px;font-size:0.78rem;">✓ অনুমোদন</button>
+                 <button type="button" class="btn btn-danger" onclick="rejectPaymentOrder('${escapeHtml(o.order_id)}', this)" style="padding:5px 10px;font-size:0.78rem;">✕ বাতিল</button>
+               </div>`
+            : `<span style="font-size:0.76rem; color:var(--text-muted);">${escapeHtml(o.reviewed_by || "Reviewed")}</span>`;
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td data-label="অর্ডার আইডি"><span class="code-chip" style="font-size:0.74rem;">${escapeHtml(o.order_id)}</span></td>
+            <td data-label="ইউজার"><strong>${escapeHtml(o.user_name || "User")}</strong><div style="font-size:0.75rem;color:var(--text-muted);">${escapeHtml(o.user_email)}</div></td>
+            <td data-label="প্ল্যান ও মাধ্যম"><strong>${escapeHtml(o.plan_name)}</strong><div style="font-size:0.75rem;color:var(--text-muted);">${escapeHtml(o.payment_method)}${o.chain ? " (" + escapeHtml(o.chain) + ")" : ""}</div></td>
+            <td data-label="পরিমাণ"><strong>${escapeHtml(amt)}</strong>${o.promo_code ? `<div style="font-size:0.72rem;color:#4ade80;">Promo: ${escapeHtml(o.promo_code)}</div>` : ""}</td>
+            <td data-label="প্রেরক ও TrxID"><div style="font-size:0.76rem;">From: ${escapeHtml(o.sender_account)}</div><div class="code-chip" style="font-size:0.72rem;margin-top:2px;">${escapeHtml(o.trx_id)}</div></td>
+            <td data-label="স্ট্যাটাস">${statusPill}</td>
+            <td data-label="অ্যাকশন">${actionBtns}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">অর্ডার লোড করা যায়নি</td></tr>`;
+      }
+    }
+
+    async function approvePaymentOrder(orderId, btn) {
+      const confirmed = await customConfirm(`অর্ডার ${orderId} অনুমোদন করে ইউজারের প্ল্যান + ✓ Paid ব্যাজ চালু করতে চান?`, "পেমেন্ট অনুমোদন");
+      if (!confirmed) return;
+      if (btn) btn.disabled = true;
+      try {
+        const res = await authFetch(`${API_BASE}/zihan/orders/${encodeURIComponent(orderId)}/approve`, {
+          method: "PUT",
+          body: JSON.stringify({ admin_note: "Verified direct payment" })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message || "অর্ডার অনুমোদিত হয়েছে!", "success");
+          loadPaymentOrders();
+          loadUsers();
+          loadStats();
+        } else {
+          showToast(data.error || "অনুমোদন ব্যর্থ হয়েছে", "error");
+        }
+      } catch (e) {
+        showToast("সার্ভারে সমস্যা হয়েছে", "error");
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    async function rejectPaymentOrder(orderId, btn) {
+      const confirmed = await customConfirm(`অর্ডার ${orderId} বাতিল করতে চান?`, "পেমেন্ট বাতিল");
+      if (!confirmed) return;
+      if (btn) btn.disabled = true;
+      try {
+        const res = await authFetch(`${API_BASE}/zihan/orders/${encodeURIComponent(orderId)}/reject`, {
+          method: "PUT",
+          body: JSON.stringify({ admin_note: "Verification failed" })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast("অর্ডার বাতিল করা হয়েছে", "info");
+          loadPaymentOrders();
+        } else {
+          showToast(data.error || "বাতিল ব্যর্থ হয়েছে", "error");
+        }
+      } catch (e) {
+        showToast("সার্ভারে সমস্যা হয়েছে", "error");
+      } finally {
+        if (btn) btn.disabled = false;
+      }
     }
 
     document.addEventListener("keydown", (e) => {

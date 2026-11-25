@@ -10,6 +10,7 @@ const DEFAULT_PLANS_MAP = {
     message_limit: 10,
     window_hours: 3,
     image_limit: 0,
+    price_usd: 0,
     price_bdt: 0,
     tagline: 'Try Alora instantly without logging in',
     allowed_models: ['*'],
@@ -21,6 +22,7 @@ const DEFAULT_PLANS_MAP = {
     message_limit: 10,
     window_hours: 3,
     image_limit: 5,
+    price_usd: 0,
     price_bdt: 0,
     tagline: 'Intelligence for everyday tasks and quick answers',
     allowed_models: ['*'],
@@ -32,6 +34,7 @@ const DEFAULT_PLANS_MAP = {
     message_limit: 20,
     window_hours: 3,
     image_limit: 15,
+    price_usd: 5,
     price_bdt: 699,
     tagline: 'More room to write, learn, and create',
     allowed_models: ['*'],
@@ -43,6 +46,7 @@ const DEFAULT_PLANS_MAP = {
     message_limit: 30,
     window_hours: 3,
     image_limit: 25,
+    price_usd: 20,
     price_bdt: 2500,
     tagline: 'Personalized AI with advanced reasoning models',
     allowed_models: ['*'],
@@ -54,6 +58,7 @@ const DEFAULT_PLANS_MAP = {
     message_limit: 40,
     window_hours: 2,
     image_limit: 50,
+    price_usd: 55,
     price_bdt: 6900,
     tagline: 'Higher speed and expanded limits for heavy work',
     allowed_models: ['*'],
@@ -65,6 +70,7 @@ const DEFAULT_PLANS_MAP = {
     message_limit: 50,
     window_hours: 1,
     image_limit: 100,
+    price_usd: 120,
     price_bdt: 15000,
     tagline: 'Full frontier intelligence with our highest usage limits',
     allowed_models: ['*'],
@@ -96,6 +102,11 @@ function normalizePlanDoc(rawPlan) {
     ? rawPrice
     : def.price_bdt;
 
+  const rawUsd = Number(plain.price_usd);
+  const validPriceUsd = (plain.price_usd !== undefined && plain.price_usd !== null && !isNaN(rawUsd) && rawUsd >= 0)
+    ? Math.round(rawUsd * 100) / 100
+    : def.price_usd;
+
   return {
     ...plain,
     name,
@@ -103,6 +114,7 @@ function normalizePlanDoc(rawPlan) {
     message_limit: validMsg,
     window_hours: validWin,
     image_limit: validImg,
+    price_usd: validPriceUsd,
     price_bdt: validPrice,
     tagline: (typeof plain.tagline === 'string' && plain.tagline.trim()) ? plain.tagline.trim() : def.tagline,
     allowed_models: (Array.isArray(plain.allowed_models) && plain.allowed_models.length > 0)

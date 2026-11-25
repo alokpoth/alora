@@ -25,7 +25,13 @@ const {
   getSettings,
   updateSettings,
   testWebSearchSetting,
-  testImageGenSetting
+  testImageGenSetting,
+  getPromoCodes,
+  createPromoCode,
+  deletePromoCode,
+  getPaymentOrders,
+  approvePaymentOrder,
+  rejectPaymentOrder
 } = require('../controllers/adminController');
 const { protect } = require('../middleware/authMiddleware');
 const { adminOnly } = require('../middleware/adminMiddleware');
@@ -39,6 +45,14 @@ router.get('/settings', getSettings);
 router.put('/settings', updateSettings);
 router.post('/settings/test-search', testWebSearchSetting);
 router.post('/settings/test-image', testImageGenSetting);
+
+router.get('/promo-codes', getPromoCodes);
+router.post('/promo-codes', createPromoCode);
+router.delete('/promo-codes/:codeId', deletePromoCode);
+
+router.get('/orders', getPaymentOrders);
+router.put('/orders/:orderId/approve', approvePaymentOrder);
+router.put('/orders/:orderId/reject', rejectPaymentOrder);
 
 router.get('/users', getUsers);
 router.delete('/users/:userId', deleteUser);
