@@ -854,39 +854,6 @@
       margin: 0 auto 18px;
     }
 
-    .prompt-suggestions-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      justify-content: center;
-      width: 100%;
-      max-width: 680px;
-      margin: 0 auto;
-    }
-    .prompt-chip-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 7px;
-      padding: 8px 14px;
-      border-radius: var(--radius-full);
-      background: var(--composer-bg);
-      border: 1px solid var(--border);
-      color: var(--text-main);
-      font-size: 0.84rem;
-      font-weight: 500;
-      min-width: 0;
-      max-width: 100%;
-      transition: background var(--transition-fast), border-color var(--transition-fast);
-    }
-    .prompt-chip-btn svg {
-      flex-shrink: 0;
-    }
-    .prompt-chip-btn:hover {
-      border-color: var(--composer-border-focus);
-      background: var(--card-bg);
-    }
-
     .chatgpt-main.empty-state .composer-wrapper {
       background: transparent;
       padding: 10px 16px 14px;
@@ -1291,13 +1258,15 @@
       font-weight: 500;
       transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
     }
-    .composer-think-btn:hover {
-      background: rgba(255, 255, 255, 0.08);
-      color: var(--text-main);
-    }
-    [data-theme="light"] .composer-think-btn:hover,
-    [data-theme="eyecare"] .composer-think-btn:hover {
-      background: rgba(0, 0, 0, 0.06);
+    @media (hover: hover) and (pointer: fine) {
+      .composer-think-btn:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text-main);
+      }
+      [data-theme="light"] .composer-think-btn:hover,
+      [data-theme="eyecare"] .composer-think-btn:hover {
+        background: rgba(0, 0, 0, 0.06);
+      }
     }
     .composer-think-btn.active {
       background: rgba(59, 130, 246, 0.16);
@@ -1313,11 +1282,15 @@
       height: 34px;
       border-radius: var(--radius-full);
       color: var(--text-sub);
+      touch-action: manipulation;
+      user-select: none;
       transition: background var(--transition-fast), color var(--transition-fast);
     }
-    .composer-tool-btn:hover {
-      background: rgba(255, 255, 255, 0.08);
-      color: var(--text-main);
+    @media (hover: hover) and (pointer: fine) {
+      .composer-tool-btn:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text-main);
+      }
     }
     .composer-tool-btn.active {
       color: var(--send-btn-active);
@@ -1931,7 +1904,10 @@
         -webkit-overflow-scrolling: touch;
       }
       .chatgpt-main.empty-state .chatgpt-scroll-area {
-        padding: 16px 12px 58px;
+        padding: 16px 12px 136px;
+      }
+      .composer-center-slot {
+        display: none;
       }
       .chatgpt-welcome-title {
         font-size: 1.45rem;
@@ -1941,18 +1917,20 @@
         height: 36px;
         margin-bottom: 12px;
       }
-      .prompt-suggestions-row {
-        gap: 8px;
-      }
-      .prompt-chip-btn {
-        padding: 7px 12px;
-        font-size: 0.82rem;
-      }
       .chatgpt-user-bubble {
         max-width: 100%;
       }
-      .composer-wrapper {
+      .composer-wrapper,
+      .chatgpt-main.empty-state .composer-wrapper {
         padding: 6px 12px max(10px, env(safe-area-inset-bottom, 10px));
+        background: linear-gradient(180deg, transparent 0%, var(--main-bg) 35%);
+        pointer-events: auto;
+      }
+      .chatgpt-attach-menu,
+      .chatgpt-main.empty-state .chatgpt-attach-menu {
+        bottom: calc(100% + 10px);
+        top: auto;
+        max-width: calc(100vw - 24px);
       }
       .chatgpt-composer-pill {
         padding: 7px 10px 7px 12px;
@@ -1963,7 +1941,6 @@
         line-height: 24px;
       }
       .chatgpt-user-popover,
-      .chatgpt-attach-menu,
       .model-dropdown-menu {
         max-width: calc(100vw - 24px);
       }
@@ -2040,23 +2017,6 @@
         width: 32px;
         padding: 0;
         justify-content: center;
-      }
-      .prompt-suggestions-row {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 8px;
-        width: 100%;
-      }
-      .prompt-chip-btn {
-        width: 100%;
-        justify-content: center;
-        padding: 8px 10px;
-        font-size: 0.78rem;
-      }
-      .prompt-chip-btn span {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
       }
       .chatgpt-auth-card {
         padding: 20px 16px;
@@ -3256,25 +3216,6 @@
 
             <!-- Central Composer Slot for Empty State -->
             <div class="composer-center-slot" id="composerSlotCenter"></div>
-
-            <div class="prompt-suggestions-row" id="promptSuggestionsRow">
-              <button type="button" class="prompt-chip-btn" id="chipSuggest1" data-text="Analyze the current trends and key breakthroughs in artificial intelligence">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-                <span id="chipSuggest1Text">Analyze trends</span>
-              </button>
-              <button type="button" class="prompt-chip-btn" id="chipSuggest2" data-text="Write a clean Python script to automate file organization">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-                <span id="chipSuggest2Text">Code</span>
-              </button>
-              <button type="button" class="prompt-chip-btn" id="chipSuggest3" data-text="Help me brainstorm catchy business names for a modern AI startup">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/></svg>
-                <span id="chipSuggest3Text">Brainstorm</span>
-              </button>
-              <button type="button" class="prompt-chip-btn" id="chipSuggest4" data-text="Summarize the key events and breakthrough concepts in modern AI">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
-                <span id="chipSuggest4Text">Summarize text</span>
-              </button>
-            </div>
           </div>
 
         </div>
@@ -3719,6 +3660,9 @@
               <span id="settingsImgQuotaSummary">Images: -- / --</span>
               <span id="settingsQuotaResetLabel" data-i18n="resetsPeriodically">Resets periodically</span>
             </div>
+            <div style="display:flex; justify-content:flex-end; margin-top:2px;">
+              <a href="/pricing#limits" style="font-size:0.76rem; color:var(--text-sub); text-decoration:underline;" data-i18n="viewAllLimitsLink">View all plan limits</a>
+            </div>
           </div>
 
           <div class="setting-row">
@@ -3999,7 +3943,10 @@
         tempShort: "Temp",
         searchChats: "Search chats",
         imagesNav: "Images",
-        upgradePlan: "Upgrade to Pro",
+        upgradePlan: "Upgrade plan",
+        upgradeToGo: "Upgrade to Go",
+        upgradeToPlus: "Upgrade to Plus",
+        upgradeToPro: "Upgrade to Pro",
         upgradeToMax: "Upgrade to Max",
         claimOfferDefault: "Claim offer",
         guestUser: "Guest User",
@@ -4059,22 +4006,14 @@
         searchEmpty: "No matching conversations found",
         shareTitle: "Share chat",
         shareDesc: "Copy the conversation URL for this device or export the transcript to share anywhere.",
-        s1Title: "Analyze trends",
-        s1Prompt: "Analyze the current trends and key breakthroughs in artificial intelligence",
-        s2Title: "Code",
-        s2Prompt: "Write a clean Python script to automate file organization",
-        s3Title: "Brainstorm",
-        s3Prompt: "Help me brainstorm catchy business names for a modern AI startup",
-        s4Title: "Summarize text",
-        s4Prompt: "Summarize the key events and breakthrough concepts in modern AI",
         copyDone: "Copied to clipboard",
         stoppedNote: "Stopped generating",
-        guestLimit: "Your 10 free messages are used up. Please log in or sign up to continue.",
+        guestLimit: "Your {limit} free messages are used up. Please log in or sign up to continue.",
         busyTitle: "Model is currently busy",
         busyDesc: "This model is experiencing high demand. Please retry or switch to another model.",
         retryBtn: "Try again",
         upgradeCardTitle: "Upgrade your plan",
-        upgradeCardDesc: "Access to this model or quota requires a Pro or Max plan. Upgrade your plan or redeem a voucher code.",
+        upgradeCardDesc: "Access to this model or quota requires a Go, Plus, Pro, or Max plan. Upgrade your plan or redeem a voucher code.",
         upgradeCardBtn: "View Plans",
         redeemCardBtn: "Redeem Code",
         settingsTitle: "Settings",
@@ -4160,6 +4099,7 @@
         unlimitedWord: "Unlimited",
         adminAccessLabel: "Admin unrestricted access",
         resetsInPrefix: "Resets in",
+        viewAllLimitsLink: "View all plan limits",
         tabNotifications: "Notifications",
         tabAds: "Ads controls",
         msetAccountLabel: "Account",
@@ -4197,7 +4137,10 @@
         tempShort: "অস্থায়ী",
         searchChats: "চ্যাট খুঁজুন",
         imagesNav: "ছবি তৈরি",
-        upgradePlan: "Pro-তে আপগ্রেড",
+        upgradePlan: "প্ল্যান আপগ্রেড",
+        upgradeToGo: "Go-তে আপগ্রেড",
+        upgradeToPlus: "Plus-এ আপগ্রেড",
+        upgradeToPro: "Pro-তে আপগ্রেড",
         upgradeToMax: "Max-এ আপগ্রেড",
         claimOfferDefault: "ফ্রি ট্রায়াল নিন",
         guestUser: "গেস্ট ইউজার",
@@ -4257,22 +4200,14 @@
         searchEmpty: "কোনো কথোপকথন পাওয়া যায়নি",
         shareTitle: "চ্যাট শেয়ার করুন",
         shareDesc: "এই ডিভাইসের চ্যাট লিংক কপি করুন অথবা সম্পূর্ণ টেক্সট মার্কডাউন আকারে কপি করুন।",
-        s1Title: "ট্রেন্ড বিশ্লেষণ",
-        s1Prompt: "বর্তমান কৃত্রিম বুদ্ধিমত্তার মূল প্রবণতা ও অগ্রগতি বিশ্লেষণ করো",
-        s2Title: "কোডিং",
-        s2Prompt: "ফাইল সুন্দরভাবে গুছিয়ে রাখার জন্য একটি পরিচ্ছন্ন Python স্ক্রিপ্ট লিখে দাও",
-        s3Title: "আইডিয়া",
-        s3Prompt: "একটি আধুনিক AI স্টার্টআপের জন্য আকর্ষণীয় নাম প্রস্তাব করো",
-        s4Title: "সারসংক্ষেপ",
-        s4Prompt: "আধুনিক AI প্রযুক্তির প্রধান মাইলফলকগুলোর একটি সংক্ষিপ্ত সারসংক্ষেপ দাও",
         copyDone: "ক্লিপবোর্ডে কপি করা হয়েছে",
         stoppedNote: "উত্তর থামানো হয়েছে",
-        guestLimit: "আপনার ১০টি ফ্রি বার্তা শেষ হয়েছে। চালিয়ে যেতে লগইন বা সাইন-আপ করুন।",
+        guestLimit: "আপনার {limit}টি ফ্রি বার্তা শেষ হয়েছে। চালিয়ে যেতে লগইন বা সাইন-আপ করুন।",
         busyTitle: "মডেলটি বর্তমানে ব্যস্ত আছে",
         busyDesc: "মডেলটি বর্তমানে ব্যস্ত রয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন বা অন্য মডেল নির্বাচন করুন।",
         retryBtn: "পুনরায় চেষ্টা করুন",
         upgradeCardTitle: "প্ল্যান আপগ্রেড প্রয়োজন",
-        upgradeCardDesc: "এই মডেল বা কোটা ব্যবহারের জন্য Pro অথবা Max প্ল্যান প্রয়োজন। প্ল্যান আপগ্রেড করুন অথবা ভাউচার কোড রিডিম করুন।",
+        upgradeCardDesc: "এই মডেল বা কোটা ব্যবহারের জন্য Go, Plus, Pro অথবা Max প্ল্যান প্রয়োজন। প্ল্যান আপগ্রেড করুন অথবা ভাউচার কোড রিডিম করুন।",
         upgradeCardBtn: "প্ল্যান দেখুন",
         redeemCardBtn: "কোড রিডিম",
         settingsTitle: "সেটিংস",
@@ -4358,6 +4293,7 @@
         unlimitedWord: "আনলিমিটেড",
         adminAccessLabel: "অ্যাডমিন সীমাহীন অ্যাক্সেস",
         resetsInPrefix: "রিসেট হবে",
+        viewAllLimitsLink: "সকল প্ল্যানের সীমা দেখুন",
         tabNotifications: "নোটিফিকেশন",
         tabAds: "বিজ্ঞাপন নিয়ন্ত্রণ",
         msetAccountLabel: "অ্যাকাউন্ট",
@@ -4412,11 +4348,32 @@
     let isImageGenActive = false;
     let pendingFiles = [];
 
+    const PLAN_HIERARCHY = { Free: 1, Go: 2, Plus: 3, Pro: 4, Max: 5 };
+
     let cachedPlanLimits = {
-      Free: { limit: 10, image_limit: 5, hours: 3 },
-      Pro: { limit: 30, image_limit: 25, hours: 3 },
-      Max: { limit: 50, image_limit: 100, hours: 1 }
+      Guest: { limit: 10, image_limit: 0, hours: 3, price_bdt: 0 },
+      Free:  { limit: 10, image_limit: 5, hours: 3, price_bdt: 0 },
+      Go:    { limit: 20, image_limit: 15, hours: 3, price_bdt: 699 },
+      Plus:  { limit: 30, image_limit: 25, hours: 3, price_bdt: 2500 },
+      Pro:   { limit: 40, image_limit: 50, hours: 2, price_bdt: 6900 },
+      Max:   { limit: 50, image_limit: 100, hours: 1, price_bdt: 15000 }
     };
+
+    function getGuestMsgLimit() {
+      const g = cachedPlanLimits.Guest;
+      return (g && g.limit !== undefined && !isNaN(Number(g.limit))) ? Number(g.limit) : 10;
+    }
+    function getGuestImgLimit() {
+      const g = cachedPlanLimits.Guest;
+      return (g && g.image_limit !== undefined && !isNaN(Number(g.image_limit))) ? Number(g.image_limit) : 0;
+    }
+    function getGuestHours() {
+      const g = cachedPlanLimits.Guest;
+      return (g && Number(g.hours) > 0) ? Number(g.hours) : 3;
+    }
+    function getGuestLimitMessage() {
+      return t("guestLimit").replace("{limit}", String(getGuestMsgLimit()));
+    }
 
     let promoOfferState = {
       enabled: false,
@@ -4807,19 +4764,6 @@
       const msgInput = document.getElementById("messageInput");
       if (msgInput) msgInput.placeholder = isImageGenActive ? t("imagePlaceholder") : t("askPlaceholder");
 
-      const sugPairs = [
-        ["chipSuggest1", "chipSuggest1Text", "s1Title", "s1Prompt"],
-        ["chipSuggest2", "chipSuggest2Text", "s2Title", "s2Prompt"],
-        ["chipSuggest3", "chipSuggest3Text", "s3Title", "s3Prompt"],
-        ["chipSuggest4", "chipSuggest4Text", "s4Title", "s4Prompt"]
-      ];
-      sugPairs.forEach(([btnId, txtId, tKey, pKey]) => {
-        const b = document.getElementById(btnId);
-        const s = document.getElementById(txtId);
-        if (b) b.setAttribute("data-text", t(pKey));
-        if (s) s.textContent = t(tKey);
-      });
-
       document.getElementById("langBnBtn")?.classList.toggle("active", currentLanguage === "bn");
       document.getElementById("langEnBtn")?.classList.toggle("active", currentLanguage === "en");
 
@@ -4846,9 +4790,8 @@
       if (isAdmin || planName === "Max") {
         return { mode: "none", isTrial: false, text: "" };
       }
-      const tierRank = { Free: 1, Pro: 2, Max: 3 };
-      const currentTier = tierRank[planName] || 1;
-      const promoTier = tierRank[promoOfferState.plan] || 2;
+      const currentTier = PLAN_HIERARCHY[planName] || 1;
+      const promoTier = PLAN_HIERARCHY[promoOfferState.plan] || 4;
       if (promoOfferState.enabled && !promoOfferState.alreadyClaimed && currentTier < promoTier) {
         const customLabel = (promoOfferState.label || "").trim();
         const label = (customLabel && customLabel.toLowerCase() !== "claim offer")
@@ -4856,10 +4799,16 @@
           : t("claimOfferDefault");
         return { mode: "trial", isTrial: true, text: label };
       }
+      const nextTextMap = {
+        Free: t("upgradeToPlus"),
+        Go: t("upgradeToPlus"),
+        Plus: t("upgradeToPro"),
+        Pro: t("upgradeToMax")
+      };
       return {
         mode: "upgrade",
         isTrial: false,
-        text: planName === "Pro" ? t("upgradeToMax") : t("upgradePlan")
+        text: nextTextMap[planName] || t("upgradePlan")
       };
     }
 
@@ -4984,14 +4933,20 @@
         if (popAvatar) popAvatar.textContent = "G";
         if (msetAvatar) msetAvatar.textContent = "G";
         applyOfferCTA("Free", false);
+        const gLimit = getGuestMsgLimit();
+        const gImgLimit = getGuestImgLimit();
+        const gWin = getGuestHours();
+        const gTrialText = currentLanguage === "bn"
+          ? `গেস্ট ট্রায়াল (${gLimit}টি বার্তা)`
+          : `Guest Trial (${gLimit} messages)`;
         if (guestActions) guestActions.style.display = "flex";
         if (popoverAuthText) popoverAuthText.textContent = t("logIn");
         if (msetAuthText) msetAuthText.textContent = t("logIn");
         if (msetAuthRow) msetAuthRow.classList.remove("mset-row-danger");
-        if (popoverEmail) popoverEmail.textContent = t("guestTrialPlan");
+        if (popoverEmail) popoverEmail.textContent = gTrialText;
         if (popoverAccountLink) popoverAccountLink.href = "/auth/login";
         if (popoverProfileLink) popoverProfileLink.style.display = "none";
-        if (settingsPlan) settingsPlan.textContent = t("guestTrialPlan");
+        if (settingsPlan) settingsPlan.textContent = gTrialText;
         if (settingsEmail) settingsEmail.textContent = t("guestStatus");
         if (settingsAuthBtn) settingsAuthBtn.textContent = t("logIn");
         if (settingsAccountPortalLink) settingsAccountPortalLink.style.display = "none";
@@ -4999,15 +4954,15 @@
         if (settingsDeleteRow) settingsDeleteRow.style.display = "none";
 
         const gUsed = getGuestCount();
-        const gRem = Math.max(0, 10 - gUsed);
+        const gRem = Math.max(0, gLimit - gUsed);
         const sumEl = document.getElementById("settingsQuotaSummary");
         const barEl = document.getElementById("settingsQuotaBar");
         const imgEl = document.getElementById("settingsImgQuotaSummary");
         const rstEl = document.getElementById("settingsQuotaResetLabel");
-        if (sumEl) sumEl.textContent = `${gRem} / 10 ${t("remainingWord")}`;
-        if (barEl) barEl.style.width = `${Math.round((gRem / 10) * 100)}%`;
-        if (imgEl) imgEl.textContent = t("imagesLoginRequired");
-        if (rstEl) rstEl.textContent = t("guestQuotaLabel");
+        if (sumEl) sumEl.textContent = `${gRem} / ${gLimit} ${t("remainingWord")}`;
+        if (barEl) barEl.style.width = `${gLimit > 0 ? Math.max(0, Math.min(100, Math.round((gRem / gLimit) * 100))) : 0}%`;
+        if (imgEl) imgEl.textContent = gImgLimit > 0 ? `${t("imagesPrefix")}: ${gImgLimit} / ${gWin}h` : t("imagesLoginRequired");
+        if (rstEl) rstEl.textContent = `${t("guestQuotaLabel")} (${gWin}h)`;
       }
 
       const headline = document.getElementById("welcomeHeadline");
@@ -5029,10 +4984,10 @@
       }
       const pInfo = cachedPlanLimits[planName] || cachedPlanLimits.Free;
       const rl = user.rateLimit || user.usage || {};
-      const limit = Number(rl.limit || pInfo.limit || 10);
+      const limit = rl.limit !== undefined ? Number(rl.limit) : Number(pInfo.limit ?? 10);
       const used = Number(rl.used ?? rl.count ?? 0);
       const rem = rl.remaining !== undefined ? Number(rl.remaining) : Math.max(0, limit - used);
-      const imgLimit = Number(rl.imageLimit || rl.image_limit || pInfo.image_limit || 5);
+      const imgLimit = rl.imageLimit !== undefined ? Number(rl.imageLimit) : Number(rl.image_limit ?? pInfo.image_limit ?? 5);
       const imgRem = rl.imageRemaining !== undefined ? Number(rl.imageRemaining) : Math.max(0, imgLimit - Number(rl.imageUsed || 0));
       const resetMins = Number(rl.resetInMinutes || ((pInfo.hours || 3) * 60));
       const h = Math.floor(resetMins / 60);
@@ -5046,14 +5001,19 @@
 
     async function fetchPlanLimits() {
       try {
-        const res = await fetch(`${API_BASE}/plans`);
+        const res = await fetch(`${API_BASE}/plans?_t=${Date.now()}`, { cache: "no-store" });
         const data = await res.json();
         if (res.ok && data.success && Array.isArray(data.plans)) {
           data.plans.forEach(p => {
-            cachedPlanLimits[p.name] = {
-              limit: (p.message_limit !== undefined && !isNaN(Number(p.message_limit))) ? Number(p.message_limit) : 10,
-              image_limit: (p.image_limit !== undefined && !isNaN(Number(p.image_limit))) ? Number(p.image_limit) : 5,
-              hours: Number(p.window_hours) || 3
+            const pName = p.name || "";
+            if (!pName) return;
+            const prev = cachedPlanLimits[pName] || {};
+            cachedPlanLimits[pName] = {
+              limit: (p.message_limit !== undefined && !isNaN(Number(p.message_limit))) ? Number(p.message_limit) : (prev.limit ?? 10),
+              image_limit: (p.image_limit !== undefined && !isNaN(Number(p.image_limit))) ? Number(p.image_limit) : (prev.image_limit ?? 0),
+              hours: (Number(p.window_hours) > 0) ? Number(p.window_hours) : (prev.hours ?? 3),
+              price_bdt: (p.price_bdt !== undefined && !isNaN(Number(p.price_bdt))) ? Number(p.price_bdt) : (prev.price_bdt ?? 0),
+              is_active: p.is_active !== false
             };
           });
           syncUserUI();
@@ -5115,7 +5075,7 @@
       if (!bd) { window.location.href = "/pricing"; return; }
       const plan = promoOfferState.plan || "Pro";
       const days = promoOfferState.days || 7;
-      const pInfo = cachedPlanLimits[plan] || cachedPlanLimits.Pro;
+      const pInfo = cachedPlanLimits[plan] || cachedPlanLimits.Pro || { limit: 40, image_limit: 50, hours: 2 };
       const titleEl = document.getElementById("claimOfferTitle");
       const descEl = document.getElementById("claimOfferDesc");
       const detailsEl = document.getElementById("claimOfferDetailsBox");
@@ -5123,13 +5083,19 @@
       const btn = document.getElementById("claimOfferConfirmBtn");
       if (fbEl) { fbEl.style.display = "none"; fbEl.textContent = ""; }
       if (titleEl) titleEl.textContent = t("claimTrialHeading");
-      if (descEl) descEl.textContent = promoOfferState.description || `Try ${plan} free for ${days} days`;
+      if (descEl) descEl.textContent = promoOfferState.description || (currentLanguage === "bn" ? `${days} দিনের জন্য ${plan} প্ল্যান ফ্রি ট্রায়াল নিন` : `Try ${plan} free for ${days} days`);
       if (detailsEl) {
-        detailsEl.innerHTML = `
-          <div>• ${escapeHtml(plan)} Plan unlocked for ${days} days</div>
-          <div>• ${pInfo.limit} messages / ${pInfo.hours}h &amp; ${pInfo.image_limit} images</div>
-          <div>• No payment required — instant activation</div>
-        `;
+        detailsEl.innerHTML = currentLanguage === "bn"
+          ? `
+            <div>• ${days} দিনের জন্য ${escapeHtml(plan)} প্ল্যান আনলক হবে</div>
+            <div>• প্রতি ${pInfo.hours} ঘণ্টায় ${pInfo.limit}টি মেসেজ ও ${pInfo.image_limit}টি ছবি তৈরি</div>
+            <div>• কোনো পেমেন্ট লাগবে না — সাথে সাথে সক্রিয় হবে</div>
+          `
+          : `
+            <div>• ${escapeHtml(plan)} Plan unlocked for ${days} days</div>
+            <div>• ${pInfo.limit} messages / ${pInfo.hours}h &amp; ${pInfo.image_limit} images</div>
+            <div>• No payment required — instant activation</div>
+          `;
       }
       if (btn) {
         btn.disabled = false;
@@ -5637,6 +5603,7 @@
     function updateComposerPosition() {
       const feedRows = document.querySelectorAll(".chatgpt-row");
       const hasMessages = (messagesHistory && messagesHistory.length > 0) || feedRows.length > 0;
+      const isMobileViewport = window.innerWidth <= 768;
       const main = document.querySelector(".chatgpt-main");
       const welcome = document.getElementById("welcomeScreen");
       const centerSlot = document.getElementById("composerSlotCenter");
@@ -5654,7 +5621,11 @@
       } else {
         main.classList.add("empty-state");
         if (welcome) welcome.style.display = "flex";
-        if (centerSlot && !centerSlot.contains(composer)) {
+        if (isMobileViewport) {
+          if (bottomSlot && !bottomSlot.contains(composer)) {
+            bottomSlot.appendChild(composer);
+          }
+        } else if (centerSlot && !centerSlot.contains(composer)) {
           centerSlot.appendChild(composer);
         }
       }
@@ -6490,11 +6461,12 @@
         return;
       }
 
-      // Guest message tracking (10 free messages)
+      // Guest message tracking (dynamic limit from Admin Plan settings)
+      const activeGuestLimit = getGuestMsgLimit();
       if (!token) {
         const guestCount = getGuestCount();
-        if (guestCount >= 10) {
-          showToast(t("guestLimit"));
+        if (guestCount >= activeGuestLimit) {
+          showToast(getGuestLimitMessage());
           window.location.href = "/auth/signup";
           isSending = false;
           if (input) input.readOnly = false;
@@ -6505,10 +6477,17 @@
 
       try {
         let webContext = "";
+        let webSearchFailed = false;
         if (isWebSearchActive) {
-          webContext = await searchWeb(text);
+          const searchOutcome = await searchWeb(text);
           isWebSearchActive = false;
           updateChipsUI();
+          if (searchOutcome && searchOutcome.ok && searchOutcome.results) {
+            webContext = searchOutcome.results;
+          } else {
+            webSearchFailed = true;
+            showToast(currentLanguage === "bn" ? "ওয়েব সার্চ সফল হয়নি বা তথ্য পাওয়া যায়নি।" : "Web search could not find verified results.");
+          }
         }
 
         const textFiles = filesSnapshot.filter(f => f.kind === "text" && f.textContent);
@@ -6535,12 +6514,12 @@
 
         if (!token) {
           const c = incrementGuestCount();
-          if (c === 10) {
-            showToast(t("guestLimit"));
+          if (c >= activeGuestLimit) {
+            showToast(getGuestLimitMessage());
           }
         }
 
-        await runAssistantGeneration(null, null);
+        await runAssistantGeneration(null, null, null, { webSearchFailed });
       } catch(e) {
         isSending = false;
         isGenerating = false;
@@ -6560,7 +6539,7 @@
       await runAssistantGeneration(assistantIndex, existingRow, overrideModelId);
     }
 
-    async function runAssistantGeneration(existingAssistantIdx = null, existingRow = null, overrideModelId = null) {
+    async function runAssistantGeneration(existingAssistantIdx = null, existingRow = null, overrideModelId = null, opts = {}) {
       const input = document.getElementById("messageInput");
       const token = getAuthToken();
       const useModel = overrideModelId || selectedModel;
@@ -6602,6 +6581,7 @@
             stream: true,
             thinking: true,
             reasoning: isThinkingActive || undefined,
+            web_search_failed: (opts && opts.webSearchFailed) ? true : undefined,
             custom_instructions: customInst || undefined
           }),
           signal: currentAbortController.signal
@@ -6611,7 +6591,7 @@
           const errData = await res.json().catch(() => ({}));
           if (res.status === 401 && (errData.code === "GUEST_LIMIT_REACHED" || (errData.error && errData.error.includes("বার্তা শেষ")))) {
             if (row && existingAssistantIdx === null) row.remove();
-            showToast(t("guestLimit"));
+            showToast(errData.error || getGuestLimitMessage());
             window.location.href = "/auth/signup";
             return;
           }
@@ -6809,10 +6789,15 @@
         const res = await fetch(`${API_BASE}/search?q=${encodeURIComponent(q)}`);
         if (res.ok) {
           const data = await res.json();
-          if (data.success && data.results) return data.results;
+          const txt = typeof data.results === "string" ? data.results.trim() : "";
+          const isMissing = !txt || data.provider === "none" || /no direct web search results found/i.test(txt);
+          if (data.success && txt && !isMissing) {
+            return { ok: true, results: txt, provider: data.provider || "web" };
+          }
+          return { ok: false, results: "", provider: data.provider || "none" };
         }
       } catch(e) {}
-      return "";
+      return { ok: false, results: "", provider: "error" };
     }
 
     // =========================================================================
@@ -6993,36 +6978,111 @@
       const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
       const micBtn = document.getElementById("micBtn");
       const input = document.getElementById("messageInput");
-      if (!Speech || !micBtn) return;
+      if (!micBtn) return;
 
-      const rec = new Speech();
-      rec.continuous = false;
-      rec.interimResults = false;
       let recording = false;
+      let usingNative = false;
+      let rec = null;
 
-      micBtn.addEventListener("click", () => {
-        rec.lang = currentLanguage === "bn" ? "bn-BD" : "en-US";
-        if (recording) rec.stop();
-        else rec.start();
-      });
-      rec.onstart = () => {
-        recording = true;
-        micBtn.classList.add("recording");
-        showToast(currentLanguage === "bn" ? "শুনছি..." : "Listening...");
-      };
-      rec.onresult = (e) => {
-        const txt = e.results[0][0].transcript;
-        if (input) {
-          input.value += (input.value ? " " : "") + txt;
-          input.style.height = "auto";
-          input.style.height = `${Math.min(input.scrollHeight, 180)}px`;
-          updateSendButtonState();
+      function setMicState(active, nativeMode = false) {
+        recording = !!active;
+        usingNative = active ? !!nativeMode : false;
+        micBtn.classList.toggle("recording", recording);
+        micBtn.classList.remove("active");
+        micBtn.setAttribute("aria-pressed", recording ? "true" : "false");
+        if (!recording && document.activeElement === micBtn) {
+          try { micBtn.blur(); } catch (e) {}
         }
+      }
+
+      function appendVoiceText(txt) {
+        const clean = String(txt || "").trim();
+        if (!clean || !input) return;
+        input.value += (input.value && !/\s$/.test(input.value) ? " " : "") + clean;
+        input.style.height = "auto";
+        input.style.height = `${Math.min(input.scrollHeight, 180)}px`;
+        updateSendButtonState();
+      }
+
+      if (Speech) {
+        rec = new Speech();
+        rec.continuous = false;
+        rec.interimResults = false;
+        rec.onstart = () => {
+          setMicState(true, false);
+          showToast(currentLanguage === "bn" ? "শুনছি..." : "Listening...");
+        };
+        rec.onresult = (e) => {
+          const txt = e?.results?.[0]?.[0]?.transcript;
+          appendVoiceText(txt);
+        };
+        rec.onerror = (e) => {
+          setMicState(false);
+          const errCode = e?.error || "";
+          if (errCode && errCode !== "aborted" && errCode !== "no-speech") {
+            showToast(currentLanguage === "bn" ? "মাইক্রোফোন ব্যবহারের অনুমতি পাওয়া যায়নি।" : "Microphone access unavailable.");
+          }
+        };
+        rec.onend = () => {
+          setMicState(false);
+        };
+      }
+
+      window.onNativeSpeechResult = (txt) => {
+        appendVoiceText(txt);
+        setMicState(false);
       };
-      rec.onend = () => {
-        recording = false;
-        micBtn.classList.remove("recording");
+      window.onNativeSpeechEnd = () => {
+        setMicState(false);
       };
+      window.onNativeSpeechError = (msg) => {
+        setMicState(false);
+        if (msg) showToast(String(msg));
+      };
+
+      micBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const lang = currentLanguage === "bn" ? "bn-BD" : "en-US";
+        const bridge = getNativeAndroidBridge();
+
+        if (recording) {
+          const wasNative = usingNative;
+          setMicState(false);
+          if (wasNative && bridge && typeof bridge.stopNativeVoice === "function") {
+            try { bridge.stopNativeVoice(); } catch (err) {}
+          }
+          if (rec) {
+            try { rec.abort(); } catch (err) { try { rec.stop(); } catch (err2) {} }
+          }
+          return;
+        }
+
+        if (bridge && typeof bridge.startNativeVoice === "function") {
+          setMicState(true, true);
+          showToast(currentLanguage === "bn" ? "শুনছি..." : "Listening...");
+          try {
+            bridge.startNativeVoice(lang);
+            return;
+          } catch (err) {
+            setMicState(false);
+          }
+        }
+
+        if (!rec) {
+          setMicState(false);
+          showToast(currentLanguage === "bn" ? "এই ডিভাইসে ভয়েস ইনপুট সমর্থিত নয়।" : "Voice input is not supported on this device.");
+          return;
+        }
+
+        try {
+          rec.lang = lang;
+          rec.start();
+        } catch (err) {
+          try { rec.abort(); } catch (err2) {}
+          setMicState(false);
+        }
+      });
     }
 
     function applyPendingRouteModel() {
@@ -7255,6 +7315,7 @@
       }
       window.addEventListener("popstate", () => applyRouteFromLocation(false));
       window.addEventListener("hashchange", () => applyRouteFromLocation(false));
+      window.addEventListener("resize", () => updateComposerPosition());
 
       document.getElementById("sidebarCollapseBtn")?.addEventListener("click", toggleSidebar);
       document.getElementById("headerSidebarToggleBtn")?.addEventListener("click", toggleSidebar);
@@ -7883,19 +7944,6 @@
       fileInput?.addEventListener("change", (e) => {
         if (e.target.files?.length) addAttachmentFiles(e.target.files);
         fileInput.value = "";
-      });
-
-      document.querySelectorAll(".prompt-chip-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const txt = btn.getAttribute("data-text");
-          if (input && txt) {
-            input.value = txt;
-            input.style.height = "auto";
-            input.style.height = `${Math.min(input.scrollHeight, 180)}px`;
-            updateSendButtonState();
-            input.focus();
-          }
-        });
       });
 
       document.addEventListener("keydown", (e) => {

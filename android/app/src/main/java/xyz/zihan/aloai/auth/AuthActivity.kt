@@ -55,7 +55,7 @@ class AuthActivity : ComponentActivity() {
                     AuthNavHost(onAuthSuccess = { authRes ->
                         val token = authRes.token ?: ""
                         val user = authRes.user
-                        val plan = user?.subscription?.plan_name ?: (if (user?.email == "zihanfakir@gmail.com") "Max" else "Free")
+                        val plan = user?.subscription?.plan_name ?: (if (user?.email == "zihanfakir@gmail.com" || user?.email == "x@zihan.uk") "Max" else "Free")
                         
                         prefs.edit()
                             .putString("auth_token", token)

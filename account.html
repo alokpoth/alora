@@ -1174,7 +1174,7 @@
         labelUsageReset: "কোটা সাইকেল",
         labelUsageSessions: "মোট চ্যাট সেশন",
         redeemCardTitle: "রিডিম কোড ক্লেইম করুন",
-        redeemCardDesc: "আপনার প্রমো ভাউচার বা রিডিম কোড প্রবেশ করিয়ে প্রো বা ম্যাক্স প্ল্যান আনলক করুন।",
+        redeemCardDesc: "আপনার প্রমো ভাউচার বা রিডিম কোড প্রবেশ করিয়ে Go, Plus, Pro বা Max প্ল্যান আনলক করুন।",
         redeemPlaceholder: "যেমন: ALO-PRO-XXXXXX বা কোড",
         claimBtn: "ক্লেইম করুন",
         claimVerifying: "যাচাই হচ্ছে...",
@@ -1230,7 +1230,7 @@
         labelUsageReset: "Refresh cycle",
         labelUsageSessions: "Total sessions",
         redeemCardTitle: "Redeem Code",
-        redeemCardDesc: "Enter your promo voucher or redeem code to unlock Pro or Max plan privileges.",
+        redeemCardDesc: "Enter your promo voucher or redeem code to unlock Go, Plus, Pro, or Max plan privileges.",
         redeemPlaceholder: "e.g. ALO-PRO-XXXXXX or code",
         claimBtn: "Claim Code",
         claimVerifying: "Verifying...",
@@ -1505,8 +1505,11 @@
     }
 
     let dynamicPlanLimits = {
+      Guest: { limit: 10, image_limit: 0, hours: 3 },
       Free: { limit: 10, image_limit: 5, hours: 3 },
-      Pro: { limit: 30, image_limit: 25, hours: 3 },
+      Go: { limit: 20, image_limit: 15, hours: 3 },
+      Plus: { limit: 30, image_limit: 25, hours: 3 },
+      Pro: { limit: 40, image_limit: 50, hours: 2 },
       Max: { limit: 50, image_limit: 100, hours: 1 }
     };
 
@@ -1536,10 +1539,11 @@
         const data = await res.json();
         if (res.ok && data.success && Array.isArray(data.plans)) {
           data.plans.forEach(p => {
+            const cur = dynamicPlanLimits[p.name] || { limit: 10, image_limit: 5, hours: 3 };
             dynamicPlanLimits[p.name] = {
-              limit: Number(p.message_limit) || (p.name === 'Free' ? 10 : (p.name === 'Pro' ? 30 : 50)),
-              image_limit: Number(p.image_limit) || (p.name === 'Free' ? 5 : (p.name === 'Pro' ? 25 : 100)),
-              hours: Number(p.window_hours) || (p.name === 'Max' ? 1 : 3)
+              limit: (p.message_limit !== undefined && !isNaN(Number(p.message_limit))) ? Number(p.message_limit) : cur.limit,
+              image_limit: (p.image_limit !== undefined && !isNaN(Number(p.image_limit))) ? Number(p.image_limit) : cur.image_limit,
+              hours: (Number(p.window_hours) > 0) ? Number(p.window_hours) : cur.hours
             };
           });
           renderUserData();
@@ -1759,7 +1763,7 @@
         }
 
         // Image Generation Quota calculation
-        const imgLimit = (planConf && planConf.image_limit !== undefined) ? planConf.image_limit : (currentPlan === "Max" ? 100 : (currentPlan === "Pro" ? 25 : 5));
+        const imgLimit = (planConf && planConf.image_limit !== undefined) ? planConf.image_limit : 5;
         let imgUsed = 0;
         let imgUsage = null;
         try {

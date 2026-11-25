@@ -131,29 +131,19 @@ const plansHandler = async (req, res) => {
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
 
-    const normalizePlan = (p) => {
-      const plain = (p && typeof p.toObject === 'function') ? p.toObject() : { ...p };
-      plain.message_limit = Number(plain.message_limit) || 10;
-      const defaultImg = (plain.name === 'Free' ? 5 : (plain.name === 'Pro' ? 25 : 100));
-      plain.image_limit = (plain.image_limit !== undefined && plain.image_limit !== null && !isNaN(Number(plain.image_limit)) && Number(plain.image_limit) >= 0)
-        ? Number(plain.image_limit)
-        : defaultImg;
-      return plain;
-    };
+    const { ensureAllCanonicalPlans } = require('../server/utils/planDefaults');
+    const { getPersistedPlans } = require('../utils/getModelConfig');
 
     if (getIsMongoConnected()) {
       const Plan = require('../server/models/Plan');
-      let plans = await Plan.find({ is_active: true });
-      if (!plans || plans.length === 0) {
-        const { getPersistedPlans } = require('../utils/getModelConfig');
-        plans = await getPersistedPlans();
+      const mongoPlans = await Plan.find().lean();
+      if (mongoPlans && mongoPlans.length > 0) {
+        const all = ensureAllCanonicalPlans(mongoPlans);
+        return res.json({ success: true, plans: all.filter(p => p.is_active !== false) });
       }
-      return res.json({ success: true, plans: plans.map(normalizePlan) });
-    } else {
-      const { getPersistedPlans } = require('../utils/getModelConfig');
-      const plans = await getPersistedPlans();
-      return res.json({ success: true, plans: plans.filter(p => p.is_active !== false).map(normalizePlan) });
     }
+    const plans = await getPersistedPlans();
+    return res.json({ success: true, plans: ensureAllCanonicalPlans(plans).filter(p => p.is_active !== false) });
   } catch (e) {
     res.status(500).json({ success: false, error: e.message });
   }

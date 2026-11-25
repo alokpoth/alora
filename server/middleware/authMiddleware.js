@@ -5,6 +5,7 @@ const { getIsMongoConnected } = require('../config/db');
 const { memoryStore } = require('../config/memoryStore');
 const { JWT_SECRET } = require('../config/jwtSecret');
 const { getCachedUser, setCachedUser, invalidateCachedUser } = require('../config/dbCache');
+const { USER_PLANS } = require('../utils/planDefaults');
 
 function extractToken(req) {
   if (!req || !req.headers) return null;
@@ -86,7 +87,7 @@ const protect = async (req, res, next) => {
       const isVerifiedAdmin = user.role === 'admin' || (user.email && adminEmails.includes(user.email.toLowerCase().trim()));
       if (!user.subscription || typeof user.subscription !== 'object') {
         user.subscription = {
-          plan_name: isVerifiedAdmin ? 'Max' : (['Free', 'Pro', 'Max'].includes(decoded.plan) ? decoded.plan : 'Free'),
+          plan_name: isVerifiedAdmin ? 'Max' : (USER_PLANS.includes(decoded.plan) ? decoded.plan : 'Free'),
           starts_at: new Date(),
           expires_at: decoded.expires_at || null,
           is_active: true
@@ -197,7 +198,7 @@ const optionalProtect = async (req, res, next) => {
       const isVerifiedAdmin = user.role === 'admin' || (user.email && adminEmails.includes(user.email.toLowerCase().trim()));
       if (!user.subscription || typeof user.subscription !== 'object') {
         user.subscription = {
-          plan_name: isVerifiedAdmin ? 'Max' : (['Free', 'Pro', 'Max'].includes(decoded.plan) ? decoded.plan : 'Free'),
+          plan_name: isVerifiedAdmin ? 'Max' : (USER_PLANS.includes(decoded.plan) ? decoded.plan : 'Free'),
           starts_at: new Date(),
           expires_at: decoded.expires_at || null,
           is_active: true

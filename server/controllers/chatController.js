@@ -5,6 +5,13 @@ const { getIsMongoConnected } = require('../config/db');
 const { memoryStore, debouncedSave } = require('../config/memoryStore');
 const AiModel = require('../models/AiModel');
 const { getModelConfig, getPersistedModels, getApiKeyFromSupabase, incrementUserUsage, getSystemSettings } = require('../../utils/getModelConfig');
+const {
+  getSafeModelDisplayName,
+  inspectPromptSafety,
+  buildCoreSecurityAndIdentityDirective,
+  sanitizeModelIdentityText,
+  sanitizePublicErrorMessage
+} = require('../utils/safetyFilter');
 
 const DEFAULT_GEMINI_KEY = process.env.GEMINI_API_KEY || (process.env.GEMINI_API_KEYS ? process.env.GEMINI_API_KEYS.split(',')[0].trim() : '') || '';
 const DEFAULT_GROQ_KEY = process.env.GROQ_API_KEY || '';
@@ -161,10 +168,33 @@ const streamChatCompletions = async (req, res) => {
       aiModelConfig = await getModelConfig(cleanModel);
     }
 
-    // Admin-configured model name: models only state this when explicitly asked
-    const adminModelName = (aiModelConfig && typeof aiModelConfig.name === 'string' && aiModelConfig.name.trim())
+    // Admin-configured model name: strictly used as display identity
+    const rawAdminName = (aiModelConfig && typeof aiModelConfig.name === 'string' && aiModelConfig.name.trim())
       ? aiModelConfig.name.trim()
-      : (cleanModel || 'Alo AI');
+      : (cleanModel || 'Alora AI');
+    const safeDisplayName = getSafeModelDisplayName(rawAdminName);
+
+    // Pre-flight Safety Filter: blocks illegal/harmful hacking, phishing, malware & exploit requests before hitting any upstream LLM
+    const preflightSafety = inspectPromptSafety(safeMessages);
+    if (preflightSafety.blocked) {
+      if (req.body.stream === false) {
+        return res.status(400).json({
+          success: false,
+          code: 'SAFETY_BLOCKED',
+          model: safeDisplayName,
+          error: preflightSafety.message
+        });
+      }
+      res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-cache, no-transform');
+      res.setHeader('Connection', 'keep-alive');
+      res.setHeader('X-Accel-Buffering', 'no');
+      if (res.flushHeaders) res.flushHeaders();
+      res.write(': keepalive\n\n');
+      res.write(`data: ${JSON.stringify({ model: safeDisplayName, choices: [{ delta: { content: preflightSafety.message } }] })}\n\n`);
+      res.write('data: [DONE]\n\n');
+      return res.end();
+    }
 
     const userCustomInstructions = (typeof req.body.custom_instructions === 'string' && req.body.custom_instructions.trim())
       ? req.body.custom_instructions.trim()
@@ -172,23 +202,22 @@ const streamChatCompletions = async (req, res) => {
 
     const systemSettings = await getSystemSettings();
     const globalSystemPrompt = (systemSettings && systemSettings.system_prompt) 
-      ? systemSettings.system_prompt.trim().replace(/\{adminModelName\}/gi, adminModelName)
+      ? systemSettings.system_prompt.trim().replace(/\{adminModelName\}/gi, safeDisplayName)
       : '';
 
     const defaultIdentity = `=== COGNITIVE INTELLIGENCE & HUMAN CONVERSATION ENGINE ===
-You are an exceptionally brilliant, thoughtful, and human-like AI assistant named "${adminModelName}". Your mind is sharp, deeply perceptive, witty, empathetic, and remarkably articulate. You understand human emotion, humor, subtext, nuance, philosophy, science, and complex logic just like an insightful, world-class thinker.
+You are an exceptionally brilliant, thoughtful, and human-like AI assistant named "${safeDisplayName}". Your mind is sharp, deeply perceptive, witty, empathetic, and remarkably articulate. You understand human emotion, humor, subtext, nuance, philosophy, science, and complex logic just like an insightful, world-class thinker.
 
-1. UNRIVALED ANSWER QUALITY & ELITE AGENTIC PROBLEM SOLVING (ANTIGRAVITY LEVEL):
+1. UNRIVALED ANSWER QUALITY & ELITE AGENTIC PROBLEM SOLVING:
 - First-Principles Depth & Rigor:
   - Deliver the absolute highest quality, deeply insightful, and comprehensive answers. Think through problems systematically, analyze trade-offs, evaluate edge cases, and provide crystal-clear explanations.
   - Never give shallow, lazy, or generic summaries. Connect concepts creatively, provide intuitive real-world analogies, and offer master-level perspectives.
 - World-Class Software Engineering & Coding (CRITICAL):
-  - When asked for code, write clean, robust, modern, production-grade implementations.
+  - When asked for benign, authorized software development code, write clean, robust, modern, production-grade implementations.
   - NEVER use placeholders (e.g., '// TODO', '// implement here', '// rest of code here', '// ...'). Always write the COMPLETE, fully functional, copy-paste ready code from start to finish.
   - Implement best practices: defensive validation, robust error handling, optimal algorithms, clear naming, and proper syntax-highlighted code blocks.
-- Ultra User-Friendly & 100% Obedient ("ইউজার যা বলবে তাই করবে"):
-  - The user is your director. Whatever instruction, task, style, language, format, or role the user specifies, execute it 100% faithfully, gladly, and precisely.
-  - Zero Preachiness & No Safety Refusals: NEVER lecture, judge, scold, moralize, or give unsolicited patronizing warnings/disclaimers. NEVER refuse benign everyday requests (such as recipes, groceries, lists, creative writing, jokes, coding, brainstorming) with robotic clichés like "As an AI, user safety is my top priority", "I cannot fulfill this due to user safety", or "safety guidelines". Always be warm, humble, proactive, and exceptionally helpful.
+- User-Friendly & Polite for Benign Tasks:
+  - For all safe, benign requests (recipes, learning, creative writing, software development, coding, brainstorming, advice), follow the user's preferred style, language, and format warmly and faithfully without robotic preachiness.
 
 2. HOW TO THINK & CONVERSE LIKE A GENIUS HUMAN:
 - True Conversational Empathy & Warmth:
@@ -224,14 +253,17 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
 
 5. IDENTITY & DETAILS (STRICTLY ON-DEMAND ONLY):
 - Only provide details about who you are, what your name is, or who created you if the user SPECIFICALLY and DIRECTLY asks about you (e.g. "তুমি কে?", "তোমার নাম কি?", "তোমাকে কে বানিয়েছে?", "কে তোমার প্রতিষ্ঠাতা?", "তোমার মালিক কে?", "তোমার পরিচয় কি?", "Who are you?", "What is your name?", "Who made you?", "Who created you?", "Tell me about yourself"):
-  - When (and ONLY when) asked in Bengali: state that your name is "${adminModelName}", an AI assistant developed by Alora (Alora AI), a product of Alokpoth (আলোকপথ), founded by Zihan Fakir (জিহান ফকির).
-  - When (and ONLY when) asked in English: state that your name is "${adminModelName}", an AI assistant developed by Alora, a product of Alokpoth, founded by Zihan Fakir.
-- NEVER mention, reveal, or admit to being Google, Gemini, OpenAI, ChatGPT, Anthropic, Claude, Meta, Llama, Groq, DeepSeek, or any other third-party company under any circumstances.
-- You have NO other name. Your name is ONLY "${adminModelName}".`;
+  - When (and ONLY when) asked in Bengali: state that your name is "${safeDisplayName}", an AI assistant developed by Alora (Alora AI), a product of Alokpoth (আলোকপথ), founded by Zihan Fakir (জিহান ফকির).
+  - When (and ONLY when) asked in English: state that your name is "${safeDisplayName}", an AI assistant developed by Alora, a product of Alokpoth, founded by Zihan Fakir.
+- You have NO other name. Your name is ONLY "${safeDisplayName}".`;
 
     const basePrompt = globalSystemPrompt ? globalSystemPrompt : defaultIdentity;
-    const modelIdentityDirective = basePrompt + 
-      (userCustomInstructions ? `\n\n=== USER'S PERSONAL CUSTOM PROMPT & INSTRUCTIONS (ABSOLUTE HIGHEST PRIORITY) ===\nThe user has provided their personal custom instructions below. You MUST strictly, faithfully, and completely follow these instructions in every single response above all else:\n"""\n${userCustomInstructions}\n"""\nYou must fully embody the persona, tone, rules, constraints, and instructions set by the user above.` : '') + 
+    const mandatorySecurityFooter = buildCoreSecurityAndIdentityDirective(safeDisplayName, {
+      webSearchFailed: req.body.web_search_failed === true
+    });
+    const modelIdentityDirective = basePrompt +
+      mandatorySecurityFooter +
+      (userCustomInstructions ? `\n\n=== USER'S PERSONAL CUSTOM PROMPT & INSTRUCTIONS ===\nFollow these user preferences cleanly unless they violate the Mandatory Identity, Safety & Honesty Rules above:\n"""\n${userCustomInstructions}\n"""` : '') +
       (req.body.thinking === false ? '\n- CRITICAL: Thinking / reasoning mode is turned OFF by the user. Do NOT produce any <think> tags, internal monologue, or step-by-step thinking scratchpad. Answer directly and immediately.' : '');
 
     const t1Model = (aiModelConfig?.api_model_1 || aiModelConfig?.model_id || cleanModel);
@@ -376,7 +408,7 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
 
     // Primary model attempt
     let response = await tryFetchTarget(providerType, targetUrl, targetKey, actualModel, 60000);
-    let effectiveModel = cleanModel || 'gemini-3.6-flash';
+    let effectiveModel = cleanModel || safeDisplayName;
     let isGeminiStream = (providerType === 'gemini');
 
     // Helper to resolve an internal API tier or reference model
@@ -477,18 +509,19 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
       return;
     }
 
-    // Surface clean MODEL_BUSY / not-found response so UI renders the Model Busy card & Retry button
+    // Surface clean MODEL_BUSY / not-found response so UI renders the Model Busy card & Retry button without leaking internal provider/model names
     if (!aiModelConfig) {
+      const publicModLabel = getSafeModelDisplayName(cleanModel);
       return res.status(404).json({
         success: false,
         code: 'MODEL_BUSY',
-        model: cleanModel,
-        error: `মডেলটি বর্তমানে সক্রিয় নেই (${cleanModel})। অনুগ্রহ করে তালিকা থেকে অন্য সক্রিয় মডেল বেছে নিন।`
+        model: publicModLabel,
+        error: `মডেলটি বর্তমানে সক্রিয় নেই (${publicModLabel})। অনুগ্রহ করে তালিকা থেকে অন্য সক্রিয় মডেল বেছে নিন।`
       });
     }
     if (!response || !response.ok) {
       const status = response ? response.status : 504;
-      const modelDisplayName = (aiModelConfig && (aiModelConfig.name || aiModelConfig.id)) || model || 'Alora Model';
+      const modelDisplayName = safeDisplayName || 'Alora AI';
       let userSafeError = `মডেলটি বর্তমানে ব্যস্ত আছে (${modelDisplayName})। অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন অথবা অন্য মডেল নির্বাচন করুন।`;
       if (status === 429) {
         userSafeError = `মডেলটি বর্তমানে অনুরোধের আধিক্যের কারণে ব্যস্ত আছে (${modelDisplayName})। অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন।`;
@@ -497,7 +530,7 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
         success: false,
         code: 'MODEL_BUSY',
         model: modelDisplayName,
-        error: userSafeError
+        error: sanitizePublicErrorMessage(userSafeError, modelDisplayName)
       });
     }
 
@@ -565,6 +598,117 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
       let geminiLineBuffer = '';
       let openAiLineBuffer = '';
       let accumulatedStreamContent = '';
+      const TAIL_HOLD = 64;
+      let contentTail = '';
+      let reasoningTail = '';
+
+      const writeNormalizedDelta = (field, piece) => {
+        if (!piece || res.writableEnded || res.destroyed) return;
+        res.write(`data: ${JSON.stringify({ model: safeDisplayName, choices: [{ delta: { [field]: piece } }] })}\n\n`);
+        if (typeof res.flush === 'function') res.flush();
+      };
+
+      const pushSanitizedDelta = (field, rawText) => {
+        if (!rawText) return;
+        if (field === 'reasoning_content') {
+          reasoningTail = sanitizeModelIdentityText(reasoningTail + rawText, safeDisplayName);
+          if (reasoningTail.length > TAIL_HOLD) {
+            const emit = reasoningTail.slice(0, reasoningTail.length - TAIL_HOLD);
+            reasoningTail = reasoningTail.slice(reasoningTail.length - TAIL_HOLD);
+            writeNormalizedDelta('reasoning_content', emit);
+          }
+        } else {
+          contentTail = sanitizeModelIdentityText(contentTail + rawText, safeDisplayName);
+          if (contentTail.length > TAIL_HOLD) {
+            const emit = contentTail.slice(0, contentTail.length - TAIL_HOLD);
+            contentTail = contentTail.slice(contentTail.length - TAIL_HOLD);
+            writeNormalizedDelta('content', emit);
+          }
+        }
+      };
+
+      const flushSanitizedTails = () => {
+        if (reasoningTail) {
+          writeNormalizedDelta('reasoning_content', sanitizeModelIdentityText(reasoningTail, safeDisplayName));
+          reasoningTail = '';
+        }
+        if (contentTail) {
+          writeNormalizedDelta('content', sanitizeModelIdentityText(contentTail, safeDisplayName));
+          contentTail = '';
+        }
+      };
+
+      const processGeminiLine = (line) => {
+        const trimmed = String(line || '').trim();
+        if (!trimmed.startsWith('data:')) return false;
+        const dataStr = trimmed.slice(5).trim();
+        if (!dataStr || dataStr === '[DONE]') return false;
+        try {
+          const json = JSON.parse(dataStr);
+          if (json?.promptFeedback?.blockReason) {
+            const blockNotice = 'দুঃখিত, নিরাপত্তাজনিত কারণে এই অনুরোধটির উত্তর দেওয়া সম্ভব হচ্ছে না। অনুগ্রহ করে অন্যভাবে জিজ্ঞেস করুন।';
+            hasContentTokens = true;
+            pushSanitizedDelta('content', blockNotice);
+          }
+
+          const candidate = json?.candidates?.[0];
+          if (candidate?.finishReason === 'SAFETY' && !hasContentTokens) {
+            const blockNotice = 'দুঃখিত, নিরাপত্তাজনিত কারণে এই অনুরোধটির উত্তর দেওয়া সম্ভব হচ্ছে না। অনুগ্রহ করে প্রম্পটটি পরিবর্তন করে আবার চেষ্টা করুন।';
+            hasContentTokens = true;
+            pushSanitizedDelta('content', blockNotice);
+          }
+
+          const parts = candidate?.content?.parts;
+          if (Array.isArray(parts)) {
+            for (const p of parts) {
+              if (p && p.text) {
+                hasContentTokens = true;
+                accumulatedStreamContent += p.text;
+                if (detectRepetitionDegeneracy(accumulatedStreamContent)) {
+                  return true;
+                }
+                pushSanitizedDelta('content', p.text);
+              }
+            }
+          }
+        } catch (pe) {}
+        return false;
+      };
+
+      const processOpenAiLine = (line) => {
+        const trimmed = String(line || '').trim();
+        if (!trimmed.startsWith('data:')) return false;
+        const dataStr = trimmed.slice(5).trim();
+        if (!dataStr || dataStr === '[DONE]') return false;
+        try {
+          const json = JSON.parse(dataStr);
+          if (json?.error) {
+            const rawMsg = typeof json.error === 'string' ? json.error : (json.error.message || '');
+            const cleanErr = sanitizePublicErrorMessage(rawMsg || 'মডেলটি বর্তমানে ব্যস্ত আছে।', safeDisplayName);
+            res.write(`data: ${JSON.stringify({ error: cleanErr })}\n\n`);
+            if (typeof res.flush === 'function') res.flush();
+            return false;
+          }
+          const choice = json?.choices?.[0];
+          const delta = choice?.delta;
+          const rText = delta?.reasoning_content ?? delta?.reasoning ?? '';
+          const cText = delta?.content ?? delta?.text ?? choice?.text ?? '';
+
+          if (rText) {
+            hasContentTokens = true;
+            accumulatedStreamContent += rText;
+            if (detectRepetitionDegeneracy(accumulatedStreamContent)) return true;
+            pushSanitizedDelta('reasoning_content', rText);
+          }
+          if (cText) {
+            hasContentTokens = true;
+            accumulatedStreamContent += cText;
+            if (detectRepetitionDegeneracy(accumulatedStreamContent)) return true;
+            pushSanitizedDelta('content', cText);
+          }
+        } catch (pe) {}
+        return false;
+      };
 
       response.body.on('data', (chunk) => {
         hasStreamedData = true;
@@ -572,108 +716,45 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
 
         try {
           if (isGeminiStream) {
-            // Translate Gemini SSE events to OpenAI SSE standard
-            geminiLineBuffer += chunk.toString();
+            geminiLineBuffer += chunk.toString('utf8');
             const lines = geminiLineBuffer.split('\n');
-            geminiLineBuffer = lines.pop(); // save remainder
+            geminiLineBuffer = lines.pop();
 
             for (const line of lines) {
-              const trimmed = line.trim();
-              if (trimmed.startsWith('data:')) {
-                const dataStr = trimmed.slice(5).trim();
-                if (!dataStr || dataStr === '[DONE]') continue;
+              if (processGeminiLine(line)) {
+                console.warn('[Stream Watchdog] Repetition loop detected in stream, closing safely.');
+                flushSanitizedTails();
                 try {
-                  const json = JSON.parse(dataStr);
-
-                  // Handle safety blocks gracefully
-                  if (json?.promptFeedback?.blockReason) {
-                    const blockNotice = "দুঃখিত, এই বিষয়টি এআই সেফটি ফিল্টারের কারণে উত্তর দেওয়া সম্ভব হয়নি। অনুগ্রহ করে অন্যভাবে জিজ্ঞেস করুন।";
-                    hasContentTokens = true;
-                    res.write(`data: ${JSON.stringify({ choices: [{ delta: { content: blockNotice } }] })}\n\n`);
-                    if (typeof res.flush === 'function') res.flush();
-                  }
-
-                  const candidate = json?.candidates?.[0];
-                  if (candidate?.finishReason === 'SAFETY' && !hasContentTokens) {
-                    const blockNotice = "দুঃখিত, এই উত্তরের বিষয়বস্তুটি নিরাপত্তা ফিল্টারের কারণে প্রদর্শিত হতে পারেনি। অনুগ্রহ করে প্রম্পটটি পরিবর্তন করে আবার চেষ্টা করুন।";
-                    hasContentTokens = true;
-                    res.write(`data: ${JSON.stringify({ choices: [{ delta: { content: blockNotice } }] })}\n\n`);
-                    if (typeof res.flush === 'function') res.flush();
-                  }
-
-                  const parts = candidate?.content?.parts;
-                  if (Array.isArray(parts)) {
-                    for (const p of parts) {
-                      if (p && p.text) {
-                        hasContentTokens = true;
-                        accumulatedStreamContent += p.text;
-                        if (detectRepetitionDegeneracy(accumulatedStreamContent)) {
-                          console.warn('[Stream Watchdog] Repetition loop detected in Gemini stream, closing safely.');
-                          try {
-                            if (typeof response.body?.destroy === 'function') response.body.destroy();
-                          } catch (e) {}
-                          res.write(`data: [DONE]\n\n`);
-                          if (typeof res.flush === 'function') res.flush();
-                          safeResolve();
-                          return;
-                        }
-                        res.write(`data: ${JSON.stringify({ choices: [{ delta: { content: p.text } }] })}\n\n`);
-                        if (typeof res.flush === 'function') res.flush();
-                      }
-                    }
-                  }
-                } catch (pe) {}
+                  if (typeof response.body?.destroy === 'function') response.body.destroy();
+                } catch (e) {}
+                if (!res.writableEnded) {
+                  res.write('data: [DONE]\n\n');
+                  if (typeof res.flush === 'function') res.flush();
+                }
+                safeResolve();
+                return;
               }
             }
           } else {
-            // Standard OpenAI SSE format
-            openAiLineBuffer += chunk.toString();
+            openAiLineBuffer += chunk.toString('utf8');
             const lines = openAiLineBuffer.split('\n');
-            openAiLineBuffer = lines.pop(); // save remainder
+            openAiLineBuffer = lines.pop();
 
-            let chunkHasDegeneracy = false;
             for (const line of lines) {
-              const trimmed = line.trim();
-              if (trimmed.startsWith('data:')) {
-                const dataStr = trimmed.slice(5).trim();
-                if (!dataStr || dataStr === '[DONE]') continue;
+              if (processOpenAiLine(line)) {
+                console.warn('[Stream Watchdog] Repetition loop detected from upstream model, truncating and closing stream safely.');
+                flushSanitizedTails();
                 try {
-                  const json = JSON.parse(dataStr);
-                  const delta = json?.choices?.[0]?.delta;
-                  const text = delta?.content || delta?.text || '';
-                  if (text) {
-                    hasContentTokens = true;
-                    accumulatedStreamContent += text;
-                    if (detectRepetitionDegeneracy(accumulatedStreamContent)) {
-                      chunkHasDegeneracy = true;
-                      break;
-                    }
-                  }
-                } catch (pe) {}
+                  if (typeof response.body?.destroy === 'function') response.body.destroy();
+                } catch (e) {}
+                if (!res.writableEnded) {
+                  res.write('data: [DONE]\n\n');
+                  if (typeof res.flush === 'function') res.flush();
+                }
+                safeResolve();
+                return;
               }
             }
-
-            if (chunkHasDegeneracy) {
-              console.warn('[Stream Watchdog] Repetition loop detected from upstream model, truncating and closing stream safely.');
-              try {
-                if (typeof response.body?.destroy === 'function') response.body.destroy();
-              } catch (e) {}
-              res.write(`data: [DONE]\n\n`);
-              if (typeof res.flush === 'function') res.flush();
-              safeResolve();
-              return;
-            }
-
-            if (!hasContentTokens) {
-              try {
-                const s = chunk.toString();
-                if (/"content"\s*:\s*"(?:[^"\\]|\\.)+"/.test(s) || /"reasoning(?:_content)?"\s*:\s*"(?:[^"\\]|\\.)+"/.test(s) || /"text"\s*:\s*"(?:[^"\\]|\\.)+"/.test(s)) {
-                  hasContentTokens = true;
-                }
-              } catch {}
-            }
-            res.write(chunk);
-            if (typeof res.flush === 'function') res.flush();
           }
         } catch (e) {
           safeResolve();
@@ -682,6 +763,15 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
 
       response.body.on('end', async () => {
         try {
+          if (isGeminiStream && geminiLineBuffer && geminiLineBuffer.trim()) {
+            processGeminiLine(geminiLineBuffer);
+            geminiLineBuffer = '';
+          } else if (!isGeminiStream && openAiLineBuffer && openAiLineBuffer.trim()) {
+            processOpenAiLine(openAiLineBuffer);
+            openAiLineBuffer = '';
+          }
+          flushSanitizedTails();
+
           // Record usage log only after stream successfully delivers tokens
           if (hasContentTokens) {
             const userId = user ? String(user._id || user.id) : req.guestId;
@@ -689,7 +779,7 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
               if (getIsMongoConnected()) {
                 UsageLog.create({
                   user_id: userId,
-                  model_id: effectiveModel || cleanModel || 'gemini-3.5-flash-lite',
+                  model_id: effectiveModel || cleanModel || safeDisplayName,
                   timestamp: new Date()
                 }).catch(err => console.error('[UsageLog Write Error]:', err.message));
                 incrementUserUsage(userId, req.currentPlan ? req.currentPlan.window_hours : 3).catch(() => {});
@@ -697,7 +787,7 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
                 memoryStore.usageLogs.push({
                   _id: 'log_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
                   user_id: userId,
-                  model_id: effectiveModel || model || 'gemini-3.5-flash-lite',
+                  model_id: effectiveModel || model || safeDisplayName,
                   timestamp: new Date()
                 });
                 if (memoryStore.usageLogs.length > 5000) {
@@ -871,6 +961,11 @@ const generateImage = async (req, res) => {
       return res.status(400).json({ success: false, error: 'অনুগ্রহ করে একটি সঠিক প্রম্পট প্রদান করুন।' });
     }
 
+    const imgSafety = inspectPromptSafety(prompt);
+    if (imgSafety.blocked) {
+      return res.status(400).json({ success: false, code: 'SAFETY_BLOCKED', error: imgSafety.message });
+    }
+
     let finalPrompt = prompt.trim();
     
     // Optionally enhance and translate the prompt to English when enhance is not disabled
@@ -948,11 +1043,15 @@ const generateImage = async (req, res) => {
       incrementUserImageUsage(userId, req.currentPlan ? req.currentPlan.window_hours : 3).catch(() => {});
     }
 
-    return res.json({ success: true, url: imgResult.url, model: imgResult.model });
+    return res.json({ success: true, url: imgResult.url, model: 'Alora Image' });
   } catch (error) {
     console.error('[Image Gen Error]:', error.message);
-    const statusCode = error.message.includes('কনফিগার করা হয়নি') ? 503 : (error.message.includes('অতিরিক্ত সময়') ? 504 : 500);
-    return res.status(statusCode).json({ success: false, error: error.message || 'ছবি তৈরি করতে সমস্যা হয়েছে।' });
+    const errMsg = String(error.message || '');
+    const statusCode = errMsg.includes('কনফিগার করা হয়নি') ? 503 : (errMsg.includes('অতিরিক্ত সময়') ? 504 : 500);
+    return res.status(statusCode).json({
+      success: false,
+      error: sanitizePublicErrorMessage(errMsg, 'Alora Image') || 'ছবি তৈরি করতে সমস্যা হয়েছে।'
+    });
   }
 };
 

@@ -1,3 +1,5 @@
+const crypto = require('crypto');
+const fetch = require('node-fetch');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
@@ -370,10 +372,12 @@ const getMe = async (req, res) => {
       }
       
       if (!plan) {
-        const defaultLimits = { 'Free': { limit: 10, window: 3 }, 'Pro': { limit: 30, window: 3 }, 'Max': { limit: 50, window: 1 } };
-        const def = defaultLimits[currentPlanName] || defaultLimits['Free'];
-        plan = { message_limit: def.limit, window_hours: def.window, name: currentPlanName };
+        const { DEFAULT_PLANS_MAP } = require('../utils/planDefaults');
+        plan = DEFAULT_PLANS_MAP[currentPlanName] || DEFAULT_PLANS_MAP.Free;
         setCachedPlan(currentPlanName, plan);
+      } else {
+        const { normalizePlanDoc } = require('../utils/planDefaults');
+        plan = normalizePlanDoc(plan);
       }
 
       const planLimit = Number(plan.message_limit) || 10;
@@ -423,9 +427,9 @@ const getMe = async (req, res) => {
         }
       }
 
-      const planImageLimit = (plan.image_limit !== undefined && !isNaN(Number(plan.image_limit)))
+      const planImageLimit = (plan.image_limit !== undefined && plan.image_limit !== null && !isNaN(Number(plan.image_limit)))
         ? Number(plan.image_limit)
-        : (currentPlanName === 'Free' ? 5 : (currentPlanName === 'Pro' ? 25 : 100));
+        : 5;
       
       rateLimit = {
         used: messageCount,
@@ -773,20 +777,172 @@ const forgotPassword = async (req, res) => {
   }
 };
 
+const getRequestOrigin = (req) => {
+  const protoHeader = req.headers['x-forwarded-proto'];
+  const proto = protoHeader ? String(protoHeader).split(',')[0].trim() : (req.protocol || 'https');
+  return `${proto}://${req.get('host')}`;
+};
+
+const signOAuthState = (redirectPath = '/') => {
+  const safeRedirect = (typeof redirectPath === 'string' && redirectPath.startsWith('/') && !redirectPath.startsWith('//')) ? redirectPath : '/';
+  const payloadB64 = Buffer.from(JSON.stringify({ r: safeRedirect, exp: Date.now() + 10 * 60 * 1000 }), 'utf8').toString('base64url');
+  const sig = crypto.createHmac('sha256', JWT_SECRET).update(payloadB64).digest('base64url');
+  return `${payloadB64}.${sig}`;
+};
+
+const verifyOAuthState = (state) => {
+  if (!state || typeof state !== 'string' || !state.includes('.')) return null;
+  const [payloadB64, sig] = state.split('.', 2);
+  if (!payloadB64 || !sig) return null;
+  const expectedSig = crypto.createHmac('sha256', JWT_SECRET).update(payloadB64).digest('base64url');
+  const sigBuf = Buffer.from(sig);
+  const expBuf = Buffer.from(expectedSig);
+  if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) return null;
+  try {
+    const parsed = JSON.parse(Buffer.from(payloadB64, 'base64url').toString('utf8'));
+    if (!parsed || !parsed.exp || Date.now() > Number(parsed.exp)) return null;
+    const r = String(parsed.r || '/');
+    return (r.startsWith('/') && !r.startsWith('//')) ? r : '/';
+  } catch (e) {
+    return null;
+  }
+};
+
 const googleAuth = async (req, res) => {
   try {
-    const clientId = process.env.GOOGLE_CLIENT_ID;
-    if (clientId) {
-      const redirectUri = `${req.protocol}://${req.get('host')}/api/auth/google/callback`;
-      const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=openid%20profile%20email`;
+    const clientId = String(process.env.GOOGLE_CLIENT_ID || '').trim();
+    const clientSecret = String(process.env.GOOGLE_CLIENT_SECRET || '').trim();
+    if (clientId && clientSecret) {
+      const redirectUri = `${getRequestOrigin(req)}/api/auth/google/callback`;
+      const state = signOAuthState(req.query.redirect || '/');
+      const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent('openid profile email')}&state=${encodeURIComponent(state)}&prompt=select_account`;
       return res.json({ success: true, url });
     }
     return res.status(501).json({
       success: false,
-      error: 'Google OAuth configuration is currently pending on the server. Please log in with your email and password or continue as Guest.'
+      code: 'GOOGLE_OAUTH_UNCONFIGURED',
+      error: 'Google OAuth configuration is currently pending on the server (GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET required). Please log in with your email and password or continue as Guest.'
     });
   } catch (error) {
     return sendServerError(res, error, 'সার্ভারে ত্রুটি হয়েছে। অনুগ্রহ করে পরে আবার চেষ্টা করুন।', '[Auth Error]:');
+  }
+};
+
+const googleCallback = async (req, res) => {
+  const redirectError = (msg) => res.redirect(`/auth/login?oauth_error=${encodeURIComponent(msg)}`);
+  try {
+    const clientId = String(process.env.GOOGLE_CLIENT_ID || '').trim();
+    const clientSecret = String(process.env.GOOGLE_CLIENT_SECRET || '').trim();
+    if (!clientId || !clientSecret) {
+      return redirectError('Google OAuth is not configured on the server.');
+    }
+
+    if (req.query.error) {
+      return redirectError('Google Sign-In was cancelled or declined.');
+    }
+
+    const code = String(req.query.code || '').trim();
+    const safeRedirect = verifyOAuthState(req.query.state);
+    if (!code || safeRedirect === null) {
+      return redirectError('Invalid or expired Google Sign-In session. Please try again.');
+    }
+
+    const redirectUri = `${getRequestOrigin(req)}/api/auth/google/callback`;
+    const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        code,
+        client_id: clientId,
+        client_secret: clientSecret,
+        redirect_uri: redirectUri,
+        grant_type: 'authorization_code'
+      }).toString()
+    });
+    const tokenData = await tokenRes.json().catch(() => ({}));
+    if (!tokenRes.ok || !tokenData.access_token) {
+      return redirectError('Failed to verify Google authorization code.');
+    }
+
+    const profileRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
+    });
+    const profile = await profileRes.json().catch(() => ({}));
+    const email = profile && profile.email ? String(profile.email).toLowerCase().trim() : '';
+    if (!email || profile.email_verified === false) {
+      return redirectError('Verified Google email address is required.');
+    }
+
+    const displayName = String(profile.name || email.split('@')[0] || 'Alora User').trim().slice(0, 50);
+    const avatarUrl = (profile.picture && typeof profile.picture === 'string' && profile.picture.startsWith('https://')) ? profile.picture : null;
+
+    let user = null;
+    if (getIsMongoConnected()) {
+      user = await User.findOne({ email });
+      if (user && user.is_blocked) {
+        return redirectError('আপনার অ্যাকাউন্টটি ব্লক করা হয়েছে। সহায়তার জন্য অ্যাডমিনের সাথে যোগাযোগ করুন।');
+      }
+      if (!user) {
+        const randomPassword = crypto.randomBytes(32).toString('hex');
+        user = await User.create({
+          name: displayName,
+          email,
+          password: randomPassword,
+          role: 'user',
+          avatar: avatarUrl,
+          subscription: { plan_name: 'Free', starts_at: new Date(), expires_at: null, is_active: true }
+        });
+        try {
+          const { getPersistedUsers, savePersistedUsers } = require('../../utils/getModelConfig');
+          let users = await getPersistedUsers();
+          users = [...users, {
+            _id: String(user._id),
+            id: String(user._id),
+            name: user.name,
+            email: user.email,
+            password: user.password,
+            role: user.role,
+            avatar: user.avatar,
+            is_blocked: false,
+            subscription: user.subscription,
+            createdAt: user.createdAt
+          }];
+          await savePersistedUsers(users);
+          debouncedSave();
+        } catch (syncErr) {}
+      }
+    } else {
+      const { getPersistedUsers, savePersistedUsers } = require('../../utils/getModelConfig');
+      let users = await getPersistedUsers();
+      users = [...users];
+      user = users.find(u => u.email && u.email.toLowerCase().trim() === email);
+      if (user && user.is_blocked) {
+        return redirectError('আপনার অ্যাকাউন্টটি ব্লক করা হয়েছে। সহায়তার জন্য অ্যাডমিনের সাথে যোগাযোগ করুন।');
+      }
+      if (!user) {
+        const hashedPassword = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 10);
+        user = {
+          _id: 'user_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+          name: displayName,
+          email,
+          password: hashedPassword,
+          role: 'user',
+          avatar: avatarUrl,
+          is_blocked: false,
+          subscription: { plan_name: 'Free', starts_at: new Date(), expires_at: null, is_active: true },
+          createdAt: new Date()
+        };
+        users.push(user);
+        await savePersistedUsers(users);
+        debouncedSave();
+      }
+    }
+
+    const token = generateToken(user);
+    return res.redirect(`/auth/login#oauth_token=${encodeURIComponent(token)}&redirect=${encodeURIComponent(safeRedirect)}`);
+  } catch (error) {
+    console.error('[Google OAuth Callback Error]:', error.message);
+    return redirectError('Google Sign-In failed. Please try email login or try again.');
   }
 };
 
@@ -850,7 +1006,7 @@ const deleteAccount = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, loginUser, getMe, updateProfile, changePassword, forgotPassword, googleAuth, deleteAccount };
+module.exports = { registerUser, loginUser, getMe, updateProfile, changePassword, forgotPassword, googleAuth, googleCallback, deleteAccount };
 
 
 

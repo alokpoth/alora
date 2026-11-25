@@ -14,6 +14,7 @@ router.put('/change-password', protect, authController.changePassword);
 router.post('/change-password', protect, authController.changePassword);
 router.post('/forgot-password', authController.forgotPassword);
 router.get('/google', authController.googleAuth);
+router.get('/google/callback', authController.googleCallback);
 
 module.exports = router;
 

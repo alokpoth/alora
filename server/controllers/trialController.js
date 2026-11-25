@@ -4,12 +4,11 @@ const { getIsMongoConnected } = require('../config/db');
 const { memoryStore, debouncedSave } = require('../config/memoryStore');
 const { JWT_SECRET } = require('../config/jwtSecret');
 const { invalidateCachedUser } = require('../config/dbCache');
-
-const PLAN_HIERARCHY = { Free: 1, Pro: 2, Max: 3 };
+const { PLAN_HIERARCHY, PAID_PLANS } = require('../utils/planDefaults');
 
 // Normalised, public-safe view of the admin-controlled free trial offer.
 function buildPromo(settings = {}) {
-  const plan = ['Pro', 'Max'].includes(settings.free_trial_plan) ? settings.free_trial_plan : 'Pro';
+  const plan = PAID_PLANS.includes(settings.free_trial_plan) ? settings.free_trial_plan : 'Pro';
   const days = Math.floor(Math.min(Math.max(Number(settings.free_trial_days) || 7, 1), 365));
   return {
     enabled: settings.free_trial_enabled === true || settings.free_trial_enabled === 'true',

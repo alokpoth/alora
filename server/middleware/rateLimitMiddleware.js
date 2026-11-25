@@ -7,8 +7,10 @@ const { getIsMongoConnected } = require('../config/db');
 const { memoryStore, debouncedSave } = require('../config/memoryStore');
 const { getModelConfig, getUserUsageDetails, getUserImageUsageDetails } = require('../../utils/getModelConfig');
 const { getCachedPlan, setCachedPlan, getCachedModel, setCachedModel, invalidateCachedUser } = require('../config/dbCache');
+const { PLAN_HIERARCHY, DEFAULT_PLANS_MAP, normalizePlanDoc } = require('../utils/planDefaults');
 
 const guestMessageTracker = new Map();
+const guestImageTracker = new Map();
 // Clear any test counts for localhost
 guestMessageTracker.delete('127_0_0_1');
 guestMessageTracker.delete('localhost');
@@ -43,15 +45,51 @@ const checkRateLimit = async (req, res, next) => {
     const cleanIp = String(resolvedIp || '127.0.0.1').replace(/^::ffff:/, '').replace(/[^a-zA-Z0-9]/g, '_');
     const guestId = `guest_${cleanIp}`;
 
-    // 0. Guest User (Not logged in) — Allow up to 10 trial messages per 3 hours
+    // 0. Guest User (Not logged in) — Uses dynamic Admin 'Guest' plan configuration
     if (!user) {
-      if (isImageRoute) {
-        return res.status(401).json({
-          success: false,
-          error: 'ছবি তৈরি করতে অনুগ্রহ করে প্রথমে লগইন বা সাইন-আপ করুন।'
-        });
+      let guestPlan = null;
+      if (getIsMongoConnected()) {
+        try { guestPlan = await Plan.findOne({ name: 'Guest' }).lean(); } catch {}
       }
-      // Enforce model tier on Guest requests (Free models allowed; Pro/Max models require account & plan)
+      if (!guestPlan) {
+        const { getPersistedPlans } = require('../../utils/getModelConfig');
+        const plans = await getPersistedPlans();
+        guestPlan = plans.find(p => p.name === 'Guest');
+      }
+      guestPlan = normalizePlanDoc(guestPlan || DEFAULT_PLANS_MAP.Guest);
+      const gMsgLimit = Number(guestPlan.message_limit);
+      const gImgLimit = Number(guestPlan.image_limit);
+      const gWinHours = Number(guestPlan.window_hours) || 3;
+      const gWinMs = gWinHours * 60 * 60 * 1000;
+      const isLocalTest = cleanIp === '127_0_0_1' || cleanIp === 'localhost' || cleanIp === '_1';
+
+      if (isImageRoute) {
+        if (gImgLimit <= 0) {
+          return res.status(401).json({
+            success: false,
+            error: 'ছবি তৈরি করতে অনুগ্রহ করে প্রথমে লগইন বা সাইন-আপ করুন।'
+          });
+        }
+        if (!isLocalTest) {
+          const nowImg = Date.now();
+          const imgData = guestImageTracker.get(cleanIp) || { count: 0, resetAt: nowImg + gWinMs };
+          if (nowImg > imgData.resetAt) { imgData.count = 0; imgData.resetAt = nowImg + gWinMs; }
+          if (imgData.count >= gImgLimit) {
+            return res.status(401).json({
+              success: false,
+              code: 'GUEST_LIMIT_REACHED',
+              error: `গেস্ট ছবি তৈরির সীমা (${gImgLimit}টি) শেষ হয়েছে। আরও ছবি তৈরি করতে লগইন করুন।`
+            });
+          }
+          imgData.count += 1;
+          guestImageTracker.set(cleanIp, imgData);
+        }
+        req.guestId = guestId;
+        req.currentPlan = guestPlan;
+        return next();
+      }
+
+      // Enforce model tier on Guest requests (Free models allowed; Plus/Pro/Max models require account & plan)
       const guestReqModelId = (req.body && typeof req.body === 'object' && req.body.model) ? String(req.body.model).trim() : '';
       if (guestReqModelId) {
         let gModel = getCachedModel(guestReqModelId);
@@ -63,7 +101,7 @@ const checkRateLimit = async (req, res, next) => {
           if (gModel) setCachedModel(guestReqModelId, gModel);
         }
         if (gModel && (gModel.efficient || gModel.premium)) {
-          const reqTier = gModel.efficient ? 'Max' : 'Pro';
+          const reqTier = gModel.efficient ? 'Max' : 'Plus / Pro';
           return res.status(403).json({
             success: false,
             code: 'PLAN_UPGRADE_REQUIRED',
@@ -72,30 +110,38 @@ const checkRateLimit = async (req, res, next) => {
         }
       }
 
-      // Never rate-limit localhost testing
-      if (cleanIp === '127_0_0_1' || cleanIp === 'localhost' || cleanIp === '_1') {
+      if (gMsgLimit <= 0) {
+        return res.status(401).json({
+          success: false,
+          code: 'GUEST_LIMIT_REACHED',
+          error: 'চ্যাট শুরু করতে অনুগ্রহ করে লগইন বা সাইন-আপ করুন।'
+        });
+      }
+
+      // Never rate-limit localhost testing when guest messaging is enabled
+      if (isLocalTest) {
         req.guestId = guestId;
-        req.currentPlan = { name: 'Free', displayName: 'গেস্ট ট্রায়াল', message_limit: 99999, image_limit: 0, window_hours: 3, allowed_models: ['*'] };
+        req.currentPlan = { ...guestPlan, message_limit: 99999 };
         return next();
       }
 
       const now = Date.now();
-      const guestData = guestMessageTracker.get(cleanIp) || { count: 0, resetAt: now + 3 * 60 * 60 * 1000 };
+      const guestData = guestMessageTracker.get(cleanIp) || { count: 0, resetAt: now + gWinMs };
       if (now > guestData.resetAt) {
         guestData.count = 0;
-        guestData.resetAt = now + 3 * 60 * 60 * 1000;
+        guestData.resetAt = now + gWinMs;
       }
-      if (guestData.count >= 10) {
+      if (guestData.count >= gMsgLimit) {
         return res.status(401).json({
           success: false,
           code: 'GUEST_LIMIT_REACHED',
-          error: 'আপনার ১০টি ফ্রি বার্তা শেষ হয়েছে। চ্যাট চালিয়ে যেতে অনুগ্রহ করে লগইন বা সাইন-আপ করুন।'
+          error: `আপনার ${gMsgLimit}টি ফ্রি বার্তা শেষ হয়েছে। চ্যাট চালিয়ে যেতে অনুগ্রহ করে লগইন বা সাইন-আপ করুন।`
         });
       }
       guestData.count += 1;
       guestMessageTracker.set(cleanIp, guestData);
       req.guestId = guestId;
-      req.currentPlan = { name: 'Free', displayName: 'গেস্ট ট্রায়াল', message_limit: 10, image_limit: 0, window_hours: 3, allowed_models: ['*'] };
+      req.currentPlan = guestPlan;
       return next();
     }
 
@@ -164,27 +210,14 @@ const checkRateLimit = async (req, res, next) => {
     }
 
     if (!plan) {
-      const defaultLimits = {
-        'Free': { limit: 10, imgLimit: 5, window: 3, name: 'ফ্রি প্ল্যান', allowed: ['*'] },
-        'Pro': { limit: 30, imgLimit: 25, window: 3, name: 'প্রো প্ল্যান', allowed: ['*'] },
-        'Max': { limit: 50, imgLimit: 100, window: 1, name: 'ম্যাক্স প্ল্যান', allowed: ['*'] }
-      };
-      const def = defaultLimits[currentPlanName] || defaultLimits['Free'];
-      plan = {
-        name: currentPlanName,
-        displayName: def.name,
-        message_limit: def.limit,
-        image_limit: def.imgLimit,
-        window_hours: def.window,
-        allowed_models: def.allowed,
-        is_active: true
-      };
+      plan = { ...(DEFAULT_PLANS_MAP[currentPlanName] || DEFAULT_PLANS_MAP.Free) };
       setCachedPlan(currentPlanName, plan);
+    } else {
+      plan = normalizePlanDoc(plan);
     }
     plan.message_limit = Number(plan.message_limit) || 10;
     plan.window_hours = Number(plan.window_hours) || 3;
-    const defaultImgLimit = (plan.name === 'Free' ? 5 : (plan.name === 'Pro' ? 25 : 100));
-    plan.image_limit = (plan.image_limit !== undefined && plan.image_limit !== null && !isNaN(Number(plan.image_limit)) && Number(plan.image_limit) >= 0) ? Number(plan.image_limit) : defaultImgLimit;
+    plan.image_limit = (plan.image_limit !== undefined && plan.image_limit !== null && !isNaN(Number(plan.image_limit)) && Number(plan.image_limit) >= 0) ? Number(plan.image_limit) : 5;
 
     const userId = String(user._id || user.id);
     const windowStart = new Date(Date.now() - plan.window_hours * 60 * 60 * 1000);
@@ -273,44 +306,37 @@ const checkRateLimit = async (req, res, next) => {
       (aiModel && (plan.allowed_models.includes(aiModel.id) || plan.allowed_models.includes(aiModel.model_id)))
     );
     const hasWildcard = !Array.isArray(plan.allowed_models) || plan.allowed_models.length === 0 || plan.allowed_models.includes('*');
+    const userTier = PLAN_HIERARCHY[currentPlanName] || 1;
 
-    if (currentPlanName === 'Free') {
-      // Free users can use any Free model (premium: false, efficient: false) configured by Admin
-      if (isMaxModel) {
-        return res.status(403).json({
-          success: false,
-          code: 'PLAN_UPGRADE_REQUIRED',
-          error: `'${aiModel?.name || model_id}' মডেলটি ব্যবহারের জন্য Max প্ল্যান প্রয়োজন। আপনার বর্তমান প্ল্যান: ${plan.displayName || 'ফ্রি প্ল্যান'}।`
-        });
-      }
-      if (isProModel) {
-        return res.status(403).json({
-          success: false,
-          code: 'PLAN_UPGRADE_REQUIRED',
-          error: `'${aiModel?.name || model_id}' মডেলটি ব্যবহারের জন্য Pro বা Max প্ল্যান প্রয়োজন। আপনার বর্তমান প্ল্যান: ${plan.displayName || 'ফ্রি প্ল্যান'}।`
-        });
-      }
-    } else if (currentPlanName === 'Pro') {
-      // Pro users can use Free and Pro models, but CANNOT use Max models!
-      if (isMaxModel) {
-        return res.status(403).json({
-          success: false,
-          error: `'${aiModel?.name || model_id}' মডেলটি ব্যবহারের জন্য Max প্ল্যান প্রয়োজন। আপনার বর্তমান প্ল্যান: ${plan.displayName || 'প্রো প্ল্যান'}।`
-        });
-      }
-      if (!hasWildcard && Array.isArray(plan.allowed_models) && plan.allowed_models.length > 0 && !explicitlyAllowedByName) {
-        return res.status(403).json({
-          success: false,
-          error: `আপনার বর্তমান ${plan.displayName || 'প্রো প্ল্যান'}-এ '${aiModel?.name || model_id}' মডেল ব্যবহারের অনুমতি নেই।`
-        });
-      }
-    } else if (currentPlanName !== 'Max' && !isVerifiedAdmin) {
-      // Custom plan check
-      if (!explicitlyAllowedByName && !hasWildcard) {
-        return res.status(403).json({
-          success: false,
-          error: `আপনার ${plan.displayName || currentPlanName} এ '${model_id}' মডেল ব্যবহারের অনুমতি নেই।`
-        });
+    if (!isVerifiedAdmin) {
+      // Check explicit custom allowed_models whitelist first if not wildcard
+      if (!hasWildcard) {
+        if (!explicitlyAllowedByName) {
+          return res.status(403).json({
+            success: false,
+            code: 'PLAN_UPGRADE_REQUIRED',
+            error: `আপনার বর্তমান ${plan.displayName || currentPlanName}-এ '${aiModel?.name || model_id}' মডেল ব্যবহারের অনুমতি নেই।`
+          });
+        }
+      } else {
+        // Default tier model rules when allowed_models is ['*']:
+        // Max unlocks all models (including frontier/efficient).
+        // Plus & Pro unlock premium reasoning models (not efficient/frontier).
+        // Free & Go unlock standard models unless explicitly whitelisted.
+        if (isMaxModel && userTier < PLAN_HIERARCHY.Max) {
+          return res.status(403).json({
+            success: false,
+            code: 'PLAN_UPGRADE_REQUIRED',
+            error: `'${aiModel?.name || model_id}' মডেলটি ব্যবহারের জন্য Max প্ল্যান প্রয়োজন। আপনার বর্তমান প্ল্যান: ${plan.displayName || currentPlanName}।`
+          });
+        }
+        if (isProModel && userTier < PLAN_HIERARCHY.Plus) {
+          return res.status(403).json({
+            success: false,
+            code: 'PLAN_UPGRADE_REQUIRED',
+            error: `'${aiModel?.name || model_id}' মডেলটি ব্যবহারের জন্য Plus বা Pro প্ল্যান প্রয়োজন। আপনার বর্তমান প্ল্যান: ${plan.displayName || currentPlanName}।`
+          });
+        }
       }
     }
 

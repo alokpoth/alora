@@ -582,24 +582,13 @@ async function getPersistedPlans() {
     return plansCache;
   }
 
-  const defaultPlans = [
-    { name: 'Free', displayName: 'ফ্রি প্ল্যান', message_limit: 10, window_hours: 3, image_limit: 5, allowed_models: ['*'], is_active: true },
-    { name: 'Pro', displayName: 'প্রো প্ল্যান', message_limit: 30, window_hours: 3, image_limit: 25, allowed_models: ['*'], is_active: true },
-    { name: 'Max', displayName: 'ম্যাক্স প্ল্যান', message_limit: 50, window_hours: 1, image_limit: 100, allowed_models: ['*'], is_active: true }
-  ];
-
-  const normalizePlanImageLimit = (p) => {
-    const fallback = p.name === 'Free' ? 5 : (p.name === 'Pro' ? 25 : 100);
-    if (p.image_limit === undefined || p.image_limit === null || isNaN(Number(p.image_limit)) || Number(p.image_limit) < 0) {
-      p.image_limit = fallback;
-    } else {
-      p.image_limit = Number(p.image_limit);
-    }
-  };
+  const { ensureAllCanonicalPlans, DEFAULT_PLANS } = require('../server/utils/planDefaults');
 
   if (!supabase) {
-    const localPlans = memoryStore.plans && memoryStore.plans.length > 0 ? memoryStore.plans : defaultPlans;
-    localPlans.forEach(normalizePlanImageLimit);
+    const localPlans = ensureAllCanonicalPlans(
+      memoryStore.plans && memoryStore.plans.length > 0 ? memoryStore.plans : DEFAULT_PLANS
+    );
+    memoryStore.plans = localPlans;
     return localPlans;
   }
 
@@ -613,19 +602,21 @@ async function getPersistedPlans() {
     if (!error && data && data.length > 0 && data[0].api_key) {
       const parsed = JSON.parse(data[0].api_key);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        parsed.forEach(normalizePlanImageLimit);
-        plansCache = parsed;
+        const normalized = ensureAllCanonicalPlans(parsed);
+        plansCache = normalized;
         plansCacheTs = now;
-        memoryStore.plans = parsed;
-        return parsed;
+        memoryStore.plans = normalized;
+        return normalized;
       }
     }
   } catch (e) {
     console.warn('[Supabase] __plans_metadata__ fetch failed:', e.message);
   }
 
-  const resPlans = memoryStore.plans && memoryStore.plans.length > 0 ? memoryStore.plans : defaultPlans;
-  resPlans.forEach(normalizePlanImageLimit);
+  const resPlans = ensureAllCanonicalPlans(
+    memoryStore.plans && memoryStore.plans.length > 0 ? memoryStore.plans : DEFAULT_PLANS
+  );
+  memoryStore.plans = resPlans;
   return resPlans;
 }
 

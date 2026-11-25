@@ -43,7 +43,7 @@ router.get('/models', async (req, res) => {
         id: m.id || m.model_id,
         name: cleanName,
         description: m.description || '',
-        provider: m.provider || "Alora",
+        provider: "Alora",
         type: m.type,
         premium: !!m.premium,
         efficient: !!m.efficient,

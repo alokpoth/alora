@@ -1,9 +1,10 @@
 const mongoose = require('mongoose');
+const { PLAN_ORDER, DEFAULT_PLANS, DEFAULT_PLANS_MAP } = require('../utils/planDefaults');
 
 const PlanSchema = new mongoose.Schema({
   name: {
     type: String,
-    enum: ['Free', 'Pro', 'Max'],
+    enum: PLAN_ORDER,
     required: true,
     unique: true
   },
@@ -22,9 +23,19 @@ const PlanSchema = new mongoose.Schema({
   image_limit: {
     type: Number,
     default: function() {
-      if (this.name === 'Pro') return 25;
-      if (this.name === 'Max') return 100;
-      return 5;
+      return (DEFAULT_PLANS_MAP[this.name] && DEFAULT_PLANS_MAP[this.name].image_limit) || 5;
+    }
+  },
+  price_bdt: {
+    type: Number,
+    default: function() {
+      return (DEFAULT_PLANS_MAP[this.name] && DEFAULT_PLANS_MAP[this.name].price_bdt) || 0;
+    }
+  },
+  tagline: {
+    type: String,
+    default: function() {
+      return (DEFAULT_PLANS_MAP[this.name] && DEFAULT_PLANS_MAP[this.name].tagline) || '';
     }
   },
   allowed_models: [{
@@ -38,37 +49,18 @@ const PlanSchema = new mongoose.Schema({
 
 PlanSchema.index({ name: 1, is_active: 1 });
 
-// Seed default plans if not existing
+// Seed any missing canonical plans without overwriting existing custom limits
 PlanSchema.statics.seedDefaultPlans = async function() {
-  const count = await this.countDocuments();
-  if (count === 0) {
-    await this.create([
-      {
-        name: 'Free',
-        displayName: 'ফ্রি প্ল্যান',
-        message_limit: 10,
-        window_hours: 3,
-        image_limit: 5,
-        allowed_models: ['*']
-      },
-      {
-        name: 'Pro',
-        displayName: 'প্রো প্ল্যান',
-        message_limit: 30,
-        window_hours: 3,
-        image_limit: 25,
-        allowed_models: ['*']
-      },
-      {
-        name: 'Max',
-        displayName: 'ম্যাক্স প্ল্যান',
-        message_limit: 50,
-        window_hours: 1,
-        image_limit: 100,
-        allowed_models: ['*']
-      }
-    ]);
-    console.log('[Database Seed] Default subscription plans created (Free, Pro, Max).');
+  let created = 0;
+  for (const def of DEFAULT_PLANS) {
+    const exists = await this.exists({ name: def.name });
+    if (!exists) {
+      await this.create(def);
+      created++;
+    }
+  }
+  if (created > 0) {
+    console.log(`[Database Seed] Seeded ${created} missing subscription plans (${PLAN_ORDER.join(', ')}).`);
   }
 };
 
