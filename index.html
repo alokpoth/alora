@@ -1654,8 +1654,21 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 14px;
       padding-bottom: 14px;
       border-bottom: 1px solid var(--border-subtle);
+    }
+    .setting-row > div:first-child {
+      flex: 1;
+      min-width: 0;
+    }
+    .setting-row > button,
+    .setting-row > a,
+    .setting-row > .alora-switch {
+      flex-shrink: 0;
+    }
+    .setting-row:has(.alora-switch) {
+      flex-wrap: nowrap !important;
     }
     .setting-label-title {
       font-size: 0.92rem;
@@ -2054,6 +2067,331 @@
       .setting-row {
         flex-wrap: wrap;
         gap: 10px;
+      }
+    }
+
+    /* ==========================================================================
+       MOBILE VS DESKTOP ADAPTIVE SHELL + NATIVE MOBILE SETTINGS (<= 768px)
+       ========================================================================== */
+    .mobile-only-nav,
+    .mobile-drawer-chat-btn,
+    .mobile-settings-header,
+    .mobile-settings-home,
+    .mobile-settings-search-bar {
+      display: none !important;
+    }
+
+    /* Monochrome Toggle Switch (Notifications & Ads Controls) */
+    .alora-switch {
+      position: relative;
+      display: inline-block;
+      width: 46px;
+      height: 28px;
+      flex-shrink: 0;
+    }
+    .alora-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .alora-switch-slider {
+      position: absolute;
+      inset: 0;
+      border-radius: 9999px;
+      background: rgba(128, 128, 128, 0.35);
+      cursor: pointer;
+      transition: background 0.18s ease;
+    }
+    .alora-switch-slider::before {
+      content: "";
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      left: 3px;
+      top: 3px;
+      border-radius: 50%;
+      background: #ffffff;
+      transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .alora-switch input:checked + .alora-switch-slider {
+      background: var(--send-btn-active);
+    }
+    .alora-switch input:checked + .alora-switch-slider::before {
+      transform: translateX(18px);
+      background: var(--send-btn-active-icon);
+    }
+
+    @media (max-width: 768px) {
+      /* Floating ChatGPT Android Top Bar Pills */
+      .chatgpt-header {
+        background: linear-gradient(180deg, var(--main-bg) 78%, transparent 100%);
+        padding: env(safe-area-inset-top, 0px) 12px 0;
+      }
+      #headerSidebarToggleBtn {
+        width: 40px;
+        height: 40px;
+        background: var(--composer-bg);
+        border: 1px solid var(--border);
+        border-radius: 9999px;
+        color: var(--text-main);
+      }
+      .header-chat-pair {
+        height: 40px;
+        padding: 3px;
+        background: var(--composer-bg);
+        border: 1px solid var(--border);
+        border-radius: 9999px;
+        gap: 2px;
+      }
+      .header-chat-pair .header-icon-action {
+        width: 32px;
+        height: 32px;
+        color: var(--text-main);
+      }
+
+      /* Mobile Navigation Drawer (Matches ChatGPT Android Drawer) */
+      .chatgpt-sidebar .sidebar-top-bar {
+        padding: 14px 14px 10px 18px;
+      }
+      .chatgpt-sidebar .sidebar-brand {
+        font-size: 1.15rem;
+        font-weight: 700;
+        padding: 4px 6px;
+      }
+      .chatgpt-sidebar .sidebar-brand-icon {
+        display: none;
+      }
+      #sidebarCollapseBtn {
+        display: none !important;
+      }
+      #sidebarSearchIconBtn {
+        width: 38px;
+        height: 38px;
+        background: var(--composer-bg);
+        border: 1px solid var(--border);
+        border-radius: 9999px;
+        color: var(--text-main);
+      }
+      .sidebar-nav-actions .sidebar-newchat-pair,
+      #searchChatsFullBtn {
+        display: none !important;
+      }
+      .mobile-only-nav {
+        display: flex !important;
+      }
+      .sidebar-bottom-footer {
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 12px 14px max(14px, env(safe-area-inset-bottom, 14px)) !important;
+        gap: 12px !important;
+      }
+      .mobile-drawer-chat-btn {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        height: 44px;
+        padding: 0 20px;
+        border-radius: 9999px;
+        background: var(--send-btn-active);
+        color: var(--send-btn-active-icon);
+        font-size: 0.94rem;
+        font-weight: 600;
+        flex-shrink: 0;
+        transition: opacity 0.15s ease, transform 0.1s ease;
+      }
+      .mobile-drawer-chat-btn:active {
+        transform: scale(0.97);
+      }
+      #upgradePlanRow {
+        display: none !important;
+      }
+      #userRowBtn.chatgpt-user-row {
+        width: 44px !important;
+        height: 44px !important;
+        padding: 0 !important;
+        border-radius: 9999px !important;
+        background: var(--composer-bg);
+        border: 1px solid var(--border);
+        justify-content: center !important;
+        flex-shrink: 0;
+      }
+      #userRowBtn .chatgpt-user-left {
+        justify-content: center;
+      }
+      #userRowBtn .chatgpt-user-meta,
+      #userRowBtn > svg {
+        display: none !important;
+      }
+      #userRowBtn .chatgpt-user-avatar {
+        width: 36px;
+        height: 36px;
+      }
+
+      /* Mobile-Only Native Settings Screen */
+      #settingsDialogBackdrop .settings-dialog-header,
+      #settingsDialogBackdrop .settings-tabs-sidebar {
+        display: none !important;
+      }
+      .mobile-settings-header {
+        display: flex !important;
+        align-items: center;
+        justify-content: space-between;
+        height: 56px;
+        min-height: 56px;
+        padding: 0 14px;
+        background: var(--main-bg);
+        position: sticky;
+        top: 0;
+        z-index: 15;
+      }
+      .mset-circle-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 9999px;
+        background: var(--composer-bg);
+        border: 1px solid var(--border);
+        color: var(--text-main);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        flex-shrink: 0;
+      }
+      .mset-header-title {
+        font-size: 1.08rem;
+        font-weight: 700;
+        color: var(--text-main);
+        letter-spacing: -0.01em;
+      }
+      #settingsDialogBackdrop .settings-dialog-body {
+        flex-direction: column;
+        overflow-y: auto;
+        position: relative;
+      }
+      #settingsDialogBackdrop:not(.mobile-subview) .settings-tab-content {
+        display: none !important;
+      }
+      #settingsDialogBackdrop:not(.mobile-subview) .mobile-settings-home {
+        display: flex !important;
+        flex-direction: column;
+        gap: 16px;
+        padding: 8px 14px 96px;
+      }
+      #settingsDialogBackdrop:not(.mobile-subview) .mobile-settings-search-bar {
+        display: flex !important;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        padding: 12px 14px max(14px, env(safe-area-inset-bottom, 14px));
+        background: linear-gradient(180deg, transparent 0%, var(--main-bg) 32%);
+        z-index: 25;
+      }
+      .mset-search-pill {
+        width: 100%;
+        height: 48px;
+        border-radius: 9999px;
+        background: var(--composer-bg);
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 16px;
+        color: var(--text-muted);
+      }
+      .mset-search-pill input {
+        flex: 1;
+        min-width: 0;
+        background: transparent;
+        border: none;
+        outline: none;
+        color: var(--text-main);
+        font-size: 0.96rem;
+      }
+      .mset-group {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 26px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .mset-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        width: 100%;
+        padding: 14px 16px;
+        color: var(--text-main);
+        text-align: left;
+        transition: background 0.14s ease;
+      }
+      .mset-row:active {
+        background: var(--composer-bg);
+      }
+      .mset-row + .mset-row {
+        border-top: 1px solid var(--border-subtle);
+      }
+      .mset-row-left {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        min-width: 0;
+        flex: 1;
+      }
+      .mset-row-icon {
+        width: 22px;
+        height: 22px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-main);
+        flex-shrink: 0;
+      }
+      .mset-row-copy {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+      .mset-row-title {
+        font-size: 0.96rem;
+        font-weight: 500;
+        color: var(--text-main);
+      }
+      .mset-row-sub {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .mset-row-right {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--text-muted);
+        font-size: 0.88rem;
+        flex-shrink: 0;
+      }
+      .mset-row-accent .mset-row-icon,
+      .mset-row-accent .mset-row-title {
+        color: #93c5fd;
+      }
+      [data-theme="light"] .mset-row-accent .mset-row-icon,
+      [data-theme="light"] .mset-row-accent .mset-row-title,
+      [data-theme="eyecare"] .mset-row-accent .mset-row-icon,
+      [data-theme="eyecare"] .mset-row-accent .mset-row-title {
+        color: #1d4ed8;
+      }
+      .mset-row-danger .mset-row-icon,
+      .mset-row-danger .mset-row-title {
+        color: var(--danger);
+      }
+      #settingsDialogBackdrop.mobile-subview .settings-tab-content {
+        padding: 16px 16px max(28px, env(safe-area-inset-bottom, 28px));
       }
     }
 
@@ -2723,6 +3061,15 @@
             <span class="sb-label" id="sidebarImageLabel">Images</span>
           </span>
         </button>
+
+        <button type="button" class="sidebar-quick-btn mobile-only-nav" id="mobileDrawerCustomizeBtn" title="Customize">
+          <span class="sidebar-quick-left">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>
+            </svg>
+            <span class="sb-label" id="mobileCustomizeLabel">Customize</span>
+          </span>
+        </button>
       </div>
 
       <!-- Chat History List (Grouped by Pinned, Today, Yesterday, Previous 7 Days...) -->
@@ -2732,6 +3079,13 @@
 
       <!-- Sidebar Bottom: User & Offer / Upgrade CTA -->
       <div class="sidebar-bottom-footer">
+        <button type="button" class="mobile-drawer-chat-btn" id="mobileDrawerNewChatBtn">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+          </svg>
+          <span id="mobileDrawerChatBtnText">Chat</span>
+        </button>
+
         <div class="chatgpt-user-row" id="userRowBtn" role="button" tabindex="0" aria-haspopup="menu">
           <div class="chatgpt-user-left">
             <div class="chatgpt-user-avatar" id="userAvatarCircle">G</div>
@@ -2809,8 +3163,8 @@
       <header class="chatgpt-header">
         <div class="header-left">
           <button type="button" class="sidebar-icon-btn" id="headerSidebarToggleBtn" title="Toggle sidebar" aria-label="Toggle sidebar">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+              <line x1="5" y1="9" x2="19" y2="9"/><line x1="5" y1="15" x2="14" y2="15"/>
             </svg>
           </button>
 
@@ -3150,6 +3504,17 @@
        ====================================================================== -->
   <div class="chatgpt-dialog-backdrop" id="settingsDialogBackdrop" role="dialog" aria-modal="true" aria-labelledby="settingsModalHeading">
     <div class="chatgpt-settings-dialog">
+      <!-- Mobile-only native top bar -->
+      <div class="mobile-settings-header" id="mobileSettingsHeader">
+        <button type="button" class="mset-circle-btn" id="mobileSettingsBackBtn" aria-label="Back">
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+        </button>
+        <span class="mset-header-title" id="mobileSettingsTitle" data-i18n="settingsTitle">Settings</span>
+        <a href="/help" class="mset-circle-btn" aria-label="Help & About">
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+        </a>
+      </div>
+
       <div class="settings-dialog-header">
         <h2 class="settings-dialog-title" id="settingsModalHeading" data-i18n="settingsTitle">Settings</h2>
         <button type="button" class="sidebar-icon-btn" id="closeSettingsDialogBtn">&times;</button>
@@ -3159,10 +3524,139 @@
         <div class="settings-tabs-sidebar">
           <button type="button" class="settings-tab-btn active" data-tab="general" data-i18n="tabGeneral">General</button>
           <button type="button" class="settings-tab-btn" data-tab="account" data-i18n="tabAccount">Account</button>
+          <button type="button" class="settings-tab-btn" data-tab="notifications" data-i18n="tabNotifications">Notifications</button>
           <button type="button" class="settings-tab-btn" data-tab="custom" data-i18n="tabCustom">Personalization</button>
           <button type="button" class="settings-tab-btn" data-tab="security" data-i18n="tabSecurity">Security</button>
           <button type="button" class="settings-tab-btn" data-tab="speech" data-i18n="tabSpeech">Speech</button>
           <button type="button" class="settings-tab-btn" data-tab="data" data-i18n="tabData">Data controls</button>
+          <button type="button" class="settings-tab-btn" data-tab="ads" data-i18n="tabAds">Ads controls</button>
+        </div>
+
+        <!-- Mobile-only grouped native Settings Home (only real features + Notifications + Ads controls) -->
+        <div class="mobile-settings-home" id="mobileSettingsHome">
+          <div class="mset-group" data-mset-group>
+            <button type="button" class="mset-row" id="msetAccountRow" data-mset-tab="account" data-search="account profile name user plan email">
+              <span class="mset-row-left">
+                <span class="chatgpt-user-avatar" id="msetAvatarCircle" style="width:26px; height:26px; font-size:0.74rem;">G</span>
+                <span class="mset-row-copy"><span class="mset-row-title" data-i18n="msetAccountLabel">Account</span></span>
+              </span>
+              <span class="mset-row-right">
+                <span id="msetAccountName">Guest</span>
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+              </span>
+            </button>
+            <button type="button" class="mset-row mset-row-accent" id="msetUpgradeRow" data-search="upgrade pro max free trial claim offer plan voucher">
+              <span class="mset-row-left">
+                <span class="mset-row-icon">
+                  <svg id="msetUpgradeIcon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.8L20 10l-6.1 1.2L12 17l-1.9-5.8L4 10l6.1-1.2z"/></svg>
+                </span>
+                <span class="mset-row-copy"><span class="mset-row-title" id="msetUpgradeLabel">Upgrade to Pro</span></span>
+              </span>
+              <span class="mset-row-right">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+              </span>
+            </button>
+          </div>
+
+          <div class="mset-group" data-mset-group>
+            <button type="button" class="mset-row" data-mset-tab="custom" data-search="customize personalization instructions memories presets">
+              <span class="mset-row-left">
+                <span class="mset-row-icon">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+                </span>
+                <span class="mset-row-copy">
+                  <span class="mset-row-title" data-i18n="msetCustomizeTitle">Customize Alora</span>
+                  <span class="mset-row-sub" data-i18n="msetCustomizeSub">Instructions, memories and presets</span>
+                </span>
+              </span>
+              <span class="mset-row-right">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+              </span>
+            </button>
+          </div>
+
+          <div class="mset-group" data-mset-group>
+            <button type="button" class="mset-row" data-mset-tab="general" data-search="general theme dark oled light sepia sapphire language english bangla sound">
+              <span class="mset-row-left">
+                <span class="mset-row-icon">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                </span>
+                <span class="mset-row-copy"><span class="mset-row-title" data-i18n="tabGeneral">General</span></span>
+              </span>
+              <span class="mset-row-right"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></span>
+            </button>
+
+            <button type="button" class="mset-row" data-mset-tab="account" data-search="usage limits quota messages images reset voucher plan">
+              <span class="mset-row-left">
+                <span class="mset-row-icon">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                </span>
+                <span class="mset-row-copy"><span class="mset-row-title" data-i18n="msetUsageLimits">Usage and limits</span></span>
+              </span>
+              <span class="mset-row-right"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></span>
+            </button>
+
+            <button type="button" class="mset-row" data-mset-tab="notifications" data-search="notifications alerts push updates bell">
+              <span class="mset-row-left">
+                <span class="mset-row-icon">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+                </span>
+                <span class="mset-row-copy"><span class="mset-row-title" data-i18n="tabNotifications">Notifications</span></span>
+              </span>
+              <span class="mset-row-right"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></span>
+            </button>
+
+            <button type="button" class="mset-row" data-mset-tab="speech" data-search="voice speech read aloud tts audio">
+              <span class="mset-row-left">
+                <span class="mset-row-icon">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+                </span>
+                <span class="mset-row-copy"><span class="mset-row-title" data-i18n="msetVoiceLabel">Voice</span></span>
+              </span>
+              <span class="mset-row-right"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></span>
+            </button>
+
+            <button type="button" class="mset-row" data-mset-tab="security" data-search="security password login delete account grounding">
+              <span class="mset-row-left">
+                <span class="mset-row-icon">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </span>
+                <span class="mset-row-copy"><span class="mset-row-title" data-i18n="msetSecurityLabel">Security and login</span></span>
+              </span>
+              <span class="mset-row-right"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></span>
+            </button>
+
+            <button type="button" class="mset-row" data-mset-tab="data" data-search="history data archive export json markdown clear chats">
+              <span class="mset-row-left">
+                <span class="mset-row-icon">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg>
+                </span>
+                <span class="mset-row-copy"><span class="mset-row-title" data-i18n="msetDataLabel">History and data</span></span>
+              </span>
+              <span class="mset-row-right"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></span>
+            </button>
+
+            <button type="button" class="mset-row" data-mset-tab="ads" data-search="ads controls advertising sponsored personalized">
+              <span class="mset-row-left">
+                <span class="mset-row-icon">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+                </span>
+                <span class="mset-row-copy"><span class="mset-row-title" data-i18n="tabAds">Ads controls</span></span>
+              </span>
+              <span class="mset-row-right"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></span>
+            </button>
+          </div>
+
+          <div class="mset-group" data-mset-group>
+            <button type="button" class="mset-row mset-row-danger" id="msetAuthActionRow" data-search="log out logout login sign in sign out">
+              <span class="mset-row-left">
+                <span class="mset-row-icon">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                </span>
+                <span class="mset-row-copy"><span class="mset-row-title" id="msetAuthActionText">Log in</span></span>
+              </span>
+            </button>
+          </div>
         </div>
 
         <!-- General Tab -->
@@ -3373,6 +3867,93 @@
           </div>
         </div>
 
+        <!-- Notifications Tab (Web + Native Android Push/Local Alerts) -->
+        <div class="settings-tab-content" id="tabNotificationsContent" style="display:none;">
+          <div class="setting-row">
+            <div>
+              <div class="setting-label-title" data-i18n="notifMasterTitle">App & Broadcast Notifications</div>
+              <div class="setting-label-sub" data-i18n="notifMasterSub">Receive product updates, announcements & system alerts</div>
+            </div>
+            <label class="alora-switch">
+              <input type="checkbox" id="notifMasterToggle" checked>
+              <span class="alora-switch-slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div>
+              <div class="setting-label-title" data-i18n="notifResponseTitle">Response Alerts</div>
+              <div class="setting-label-sub" data-i18n="notifResponseSub">Notify when a reply finishes while app is in background</div>
+            </div>
+            <label class="alora-switch">
+              <input type="checkbox" id="notifResponseToggle" checked>
+              <span class="alora-switch-slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div>
+              <div class="setting-label-title" data-i18n="notifPermTitle">Device Permission Status</div>
+              <div class="setting-label-sub" id="notifPermissionStatusLabel">Checking device permission...</div>
+            </div>
+            <button type="button" class="theme-opt-chip" id="notifRequestPermBtn" data-i18n="notifAllowBtn">Enable</button>
+          </div>
+
+          <div class="setting-row">
+            <div>
+              <div class="setting-label-title" data-i18n="notifTestTitle">Test Notification</div>
+              <div class="setting-label-sub" data-i18n="notifTestSub">Send a sample notification to this device right now</div>
+            </div>
+            <button type="button" class="theme-opt-chip active" id="sendTestNotificationBtn" data-i18n="notifTestBtn">Send Test</button>
+          </div>
+
+          <div id="latestBroadcastCard" class="settings-quota-box" style="display:none;">
+            <div style="font-size:0.84rem; font-weight:600; color:var(--text-main);" id="latestBroadcastTitle"></div>
+            <div style="font-size:0.8rem; color:var(--text-sub); line-height:1.45;" id="latestBroadcastBody"></div>
+          </div>
+        </div>
+
+        <!-- Ads Controls Tab (Ready for Future Ads Configuration) -->
+        <div class="settings-tab-content" id="tabAdsContent" style="display:none;">
+          <div class="settings-quota-box">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+              <span style="font-size:0.88rem; font-weight:600; color:var(--text-main);" data-i18n="adsStatusTitle">App Ads Status</span>
+              <span id="adsGlobalBadge" style="font-size:0.74rem; font-weight:600; padding:3px 10px; border-radius:9999px; background:var(--modal-bg); border:1px solid var(--border); color:var(--text-main);">Ad-Free</span>
+            </div>
+            <div style="font-size:0.8rem; color:var(--text-sub); line-height:1.45;" id="adsGlobalNote">Alora is currently ad-free. Manage your ad privacy preferences below for future updates.</div>
+          </div>
+
+          <div class="setting-row">
+            <div>
+              <div class="setting-label-title" data-i18n="adsPersonalizedTitle">Personalized Ads</div>
+              <div class="setting-label-sub" data-i18n="adsPersonalizedSub">Use interaction topics to make future promotions relevant</div>
+            </div>
+            <label class="alora-switch">
+              <input type="checkbox" id="adsPersonalizedToggle">
+              <span class="alora-switch-slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div>
+              <div class="setting-label-title" data-i18n="adsPromoTitle">Promotional Suggestions</div>
+              <div class="setting-label-sub" data-i18n="adsPromoSub">Show partner highlights or plan offers inside discovery spaces</div>
+            </div>
+            <label class="alora-switch">
+              <input type="checkbox" id="adsPromoToggle">
+              <span class="alora-switch-slider"></span>
+            </label>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Sticky bottom search bar (Mobile Settings Home only) -->
+      <div class="mobile-settings-search-bar" id="mobileSettingsSearchBar">
+        <div class="mset-search-pill">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="search" id="mobileSettingsSearchInput" placeholder="Search settings" data-i18n-placeholder="searchSettingsPlaceholder">
+        </div>
       </div>
     </div>
   </div>
@@ -3404,7 +3985,12 @@
       CUSTOM_PREF: "alora_custom_pref",
       CUSTOM_INST: "alokpoth_custom_instructions",
       MEMORIES: "alora_memories",
-      SPEECH_VOICE: "alora_speech_voice"
+      SPEECH_VOICE: "alora_speech_voice",
+      NOTIF_MASTER: "alora_notif_master",
+      NOTIF_RESPONSE: "alora_notif_response",
+      LAST_BROADCAST_ID: "alora_last_broadcast_id",
+      ADS_PERSONALIZED: "alora_ads_personalized",
+      ADS_PROMO: "alora_ads_promo"
     };
 
     const I18N_UI = {
@@ -3573,7 +4159,38 @@
         guestQuotaLabel: "Guest quota",
         unlimitedWord: "Unlimited",
         adminAccessLabel: "Admin unrestricted access",
-        resetsInPrefix: "Resets in"
+        resetsInPrefix: "Resets in",
+        tabNotifications: "Notifications",
+        tabAds: "Ads controls",
+        msetAccountLabel: "Account",
+        msetCustomizeTitle: "Customize Alora",
+        msetCustomizeSub: "Instructions, memories and presets",
+        msetUsageLimits: "Usage and limits",
+        msetVoiceLabel: "Voice",
+        msetSecurityLabel: "Security and login",
+        msetDataLabel: "History and data",
+        mobileCustomize: "Customize",
+        mobileChat: "Chat",
+        searchSettingsPlaceholder: "Search settings",
+        notifMasterTitle: "App & Broadcast Notifications",
+        notifMasterSub: "Receive product updates, announcements & system alerts",
+        notifResponseTitle: "Response Alerts",
+        notifResponseSub: "Notify when a reply finishes while app is in background",
+        notifPermTitle: "Device Permission Status",
+        notifAllowBtn: "Enable",
+        notifAllowedBtn: "Allowed",
+        notifTestTitle: "Test Notification",
+        notifTestSub: "Send a sample notification to this device right now",
+        notifTestBtn: "Send Test",
+        adsStatusTitle: "App Ads Status",
+        adsBadgeFree: "Ad-Free",
+        adsBadgeEnabled: "Active",
+        adsDefaultFreeNote: "Alora is currently ad-free. Manage your ad privacy preferences below for future updates.",
+        adsDefaultEnabledNote: "Promotional placements are active. Customize your preferences below.",
+        adsPersonalizedTitle: "Personalized Ads",
+        adsPersonalizedSub: "Use interaction topics to make future promotions relevant",
+        adsPromoTitle: "Promotional Suggestions",
+        adsPromoSub: "Show partner highlights or plan offers inside discovery spaces"
       },
       bn: {
         newChat: "নতুন চ্যাট",
@@ -3740,7 +4357,38 @@
         guestQuotaLabel: "গেস্ট সীমা",
         unlimitedWord: "আনলিমিটেড",
         adminAccessLabel: "অ্যাডমিন সীমাহীন অ্যাক্সেস",
-        resetsInPrefix: "রিসেট হবে"
+        resetsInPrefix: "রিসেট হবে",
+        tabNotifications: "নোটিফিকেশন",
+        tabAds: "বিজ্ঞাপন নিয়ন্ত্রণ",
+        msetAccountLabel: "অ্যাকাউন্ট",
+        msetCustomizeTitle: "Alora কাস্টমাইজ করুন",
+        msetCustomizeSub: "নির্দেশনা, মেমোরি ও প্রিসেট",
+        msetUsageLimits: "ব্যবহার ও সীমা",
+        msetVoiceLabel: "ভয়েস",
+        msetSecurityLabel: "নিরাপত্তা ও লগইন",
+        msetDataLabel: "ইতিহাস ও ডাটা",
+        mobileCustomize: "কাস্টমাইজ",
+        mobileChat: "চ্যাট",
+        searchSettingsPlaceholder: "সেটিংস খুঁজুন",
+        notifMasterTitle: "অ্যাপ ও ঘোষণা নোটিফিকেশন",
+        notifMasterSub: "নতুন আপডেট, ঘোষণা ও সিস্টেম সতর্কতা পান",
+        notifResponseTitle: "উত্তর প্রস্তুত সতর্কতা",
+        notifResponseSub: "অ্যাপ ব্যাকগ্রাউন্ডে থাকলে উত্তর সম্পূর্ণ হলে জানান",
+        notifPermTitle: "ডিভাইস অনুমতি অবস্থা",
+        notifAllowBtn: "চালু করুন",
+        notifAllowedBtn: "চালু আছে",
+        notifTestTitle: "পরীক্ষামূলক নোটিফিকেশন",
+        notifTestSub: "এই ডিভাইসে এখনই একটি নমুনা নোটিফিকেশন পাঠান",
+        notifTestBtn: "টেস্ট পাঠান",
+        adsStatusTitle: "অ্যাপ বিজ্ঞাপন অবস্থা",
+        adsBadgeFree: "বিজ্ঞাপনমুক্ত",
+        adsBadgeEnabled: "সক্রিয়",
+        adsDefaultFreeNote: "Alora বর্তমানে সম্পূর্ণ বিজ্ঞাপনমুক্ত। ভবিষ্যতের আপডেটের জন্য নিচে আপনার বিজ্ঞাপন পছন্দ নিয়ন্ত্রণ করুন।",
+        adsDefaultEnabledNote: "প্রচারমূলক বিজ্ঞাপন সক্রিয় রয়েছে। নিচে আপনার পছন্দ নির্ধারণ করুন।",
+        adsPersonalizedTitle: "পার্সোনালাইজড বিজ্ঞাপন",
+        adsPersonalizedSub: "ভবিষ্যতের বিজ্ঞাপন প্রাসঙ্গিক করতে বিষয়বস্তু ব্যবহার করুন",
+        adsPromoTitle: "প্রচারমূলক প্রস্তাবনা",
+        adsPromoSub: "বিশেষ প্ল্যান অফার বা অংশীদার বার্তা দেখান"
       }
     };
 
@@ -3778,6 +4426,141 @@
       description: "",
       alreadyClaimed: false
     };
+
+    let appConfigState = {
+      notification: { enabled: false, id: "", title: "", body: "" },
+      ads: { enabled: false, note: "" }
+    };
+
+    function getNativeAndroidBridge() {
+      return window.AloAndroid || window.AloAI || null;
+    }
+
+    function isNotifMasterEnabled() {
+      return localStorage.getItem(KEYS.NOTIF_MASTER) !== "false";
+    }
+
+    function isNotifResponseEnabled() {
+      return localStorage.getItem(KEYS.NOTIF_RESPONSE) !== "false";
+    }
+
+    function sendAppNotification(title, body, showToastFallback = false) {
+      if (!isNotifMasterEnabled()) return false;
+      const cleanTitle = (title || "Alora").trim();
+      const cleanBody = (body || "").trim();
+      if (!cleanBody && !cleanTitle) return false;
+
+      const bridge = getNativeAndroidBridge();
+      try {
+        if (bridge && typeof bridge.showLocalNotification === "function") {
+          const allowed = typeof bridge.canPostNotifications === "function" ? !!bridge.canPostNotifications() : true;
+          if (allowed) {
+            bridge.showLocalNotification(cleanTitle, cleanBody || cleanTitle);
+            return true;
+          }
+        } else if ("Notification" in window && Notification.permission === "granted") {
+          new Notification(cleanTitle, { body: cleanBody, icon: "/app_logo.png" });
+          return true;
+        }
+      } catch(e) {}
+
+      if (showToastFallback && cleanBody) {
+        showToast(`${cleanTitle}: ${cleanBody}`);
+      }
+      return false;
+    }
+
+    function syncNotificationUI() {
+      const masterToggle = document.getElementById("notifMasterToggle");
+      const respToggle = document.getElementById("notifResponseToggle");
+      const statusEl = document.getElementById("notifPermissionStatusLabel");
+      const permBtn = document.getElementById("notifRequestPermBtn");
+      const bcCard = document.getElementById("latestBroadcastCard");
+      const bcTitle = document.getElementById("latestBroadcastTitle");
+      const bcBody = document.getElementById("latestBroadcastBody");
+
+      if (masterToggle) masterToggle.checked = isNotifMasterEnabled();
+      if (respToggle) respToggle.checked = isNotifResponseEnabled();
+
+      const bridge = getNativeAndroidBridge();
+      let statusText = "";
+      let allowed = false;
+      if (bridge && typeof bridge.canPostNotifications === "function") {
+        allowed = !!bridge.canPostNotifications();
+        statusText = allowed
+          ? (currentLanguage === "bn" ? "এই Android ডিভাইসে নোটিফিকেশন চালু আছে" : "Notifications allowed on this Android device")
+          : (currentLanguage === "bn" ? "ডিভাইস নোটিফিকেশন বন্ধ রয়েছে — চালু করতে Enable চাপুন" : "Device notifications are off — tap Enable to allow");
+      } else if ("Notification" in window) {
+        if (Notification.permission === "granted") {
+          allowed = true;
+          statusText = currentLanguage === "bn" ? "ব্রাউজার নোটিফিকেশন চালু আছে" : "Allowed in this browser";
+        } else if (Notification.permission === "denied") {
+          statusText = currentLanguage === "bn" ? "ব্রাউজার সেটিংস থেকে নোটিফিকেশন ব্লক করা আছে" : "Blocked in browser site settings";
+        } else {
+          statusText = currentLanguage === "bn" ? "অনুমতি এখনো দেওয়া হয়নি — Enable চাপুন" : "Permission not requested yet";
+        }
+      } else {
+        statusText = currentLanguage === "bn" ? "এই ডিভাইসে সরাসরি নোটিফিকেশন সমর্থিত নয়" : "Browser notifications are unavailable here";
+      }
+
+      if (statusEl) statusEl.textContent = statusText;
+      if (permBtn) {
+        permBtn.textContent = allowed ? t("notifAllowedBtn") : t("notifAllowBtn");
+        permBtn.classList.toggle("active", allowed);
+      }
+
+      if (bcCard) {
+        const n = appConfigState.notification || {};
+        if (n.enabled && (n.title || n.body)) {
+          bcCard.style.display = "flex";
+          if (bcTitle) bcTitle.textContent = n.title || "Alora Announcement";
+          if (bcBody) bcBody.textContent = n.body || "";
+        } else {
+          bcCard.style.display = "none";
+        }
+      }
+    }
+
+    function syncAdsUI() {
+      const pToggle = document.getElementById("adsPersonalizedToggle");
+      const promoToggle = document.getElementById("adsPromoToggle");
+      const badge = document.getElementById("adsGlobalBadge");
+      const note = document.getElementById("adsGlobalNote");
+
+      if (pToggle) pToggle.checked = localStorage.getItem(KEYS.ADS_PERSONALIZED) === "true";
+      if (promoToggle) promoToggle.checked = localStorage.getItem(KEYS.ADS_PROMO) === "true";
+
+      const adsOn = !!(appConfigState.ads && appConfigState.ads.enabled);
+      if (badge) badge.textContent = adsOn ? t("adsBadgeEnabled") : t("adsBadgeFree");
+      if (note) {
+        const customNote = (appConfigState.ads && appConfigState.ads.note || "").trim();
+        note.textContent = customNote || (adsOn ? t("adsDefaultEnabledNote") : t("adsDefaultFreeNote"));
+      }
+    }
+
+    async function fetchAppConfig() {
+      try {
+        const res = await fetch(`${API_BASE}/chat/app-config?_t=${Date.now()}`);
+        const data = await res.json().catch(() => null);
+        if (data && data.success) {
+          appConfigState = {
+            notification: data.notification || { enabled: false, id: "", title: "", body: "" },
+            ads: data.ads || { enabled: false, note: "" }
+          };
+          syncNotificationUI();
+          syncAdsUI();
+
+          const n = appConfigState.notification;
+          if (n && n.enabled && n.id && (n.title || n.body) && isNotifMasterEnabled()) {
+            const seenId = localStorage.getItem(KEYS.LAST_BROADCAST_ID) || "";
+            if (seenId !== String(n.id)) {
+              localStorage.setItem(KEYS.LAST_BROADCAST_ID, String(n.id));
+              sendAppNotification(n.title || "Alora", n.body || "", false);
+            }
+          }
+        }
+      } catch(e) {}
+    }
 
     let activeAudioButton = null;
     let isSpeaking = false;
@@ -3965,6 +4748,8 @@
       setEl("sidebarTempLabel", t("tempShort"));
       setEl("searchChatsLabel", t("searchChats"));
       setEl("sidebarImageLabel", t("imagesNav"));
+      setEl("mobileCustomizeLabel", t("mobileCustomize"));
+      setEl("mobileDrawerChatBtnText", t("mobileChat"));
       setEl("popoverAccountText", t("profileLabel"));
       setEl("popoverPersonalizationText", t("personalizationLabel"));
       setEl("popoverSettingsText", t("settings"));
@@ -4039,6 +4824,8 @@
       document.getElementById("langEnBtn")?.classList.toggle("active", currentLanguage === "en");
 
       syncUserUI();
+      syncNotificationUI();
+      syncAdsUI();
       renderHistoryList();
     }
 
@@ -4086,11 +4873,15 @@
       const hdrOfferIcon = document.getElementById("headerOfferIcon");
       const popOfferBtn = document.getElementById("popoverUpgradeBtn");
       const popOfferText = document.getElementById("popoverUpgradeText");
+      const msetUpgradeRow = document.getElementById("msetUpgradeRow");
+      const msetUpgradeLabel = document.getElementById("msetUpgradeLabel");
+      const msetUpgradeIcon = document.getElementById("msetUpgradeIcon");
 
       if (offer.mode === "none") {
         if (sbOfferBtn) sbOfferBtn.style.display = "none";
         if (hdrOfferBtn) hdrOfferBtn.style.display = "none";
         if (popOfferBtn) popOfferBtn.style.display = "none";
+        if (msetUpgradeRow) msetUpgradeRow.style.display = "none";
         return;
       }
 
@@ -4111,6 +4902,10 @@
 
       if (popOfferBtn) popOfferBtn.style.display = "flex";
       if (popOfferText) popOfferText.textContent = offer.text;
+
+      if (msetUpgradeRow) msetUpgradeRow.style.display = "flex";
+      if (msetUpgradeLabel) msetUpgradeLabel.textContent = offer.text;
+      if (msetUpgradeIcon) msetUpgradeIcon.innerHTML = iconSvg;
     }
 
     function syncUserUI() {
@@ -4137,6 +4932,10 @@
       const settingsProfileEditRow = document.getElementById("settingsProfileEditRow");
       const settingsDeleteRow = document.getElementById("settingsDeleteAccountRow");
       const settingsNameInput = document.getElementById("settingsNameInput");
+      const msetAvatar = document.getElementById("msetAvatarCircle");
+      const msetName = document.getElementById("msetAccountName");
+      const msetAuthRow = document.getElementById("msetAuthActionRow");
+      const msetAuthText = document.getElementById("msetAuthActionText");
 
       if (token && user) {
         document.body.classList.remove("is-guest");
@@ -4146,6 +4945,7 @@
 
         if (userName) userName.textContent = displayName;
         if (popName) popName.textContent = displayName;
+        if (msetName) msetName.textContent = displayName;
         if (userPlanSub) userPlanSub.textContent = isAdmin ? "Admin" : plan;
         const avUrl = normalizeAvatarUrl(user.avatar || localStorage.getItem("alokpoth_user_avatar"));
         const setAv = (el) => {
@@ -4155,10 +4955,13 @@
         };
         setAv(userAvatar);
         setAv(popAvatar);
+        setAv(msetAvatar);
 
         applyOfferCTA(plan, isAdmin);
         if (guestActions) guestActions.style.display = "none";
         if (popoverAuthText) popoverAuthText.textContent = t("logOut");
+        if (msetAuthText) msetAuthText.textContent = t("logOut");
+        if (msetAuthRow) msetAuthRow.classList.add("mset-row-danger");
         if (popoverEmail) popoverEmail.textContent = isAdmin ? "Admin" : `${plan} · ${user.email || ""}`.replace(/\s·\s$/, "");
         if (popoverAccountLink) popoverAccountLink.href = "/account";
         if (popoverProfileLink) popoverProfileLink.style.display = "flex";
@@ -4175,12 +4978,16 @@
         document.body.classList.add("is-guest");
         if (userName) userName.textContent = t("guestUser");
         if (popName) popName.textContent = t("guestUser");
+        if (msetName) msetName.textContent = t("guestUser");
         if (userPlanSub) userPlanSub.textContent = "Free";
         if (userAvatar) userAvatar.textContent = "G";
         if (popAvatar) popAvatar.textContent = "G";
+        if (msetAvatar) msetAvatar.textContent = "G";
         applyOfferCTA("Free", false);
         if (guestActions) guestActions.style.display = "flex";
         if (popoverAuthText) popoverAuthText.textContent = t("logIn");
+        if (msetAuthText) msetAuthText.textContent = t("logIn");
+        if (msetAuthRow) msetAuthRow.classList.remove("mset-row-danger");
         if (popoverEmail) popoverEmail.textContent = t("guestTrialPlan");
         if (popoverAccountLink) popoverAccountLink.href = "/auth/login";
         if (popoverProfileLink) popoverProfileLink.style.display = "none";
@@ -4647,27 +5454,72 @@
       if (hl) hl.textContent = isTemporaryChat ? `${baseLabel} (Temp)` : baseLabel;
     }
 
-    function openSettingsModal(tabName = "general", updateHash = true) {
+    function filterMobileSettings(query = "") {
+      const q = (query || "").trim().toLowerCase();
+      document.querySelectorAll("#mobileSettingsHome [data-mset-group]").forEach(group => {
+        let anyVisible = false;
+        group.querySelectorAll(".mset-row").forEach(row => {
+          const keywords = (row.getAttribute("data-search") || "").toLowerCase();
+          const text = (row.textContent || "").toLowerCase();
+          const show = !q || keywords.includes(q) || text.includes(q);
+          row.style.display = show ? "flex" : "none";
+          if (show) anyVisible = true;
+        });
+        group.style.display = anyVisible ? "flex" : "none";
+      });
+    }
+
+    function openSettingsModal(tabName, updateHash = true) {
       const backdrop = document.getElementById("settingsDialogBackdrop");
       if (!backdrop) return;
+      const isMobile = window.innerWidth <= 768;
       const tabMap = { personalization: "custom" };
-      const normalized = tabMap[tabName] || tabName || "general";
+      let normalized = tabMap[tabName] || tabName || (isMobile ? "mobile-home" : "general");
+      if (!isMobile && normalized === "mobile-home") normalized = "general";
       currentSettingsTab = normalized;
 
+      const subTitleMap = {
+        general: t("tabGeneral"),
+        account: t("msetAccountLabel"),
+        custom: t("msetCustomizeTitle"),
+        notifications: t("tabNotifications"),
+        speech: t("msetVoiceLabel"),
+        security: t("msetSecurityLabel"),
+        data: t("msetDataLabel"),
+        ads: t("tabAds")
+      };
+      const mobileTitleEl = document.getElementById("mobileSettingsTitle");
+      if (isMobile) {
+        if (normalized === "mobile-home") {
+          backdrop.classList.remove("mobile-subview");
+          if (mobileTitleEl) mobileTitleEl.textContent = t("settingsTitle");
+        } else {
+          backdrop.classList.add("mobile-subview");
+          if (mobileTitleEl) mobileTitleEl.textContent = subTitleMap[normalized] || t("settingsTitle");
+        }
+      } else {
+        backdrop.classList.remove("mobile-subview");
+      }
+
+      const activeTab = normalized === "mobile-home" ? "general" : normalized;
       document.querySelectorAll(".settings-tab-btn").forEach(b => {
-        b.classList.toggle("active", b.getAttribute("data-tab") === normalized);
+        b.classList.toggle("active", b.getAttribute("data-tab") === activeTab);
       });
       document.querySelectorAll(".settings-tab-content").forEach(c => c.style.display = "none");
       const mapEl = {
         general: "tabGeneralContent",
         account: "tabAccountContent",
         custom: "tabCustomContent",
+        notifications: "tabNotificationsContent",
         security: "tabSecurityContent",
         speech: "tabSpeechContent",
-        data: "tabDataContent"
+        data: "tabDataContent",
+        ads: "tabAdsContent"
       };
-      const targetEl = document.getElementById(mapEl[normalized] || "tabGeneralContent");
-      if (targetEl) targetEl.style.display = "flex";
+      if (normalized !== "mobile-home" || !isMobile) {
+        const targetEl = document.getElementById(mapEl[activeTab] || "tabGeneralContent");
+        if (targetEl) targetEl.style.display = "flex";
+      }
 
       if (normalized === "account") {
         refreshUserFromServer();
@@ -4678,6 +5530,10 @@
         renderSavedMemories();
       } else if (normalized === "speech") {
         populateSpeechVoices();
+      } else if (normalized === "notifications") {
+        syncNotificationUI();
+      } else if (normalized === "ads") {
+        syncAdsUI();
       }
 
       backdrop.classList.add("open");
@@ -4688,7 +5544,15 @@
     }
 
     function closeSettingsModal(updateHash = true) {
-      document.getElementById("settingsDialogBackdrop")?.classList.remove("open");
+      const bd = document.getElementById("settingsDialogBackdrop");
+      if (bd) {
+        bd.classList.remove("open", "mobile-subview");
+      }
+      const mSearch = document.getElementById("mobileSettingsSearchInput");
+      if (mSearch && mSearch.value) {
+        mSearch.value = "";
+      }
+      filterMobileSettings("");
       if (updateHash && window.location.hash.startsWith("#settings")) {
         syncUrlState(getDesiredChatUrl(), false);
       }
@@ -4740,13 +5604,13 @@
           syncUrlState("/", true);
         }
       } else if (pathName.startsWith("/settings")) {
-        const seg = pathName.split("/")[2] || "general";
+        const seg = pathName.split("/")[2] || (window.innerWidth <= 768 ? "mobile-home" : "general");
         syncUrlState(`/#settings/${seg}`, true);
         openSettingsModal(seg, false);
       }
 
       if (hash.startsWith("#settings")) {
-        const tabPart = hash.replace(/^#settings\/?/, "") || "general";
+        const tabPart = hash.replace(/^#settings\/?/, "") || (window.innerWidth <= 768 ? "mobile-home" : "general");
         openSettingsModal(tabPart, false);
       } else if (!pathName.startsWith("/settings")) {
         closeSettingsModal(false);
@@ -5610,6 +6474,9 @@
           persistSession();
           wireAssistantToolbar(toolbar, row, assistantMsg, messagesHistory.length - 1);
           soundEngine.receive();
+          if (document.hidden && isNotifMasterEnabled() && isNotifResponseEnabled()) {
+            sendAppNotification("Alora", currentLanguage === "bn" ? "আপনার তৈরি করা ছবি প্রস্তুত!" : "Your generated image is ready.", false);
+          }
         } catch(err) {
           renderModelBusyCard(content, t("busyTitle"), localizeServerError(err.message, "busyDesc"));
           soundEngine.error();
@@ -5840,6 +6707,9 @@
         persistSession();
         wireAssistantToolbar(toolbar, row, assistantMsg, finalIdx);
         soundEngine.receive();
+        if (document.hidden && isNotifMasterEnabled() && isNotifResponseEnabled()) {
+          sendAppNotification("Alora", currentLanguage === "bn" ? "আপনার প্রশ্নের উত্তর প্রস্তুত!" : "Your response is ready.", false);
+        }
       } catch (err) {
         if (err.name === "AbortError") {
           if (streamBuffer.trim()) {
@@ -6090,7 +6960,14 @@
         const claimBd = document.getElementById("claimOfferBackdrop");
         if (claimBd && claimBd.classList.contains("open")) { closeClaimOfferModal(); return true; }
         const settingsBd = document.getElementById("settingsDialogBackdrop");
-        if (settingsBd && settingsBd.classList.contains("open")) { closeSettingsModal(true); return true; }
+        if (settingsBd && settingsBd.classList.contains("open")) {
+          if (window.innerWidth <= 768 && settingsBd.classList.contains("mobile-subview")) {
+            openSettingsModal("mobile-home", true);
+            return true;
+          }
+          closeSettingsModal(true);
+          return true;
+        }
         const searchBd = document.getElementById("searchModalBackdrop");
         if (searchBd && searchBd.classList.contains("open")) { searchBd.classList.remove("open"); return true; }
         const shareBd = document.getElementById("shareModalBackdrop");
@@ -6358,6 +7235,9 @@
       loadDynamicModels(true);
       fetchPlanLimits();
       fetchPromoOffer();
+      fetchAppConfig();
+      syncNotificationUI();
+      syncAdsUI();
       refreshUserFromServer();
       applyRouteFromLocation(true);
 
@@ -6385,9 +7265,23 @@
       document.getElementById("headerNewChatBtn")?.addEventListener("click", () => startNewChat({ pushUrl: true }));
 
       document.getElementById("searchChatsFullBtn")?.addEventListener("click", openSearchModal);
-      document.getElementById("sidebarSearchIconBtn")?.addEventListener("click", openSearchModal);
+      document.getElementById("sidebarSearchIconBtn")?.addEventListener("click", () => {
+        if (window.innerWidth <= 768) closeSidebar();
+        openSearchModal();
+      });
       document.getElementById("imageModeNavBtn")?.addEventListener("click", () => {
         isImageGenActive = true;
+        updateChipsUI();
+        startNewChat({ pushUrl: true });
+        if (window.innerWidth <= 768) closeSidebar();
+        document.getElementById("messageInput")?.focus();
+      });
+      document.getElementById("mobileDrawerCustomizeBtn")?.addEventListener("click", () => {
+        closeSidebar();
+        openSettingsModal("custom", true);
+      });
+      document.getElementById("mobileDrawerNewChatBtn")?.addEventListener("click", () => {
+        isImageGenActive = false;
         updateChipsUI();
         startNewChat({ pushUrl: true });
         if (window.innerWidth <= 768) closeSidebar();
@@ -6488,6 +7382,11 @@
       if (userRow && userPopover) {
         userRow.addEventListener("click", (e) => {
           e.stopPropagation();
+          if (window.innerWidth <= 768) {
+            closeSidebar();
+            openSettingsModal("mobile-home", true);
+            return;
+          }
           const willOpen = !userPopover.classList.contains("open");
           userPopover.classList.toggle("open", willOpen);
           if (willOpen) {
@@ -6572,6 +7471,84 @@
       });
       document.querySelectorAll(".settings-tab-btn").forEach(btn => {
         btn.addEventListener("click", () => openSettingsModal(btn.getAttribute("data-tab"), true));
+      });
+      document.getElementById("mobileSettingsBackBtn")?.addEventListener("click", () => {
+        const bd = document.getElementById("settingsDialogBackdrop");
+        if (window.innerWidth <= 768 && bd && bd.classList.contains("mobile-subview")) {
+          openSettingsModal("mobile-home", true);
+        } else {
+          closeSettingsModal(true);
+        }
+      });
+      document.querySelectorAll("[data-mset-tab]").forEach(row => {
+        row.addEventListener("click", () => {
+          const targetTab = row.getAttribute("data-mset-tab");
+          if (targetTab) openSettingsModal(targetTab, true);
+        });
+      });
+      document.getElementById("msetUpgradeRow")?.addEventListener("click", () => {
+        closeSettingsModal(false);
+        openUpgradeDialog();
+      });
+      document.getElementById("msetAuthActionRow")?.addEventListener("click", () => {
+        closeSettingsModal(false);
+        if (getAuthToken()) handleLogout();
+        else window.location.href = "/auth/login";
+      });
+      document.getElementById("mobileSettingsSearchInput")?.addEventListener("input", (e) => {
+        filterMobileSettings(e.target.value);
+      });
+
+      document.getElementById("notifMasterToggle")?.addEventListener("change", (e) => {
+        localStorage.setItem(KEYS.NOTIF_MASTER, e.target.checked ? "true" : "false");
+        showToast(e.target.checked
+          ? (currentLanguage === "bn" ? "অ্যাপ নোটিফিকেশন চালু করা হয়েছে" : "App notifications enabled")
+          : (currentLanguage === "bn" ? "অ্যাপ নোটিফিকেশন বন্ধ করা হয়েছে" : "App notifications muted"));
+      });
+      document.getElementById("notifResponseToggle")?.addEventListener("change", (e) => {
+        localStorage.setItem(KEYS.NOTIF_RESPONSE, e.target.checked ? "true" : "false");
+      });
+      document.getElementById("notifRequestPermBtn")?.addEventListener("click", async () => {
+        const bridge = getNativeAndroidBridge();
+        if (bridge && typeof bridge.requestNotificationPermission === "function") {
+          bridge.requestNotificationPermission();
+          setTimeout(syncNotificationUI, 600);
+          return;
+        }
+        if ("Notification" in window && typeof Notification.requestPermission === "function") {
+          try { await Notification.requestPermission(); } catch(err) {}
+          syncNotificationUI();
+          return;
+        }
+        showToast(currentLanguage === "bn" ? "এই ডিভাইসে সিস্টেম অনুমতি পাওয়া যায়নি" : "System notification prompt unavailable");
+      });
+      document.getElementById("sendTestNotificationBtn")?.addEventListener("click", async () => {
+        const bridge = getNativeAndroidBridge();
+        if (bridge && typeof bridge.canPostNotifications === "function" && !bridge.canPostNotifications()) {
+          if (typeof bridge.requestNotificationPermission === "function") bridge.requestNotificationPermission();
+          showToast(currentLanguage === "bn" ? "অনুমতি চালু করে আবার চেষ্টা করুন" : "Allow notification permission and try again");
+          return;
+        }
+        if (!bridge && "Notification" in window && Notification.permission === "default") {
+          try { await Notification.requestPermission(); } catch(err) {}
+          syncNotificationUI();
+        }
+        const msg = currentLanguage === "bn"
+          ? "আপনার ডিভাইসে Alora নোটিফিকেশন সঠিকভাবে কাজ করছে!"
+          : "Alora notifications are working properly on this device!";
+        const sent = sendAppNotification("Alora", msg, true);
+        if (sent) {
+          showToast(currentLanguage === "bn" ? "টেস্ট নোটিফিকেশন পাঠানো হয়েছে" : "Test notification sent");
+        }
+      });
+
+      document.getElementById("adsPersonalizedToggle")?.addEventListener("change", (e) => {
+        localStorage.setItem(KEYS.ADS_PERSONALIZED, e.target.checked ? "true" : "false");
+        showToast(currentLanguage === "bn" ? "বিজ্ঞাপন পছন্দ সংরক্ষিত হয়েছে" : "Ad preference saved");
+      });
+      document.getElementById("adsPromoToggle")?.addEventListener("change", (e) => {
+        localStorage.setItem(KEYS.ADS_PROMO, e.target.checked ? "true" : "false");
+        showToast(currentLanguage === "bn" ? "বিজ্ঞাপন পছন্দ সংরক্ষিত হয়েছে" : "Ad preference saved");
       });
 
       document.querySelectorAll(".theme-opt-chip[data-theme]").forEach(chip => {

@@ -1586,6 +1586,49 @@
       </form>
     </div>
 
+    <div class="section" id="secAppNotifyAds">
+      <div class="section-header-wrap">
+        <h3>অ্যাপ নোটিফিকেশন ও অ্যাডস কন্ট্রোল</h3>
+        <span class="section-subtitle">অ্যাপে নোটিফিকেশন পাঠাতে বা ভবিষ্যতে অ্যাডস সিস্টেম চালু/বন্ধ করতে এখান থেকে নিয়ন্ত্রণ করুন।</span>
+      </div>
+
+      <form id="appNotifyAdsForm" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); padding: 20px; border-radius: 14px; display: flex; flex-direction: column; gap: 16px;">
+        <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:600;">
+          <input type="checkbox" id="settingNotifEnabled" style="width:18px; height:18px;">
+          অ্যাপ ব্রডকাস্ট নোটিফিকেশন চালু করুন
+        </label>
+
+        <div class="form-row">
+          <div class="form-group" style="flex: 1; min-width: 180px;">
+            <label>নোটিফিকেশনের শিরোনাম (Title)</label>
+            <input type="text" id="settingNotifTitle" maxlength="80" placeholder="Alora Update">
+          </div>
+          <div class="form-group" style="flex: 1.6; min-width: 220px;">
+            <label>নোটিফিকেশনের বার্তা (Message)</label>
+            <input type="text" id="settingNotifBody" maxlength="220" placeholder="New models & faster mobile mode are live!">
+          </div>
+        </div>
+
+        <hr style="border:none; border-top:1px solid rgba(255,255,255,0.08);">
+
+        <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:600;">
+          <input type="checkbox" id="settingAdsEnabled" style="width:18px; height:18px;">
+          অ্যাডস কন্ট্রোল চালু করুন (Ads Enabled — ভবিষ্যতের জন্য)
+        </label>
+
+        <div class="form-group">
+          <label>অ্যাডস স্ট্যাটাস / নোট (ঐচ্ছিক)</label>
+          <input type="text" id="settingAdsNote" maxlength="160" placeholder="Sponsored experiences enabled for free tier">
+        </div>
+
+        <div style="display:flex; justify-content:flex-end;">
+          <button type="submit" id="btnSaveNotifyAdsSettings" class="btn btn-primary" style="padding: 9px 24px;">
+            নোটিফিকেশন ও অ্যাডস সেটিংস সেভ করুন
+          </button>
+        </div>
+      </form>
+    </div>
+
   </div>
 
   <script>
@@ -3268,6 +3311,18 @@
             const emails = claimedList.filter(k => String(k).includes("@")).length;
             trialCount.textContent = `এ পর্যন্ত ক্লেইম করেছেন: ${emails} জন`;
           }
+
+          // App Notification & Ads Controls Fields
+          const notifEnabled = document.getElementById("settingNotifEnabled");
+          if (notifEnabled) notifEnabled.checked = s.app_notification_enabled === true || s.app_notification_enabled === "true";
+          const notifTitle = document.getElementById("settingNotifTitle");
+          if (notifTitle) notifTitle.value = s.app_notification_title || "";
+          const notifBody = document.getElementById("settingNotifBody");
+          if (notifBody) notifBody.value = s.app_notification_body || "";
+          const adsEnabled = document.getElementById("settingAdsEnabled");
+          if (adsEnabled) adsEnabled.checked = s.ads_enabled === true || s.ads_enabled === "true";
+          const adsNote = document.getElementById("settingAdsNote");
+          if (adsNote) adsNote.value = s.ads_note || "";
         }
       } catch (err) {
         console.warn("Failed to load settings:", err);
@@ -3342,6 +3397,7 @@
           }
         } catch (err) {
           showToast("সার্ভারে সমস্যা হয়েছে", "error");
+    // Save Image Generation Settings (uses preceding handler cleanly)
         } finally {
           if (btn) btn.disabled = false;
         }
@@ -3440,6 +3496,41 @@
           }
         } catch (err) {
           showToast("সার্ভারে সমস্যা হয়েছে", "error");
+        } finally {
+          if (btn) btn.disabled = false;
+        }
+      });
+    }
+
+    // Save App Notification & Ads Controls Settings
+    const appNotifyAdsForm = document.getElementById("appNotifyAdsForm");
+    if (appNotifyAdsForm) {
+      appNotifyAdsForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById("btnSaveNotifyAdsSettings");
+        if (btn) btn.disabled = true;
+        const notifEnabled = !!document.getElementById("settingNotifEnabled")?.checked;
+        const notifTitle = (document.getElementById("settingNotifTitle")?.value || "").trim();
+        const notifBody = (document.getElementById("settingNotifBody")?.value || "").trim();
+        const payload = {
+          app_notification_enabled: notifEnabled,
+          app_notification_title: notifTitle,
+          app_notification_body: notifBody,
+          app_notification_id: notifEnabled ? ("notif_" + Date.now()) : "",
+          ads_enabled: !!document.getElementById("settingAdsEnabled")?.checked,
+          ads_note: (document.getElementById("settingAdsNote")?.value || "").trim()
+        };
+        try {
+          const res = await authFetch(`${API_BASE}/admin/settings`, { method: "PUT", body: JSON.stringify(payload) });
+          const data = await res.json();
+          if (data.success) {
+            showToast("নোটিফিকেশন ও অ্যাডস সেটিংস সেভ করা হয়েছে", "success");
+            loadSettings();
+          } else {
+            showToast(data.error || "সেভ করতে সমস্যা হয়েছে", "error");
+          }
+        } catch (err) {
+          showToast("সার্ভারে সমস্যা হয়েছে", "error");
         } finally {
           if (btn) btn.disabled = false;
         }

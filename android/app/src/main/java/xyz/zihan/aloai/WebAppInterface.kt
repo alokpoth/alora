@@ -1,8 +1,11 @@
 package xyz.zihan.aloai
 
+import android.Manifest
 import android.app.DownloadManager
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
@@ -12,6 +15,9 @@ import android.os.VibratorManager
 import android.speech.tts.TextToSpeech
 import android.webkit.JavascriptInterface
 import android.widget.Toast
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import java.io.File
 import java.util.Locale
 
@@ -263,6 +269,52 @@ class WebAppInterface(private val activity: MainActivity) : TextToSpeech.OnInitL
     fun getUserPlan(): String? {
         val prefs = activity.getSharedPreferences("AloAiPrefs", Context.MODE_PRIVATE)
         return prefs.getString("user_plan", "Free")
+    }
+
+    @JavascriptInterface
+    fun canPostNotifications(): Boolean {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(activity, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                return false
+            }
+        }
+        return NotificationManagerCompat.from(activity).areNotificationsEnabled()
+    }
+
+    @JavascriptInterface
+    fun requestNotificationPermission() {
+        activity.runOnUiThread {
+            activity.requestPostNotificationPermission()
+        }
+    }
+
+    @JavascriptInterface
+    fun showLocalNotification(title: String?, body: String?) {
+        val cleanTitle = title?.trim()?.takeIf { it.isNotEmpty() } ?: "Alora"
+        val cleanBody = body?.trim()?.takeIf { it.isNotEmpty() } ?: return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(activity, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                return
+            }
+        }
+        try {
+            val tapIntent = Intent(activity, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            }
+            val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            val pendingIntent = PendingIntent.getActivity(activity, 0, tapIntent, flags)
+            val notification = NotificationCompat.Builder(activity, MainActivity.NOTIFICATION_CHANNEL_ID)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle(cleanTitle)
+                .setContentText(cleanBody)
+                .setStyle(NotificationCompat.BigTextStyle().bigText(cleanBody))
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setAutoCancel(true)
+                .setContentIntent(pendingIntent)
+                .build()
+            val notifId = (System.currentTimeMillis() and 0x7FFFFFFF).toInt()
+            NotificationManagerCompat.from(activity).notify(notifId, notification)
+        } catch (_: Exception) {}
     }
 
     @JavascriptInterface
