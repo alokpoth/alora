@@ -4,6 +4,13 @@
       "maxDuration": 60
     }
   },
+  "redirects": [
+    { "source": "/theme", "destination": "/#settings/general", "permanent": false },
+    { "source": "/language", "destination": "/#settings/general", "permanent": false },
+    { "source": "/sound", "destination": "/#settings/speech", "permanent": false },
+    { "source": "/usage", "destination": "/#settings/account", "permanent": false },
+    { "source": "/subscription", "destination": "/#settings/account", "permanent": false }
+  ],
   "rewrites": [
     { "source": "/c/:chatId*", "destination": "/index.html" },
     { "source": "/g/:gptId*", "destination": "/index.html" },
@@ -30,14 +37,9 @@
     { "source": "/app", "destination": "/download.html" },
     { "source": "/account", "destination": "/account.html" },
     { "source": "/security", "destination": "/security.html" },
-    { "source": "/usage", "destination": "/usage.html" },
-    { "source": "/theme", "destination": "/theme.html" },
-    { "source": "/sound", "destination": "/sound.html" },
-    { "source": "/language", "destination": "/language.html" },
     { "source": "/personalization", "destination": "/personalization.html" },
     { "source": "/profile", "destination": "/profile.html" },
     { "source": "/help", "destination": "/help.html" },
-    { "source": "/subscription", "destination": "/subscription.html" },
     { "source": "/admin", "destination": "/admin.html" },
     { "source": "/redeem", "destination": "/redeem.html" }
   ]

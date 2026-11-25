@@ -29,6 +29,15 @@ pages:
     - cp plans.html public/pricing/index.html
     - cp index.html public/settings/index.html
     - cp download.html public/app/index.html
+    # Legacy settings pages now live inside the in-app Settings dialog
+    - |
+      for pair in theme:general language:general sound:speech usage:account subscription:account; do
+        page="${pair%%:*}"; tab="${pair##*:}"
+        mkdir -p "public/$page"
+        html="<!DOCTYPE html><meta charset=\"utf-8\"><meta http-equiv=\"refresh\" content=\"0;url=/#settings/$tab\"><script>location.replace('/#settings/$tab')</script>"
+        echo "$html" > "public/$page/index.html"
+        echo "$html" > "public/$page.html"
+      done
   artifacts:
     paths:
       - public

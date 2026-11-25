@@ -12,12 +12,12 @@
 /account          /account.html 200
 /profile          /profile.html 200
 /security         /security.html 200
-/subscription     /subscription.html 200
-/usage            /usage.html   200
-/theme            /theme.html   200
-/sound            /sound.html   200
+/subscription     /#settings/account 302
+/usage            /#settings/account 302
+/theme            /#settings/general 302
+/sound            /#settings/speech 302
 /personalization  /personalization.html 200
-/language         /language.html 200
+/language         /#settings/general 302
 /help             /help.html    200
 /redeem           /redeem.html  200
 /download         /download.html 200

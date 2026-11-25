@@ -65,11 +65,22 @@
         if (redirectOnce('/plans.html' + search + hash)) return;
       }
 
-      // 5. Known standalone pages (redirect cleanly to /<page>.html only once)
+      // 5. Legacy settings pages merged into in-app Settings tabs
       var clean = pathname.replace(/\/+$/, '');
+      var legacyTabs = {
+        theme: 'general',
+        language: 'general',
+        sound: 'speech',
+        usage: 'account',
+        subscription: 'account'
+      };
+      if (clean.charAt(0) === '/' && legacyTabs[clean.slice(1)]) {
+        if (redirectOnce('/#settings/' + legacyTabs[clean.slice(1)])) return;
+      }
+
+      // 6. Known standalone pages (redirect cleanly to /<page>.html only once)
       var knownPages = [
-        'account', 'profile', 'security', 'subscription', 'usage',
-        'theme', 'sound', 'personalization', 'language', 'help',
+        'account', 'profile', 'security', 'personalization', 'help',
         'redeem', 'download', 'plans', 'login', 'admin'
       ];
       if (clean.charAt(0) === '/' && knownPages.indexOf(clean.slice(1)) !== -1) {

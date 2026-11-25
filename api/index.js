@@ -184,8 +184,9 @@ app.use('/auth',       authLimiter, authRoutes);
 app.use('/api/chat',   chatRoutes);
 app.use('/chat',       chatRoutes);
 
-app.use('/api/redeem', redeemLimiter, redeemRoutes);
-app.use('/redeem',     redeemLimiter, redeemRoutes);
+const redeemGate = (req, res, next) => (req.method === 'GET' ? next() : redeemLimiter(req, res, next));
+app.use('/api/redeem', redeemGate, redeemRoutes);
+app.use('/redeem',     redeemGate, redeemRoutes);
 
 app.use('/api/admin',  adminRoutes);
 app.use('/admin',      adminRoutes);

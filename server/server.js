@@ -137,7 +137,7 @@ app.use('/api', (req, res, next) => {
 app.use('/api', apiLimiter);
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/chat', chatRoutes);
-app.use('/api/redeem', redeemLimiter, redeemRoutes);
+app.use('/api/redeem', (req, res, next) => (req.method === 'GET' ? next() : redeemLimiter(req, res, next)), redeemRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/search', searchRoutes);
 
@@ -268,12 +268,15 @@ app.get('/sw.js', (req, res) => {
 // Dedicated settings and feature pages
 app.get('/profile.html', (req, res) => res.sendFile(path.join(ROOT_DIR, 'profile.html')));
 app.get('/security.html', (req, res) => res.sendFile(path.join(ROOT_DIR, 'security.html')));
-app.get('/subscription.html', (req, res) => res.sendFile(path.join(ROOT_DIR, 'subscription.html')));
-app.get('/usage.html', (req, res) => res.sendFile(path.join(ROOT_DIR, 'usage.html')));
-app.get('/theme.html', (req, res) => res.sendFile(path.join(ROOT_DIR, 'theme.html')));
-app.get('/sound.html', (req, res) => res.sendFile(path.join(ROOT_DIR, 'sound.html')));
 app.get('/personalization.html', (req, res) => res.sendFile(path.join(ROOT_DIR, 'personalization.html')));
-app.get('/language.html', (req, res) => res.sendFile(path.join(ROOT_DIR, 'language.html')));
+
+// Legacy standalone settings pages were merged into the in-app Settings dialog.
+const LEGACY_SETTINGS_REDIRECTS = {
+  theme: 'general', language: 'general', sound: 'speech', usage: 'account', subscription: 'account'
+};
+Object.entries(LEGACY_SETTINGS_REDIRECTS).forEach(([page, tab]) => {
+  app.get([`/${page}`, `/${page}.html`], (req, res) => res.redirect(302, `/#settings/${tab}`));
+});
 app.get('/help.html', (req, res) => res.sendFile(path.join(ROOT_DIR, 'help.html')));
 app.get('/redeem.html', (req, res) => res.sendFile(path.join(ROOT_DIR, 'redeem.html')));
 app.get('/download.html', (req, res) => res.sendFile(path.join(ROOT_DIR, 'download.html')));
@@ -292,7 +295,7 @@ app.get(['/pricing'], (req, res) => {
 });
 
 // Extensionless Clean Page Routes (with optional trailing slash handled by Express)
-['plans', 'login', 'account', 'profile', 'security', 'subscription', 'usage', 'theme', 'sound', 'personalization', 'language', 'help', 'redeem', 'admin'].forEach(p => {
+['plans', 'login', 'account', 'profile', 'security', 'personalization', 'help', 'redeem', 'admin'].forEach(p => {
   app.get(`/${p}`, (req, res) => res.sendFile(path.join(ROOT_DIR, `${p}.html`)));
 });
 
