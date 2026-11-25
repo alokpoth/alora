@@ -136,8 +136,8 @@
       justify-content: space-between;
       height: calc(56px + env(safe-area-inset-top, 0px));
       padding: env(safe-area-inset-top, 0px) 16px 0 16px;
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
     }
 
     .settings-back-link {
@@ -205,7 +205,7 @@
       border: 1px solid var(--border-card);
       border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      box-shadow: none;
     }
 
     /* Profile Group (Special top card) */
@@ -248,7 +248,7 @@
       font-weight: 700;
       flex-shrink: 0;
       border: 1px solid var(--border-card);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      box-shadow: none;
       text-decoration: none !important;
       overflow: hidden;
     }
@@ -410,7 +410,7 @@
       background-color: #ffffff;
       transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
       border-radius: 50%;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      box-shadow: none;
     }
 
     .toggle-switch input:checked + .toggle-slider { background-color: var(--accent-blue); }
@@ -425,8 +425,8 @@
       position: fixed;
       inset: 0;
       background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
       display: none;
       align-items: center;
       justify-content: center;
@@ -451,7 +451,7 @@
       max-width: 440px;
       padding: 22px;
       color: #ffffff;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      box-shadow: none;
       position: relative;
       max-height: 88vh;
       overflow-y: auto;
@@ -614,11 +614,11 @@
       color: #ffffff;
       background: rgba(24, 24, 27, 0.95);
       border: 1px solid rgba(255, 255, 255, 0.15);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      box-shadow: none;
       z-index: 1000;
       display: none;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
       white-space: nowrap;
     }
     .toast.success { border-color: rgba(255, 255, 255, 0.25);  }
@@ -648,7 +648,7 @@
     }
     button:hover, .btn:hover, .btn-primary:hover, .btn-secondary:hover, .page-back-btn:hover, .option-card:hover, .btn-test-sound:hover, .auth-btn:hover, .download-btn:hover {
       transform: none !important;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18) !important;
+      box-shadow: none;
     }
     button:active, .btn:active, .btn-primary:active, .btn-secondary:active, .page-back-btn:active, .option-card:active, .btn-test-sound:active, .auth-btn:active, .download-btn:active {
       transform: scale(0.975) !important;
