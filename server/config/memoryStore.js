@@ -9,15 +9,12 @@ const DEFAULT_MEMORY_MODELS = [
   { id: "gpt-5.6", model_id: "gpt-5.6", name: "Alo Max", provider: "Alora", type: "vyce", premium: true, efficient: true, order: 8, api_model_1: "gpt-5.6" }
 ];
 const bcrypt = require('bcryptjs');
+const { DEFAULT_PLANS } = require('../utils/planDefaults');
 
 // In-Memory Database Fallback Store for when MongoDB is not running locally
 const memoryStore = {
   users: [],
-  plans: [
-    { name: 'Free', displayName: 'ফ্রি প্ল্যান', message_limit: 10, window_hours: 3, image_limit: 5, allowed_models: ['*'], is_active: true },
-    { name: 'Pro', displayName: 'প্রো প্ল্যান', message_limit: 30, window_hours: 3, image_limit: 25, allowed_models: ['*'], is_active: true },
-    { name: 'Max', displayName: 'ম্যাক্স প্ল্যান', message_limit: 50, window_hours: 1, image_limit: 100, allowed_models: ['*'], is_active: true }
-  ],
+  plans: DEFAULT_PLANS.map(p => ({ ...p })),
   redeemCodes: [],
   usageLogs: [],
   deletedModelIds: [],

@@ -10,7 +10,7 @@ const RedeemCodeSchema = new mongoose.Schema({
   },
   plan_name: {
     type: String,
-    enum: ['Pro', 'Max'],
+    enum: ['Go', 'Plus', 'Pro', 'Max'],
     required: true
   },
   duration_days: {

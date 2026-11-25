@@ -44,7 +44,7 @@ const UserSchema = new mongoose.Schema({
   subscription: {
     plan_name: {
       type: String,
-      enum: ['Free', 'Pro', 'Max'],
+      enum: ['Free', 'Go', 'Plus', 'Pro', 'Max'],
       default: 'Free'
     },
     starts_at: {

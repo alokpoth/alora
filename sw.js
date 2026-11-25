@@ -1,5 +1,5 @@
-/* Alora AI - Progressive Web App Service Worker (v3.4.0) */
-const CACHE_NAME = 'alora-ai-v3.4.0';
+/* Alora AI - Progressive Web App Service Worker (v3.5.0) */
+const CACHE_NAME = 'alora-ai-v3.5.0';
 
 // Core assets to pre-cache on service worker install
 const CORE_ASSETS = [
@@ -264,7 +264,7 @@ self.addEventListener('fetch', (event) => {
     (req.headers.get('accept') && req.headers.get('accept').includes('text/html'))
   ) {
     event.respondWith(
-      fetch(req)
+      fetch(req, { cache: 'no-cache' })
         .then((networkResponse) => {
           if (networkResponse && networkResponse.status === 200) {
             const clone = networkResponse.clone();

@@ -318,6 +318,16 @@ class WebAppInterface(private val activity: MainActivity) : TextToSpeech.OnInitL
     }
 
     @JavascriptInterface
+    fun startNativeVoice(langTag: String?) {
+        activity.startNativeSpeechInput(langTag)
+    }
+
+    @JavascriptInterface
+    fun stopNativeVoice() {
+        activity.stopNativeSpeechInput()
+    }
+
+    @JavascriptInterface
     fun isNativeApp(): Boolean = true
 
     @JavascriptInterface

@@ -1137,11 +1137,61 @@
       }
     });
 
+    // Google OAuth + Callback Fragment Handling
+    (async function handleOAuthReturn() {
+      try {
+        const qErr = initialParams.get('oauth_error');
+        if (qErr) {
+          showError(qErr);
+          const cleanSearch = new URLSearchParams(window.location.search);
+          cleanSearch.delete('oauth_error');
+          const nextQs = cleanSearch.toString();
+          window.history.replaceState(null, '', window.location.pathname + (nextQs ? '?' + nextQs : '') + window.location.hash);
+        }
+        const hashStr = window.location.hash || '';
+        if (hashStr.includes('oauth_token=')) {
+          const hashParams = new URLSearchParams(hashStr.replace(/^#/, ''));
+          const oauthToken = hashParams.get('oauth_token');
+          const oauthRedirect = hashParams.get('redirect');
+          window.history.replaceState(null, '', window.location.pathname + window.location.search);
+          if (oauthToken) {
+            setLoading(true);
+            const meRes = await fetch(API_BASE + '/auth/me?_t=' + Date.now(), {
+              headers: { 'Authorization': 'Bearer ' + oauthToken }
+            });
+            const meData = await meRes.json().catch(() => ({}));
+            if (meRes.ok && meData.success && meData.user) {
+              localStorage.setItem('alokpoth_token', oauthToken);
+              localStorage.setItem('alokpoth_user', JSON.stringify(meData.user));
+              const planName = (meData.user.subscription && meData.user.subscription.plan_name) || meData.user.plan || 'Free';
+              localStorage.setItem('alokpoth_current_plan', planName);
+              localStorage.setItem('alokpoth_user_plan', planName);
+              localStorage.setItem('alokpoth_plan', planName);
+              localStorage.removeItem('alokpoth_guest_count');
+              const bridge = window.AloAndroid || window.AloAI;
+              if (bridge && typeof bridge.saveAuth === 'function') {
+                bridge.saveAuth(oauthToken, meData.user.name || '', meData.user.email || '', planName);
+              }
+              const targetDest = (oauthRedirect && oauthRedirect.startsWith('/') && !oauthRedirect.startsWith('//')) ? oauthRedirect : getSafeRedirect();
+              window.location.href = targetDest;
+              return;
+            }
+            setLoading(false);
+            showError((meData && meData.error) || t.errGoogleUnavailable);
+          }
+        }
+      } catch (e) {
+        setLoading(false);
+        showError(t.errGoogleUnavailable);
+      }
+    })();
+
     // Google OAuth
     document.getElementById('googleAuthBtn').addEventListener('click', async () => {
       clearMessages();
       try {
-        const res = await fetch(API_BASE + '/auth/google');
+        const redirectDest = getSafeRedirect();
+        const res = await fetch(API_BASE + '/auth/google?redirect=' + encodeURIComponent(redirectDest));
         const data = await res.json();
         if (res.ok && data && data.url) {
           window.location.href = data.url;

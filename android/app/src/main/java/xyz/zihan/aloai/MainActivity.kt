@@ -17,6 +17,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.speech.RecognizerIntent
 import android.util.Base64
 import android.util.Log
 import android.view.View
@@ -136,6 +137,75 @@ class MainActivity : AppCompatActivity() {
             }
             startActivity(intent)
         } catch (_: Exception) {}
+    }
+
+    private var pendingSpeechLang: String? = null
+
+    private val speechPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        val lang = pendingSpeechLang
+        pendingSpeechLang = null
+        if (granted) {
+            launchNativeSpeechRecognizer(lang)
+        } else {
+            webView.post {
+                webView.evaluateJavascript("if (typeof window.onNativeSpeechError === 'function') window.onNativeSpeechError('Microphone permission denied.'); if (typeof window.onNativeSpeechEnd === 'function') window.onNativeSpeechEnd();", null)
+            }
+        }
+    }
+
+    private val speechRecognizerLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val spoken = if (result.resultCode == RESULT_OK) {
+            result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()?.trim()
+        } else {
+            null
+        }
+        webView.post {
+            if (!spoken.isNullOrEmpty()) {
+                val quoted = JSONObject.quote(spoken)
+                webView.evaluateJavascript("if (typeof window.onNativeSpeechResult === 'function') window.onNativeSpeechResult($quoted);", null)
+            } else {
+                webView.evaluateJavascript("if (typeof window.onNativeSpeechEnd === 'function') window.onNativeSpeechEnd();", null)
+            }
+        }
+    }
+
+    private fun launchNativeSpeechRecognizer(langTag: String?) {
+        runOnUiThread {
+            try {
+                val cleanLang = langTag?.trim()?.takeIf { it.isNotEmpty() } ?: "en-US"
+                val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                    putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                    putExtra(RecognizerIntent.EXTRA_LANGUAGE, cleanLang)
+                    putExtra(RecognizerIntent.EXTRA_PROMPT, if (cleanLang.startsWith("bn")) "বলুন..." else "Listening...")
+                }
+                speechRecognizerLauncher.launch(intent)
+            } catch (_: Exception) {
+                webView.evaluateJavascript("if (typeof window.onNativeSpeechError === 'function') window.onNativeSpeechError('Speech recognition unavailable.'); if (typeof window.onNativeSpeechEnd === 'function') window.onNativeSpeechEnd();", null)
+            }
+        }
+    }
+
+    fun startNativeSpeechInput(langTag: String?) {
+        runOnUiThread {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                pendingSpeechLang = langTag
+                speechPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                return@runOnUiThread
+            }
+            launchNativeSpeechRecognizer(langTag)
+        }
+    }
+
+    fun stopNativeSpeechInput() {
+        runOnUiThread {
+            try {
+                webView.evaluateJavascript("if (typeof window.onNativeSpeechEnd === 'function') window.onNativeSpeechEnd();", null)
+            } catch (_: Exception) {}
+        }
     }
 
     private fun createNotificationChannel() {

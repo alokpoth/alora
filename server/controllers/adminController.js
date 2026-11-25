@@ -9,6 +9,7 @@ const supabase = require('../config/supabase');
 const { invalidateModelKeyCache, invalidateUsersCache, invalidateUserUsageCache } = require('../../utils/getModelConfig');
 const { invalidateCachedUser, invalidateCachedPlans, invalidateCachedModels } = require('../config/dbCache');
 const { sendServerError, redactSecrets } = require('../utils/safeError');
+const { PLAN_ORDER, USER_PLANS, PAID_PLANS, DEFAULT_PLANS_MAP, ensureAllCanonicalPlans } = require('../utils/planDefaults');
 
 const SUPER_ADMIN_EMAILS = ['zihanfakir@gmail.com', 'x@zihan.uk'];
 const isSuperAdminEmail = (email) => !!email && SUPER_ADMIN_EMAILS.includes(String(email).toLowerCase().trim());
@@ -130,8 +131,8 @@ const updateUserPlan = async (req, res) => {
     const { userId } = req.params;
     const { plan_name, duration_days = 30 } = req.body;
     // A missing/blank plan_name must be rejected: defaulting to 'Free' silently revoked paid plans.
-    if (!['Free', 'Pro', 'Max'].includes(plan_name)) {
-      return res.status(400).json({ success: false, error: 'প্ল্যান অবশ্যই Free, Pro অথবা Max হতে হবে' });
+    if (!USER_PLANS.includes(plan_name)) {
+      return res.status(400).json({ success: false, error: `প্ল্যান অবশ্যই ${USER_PLANS.join(', ')} এর মধ্যে হতে হবে` });
     }
 
     const days = Math.floor(Math.min(Math.max(Number(duration_days) || 30, 1), 3650));
@@ -573,13 +574,7 @@ const getPlans = async (req, res) => {
       const { getPersistedPlans } = require('../../utils/getModelConfig');
       rawPlans = await getPersistedPlans();
     }
-    const plans = (rawPlans || []).map(p => {
-      const obj = { ...p };
-      obj.image_limit = (obj.image_limit !== undefined && obj.image_limit !== null && !isNaN(Number(obj.image_limit)))
-        ? Number(obj.image_limit)
-        : (obj.name === 'Free' ? 5 : (obj.name === 'Pro' ? 25 : 100));
-      return obj;
-    });
+    const plans = ensureAllCanonicalPlans(rawPlans);
     return res.json({ success: true, count: plans.length, plans });
   } catch (error) {
     return sendServerError(res, error, 'Internal server error', '[Admin Error]:');
@@ -589,15 +584,18 @@ const getPlans = async (req, res) => {
 const updatePlanLimits = async (req, res) => {
   try {
     const { planName } = req.params;
-    if (!planName || !['Free', 'Pro', 'Max'].includes(planName)) {
-      return res.status(400).json({ success: false, error: 'সঠিক প্ল্যানের নাম দিন (Free, Pro, Max)' });
+    if (!planName || !PLAN_ORDER.includes(planName)) {
+      return res.status(400).json({ success: false, error: `সঠিক প্ল্যানের নাম দিন (${PLAN_ORDER.join(', ')})` });
     }
-    const { message_limit, window_hours, image_limit, displayName, allowed_models, is_active } = req.body;
+    const { message_limit, window_hours, image_limit, price_bdt, tagline, displayName, allowed_models, is_active } = req.body;
+    const minMsgLimit = planName === 'Guest' ? 0 : 1;
 
     let validLimit = undefined;
     if (message_limit !== undefined) {
       const n = parseInt(message_limit, 10);
-      if (isNaN(n) || n < 1 || n > 1000000) return res.status(400).json({ success: false, error: 'বার্তা সীমা ১ থেকে ১০,০০,০০০ এর মধ্যে হতে হবে।' });
+      if (isNaN(n) || n < minMsgLimit || n > 1000000) {
+        return res.status(400).json({ success: false, error: `বার্তা সীমা ${minMsgLimit} থেকে ১০,০০,০০০ এর মধ্যে হতে হবে।` });
+      }
       validLimit = n;
     }
 
@@ -615,6 +613,18 @@ const updatePlanLimits = async (req, res) => {
       validImageLimit = n;
     }
 
+    let validPrice = undefined;
+    if (price_bdt !== undefined) {
+      const n = Number(price_bdt);
+      if (isNaN(n) || n < 0 || n > 10000000) return res.status(400).json({ success: false, error: 'সঠিক মূল্য (BDT >= 0) লিখুন।' });
+      validPrice = Math.round(n);
+    }
+
+    let validTagline = undefined;
+    if (tagline !== undefined && typeof tagline === 'string') {
+      validTagline = tagline.trim().slice(0, 120);
+    }
+
     let validDisplayName = undefined;
     if (displayName && typeof displayName === 'string' && displayName.trim()) {
       validDisplayName = displayName.trim().slice(0, 50);
@@ -629,60 +639,48 @@ const updatePlanLimits = async (req, res) => {
       }
     }
 
+    const defPlan = DEFAULT_PLANS_MAP[planName] || DEFAULT_PLANS_MAP.Free;
+    const applyPatch = (target) => {
+      if (validLimit !== undefined) target.message_limit = validLimit;
+      if (validWindow !== undefined) target.window_hours = validWindow;
+      if (validImageLimit !== undefined) target.image_limit = validImageLimit;
+      if (validPrice !== undefined) target.price_bdt = validPrice;
+      if (validTagline !== undefined) target.tagline = validTagline;
+      if (validDisplayName !== undefined) target.displayName = validDisplayName;
+      if (validModels !== undefined) target.allowed_models = validModels;
+      if (is_active !== undefined) {
+        target.is_active = is_active === true || is_active === 'true' || is_active === 1 || is_active === '1';
+      }
+    };
+
     if (getIsMongoConnected()) {
       let plan = await Plan.findOne({ name: planName });
       if (!plan) {
-        // If not in Mongo yet, create it from default
-        const defaultNames = { Free: 'ফ্রি প্ল্যান', Pro: 'প্রো প্ল্যান', Max: 'ম্যাক্স প্ল্যান' };
-        plan = await Plan.create({
-          name: planName,
-          displayName: validDisplayName || defaultNames[planName] || (planName + ' প্ল্যান'),
-          message_limit: validLimit !== undefined ? validLimit : 10,
-          window_hours: validWindow !== undefined ? validWindow : 3,
-          image_limit: validImageLimit !== undefined ? validImageLimit : (planName === 'Free' ? 5 : (planName === 'Pro' ? 25 : 100)),
-          allowed_models: validModels || ['*'],
-          is_active: true
-        });
+        plan = await Plan.create({ ...defPlan });
       }
-
-      if (validLimit !== undefined) plan.message_limit = validLimit;
-      if (validWindow !== undefined) plan.window_hours = validWindow;
-      if (validImageLimit !== undefined) plan.image_limit = validImageLimit;
-      if (validDisplayName !== undefined) plan.displayName = validDisplayName;
-      if (validModels !== undefined) plan.allowed_models = validModels;
-      if (is_active !== undefined) {
-        const activeBool = is_active === true || is_active === 'true' || is_active === 1 || is_active === '1';
-        plan.is_active = activeBool;
-      }
-
+      applyPatch(plan);
       await plan.save();
+
       try {
         const { getPersistedPlans, savePersistedPlans, invalidatePlansCache } = require('../../utils/getModelConfig');
-        let plans = await getPersistedPlans();
-        plans = JSON.parse(JSON.stringify(plans));
+        let plans = ensureAllCanonicalPlans(await getPersistedPlans());
         const pIdx = plans.findIndex(p => p.name === planName);
         if (pIdx !== -1) {
-          if (validLimit !== undefined) plans[pIdx].message_limit = validLimit;
-          if (validWindow !== undefined) plans[pIdx].window_hours = validWindow;
-          if (validImageLimit !== undefined) plans[pIdx].image_limit = validImageLimit;
-          if (validDisplayName !== undefined) plans[pIdx].displayName = validDisplayName;
-          if (validModels !== undefined) plans[pIdx].allowed_models = validModels;
-          if (is_active !== undefined) {
-            const activeBool = is_active === true || is_active === 'true' || is_active === 1 || is_active === '1';
-            plans[pIdx].is_active = activeBool;
-          }
+          applyPatch(plans[pIdx]);
         } else {
           plans.push({
             name: plan.name,
             displayName: plan.displayName,
             message_limit: plan.message_limit,
             window_hours: plan.window_hours,
-            image_limit: plan.image_limit !== undefined ? plan.image_limit : 3,
+            image_limit: plan.image_limit,
+            price_bdt: plan.price_bdt,
+            tagline: plan.tagline,
             allowed_models: plan.allowed_models || ['*'],
             is_active: plan.is_active !== false
           });
         }
-        await savePersistedPlans(plans);
+        await savePersistedPlans(ensureAllCanonicalPlans(plans));
         if (typeof invalidatePlansCache === 'function') invalidatePlansCache();
         invalidateCachedPlans();
         debouncedSave();
@@ -698,33 +696,14 @@ const updatePlanLimits = async (req, res) => {
       });
     } else {
       const { getPersistedPlans, savePersistedPlans, invalidatePlansCache } = require('../../utils/getModelConfig');
-      let plans = await getPersistedPlans();
-      plans = JSON.parse(JSON.stringify(plans));
+      let plans = ensureAllCanonicalPlans(await getPersistedPlans());
       let plan = plans.find(p => p.name === planName);
       if (!plan) {
-        const defaultNames = { Free: 'ফ্রি প্ল্যান', Pro: 'প্রো প্ল্যান', Max: 'ম্যাক্স প্ল্যান' };
-        plan = {
-          name: planName,
-          displayName: validDisplayName || defaultNames[planName] || (planName + ' প্ল্যান'),
-          message_limit: validLimit !== undefined ? validLimit : 10,
-          window_hours: validWindow !== undefined ? validWindow : 3,
-          image_limit: validImageLimit !== undefined ? validImageLimit : (planName === 'Free' ? 5 : (planName === 'Pro' ? 25 : 100)),
-          allowed_models: validModels || ['*'],
-          is_active: true
-        };
+        plan = { ...defPlan };
         plans.push(plan);
       }
-
-      if (validLimit !== undefined) plan.message_limit = validLimit;
-      if (validWindow !== undefined) plan.window_hours = validWindow;
-      if (validImageLimit !== undefined) plan.image_limit = validImageLimit;
-      if (validDisplayName !== undefined) plan.displayName = validDisplayName;
-      if (validModels !== undefined) plan.allowed_models = validModels;
-      if (is_active !== undefined) {
-        const activeBool = is_active === true || is_active === 'true' || is_active === 1 || is_active === '1';
-        plan.is_active = activeBool;
-      }
-
+      applyPatch(plan);
+      plans = ensureAllCanonicalPlans(plans);
       await savePersistedPlans(plans);
       if (typeof invalidatePlansCache === 'function') invalidatePlansCache();
       invalidateCachedPlans();
@@ -753,8 +732,8 @@ const generateRandomCode = (planName) => {
 const generateRedeemCodes = async (req, res) => {
   try {
     const { plan_name, count = 1, duration_days = 30 } = req.body;
-    if (!['Pro', 'Max'].includes(plan_name)) {
-      return res.status(400).json({ success: false, error: 'প্ল্যান অবশ্যই Pro অথবা Max হতে হবে' });
+    if (!PAID_PLANS.includes(plan_name)) {
+      return res.status(400).json({ success: false, error: `প্ল্যান অবশ্যই ${PAID_PLANS.join(', ')} এর মধ্যে হতে হবে` });
     }
 
     const createdCodes = [];
@@ -916,8 +895,8 @@ const createCustomRedeemCode = async (req, res) => {
     if (!custom_code || typeof custom_code !== 'string' || !custom_code.trim()) {
       return res.status(400).json({ success: false, error: 'কাস্টম রিডিম কোড অবশ্যই লিখতে হবে' });
     }
-    if (!['Pro', 'Max'].includes(plan_name)) {
-      return res.status(400).json({ success: false, error: 'প্ল্যান অবশ্যই Pro অথবা Max হতে হবে' });
+    if (!PAID_PLANS.includes(plan_name)) {
+      return res.status(400).json({ success: false, error: `প্ল্যান অবশ্যই ${PAID_PLANS.join(', ')} এর মধ্যে হতে হবে` });
     }
     
     const cleanCode = custom_code.trim().toUpperCase();

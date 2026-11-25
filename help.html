@@ -547,11 +547,11 @@
       </div>
       <div class="contact-item">
         <span class="contact-label" id="labelEmail">Contact Developer</span>
-        <a href="mailto:zihanfakir@gmail.com" class="contact-val">zihanfakir@gmail.com</a>
+        <a href="mailto:x@zihan.uk" class="contact-val">x@zihan.uk</a>
       </div>
       <div class="contact-item">
         <span class="contact-label" id="labelCommunity">Alokpath Platform</span>
-        <a href="https://alora.zihan.xyz" target="_blank" rel="noopener noreferrer" class="contact-val">alokpoth.com</a>
+        <a href="https://alokpoth.zihan.xyz" target="_blank" rel="noopener noreferrer" class="contact-val">alokpoth.zihan.xyz</a>
       </div>
       <div class="contact-item">
         <span class="contact-label" id="labelSecurity">Security Status</span>
@@ -594,9 +594,9 @@
         faqQ1: "Alora কী?",
         faqA1: "Alora হলো একটি দ্রুতগতির কৃত্রিম বুদ্ধিমত্তা প্ল্যাটফর্ম যা কোডিং, গবেষণা, ছবি তৈরি ও সাবলীল বাংলা কথোপকথনের জন্য বিশেষভাবে তৈরি।",
         faqQ2: "মেসেজ কোটা কীভাবে কাজ করে?",
-        faqA2: "প্রতিটি প্ল্যানে একটি নির্দিষ্ট উইন্ডো থাকে (যেমন ফ্রি প্ল্যানে ১০টি বার্তা প্রতি ৩ ঘণ্টায়, প্রো প্ল্যানে ৩০টি বার্তা প্রতি ৩ ঘণ্টায় এবং ম্যাক্সে ৫০টি বার্তা প্রতি ১ ঘণ্টায়)। উইন্ডো শেষ হলে কোটা স্বয়ংক্রিয়ভাবে নবায়ন হয়।",
+        faqA2: "প্রতিটি প্ল্যানে নির্দিষ্ট সময় পর রিসেট হওয়া উইন্ডো সীমা থাকে (Guest: প্রতি ৩ ঘণ্টায় ১০টি বার্তা | Free: প্রতি ৩ ঘণ্টায় ১০টি বার্তা ও ৫টি ছবি | Go: প্রতি ৩ ঘণ্টায় ২০টি বার্তা ও ১৫টি ছবি | Plus: প্রতি ৩ ঘণ্টায় ৩০টি বার্তা ও ২৫টি ছবি | Pro: প্রতি ২ ঘণ্টায় ৪০টি বার্তা ও ৫০টি ছবি | Max: প্রতি ১ ঘণ্টায় ৫০টি বার্তা ও ১০০টি ছবি)। সময় শেষ হলেই কোটা স্বয়ংক্রিয়ভাবে নবায়ন হয়।",
         faqQ3: "রিডিম কোড কীভাবে ব্যবহার করব?",
-        faqA3: "সেটিংস থেকে রিডিম কোড পেজে যান, আপনার প্রোমো কোডটি লিখুন এবং আপগ্রেড বাটনে চাপলেই আপনার অ্যাকাউন্ট Pro বা Max-এ আপগ্রেড হয়ে যাবে।",
+        faqA3: "সেটিংস থেকে রিডিম কোড পেজে যান, আপনার প্রোমো কোডটি লিখুন এবং আপগ্রেড বাটনে চাপলেই আপনার অ্যাকাউন্ট Go, Plus, Pro বা Max-এ আপগ্রেড হয়ে যাবে।",
         faqQ4: "অ্যাডমিন অ্যাকাউন্টে কোনো সীমাবদ্ধতা আছে কি?",
         faqA4: "না। অ্যাডমিন অ্যাকাউন্টে সীমাহীন বার্তা, সীমাহীন ছবি তৈরি এবং সকল এআই মডেলে কোনো রেট লিমিট ছাড়াই নিরবচ্ছিন্ন অ্যাক্সেস থাকে।",
         faqQ5: "অফলাইনে Alora ব্যবহার করা যায় কি?",
@@ -624,9 +624,9 @@
         faqQ1: "What is Alora?",
         faqA1: "Alora is a high-speed intelligence platform built for coding, academic research, generative image synthesis, and Bengali language conversational mastery.",
         faqQ2: "How does the fair usage quota work?",
-        faqA2: "Each user plan includes a rolling window (e.g. Free: 10 messages / 3 hours, Pro: 30 / 3 hours, Max: 50 / 1 hour). When your limit is reached, your quota automatically resets as the window expires.",
+        faqA2: "Each plan uses an automatically resetting rolling window (Guest: 10 msgs / 3h, Free: 10 msgs & 5 imgs / 3h, Go: 20 msgs & 15 imgs / 3h, Plus: 30 msgs & 25 imgs / 3h, Pro: 40 msgs & 50 imgs / 2h, Max: 50 msgs & 100 imgs / 1h). Once the window expires, your full quota refreshes.",
         faqQ3: "How can I redeem a code?",
-        faqA3: "Navigate to the Redeem Code page from Settings, enter your promo code, and your account will immediately upgrade to Pro or Max.",
+        faqA3: "Navigate to the Redeem Code page from Settings, enter your promo code, and your account will immediately upgrade to Go, Plus, Pro, or Max.",
         faqQ4: "Are Admin accounts rate-limited?",
         faqA4: "No. Verified admin accounts enjoy unlimited messages, unrestricted image generation, and instant access to all AI models without queuing or rate limits.",
         faqQ5: "Can I use Alora offline?",
@@ -774,6 +774,23 @@
     });
 
     applyI18n();
+
+    // Sync FAQ #2 plan limits directly from Admin /api/plans configuration
+    (async function syncHelpPlanLimits() {
+      try {
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const base = isLocal ? '' : (window.location.hostname.endsWith('onrender.com') ? '' : 'https://alora-backend-emw3.onrender.com');
+        const res = await fetch(`${base}/api/plans?_t=${Date.now()}`, { cache: 'no-store' });
+        const data = await res.json();
+        if (data && data.success && Array.isArray(data.plans) && data.plans.length) {
+          const enSummary = data.plans.map(p => `${p.name}: ${p.message_limit} msgs${p.image_limit > 0 ? ' & ' + p.image_limit + ' imgs' : ''} / ${p.window_hours}h`).join(', ');
+          const bnSummary = data.plans.map(p => `${p.name}: প্রতি ${p.window_hours} ঘণ্টায় ${p.message_limit}টি বার্তা${p.image_limit > 0 ? ' ও ' + p.image_limit + 'টি ছবি' : ''}`).join(' | ');
+          I18N.en.faqA2 = `Each plan uses an automatically resetting rolling window (${enSummary}). Once the window expires, your full quota refreshes.`;
+          I18N.bn.faqA2 = `প্রতিটি প্ল্যানে নির্দিষ্ট সময় পর রিসেট হওয়া উইন্ডো সীমা থাকে (${bnSummary})। সময় শেষ হলেই কোটা স্বয়ংক্রিয়ভাবে নবায়ন হয়।`;
+          applyI18n();
+        }
+      } catch(e) {}
+    })();
   </script>
 </body>
 </html>

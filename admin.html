@@ -508,10 +508,25 @@
       text-transform: uppercase;
       letter-spacing: 0.4px;
     }
+    .tag-guest {
+      background: rgba(113, 113, 122, 0.16);
+      color: #a1a1aa;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
     .tag-free {
       background: rgba(148, 163, 184, 0.12);
       color: #cbd5e1;
       border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .tag-go {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .tag-plus {
+      background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
     .tag-pro {
       background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
@@ -1147,7 +1162,7 @@
     <div class="section" id="secPlans">
       <div class="section-header-wrap">
         <h3>ডাইনামিক সাবস্ক্রিপশন লিমিট ও রেট-লিমিটিং</h3>
-        <span class="section-subtitle">Free, Pro এবং Max টায়ারের জন্য উইন্ডো লিমিট, মেসেজ ও ইমেজ কোটা পরিবর্তন করুন</span>
+        <span class="section-subtitle">Guest, Free, Go, Plus, Pro এবং Max টায়ারের জন্য উইন্ডো লিমিট, মেসেজ, ইমেজ ও মূল্য পরিবর্তন করুন</span>
       </div>
       <div id="planCardsContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
         <!-- Dynamically rendered -->
@@ -1164,7 +1179,9 @@
         <div class="form-group">
           <label>প্ল্যান বেছে নিন</label>
           <select id="codePlan">
-            <option value="Pro">Pro Plan</option>
+            <option value="Go">Go Plan</option>
+            <option value="Plus">Plus Plan</option>
+            <option value="Pro" selected>Pro Plan</option>
             <option value="Max">Max Plan</option>
           </select>
         </div>
@@ -1196,7 +1213,9 @@
         <div class="form-group">
           <label>প্ল্যান বেছে নিন</label>
           <select id="customCodePlan">
-            <option value="Pro">Pro Plan</option>
+            <option value="Go">Go Plan</option>
+            <option value="Plus">Plus Plan</option>
+            <option value="Pro" selected>Pro Plan</option>
             <option value="Max">Max Plan</option>
           </select>
         </div>
@@ -1558,7 +1577,9 @@
           <div class="form-group" style="flex: 1; min-width: 160px;">
             <label>ট্রায়াল প্ল্যান</label>
             <select id="settingTrialPlan" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text-primary); font-size: 0.9rem;">
-              <option value="Pro">Pro</option>
+              <option value="Go">Go</option>
+              <option value="Plus">Plus</option>
+              <option value="Pro" selected>Pro</option>
               <option value="Max">Max</option>
             </select>
           </div>
@@ -2702,7 +2723,8 @@
       displayUsers.forEach(u => {
         const uId = u._id || u.id;
         const plan = u.subscription?.plan_name || 'Free';
-        const planBadge = plan === "Max" ? '<span class="tag tag-max">Max</span>' : (plan === "Pro" ? '<span class="tag tag-pro">Pro</span>' : '<span class="tag tag-free">Free</span>');
+        const safePlanTag = escapeHtml(plan).toLowerCase();
+        const planBadge = `<span class="tag tag-${safePlanTag}">${escapeHtml(plan)}</span>`;
         const expDate = u.subscription?.expires_at ? new Date(u.subscription.expires_at) : null;
         const exp = (expDate && !isNaN(expDate.getTime())) ? expDate.toLocaleDateString("bn-BD") : "সীমাহীন";
         
@@ -2717,6 +2739,8 @@
             <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
               <select class="user-plan-select" data-user-id="${escapeHtml(uId)}" style="padding: 4px 8px; font-size: 0.8rem;">
                 <option value="Free" ${plan === 'Free' ? 'selected' : ''}>Free (অনন্তকাল)</option>
+                <option value="Go" ${plan === 'Go' ? 'selected' : ''}>Go (কাস্টম মেয়াদ)</option>
+                <option value="Plus" ${plan === 'Plus' ? 'selected' : ''}>Plus (কাস্টম মেয়াদ)</option>
                 <option value="Pro" ${plan === 'Pro' ? 'selected' : ''}>Pro (কাস্টম মেয়াদ)</option>
                 <option value="Max" ${plan === 'Max' ? 'selected' : ''}>Max (কাস্টম মেয়াদ)</option>
               </select>
@@ -2921,31 +2945,46 @@
           const safeId = safeName.replace(/[^a-zA-Z0-9_-]/g, '_');
           const allowedModelsStr = Array.isArray(p.allowed_models) ? p.allowed_models.join(', ') : (p.allowed_models || '*');
           const isActive = p.is_active !== false;
-          const imageLimitVal = p.image_limit !== undefined && !isNaN(Number(p.image_limit)) ? Number(p.image_limit) : (p.name === 'Free' ? 3 : (p.name === 'Pro' ? 20 : 100));
+          const msgLimitVal = (p.message_limit !== undefined && p.message_limit !== null && !isNaN(Number(p.message_limit))) ? Number(p.message_limit) : 10;
+          const imageLimitVal = (p.image_limit !== undefined && p.image_limit !== null && !isNaN(Number(p.image_limit))) ? Number(p.image_limit) : (p.name === 'Guest' ? 0 : 5);
+          const priceVal = (p.price_bdt !== undefined && p.price_bdt !== null && !isNaN(Number(p.price_bdt))) ? Number(p.price_bdt) : 0;
+          const taglineVal = escapeHtml(p.tagline || '');
 
           const card = document.createElement("div");
           card.className = "stat-card";
-          card.style.gap = "14px";
+          card.style.gap = "12px";
           card.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center;">
-              <h4 style="font-size: 1.1rem; color: var(--accent);">${safeDisplayName}</h4>
+              <h4 style="font-size: 1.05rem; color: var(--accent);">${safeDisplayName}</h4>
               <span class="tag tag-${safeName.toLowerCase()}">${safeName}</span>
             </div>
             <div class="form-group">
               <label>প্ল্যানের নাম (Display Name)</label>
               <input type="text" id="display_${safeId}" value="${safeDisplayName}">
             </div>
-            <div class="form-group">
-              <label>মেসেজ লিমিট (Message Limit)</label>
-              <input type="number" id="limit_${safeId}" value="${Number(p.message_limit) || 10}">
+            <div class="form-row" style="gap:10px; margin:0;">
+              <div class="form-group" style="flex:1; min-width:110px;">
+                <label>মেসেজ লিমিট${safeName === 'Guest' ? ' (0 = লগইন)' : ''}</label>
+                <input type="number" min="${safeName === 'Guest' ? 0 : 1}" id="limit_${safeId}" value="${msgLimitVal}">
+              </div>
+              <div class="form-group" style="flex:1; min-width:110px;">
+                <label>ছবি লিমিট</label>
+                <input type="number" min="0" id="img_limit_${safeId}" value="${imageLimitVal}">
+              </div>
+            </div>
+            <div class="form-row" style="gap:10px; margin:0;">
+              <div class="form-group" style="flex:1; min-width:110px;">
+                <label>রিসেট উইন্ডো (ঘণ্টা)</label>
+                <input type="number" min="1" max="168" id="window_${safeId}" value="${Number(p.window_hours) || 3}">
+              </div>
+              <div class="form-group" style="flex:1; min-width:110px;">
+                <label>মাসিক মূল্য (BDT)</label>
+                <input type="number" min="0" id="price_${safeId}" value="${priceVal}">
+              </div>
             </div>
             <div class="form-group">
-              <label>ছবি তৈরির লিমিট (Image Gen Limit)</label>
-              <input type="number" id="img_limit_${safeId}" value="${imageLimitVal}">
-            </div>
-            <div class="form-group">
-              <label>সময়সীমা ঘণ্টায় (Window Hours)</label>
-              <input type="number" id="window_${safeId}" value="${Number(p.window_hours) || 3}">
+              <label>সংক্ষিপ্ত বিবরণ (Tagline)</label>
+              <input type="text" id="tagline_${safeId}" maxlength="120" value="${taglineVal}">
             </div>
             <div class="form-group">
               <label>অনুমোদিত মডেল (Allowed Models, * = All)</label>
@@ -2958,7 +2997,7 @@
                 <span class="slider"></span>
               </label>
             </div>
-            <button type="button" class="btn btn-primary" onclick="savePlanLimits('${safeName}', this)" style="margin-top: 10px;">সংরক্ষণ করুন</button>
+            <button type="button" class="btn btn-primary" onclick="savePlanLimits('${safeName}', this)" style="margin-top: 6px;">সংরক্ষণ করুন</button>
           `;
           container.appendChild(card);
         });
@@ -2971,6 +3010,8 @@
       const limitInput = document.getElementById(`limit_${safeId}`);
       const imgLimitInput = document.getElementById(`img_limit_${safeId}`);
       const windowInput = document.getElementById(`window_${safeId}`);
+      const priceInput = document.getElementById(`price_${safeId}`);
+      const taglineInput = document.getElementById(`tagline_${safeId}`);
       const modelsInput = document.getElementById(`models_${safeId}`);
       const activeInput = document.getElementById(`active_${safeId}`);
 
@@ -2978,17 +3019,23 @@
       const message_limit = limitInput ? parseInt(limitInput.value, 10) : NaN;
       const image_limit = imgLimitInput ? parseInt(imgLimitInput.value, 10) : NaN;
       const window_hours = windowInput ? parseInt(windowInput.value, 10) : NaN;
+      const price_bdt = priceInput ? parseInt(priceInput.value, 10) : 0;
+      const tagline = taglineInput ? taglineInput.value.trim() : "";
       const allowed_models = modelsInput ? modelsInput.value.split(',').map(m => m.trim()).filter(Boolean) : ['*'];
       const is_active = activeInput ? activeInput.checked : true;
 
-      if (isNaN(message_limit) || message_limit <= 0) {
-        return showToast("সঠিক মেসেজ লিমিট (ধনাত্মক সংখ্যা) লিখুন", "error");
+      const minMsg = planName === 'Guest' ? 0 : 1;
+      if (isNaN(message_limit) || message_limit < minMsg) {
+        return showToast(`সঠিক মেসেজ লিমিট (${minMsg} বা তার বেশি) লিখুন`, "error");
       }
       if (isNaN(image_limit) || image_limit < 0) {
         return showToast("সঠিক ছবি তৈরির লিমিট (০ বা ধনাত্মক সংখ্যা) লিখুন", "error");
       }
       if (isNaN(window_hours) || window_hours <= 0) {
         return showToast("সঠিক সময়সীমা (ঘণ্টা) লিখুন", "error");
+      }
+      if (isNaN(price_bdt) || price_bdt < 0) {
+        return showToast("সঠিক মাসিক মূল্য (০ বা ধনাত্মক) লিখুন", "error");
       }
 
       if (btn) {
@@ -2999,7 +3046,7 @@
       try {
         const res = await authFetch(`${API_BASE}/admin/plans/${planName}`, {
           method: "PUT",
-          body: JSON.stringify({ displayName, message_limit, image_limit, window_hours, allowed_models, is_active })
+          body: JSON.stringify({ displayName, message_limit, image_limit, window_hours, price_bdt, tagline, allowed_models, is_active })
         });
         const data = await res.json();
         if (data.success) {
@@ -3298,7 +3345,10 @@
           const trialEnabled = document.getElementById("settingTrialEnabled");
           if (trialEnabled) trialEnabled.checked = s.free_trial_enabled === true || s.free_trial_enabled === "true";
           const trialPlan = document.getElementById("settingTrialPlan");
-          if (trialPlan) trialPlan.value = s.free_trial_plan === "Max" ? "Max" : "Pro";
+          if (trialPlan) {
+            const pVal = s.free_trial_plan;
+            trialPlan.value = ["Go", "Plus", "Pro", "Max"].includes(pVal) ? pVal : "Pro";
+          }
           const trialDays = document.getElementById("settingTrialDays");
           if (trialDays) trialDays.value = String(s.free_trial_days || 7);
           const trialLabel = document.getElementById("settingTrialLabel");
@@ -3446,9 +3496,10 @@
         e.preventDefault();
         const btn = document.getElementById("btnSaveTrialSettings");
         if (btn) btn.disabled = true;
+        const selectedTrialPlan = document.getElementById("settingTrialPlan")?.value;
         const payload = {
           free_trial_enabled: !!document.getElementById("settingTrialEnabled")?.checked,
-          free_trial_plan: document.getElementById("settingTrialPlan")?.value === "Max" ? "Max" : "Pro",
+          free_trial_plan: ["Go", "Plus", "Pro", "Max"].includes(selectedTrialPlan) ? selectedTrialPlan : "Pro",
           free_trial_days: Math.min(Math.max(parseInt(document.getElementById("settingTrialDays")?.value || "7", 10) || 7, 1), 365),
           free_trial_label: (document.getElementById("settingTrialLabel")?.value || "").trim(),
           free_trial_description: (document.getElementById("settingTrialDescription")?.value || "").trim()

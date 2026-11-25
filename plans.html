@@ -231,13 +231,51 @@
     /* Main Content Container */
     .pricing-main {
       width: 100%;
-      max-width: 1060px;
+      max-width: 1240px;
       margin: 0 auto;
       padding: 16px 20px 72px;
       flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
+    }
+
+    .mobile-back-pill {
+      display: none !important;
+    }
+
+    @media (max-width: 768px) {
+      .pricing-header {
+        padding: max(12px, env(safe-area-inset-top, 12px)) 14px 10px;
+      }
+      .mobile-back-pill {
+        display: inline-flex !important;
+        width: 40px !important;
+        height: 40px !important;
+        background: var(--surface) !important;
+        border: 1px solid var(--border) !important;
+        color: var(--text-main) !important;
+      }
+      #closePageBtn {
+        width: 40px !important;
+        height: 40px !important;
+        background: var(--surface) !important;
+        border: 1px solid var(--border) !important;
+        color: var(--text-main) !important;
+      }
+      .brand-anchor {
+        display: none;
+      }
+      .pricing-main {
+        padding: 4px 14px max(36px, env(safe-area-inset-bottom, 24px));
+      }
+      .page-title {
+        font-size: 1.45rem;
+        margin-bottom: 14px;
+      }
+      .segmented-switcher {
+        margin-bottom: 18px;
+      }
     }
 
     .page-title {
@@ -301,29 +339,30 @@
       gap: 32px;
     }
 
-    /* 3-Column Pricing Grid */
+    /* Responsive Pricing Grid (Desktop 5 cards, Mobile vertical stack) */
     .plans-grid {
       width: 100%;
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
       align-items: stretch;
       order: 1;
     }
 
-    @media (max-width: 740px) {
+    @media (max-width: 768px) {
       .plans-grid {
         grid-template-columns: 1fr;
-        max-width: 440px;
+        max-width: 460px;
         margin: 0 auto;
+        gap: 16px;
       }
     }
 
     .plan-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 24px;
-      padding: 28px 26px 30px;
+      border-radius: 26px;
+      padding: 24px 20px 24px;
       display: flex;
       flex-direction: column;
       position: relative;
@@ -475,12 +514,100 @@
       color: var(--text-main);
     }
 
+    .feature-inherit-label {
+      font-size: 0.84rem;
+      font-weight: 500;
+      color: var(--text-sub);
+      margin-bottom: 4px;
+    }
+
     .feature-item svg {
       width: 17px;
       height: 17px;
       flex-shrink: 0;
       margin-top: 2px;
+      color: #60a5fa;
+    }
+    [data-theme="light"] .feature-item svg,
+    [data-theme="eyecare"] .feature-item svg {
+      color: #2563eb;
+    }
+
+    /* All Tiers Synced Limits Overview Card */
+    .limits-matrix-card {
+      width: 100%;
+      max-width: 780px;
+      margin: 0 auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 26px;
+      padding: 22px 20px;
+      order: 3;
+    }
+    .limits-matrix-title {
+      font-size: 1.02rem;
+      font-weight: 600;
       color: var(--text-main);
+      margin-bottom: 4px;
+    }
+    .limits-matrix-sub {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+    .limits-matrix-list {
+      display: flex;
+      flex-direction: column;
+      border-top: 1px solid var(--border);
+    }
+    .limits-matrix-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 2px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.88rem;
+    }
+    .limits-matrix-row:last-child {
+      border-bottom: none;
+      padding-bottom: 2px;
+    }
+    .limits-tier-name {
+      font-weight: 600;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .limits-tier-vals {
+      color: var(--text-sub);
+      text-align: right;
+      font-size: 0.84rem;
+    }
+    .plan-links-strip {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      margin-top: 8px;
+      order: 4;
+    }
+    .plan-link-subtle {
+      background: transparent;
+      border: none;
+      color: var(--text-sub);
+      font-family: inherit;
+      font-size: 0.88rem;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 4px 10px;
+    }
+    .plan-link-subtle.underlined {
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      text-decoration: underline;
+      text-underline-offset: 4px;
     }
 
     /* Inline Voucher Redemption Section */
@@ -760,6 +887,10 @@
 <body>
 
   <header class="pricing-header">
+    <button type="button" class="icon-pill-btn square mobile-back-pill" id="mobilePlansBackBtn" aria-label="Back">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+    </button>
+
     <a href="/" class="brand-anchor" aria-label="Alora Home">
       <img src="/logo_icon_white.png" alt="Alora" class="brand-logo" id="brandLogo">
       <span>Alora</span>
@@ -813,130 +944,8 @@
         <button type="button" class="trial-offer-cta" id="trialBannerClaimBtn">Claim Free Trial</button>
       </section>
 
-      <!-- 3 Monochrome ChatGPT Pricing Cards -->
-      <section class="plans-grid" id="plansGrid" aria-label="Subscription plans">
-
-        <!-- Free -->
-        <article class="plan-card" id="cardFree">
-          <div class="card-top-row">
-            <h2 class="plan-tier-name" id="nameFree">Free</h2>
-            <div class="card-badges" id="badgesFree"></div>
-          </div>
-
-          <div class="price-row">
-            <span class="price-figure" id="priceFree">$0</span>
-            <span class="price-meta" id="priceMetaFree">forever</span>
-          </div>
-
-          <p class="plan-tagline" id="taglineFree">Intelligence for everyday tasks and quick answers</p>
-
-          <button type="button" class="plan-cta-btn current" id="ctaFree" disabled>Your current plan</button>
-
-          <ul class="feature-list">
-            <li class="feature-item">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-              <span id="featFree1">Everyday assistance</span>
-            </li>
-            <li class="feature-item">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-              <span id="featFree2">Standard models</span>
-            </li>
-            <li class="feature-item">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-              <span id="featFreeQuota">10 messages per 3 hours</span>
-            </li>
-            <li class="feature-item">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-              <span id="featFree4">Web search &amp; file uploads</span>
-            </li>
-          </ul>
-        </article>
-
-        <!-- Pro -->
-        <article class="plan-card featured" id="cardPro">
-          <div class="card-top-row">
-            <h2 class="plan-tier-name" id="namePro">Pro</h2>
-            <div class="card-badges" id="badgesPro">
-              <span class="mono-badge inverted" id="popularBadge">POPULAR</span>
-            </div>
-          </div>
-
-          <div class="price-row">
-            <span class="price-figure" id="pricePro">Pro</span>
-            <span class="price-meta" id="priceMetaPro">voucher access</span>
-          </div>
-
-          <p class="plan-tagline" id="taglinePro">More access to advanced reasoning, coding, and vision</p>
-
-          <button type="button" class="plan-cta-btn solid" id="ctaPro">Upgrade with Voucher</button>
-
-          <ul class="feature-list">
-            <li class="feature-item">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-              <span id="featPro1">Everything in Free</span>
-            </li>
-            <li class="feature-item">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-              <span id="featPro2">Access to Alora Pro reasoning models</span>
-            </li>
-            <li class="feature-item">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-              <span id="featProQuota">30 messages per 3 hours</span>
-            </li>
-            <li class="feature-item">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-              <span id="featPro4">Priority speed</span>
-            </li>
-            <li class="feature-item">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-              <span id="featPro5">Multimodal vision &amp; code analysis</span>
-            </li>
-          </ul>
-        </article>
-
-        <!-- Max -->
-        <article class="plan-card" id="cardMax">
-          <div class="card-top-row">
-            <h2 class="plan-tier-name" id="nameMax">Max</h2>
-            <div class="card-badges" id="badgesMax">
-              <span class="mono-badge" id="frontierBadge">FRONTIER</span>
-            </div>
-          </div>
-
-          <div class="price-row">
-            <span class="price-figure" id="priceMax">Max</span>
-            <span class="price-meta" id="priceMetaMax">frontier access</span>
-          </div>
-
-          <p class="plan-tagline" id="taglineMax">Full frontier intelligence with our highest usage limits</p>
-
-          <button type="button" class="plan-cta-btn" id="ctaMax">Get Max with Voucher</button>
-
-          <ul class="feature-list">
-            <li class="feature-item">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-              <span id="featMax1">Everything in Pro</span>
-            </li>
-            <li class="feature-item">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-              <span id="featMax2">Full access to all Frontier &amp; Pro Max models</span>
-            </li>
-            <li class="feature-item">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-              <span id="featMaxQuota">50 messages per 1 hour (highest limits)</span>
-            </li>
-            <li class="feature-item">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-              <span id="featMax4">Deep analytical workflows</span>
-            </li>
-            <li class="feature-item">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-              <span id="featMax5">Early access to new capabilities</span>
-            </li>
-          </ul>
-        </article>
-
-      </section>
+      <!-- Dynamically Rendered Pricing Cards (Free, Go, Plus, Pro, Max synced from /api/plans) -->
+      <section class="plans-grid" id="plansGrid" aria-label="Subscription plans"></section>
 
       <!-- Working Inline Voucher Redemption Section -->
       <section class="voucher-section" id="redeemSection" aria-label="Redeem voucher">
@@ -949,7 +958,7 @@
           </div>
           <div>
             <h2 class="voucher-title" id="voucherTitle">Redeem a plan voucher</h2>
-            <p class="voucher-desc" id="voucherDesc">Enter an official Alora Pro or Max voucher code to upgrade your account immediately.</p>
+            <p class="voucher-desc" id="voucherDesc">Enter an official Alora Go, Plus, Pro, or Max voucher code to upgrade your account immediately.</p>
           </div>
         </div>
 
@@ -978,6 +987,18 @@
           <a href="/" class="feedback-chat-link" id="feedbackChatLink" style="display: none;">Open Alora</a>
         </div>
       </section>
+
+      <!-- All Tiers Clear Synced Limits Summary (Guest, Free, Go, Plus, Pro, Max) -->
+      <section class="limits-matrix-card" id="limitsComparisonBox" aria-label="Plan usage limits">
+        <h2 class="limits-matrix-title" id="limitsBoxTitle">Live Plan Limits</h2>
+        <p class="limits-matrix-sub" id="limitsBoxSub">Exact rolling limits synced from server configuration</p>
+        <div class="limits-matrix-list" id="limitsMatrixList"></div>
+      </section>
+
+      <div class="plan-links-strip">
+        <button type="button" class="plan-link-subtle" id="restoreSubBtn">Restore subscription / Redeem voucher</button>
+        <button type="button" class="plan-link-subtle underlined" id="limitsJumpBtn">Limits apply</button>
+      </div>
     </div>
 
     <p class="pricing-footnote" id="pricingFootnote">
@@ -994,6 +1015,14 @@
 
     try { sessionStorage.removeItem('alora_404_guard'); } catch (e) {}
 
+    function escapeHtml(str) {
+      return String(str || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    const PLAN_HIERARCHY = { Free: 1, Go: 2, Plus: 3, Pro: 4, Max: 5 };
+    const CARD_TIERS = ['Free', 'Go', 'Plus', 'Pro', 'Max'];
+    const ALL_LIMIT_TIERS = ['Guest', 'Free', 'Go', 'Plus', 'Pro', 'Max'];
+
     const I18N = {
       en: {
         docTitle: 'Upgrade your plan — Alora',
@@ -1001,40 +1030,20 @@
         tabPersonal: 'Personal',
         tabVoucher: 'Redeem Voucher',
         langSwitchLabel: 'বাংলা',
-        nameFree: 'Free',
-        priceFree: '$0',
-        priceMetaFree: 'forever',
-        taglineFree: 'Intelligence for everyday tasks and quick answers',
-        featFree1: 'Everyday assistance',
-        featFree2: 'Standard models',
-        featFree4: 'Web search & file uploads',
-        namePro: 'Pro',
+        perMonth: '/ month',
+        foreverFree: 'free forever',
         popularBadge: 'POPULAR',
-        pricePro: 'Pro',
-        priceMetaPro: 'voucher access',
-        taglinePro: 'More access to advanced reasoning, coding, and vision',
-        featPro1: 'Everything in Free',
-        featPro2: 'Access to Alora Pro reasoning models',
-        featPro4: 'Priority speed',
-        featPro5: 'Multimodal vision & code analysis',
-        nameMax: 'Max',
         frontierBadge: 'FRONTIER',
-        priceMax: 'Max',
-        priceMetaMax: 'frontier access',
-        taglineMax: 'Full frontier intelligence with our highest usage limits',
-        featMax1: 'Everything in Pro',
-        featMax2: 'Full access to all Frontier & Pro Max models',
-        featMax4: 'Deep analytical workflows',
-        featMax5: 'Early access to new capabilities',
+        trialBadge: 'FREE TRIAL',
         currentBadge: 'CURRENT',
         adminBadge: 'ADMIN',
         ctaCurrent: 'Your current plan',
-        ctaStayFree: 'Stay on Free',
-        ctaUpgradePro: 'Upgrade with Voucher',
-        ctaUpgradeMax: 'Get Max with Voucher',
+        ctaStayFree: 'Start with Free',
+        ctaUpgradeTier: function(name) { return 'Upgrade to ' + name; },
+        ctaClaimTrialTier: function(name, days) { return 'Try ' + name + ' Free (' + days + 'd)'; },
         voucherTitle: 'Redeem a plan voucher',
-        voucherDesc: 'Enter an official Alora Pro or Max voucher code to upgrade your account immediately.',
-        voucherPlaceholder: 'ALO-PRO-XXXX / ALO-MAX-XXXX',
+        voucherDesc: 'Enter an official Alora Go, Plus, Pro, or Max voucher code to upgrade your account immediately.',
+        voucherPlaceholder: 'ALO-GO-XXXX / ALO-PLUS-XXXX / ALO-PRO-XXXX',
         activatePlan: 'Activate Plan',
         activating: 'Activating...',
         openAlora: 'Open Alora',
@@ -1043,12 +1052,49 @@
         errNetwork: 'Could not reach the server. Please try again.',
         successActivated: function(plan) { return 'Your ' + plan + ' plan is now active.'; },
         footnoteHtml: 'Message limits refresh automatically on a rolling window. Need assistance? <a href="/help">Visit Help Center</a>',
+        limitsBoxTitle: 'Live Plan Limits',
+        limitsBoxSub: 'Exact rolling limits synced from server configuration',
+        restoreBtn: 'Restore subscription / Redeem voucher',
+        limitsApplyBtn: 'Limits apply',
         quotaLine: function(lim, hrs, imgLim, highest) {
           var unit = hrs === 1 ? '1 hour' : hrs + ' hours';
-          var imgPart = (imgLim !== undefined && imgLim !== null) ? (' & ' + imgLim + ' images') : '';
-          return lim + ' messages' + imgPart + ' per ' + unit + (highest ? ' (highest limits)' : '');
+          var imgPart = (imgLim > 0) ? (' & ' + imgLim + ' images') : '';
+          return lim + ' messages' + imgPart + ' per ' + unit + (highest ? ' (highest)' : '');
         },
-        quotaAdmin: 'Unlimited messages & images (Admin access)'
+        quotaAdmin: 'Unlimited messages & images (Admin access)',
+        tierMeta: {
+          Guest: { title: 'Guest', sub: 'No account required' },
+          Free: {
+            title: 'Alora Free',
+            tagline: 'Intelligence for everyday tasks and quick answers',
+            inherit: 'Includes:',
+            feats: ['Standard Alo models (Go, Flash, HY3, Mimo)', 'Web search & file uploads']
+          },
+          Go: {
+            title: 'Alora Go',
+            tagline: 'More room to write, learn, and create',
+            inherit: 'Everything in Free, and:',
+            feats: ['Higher daily message & image allowances', 'Priority Web search & file analysis', 'Saved memories & custom instructions']
+          },
+          Plus: {
+            title: 'Alora Plus',
+            tagline: 'Personalized AI for work and deeper reasoning',
+            inherit: 'Everything in Go, and:',
+            feats: ['Alo Pro, Ultra & Elite reasoning models', 'Higher quality image generation', 'Multimodal vision & code workflows']
+          },
+          Pro: {
+            title: 'Alora Pro',
+            tagline: 'Built for heavy coding, research, and speed',
+            inherit: 'Everything in Plus, and:',
+            feats: ['Faster rolling reset window & high limits', 'Priority access to all reasoning models', 'Extended deep analytical tools']
+          },
+          Max: {
+            title: 'Alora Max',
+            tagline: 'Maximum power with frontier intelligence',
+            inherit: 'Everything in Pro, and:',
+            feats: ['Full access to Alo Max & Frontier models', 'Highest usage & image limits', 'Early access to new capabilities']
+          }
+        }
       },
       bn: {
         docTitle: 'আপনার প্ল্যান আপগ্রেড করুন — Alora',
@@ -1056,40 +1102,20 @@
         tabPersonal: 'ব্যক্তিগত',
         tabVoucher: 'ভাউচার রিডিম',
         langSwitchLabel: 'EN',
-        nameFree: 'ফ্রি',
-        priceFree: '৳০',
-        priceMetaFree: 'আজীবন ফ্রি',
-        taglineFree: 'দৈনন্দিন কাজ ও দ্রুত উত্তরের জন্য এআই সহায়তা',
-        featFree1: 'দৈনন্দিন কাজে সহায়তা',
-        featFree2: 'স্ট্যান্ডার্ড মডেলসমূহ',
-        featFree4: 'ওয়েব সার্চ ও ফাইল আপলোড',
-        namePro: 'প্রো',
+        perMonth: '/ মাস',
+        foreverFree: 'আজীবন ফ্রি',
         popularBadge: 'জনপ্রিয়',
-        pricePro: 'প্রো',
-        priceMetaPro: 'ভাউচার পাস',
-        taglinePro: 'উন্নত রিজনিং, কোডিং এবং ভিশন সুবিধায় বেশি অ্যাক্সেস',
-        featPro1: 'ফ্রি প্ল্যানের সব সুবিধা',
-        featPro2: 'Alora Pro রিজনিং মডেলসমূহে অ্যাক্সেস',
-        featPro4: 'অগ্রাধিকার গতি',
-        featPro5: 'মাল্টিমোডাল ভিশন ও কোড বিশ্লেষণ',
-        nameMax: 'ম্যাক্স',
         frontierBadge: 'ফ্রন্টিয়ার',
-        priceMax: 'ম্যাক্স',
-        priceMetaMax: 'ফ্রন্টিয়ার পাস',
-        taglineMax: 'সর্বোচ্চ সীমা ও পূর্ণ ফ্রন্টিয়ার এআই সক্ষমতা',
-        featMax1: 'প্রো প্ল্যানের সব সুবিধা',
-        featMax2: 'সকল ফ্রন্টিয়ার ও প্রো ম্যাক্স মডেলে পূর্ণ অ্যাক্সেস',
-        featMax4: 'গভীর বিশ্লেষণাত্মক ওয়ার্কফ্লো',
-        featMax5: 'নতুন সুবিধাসমূহে আর্লি অ্যাক্সেস',
+        trialBadge: 'ফ্রি ট্রায়াল',
         currentBadge: 'সক্রিয়',
         adminBadge: 'অ্যাডমিন',
         ctaCurrent: 'আপনার বর্তমান প্ল্যান',
-        ctaStayFree: 'ফ্রি প্ল্যানে থাকুন',
-        ctaUpgradePro: 'ভাউচার দিয়ে আপগ্রেড করুন',
-        ctaUpgradeMax: 'ভাউচার দিয়ে ম্যাক্স নিন',
+        ctaStayFree: 'ফ্রি ব্যবহার করুন',
+        ctaUpgradeTier: function(name) { return name + ' আপগ্রেড করুন'; },
+        ctaClaimTrialTier: function(name, days) { return toBnDigits(days) + ' দিন ফ্রি ট্রায়াল নিন'; },
         voucherTitle: 'প্ল্যান ভাউচার রিডিম করুন',
-        voucherDesc: 'আপনার অ্যাকাউন্ট তাৎক্ষণিক আপগ্রেড করতে অফিসিয়াল Pro বা Max ভাউচার কোড লিখুন।',
-        voucherPlaceholder: 'ALO-PRO-XXXX / ALO-MAX-XXXX',
+        voucherDesc: 'আপনার অ্যাকাউন্ট তাৎক্ষণিক আপগ্রেড করতে অফিসিয়াল Go, Plus, Pro বা Max ভাউচার কোড লিখুন।',
+        voucherPlaceholder: 'ALO-GO-XXXX / ALO-PLUS-XXXX / ALO-PRO-XXXX',
         activatePlan: 'প্ল্যান সক্রিয় করুন',
         activating: 'সক্রিয় হচ্ছে...',
         openAlora: 'Alora খুলুন',
@@ -1098,11 +1124,48 @@
         errNetwork: 'সার্ভারের সাথে সংযোগ করা যায়নি। আবার চেষ্টা করুন।',
         successActivated: function(plan) { return 'আপনার ' + plan + ' প্ল্যান সফলভাবে সক্রিয় হয়েছে।'; },
         footnoteHtml: 'নির্দিষ্ট সময় পর বার্তা সীমা স্বয়ংক্রিয়ভাবে রিসেট হয়। সহায়তা প্রয়োজন? <a href="/help">হেল্প সেন্টার দেখুন</a>',
+        limitsBoxTitle: 'লাইভ প্ল্যান লিমিট তালিকা',
+        limitsBoxSub: 'অ্যাডমিন প্যানেল থেকে সরাসরি সিঙ্ককৃত সকল সীমা',
+        restoreBtn: 'সাবস্ক্রিপশন পুনরুদ্ধার / ভাউচার রিডিম',
+        limitsApplyBtn: 'লিমিট সমূহ প্রযোজ্য',
         quotaLine: function(lim, hrs, imgLim, highest) {
-          var imgPart = (imgLim !== undefined && imgLim !== null) ? (' ও ' + toBnDigits(imgLim) + 'টি ছবি') : '';
-          return 'প্রতি ' + toBnDigits(hrs) + ' ঘণ্টায় ' + toBnDigits(lim) + 'টি বার্তা' + imgPart + (highest ? ' (সর্বোচ্চ সীমা)' : '');
+          var imgPart = (imgLim > 0) ? (' ও ' + toBnDigits(imgLim) + 'টি ছবি') : '';
+          return 'প্রতি ' + toBnDigits(hrs) + ' ঘণ্টায় ' + toBnDigits(lim) + 'টি বার্তা' + imgPart + (highest ? ' (সর্বোচ্চ)' : '');
         },
-        quotaAdmin: 'সীমাহীন বার্তা ও ছবি (অ্যাডমিন অ্যাক্সেস)'
+        quotaAdmin: 'সীমাহীন বার্তা ও ছবি (অ্যাডমিন অ্যাক্সেস)',
+        tierMeta: {
+          Guest: { title: 'গেস্ট (Guest)', sub: 'লগইন ছাড়া' },
+          Free: {
+            title: 'Alora Free',
+            tagline: 'দৈনন্দিন কাজ ও দ্রুত উত্তরের জন্য এআই সহায়তা',
+            inherit: 'অন্তর্ভুক্ত:',
+            feats: ['স্ট্যান্ডার্ড মডেল (Go, Flash, HY3, Mimo)', 'ওয়েব সার্চ ও ফাইল আপলোড']
+          },
+          Go: {
+            title: 'Alora Go',
+            tagline: 'লেখা, শেখা ও ছবি তৈরিতে বাড়তি সুবিধা',
+            inherit: 'Free-এর সব সুবিধা, সাথে:',
+            feats: ['বেশি বার্তা ও ছবি তৈরির সীমা', 'ওয়েব সার্চ ও ফাইল বিশ্লেষণ', 'সেভড মেমোরি ও কাস্টম নির্দেশনা']
+          },
+          Plus: {
+            title: 'Alora Plus',
+            tagline: 'উন্নত মডেল ও কাজের জন্য পার্সোনালাইজড এআই',
+            inherit: 'Go-এর সব সুবিধা, সাথে:',
+            feats: ['Alo Pro, Ultra ও Elite রিজনিং মডেল', 'উচ্চ মানের ছবি তৈরি ও ভিশন', 'মাল্টিমোডাল কোড বিশ্লেষণ']
+          },
+          Pro: {
+            title: 'Alora Pro',
+            tagline: 'ভারী কোডিং, রিসার্চ ও দ্রুত গতির জন্য',
+            inherit: 'Plus-এর সব সুবিধা, সাথে:',
+            feats: ['দ্রুত রিসেট উইন্ডো ও বড় কোটা', 'অগ্রাধিকার গতিতে রিজনিং মডেল', 'গভীর বিশ্লেষণাত্মক ওয়ার্কফ্লো']
+          },
+          Max: {
+            title: 'Alora Max',
+            tagline: 'পূর্ণ ফ্রন্টিয়ার এআই ও সর্বোচ্চ ব্যবহারের সীমা',
+            inherit: 'Pro-এর সব সুবিধা, সাথে:',
+            feats: ['সকল ফ্রন্টিয়ার ও Alo Max মডেলে অ্যাক্সেস', 'সর্বোচ্চ মেসেজ ও ছবি লিমিট', 'নতুন সুবিধাসমূহে আর্লি অ্যাক্সেস']
+          }
+        }
       }
     };
 
@@ -1120,10 +1183,15 @@
     })();
 
     const planLimits = {
-      Free: { message_limit: 10, image_limit: 5, window_hours: 3 },
-      Pro: { message_limit: 30, image_limit: 25, window_hours: 3 },
-      Max: { message_limit: 50, image_limit: 100, window_hours: 1 }
+      Guest: { message_limit: 10, image_limit: 0, window_hours: 3, price_bdt: 0, tagline: '' },
+      Free:  { message_limit: 10, image_limit: 5, window_hours: 3, price_bdt: 0, tagline: '' },
+      Go:    { message_limit: 20, image_limit: 15, window_hours: 3, price_bdt: 699, tagline: '' },
+      Plus:  { message_limit: 30, image_limit: 25, window_hours: 3, price_bdt: 2500, tagline: '' },
+      Pro:   { message_limit: 40, image_limit: 50, window_hours: 2, price_bdt: 6900, tagline: '' },
+      Max:   { message_limit: 50, image_limit: 100, window_hours: 1, price_bdt: 15000, tagline: '' }
     };
+
+    let promoState = null;
 
     // Theme & Logo Management
     const brandLogo = document.getElementById('brandLogo');
@@ -1178,17 +1246,26 @@
       } catch (e) {}
     }
 
-    // Close / Back button
-    document.getElementById('closePageBtn').addEventListener('click', (e) => {
+    // Close / Back buttons + bottom action links
+    function goBackOrHome(e) {
       try {
         if (document.referrer &&
             window.location.origin &&
             document.referrer.indexOf(window.location.origin) === 0 &&
             window.history.length > 1) {
-          e.preventDefault();
+          if (e) e.preventDefault();
           window.history.back();
+          return;
         }
       } catch (err) {}
+      if (e) e.preventDefault();
+      window.location.href = '/';
+    }
+    document.getElementById('closePageBtn')?.addEventListener('click', goBackOrHome);
+    document.getElementById('mobilePlansBackBtn')?.addEventListener('click', goBackOrHome);
+    document.getElementById('restoreSubBtn')?.addEventListener('click', () => jumpToVoucherRedeem());
+    document.getElementById('limitsJumpBtn')?.addEventListener('click', () => {
+      document.getElementById('limitsComparisonBox')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
 
     // Segmented Pill Switcher (Personal | Redeem Voucher)
@@ -1275,13 +1352,27 @@
                    'Free';
       } catch (e) {}
 
-      if (resolved !== 'Free' && resolved !== 'Pro' && resolved !== 'Max') {
+      if (!PLAN_HIERARCHY[resolved]) {
         resolved = 'Free';
       }
       return { loggedIn: true, isAdmin: false, plan: resolved };
     }
 
     let isRedeeming = false;
+
+    const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>';
+
+    function formatPriceDisplay(priceNum, d) {
+      const n = Number(priceNum) || 0;
+      if (n <= 0) {
+        return { figure: currentLang === 'bn' ? '৳০' : 'BDT 0', meta: d.foreverFree };
+      }
+      const formatted = n.toLocaleString('en-US');
+      return {
+        figure: currentLang === 'bn' ? ('৳' + toBnDigits(formatted)) : ('BDT ' + formatted),
+        meta: d.perMonth
+      };
+    }
 
     function renderAll() {
       const d = I18N[currentLang] || I18N.en;
@@ -1293,34 +1384,6 @@
       tabPersonalBtn.textContent = d.tabPersonal;
       tabVoucherBtn.textContent = d.tabVoucher;
 
-      // Static Card Copy
-      document.getElementById('nameFree').textContent = d.nameFree;
-      document.getElementById('priceFree').textContent = d.priceFree;
-      document.getElementById('priceMetaFree').textContent = d.priceMetaFree;
-      document.getElementById('taglineFree').textContent = d.taglineFree;
-      document.getElementById('featFree1').textContent = d.featFree1;
-      document.getElementById('featFree2').textContent = d.featFree2;
-      document.getElementById('featFree4').textContent = d.featFree4;
-
-      document.getElementById('namePro').textContent = d.namePro;
-      document.getElementById('pricePro').textContent = d.pricePro;
-      document.getElementById('priceMetaPro').textContent = d.priceMetaPro;
-      document.getElementById('taglinePro').textContent = d.taglinePro;
-      document.getElementById('featPro1').textContent = d.featPro1;
-      document.getElementById('featPro2').textContent = d.featPro2;
-      document.getElementById('featPro4').textContent = d.featPro4;
-      document.getElementById('featPro5').textContent = d.featPro5;
-
-      document.getElementById('nameMax').textContent = d.nameMax;
-      document.getElementById('priceMax').textContent = d.priceMax;
-      document.getElementById('priceMetaMax').textContent = d.priceMetaMax;
-      document.getElementById('taglineMax').textContent = d.taglineMax;
-      document.getElementById('featMax1').textContent = d.featMax1;
-      document.getElementById('featMax2').textContent = d.featMax2;
-      document.getElementById('featMax4').textContent = d.featMax4;
-      document.getElementById('featMax5').textContent = d.featMax5;
-
-      // Voucher Copy
       document.getElementById('voucherTitle').textContent = d.voucherTitle;
       document.getElementById('voucherDesc').textContent = d.voucherDesc;
       redeemInput.placeholder = d.voucherPlaceholder;
@@ -1329,17 +1392,17 @@
       }
       document.getElementById('feedbackChatLink').textContent = d.openAlora;
       document.getElementById('pricingFootnote').innerHTML = d.footnoteHtml;
+      document.getElementById('limitsBoxTitle').textContent = d.limitsBoxTitle;
+      document.getElementById('limitsBoxSub').textContent = d.limitsBoxSub;
+      document.getElementById('restoreSubBtn').textContent = d.restoreBtn;
+      document.getElementById('limitsJumpBtn').textContent = d.limitsApplyBtn;
 
       const auth = getLocalAuthInfo();
-
-      // Dynamic Quotas
-      document.getElementById('featFreeQuota').textContent =
-        d.quotaLine(planLimits.Free.message_limit, planLimits.Free.window_hours, planLimits.Free.image_limit, false);
-      document.getElementById('featProQuota').textContent =
-        d.quotaLine(planLimits.Pro.message_limit, planLimits.Pro.window_hours, planLimits.Pro.image_limit, false);
-      document.getElementById('featMaxQuota').textContent = auth.isAdmin
-        ? d.quotaAdmin
-        : d.quotaLine(planLimits.Max.message_limit, planLimits.Max.window_hours, planLimits.Max.image_limit, true);
+      const userTierRank = PLAN_HIERARCHY[auth.plan] || 1;
+      const canClaimTrial = Boolean(
+        promoState && promoState.enabled && !promoState.alreadyClaimed && !auth.isAdmin &&
+        userTierRank < (PLAN_HIERARCHY[promoState.plan] || 4)
+      );
 
       // Header Plan Chip
       const headerPlanChip = document.getElementById('headerPlanChip');
@@ -1350,78 +1413,115 @@
         headerPlanChip.style.display = 'none';
       }
 
-      // Card Active States, Badges & CTAs
-      const cardFree = document.getElementById('cardFree');
-      const cardPro = document.getElementById('cardPro');
-      const cardMax = document.getElementById('cardMax');
+      // Render 5 Plan Cards (Free, Go, Plus, Pro, Max) dynamically from planLimits
+      const grid = document.getElementById('plansGrid');
+      if (grid) {
+        grid.innerHTML = '';
+        CARD_TIERS.forEach(tierName => {
+          const limObj = planLimits[tierName] || {};
+          const meta = d.tierMeta[tierName] || { title: tierName, tagline: '', inherit: '', feats: [] };
+          const isCurrent = auth.isAdmin ? (tierName === 'Max') : (auth.plan === tierName);
+          const isFeatured = (tierName === 'Plus' || tierName === 'Pro');
+          const isTrialTier = Boolean(canClaimTrial && promoState.plan === tierName);
 
-      const badgesFree = document.getElementById('badgesFree');
-      const badgesPro = document.getElementById('badgesPro');
-      const badgesMax = document.getElementById('badgesMax');
+          const priceDisp = formatPriceDisplay(limObj.price_bdt, d);
+          const taglineText = (currentLang === 'en' && limObj.tagline) ? limObj.tagline : meta.tagline;
+          const quotaText = (tierName === 'Max' && auth.isAdmin)
+            ? d.quotaAdmin
+            : d.quotaLine(limObj.message_limit, limObj.window_hours, limObj.image_limit, tierName === 'Max');
 
-      const ctaFree = document.getElementById('ctaFree');
-      const ctaPro = document.getElementById('ctaPro');
-      const ctaMax = document.getElementById('ctaMax');
+          let badgesHtml = '';
+          if (isTrialTier) badgesHtml += '<span class="mono-badge inverted">' + escapeHtml(d.trialBadge) + '</span>';
+          else if (tierName === 'Plus') badgesHtml += '<span class="mono-badge inverted">' + escapeHtml(d.popularBadge) + '</span>';
+          else if (tierName === 'Max') badgesHtml += '<span class="mono-badge">' + escapeHtml(d.frontierBadge) + '</span>';
+          if (auth.isAdmin && tierName === 'Max') badgesHtml += '<span class="mono-badge inverted">' + escapeHtml(d.adminBadge) + '</span>';
+          else if (isCurrent) badgesHtml += '<span class="mono-badge">' + escapeHtml(d.currentBadge) + '</span>';
 
-      const isFreeActive = (auth.plan === 'Free' && !auth.isAdmin);
-      const isProActive = (auth.plan === 'Pro' && !auth.isAdmin);
-      const isMaxActive = (auth.plan === 'Max' || auth.isAdmin);
+          const card = document.createElement('article');
+          card.className = 'plan-card' + (isFeatured ? ' featured' : '') + (isCurrent ? ' current-active' : '');
+          card.id = 'card' + tierName;
 
-      cardFree.classList.toggle('current-active', isFreeActive);
-      cardPro.classList.toggle('current-active', isProActive);
-      cardMax.classList.toggle('current-active', isMaxActive);
+          const featListHtml = [
+            `<li class="feature-item">${CHECK_SVG}<span><strong>${escapeHtml(quotaText)}</strong></span></li>`
+          ].concat((meta.feats || []).map(f =>
+            `<li class="feature-item">${CHECK_SVG}<span>${escapeHtml(f)}</span></li>`
+          )).join('');
 
-      badgesFree.innerHTML = isFreeActive
-        ? '<span class="mono-badge">' + d.currentBadge + '</span>'
-        : '';
+          card.innerHTML = `
+            <div class="card-top-row">
+              <h2 class="plan-tier-name">${escapeHtml(meta.title)}</h2>
+              <div class="card-badges">${badgesHtml}</div>
+            </div>
+            <p class="plan-tagline">${escapeHtml(taglineText)}</p>
+            <div class="price-row">
+              <span class="price-figure">${escapeHtml(priceDisp.figure)}</span>
+              <span class="price-meta">${escapeHtml(priceDisp.meta)}</span>
+            </div>
+            <button type="button" class="plan-cta-btn" data-tier="${escapeHtml(tierName)}"></button>
+            <div class="feature-list">
+              <div class="feature-inherit-label">${escapeHtml(meta.inherit || '')}</div>
+              <ul style="list-style:none; display:flex; flex-direction:column; gap:12px;">${featListHtml}</ul>
+            </div>
+          `;
 
-      badgesPro.innerHTML =
-        '<span class="mono-badge inverted">' + d.popularBadge + '</span>' +
-        (isProActive ? '<span class="mono-badge">' + d.currentBadge + '</span>' : '');
+          const ctaBtn = card.querySelector('.plan-cta-btn');
+          if (isCurrent) {
+            ctaBtn.textContent = d.ctaCurrent;
+            ctaBtn.className = 'plan-cta-btn current';
+            ctaBtn.disabled = true;
+          } else if (isTrialTier) {
+            ctaBtn.textContent = d.ctaClaimTrialTier(tierName, promoState.days || 7);
+            ctaBtn.className = 'plan-cta-btn solid';
+            ctaBtn.onclick = () => claimOneClickTrial(ctaBtn);
+          } else if (tierName === 'Free') {
+            ctaBtn.textContent = d.ctaStayFree;
+            ctaBtn.className = 'plan-cta-btn';
+            ctaBtn.onclick = () => { window.location.href = '/'; };
+          } else {
+            ctaBtn.textContent = d.ctaUpgradeTier(tierName);
+            ctaBtn.className = 'plan-cta-btn' + (isFeatured ? ' solid' : '');
+            ctaBtn.onclick = () => {
+              if (redeemInput && !redeemInput.value.trim()) {
+                redeemInput.placeholder = 'ALO-' + tierName.toUpperCase() + '-XXXX';
+              }
+              jumpToVoucherRedeem();
+            };
+          }
 
-      badgesMax.innerHTML =
-        '<span class="mono-badge">' + d.frontierBadge + '</span>' +
-        (auth.isAdmin
-          ? '<span class="mono-badge inverted">' + d.adminBadge + '</span>'
-          : (isMaxActive ? '<span class="mono-badge">' + d.currentBadge + '</span>' : ''));
-
-      // Free CTA
-      if (isFreeActive) {
-        ctaFree.textContent = d.ctaCurrent;
-        ctaFree.className = 'plan-cta-btn current';
-        ctaFree.disabled = true;
-        ctaFree.onclick = null;
-      } else {
-        ctaFree.textContent = d.ctaStayFree;
-        ctaFree.className = 'plan-cta-btn';
-        ctaFree.disabled = false;
-        ctaFree.onclick = () => { window.location.href = '/'; };
+          grid.appendChild(card);
+        });
       }
 
-      // Pro CTA
-      if (isProActive) {
-        ctaPro.textContent = d.ctaCurrent;
-        ctaPro.className = 'plan-cta-btn current';
-        ctaPro.disabled = true;
-        ctaPro.onclick = null;
-      } else {
-        ctaPro.textContent = d.ctaUpgradePro;
-        ctaPro.className = 'plan-cta-btn solid';
-        ctaPro.disabled = false;
-        ctaPro.onclick = jumpToVoucherRedeem;
-      }
+      // Render 6-tier Synced Limits Summary (Guest, Free, Go, Plus, Pro, Max)
+      const limitsList = document.getElementById('limitsMatrixList');
+      if (limitsList) {
+        limitsList.innerHTML = '';
+        ALL_LIMIT_TIERS.forEach(tierName => {
+          const limObj = planLimits[tierName] || {};
+          const meta = d.tierMeta[tierName] || { title: tierName };
+          const isGuest = tierName === 'Guest';
+          const row = document.createElement('div');
+          row.className = 'limits-matrix-row';
 
-      // Max CTA
-      if (isMaxActive) {
-        ctaMax.textContent = d.ctaCurrent;
-        ctaMax.className = 'plan-cta-btn current';
-        ctaMax.disabled = true;
-        ctaMax.onclick = null;
-      } else {
-        ctaMax.textContent = d.ctaUpgradeMax;
-        ctaMax.className = 'plan-cta-btn';
-        ctaMax.disabled = false;
-        ctaMax.onclick = jumpToVoucherRedeem;
+          const msgVal = isGuest && Number(limObj.message_limit) === 0
+            ? (currentLang === 'bn' ? 'লগইন প্রয়োজন' : 'Login required')
+            : (currentLang === 'bn'
+              ? `${toBnDigits(limObj.message_limit)} মেসেজ / ${toBnDigits(limObj.window_hours)} ঘণ্টা`
+              : `${limObj.message_limit} messages / ${limObj.window_hours}h`);
+
+          const imgVal = Number(limObj.image_limit) > 0
+            ? (currentLang === 'bn' ? `${toBnDigits(limObj.image_limit)} ছবি` : `${limObj.image_limit} images`)
+            : (currentLang === 'bn' ? 'ছবি নেই' : 'No images');
+
+          row.innerHTML = `
+            <span class="limits-tier-name">
+              <span>${escapeHtml(meta.title)}</span>
+              ${isGuest && meta.sub ? `<span style="font-size:0.74rem; color:var(--text-muted); font-weight:400;">(${escapeHtml(meta.sub)})</span>` : ''}
+            </span>
+            <span class="limits-tier-vals">${escapeHtml(msgVal)} · ${escapeHtml(imgVal)}</span>
+          `;
+          limitsList.appendChild(row);
+        });
       }
     }
 
@@ -1432,7 +1532,7 @@
       syncTrialBanner();
     });
 
-    // Hydrate dynamic limits from GET /api/plans
+    // Hydrate dynamic limits from GET /api/plans (Guest, Free, Go, Plus, Pro, Max)
     async function syncPlansFromServer() {
       try {
         const res = await fetch(API_BASE + '/plans?_t=' + Date.now(), { cache: 'no-store' });
@@ -1444,9 +1544,12 @@
               const lim = Number(p.message_limit);
               const imgLim = Number(p.image_limit);
               const hrs = Number(p.window_hours);
-              if (!isNaN(lim) && lim > 0) planLimits[p.name].message_limit = lim;
+              const price = Number(p.price_bdt);
+              if (!isNaN(lim) && (p.name === 'Guest' ? lim >= 0 : lim > 0)) planLimits[p.name].message_limit = lim;
               if (!isNaN(imgLim) && imgLim >= 0) planLimits[p.name].image_limit = imgLim;
               if (!isNaN(hrs) && hrs > 0) planLimits[p.name].window_hours = hrs;
+              if (!isNaN(price) && price >= 0) planLimits[p.name].price_bdt = price;
+              if (typeof p.tagline === 'string' && p.tagline.trim()) planLimits[p.name].tagline = p.tagline.trim();
             }
           });
           renderAll();
@@ -1653,7 +1756,53 @@
       }
     });
 
-    // Hydrate admin-controlled Free Trial banner
+    // Shared 1-Click Free Trial Claimer (Used by both Banner & Checkout Card CTA)
+    async function claimOneClickTrial(btn) {
+      let token = null;
+      try { token = localStorage.getItem('alokpoth_token'); } catch (e) {}
+      if (!token) {
+        window.location.href = '/auth/login?redirect=' + encodeURIComponent('/pricing?claim=trial');
+        return;
+      }
+      const isBn = currentLang === 'bn';
+      const origText = btn ? btn.textContent : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = isBn ? 'সক্রিয় হচ্ছে...' : 'Activating...';
+      }
+      try {
+        const cRes = await fetch(API_BASE + '/redeem/trial', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
+        });
+        const cData = await cRes.json().catch(() => ({}));
+        if (!cRes.ok || !cData.success) {
+          showRedeemFeedback('error', (cData && cData.error) || 'Could not activate trial.');
+          if (btn) { btn.disabled = false; btn.textContent = origText; }
+          return;
+        }
+        if (cData.token) localStorage.setItem('alokpoth_token', cData.token);
+        const newPlan = cData.plan_name || (promoState && promoState.plan) || 'Pro';
+        localStorage.setItem('alokpoth_current_plan', newPlan);
+        localStorage.setItem('alokpoth_user_plan', newPlan);
+        localStorage.setItem('alokpoth_plan', newPlan);
+        if (cData.expires_at) {
+          localStorage.setItem('alokpoth_plan_expiry', cData.expires_at);
+          localStorage.setItem('alokpoth_plan_expires_at', cData.expires_at);
+        }
+        if (promoState) promoState.alreadyClaimed = true;
+        document.getElementById('freeTrialBanner')?.classList.remove('visible');
+        await syncUserStatusFromServer();
+        renderAll();
+        showRedeemFeedback('success', cData.message || `${newPlan} free trial activated!`);
+        document.getElementById('redeemFeedback')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } catch (err) {
+        showRedeemFeedback('error', (I18N[currentLang] || I18N.en).errNetwork);
+        if (btn) { btn.disabled = false; btn.textContent = origText; }
+      }
+    }
+
+    // Hydrate admin-controlled Free Trial banner & card badge
     async function syncTrialBanner() {
       const banner = document.getElementById('freeTrialBanner');
       const titleEl = document.getElementById('trialBannerTitle');
@@ -1671,10 +1820,12 @@
         });
         const data = await res.json();
         const promo = data && data.success ? data.promo : null;
+        promoState = promo;
         const auth = getLocalAuthInfo();
-        const tierRank = { Free: 1, Pro: 2, Max: 3 };
-        const userTier = tierRank[auth.plan] || 1;
-        const promoTier = tierRank[(promo && promo.plan) || 'Pro'] || 2;
+        const userTier = PLAN_HIERARCHY[auth.plan] || 1;
+        const promoTier = PLAN_HIERARCHY[(promo && promo.plan) || 'Pro'] || 4;
+
+        renderAll();
 
         if (!promo || !promo.enabled || promo.alreadyClaimed || auth.isAdmin || userTier >= promoTier) {
           banner.classList.remove('visible');
@@ -1693,46 +1844,21 @@
         claimBtn.textContent = token
           ? (isBn ? 'ফ্রি ট্রায়াল সক্রিয় করুন' : 'Claim Free Trial')
           : (isBn ? 'ট্রায়াল নিতে লগইন করুন' : 'Log in to claim free trial');
-
-        claimBtn.onclick = async () => {
-          if (!token) {
-            window.location.href = '/auth/login?redirect=/pricing';
-            return;
-          }
-          claimBtn.disabled = true;
-          claimBtn.textContent = isBn ? 'সক্রিয় হচ্ছে...' : 'Activating...';
-          try {
-            const cRes = await fetch(API_BASE + '/redeem/trial', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
-            });
-            const cData = await cRes.json().catch(() => ({}));
-            if (!cRes.ok || !cData.success) {
-              showRedeemFeedback('error', (cData && cData.error) || 'Could not activate trial.');
-              claimBtn.disabled = false;
-              claimBtn.textContent = isBn ? 'ফ্রি ট্রায়াল সক্রিয় করুন' : 'Claim Free Trial';
-              return;
-            }
-            if (cData.token) localStorage.setItem('alokpoth_token', cData.token);
-            const newPlan = cData.plan_name || promo.plan || 'Pro';
-            localStorage.setItem('alokpoth_current_plan', newPlan);
-            localStorage.setItem('alokpoth_user_plan', newPlan);
-            localStorage.setItem('alokpoth_plan', newPlan);
-            if (cData.expires_at) {
-              localStorage.setItem('alokpoth_plan_expiry', cData.expires_at);
-              localStorage.setItem('alokpoth_plan_expires_at', cData.expires_at);
-            }
-            banner.classList.remove('visible');
-            await syncUserStatusFromServer();
-            showRedeemFeedback('success', cData.message || `${newPlan} free trial activated!`);
-          } catch (err) {
-            showRedeemFeedback('error', (I18N[currentLang] || I18N.en).errNetwork);
-            claimBtn.disabled = false;
-          }
-        };
+        claimBtn.onclick = () => claimOneClickTrial(claimBtn);
 
         banner.classList.add('visible');
+
+        if (token && new URLSearchParams(window.location.search).get('claim') === 'trial') {
+          try { window.history.replaceState(null, '', window.location.pathname + window.location.hash); } catch (e) {}
+          claimOneClickTrial(claimBtn);
+        }
       } catch (e) {}
+    }
+
+    if (window.location.hash === '#limits' || window.location.hash === '#limitsComparisonBox') {
+      setTimeout(() => {
+        document.getElementById('limitsComparisonBox')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 250);
     }
 
     // Initial render + live server hydration
