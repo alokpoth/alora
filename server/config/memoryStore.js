@@ -21,6 +21,7 @@ const memoryStore = {
   usageLogs: [],
   deletedModelIds: [],
   models: [...DEFAULT_MEMORY_MODELS],
+  apiKeys: {},
   settings: {}
 };
 
@@ -57,6 +58,7 @@ const saveBackup = async () => {
       usageLogs: memoryStore.usageLogs || [],
       models: memoryStore.models || [],
       deletedModelIds: memoryStore.deletedModelIds || [],
+      apiKeys: memoryStore.apiKeys || {},
       settings: memoryStore.settings || {}
       // chatSessions purposefully excluded
     };
@@ -118,6 +120,7 @@ const seedDefaultAdmin = async () => {
           return !deletedSet.has(mId) && !deletedSet.has(mName);
         });
       }
+      if (data.apiKeys && typeof data.apiKeys === 'object') memoryStore.apiKeys = data.apiKeys;
       if (data.settings && typeof data.settings === 'object') memoryStore.settings = data.settings;
       console.log('[Memory DB] Restored data from local backup file.');
     } catch (e) {
@@ -173,6 +176,7 @@ const flushOnExit = () => {
       usageLogs: (memoryStore.usageLogs || []).slice(-5000),
       models: memoryStore.models || [],
       deletedModelIds: memoryStore.deletedModelIds || [],
+      apiKeys: memoryStore.apiKeys || {},
       settings: memoryStore.settings || {}
     };
     fs.writeFileSync(BACKUP_FILE, JSON.stringify(backupData, null, 2), 'utf8');

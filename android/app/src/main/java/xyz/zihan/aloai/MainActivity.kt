@@ -262,7 +262,8 @@ class MainActivity : AppCompatActivity() {
     private fun isTrustedHost(host: String?): Boolean {
         if (host.isNullOrBlank()) return false
         val h = host.lowercase(Locale.US)
-        return h == "alora.zihan.xyz" || h.endsWith(".alora.zihan.xyz") ||
+        return h == "alora.zdots.net" || h.endsWith(".alora.zdots.net") ||
+               h == "alora.zihan.xyz" || h.endsWith(".alora.zihan.xyz") ||
                h == "ai.zihan.xyz" || h.endsWith(".ai.zihan.xyz")
     }
 

@@ -1,37 +1,92 @@
 // utils/getModelConfig.js
-// Supabase থেকে api_key নিয়ে আসে। পাওয়া না গেলে memoryStore fallback।
-const supabase = require('../server/config/supabase');
+// Primary persistence in MongoDB (SystemSetting, AiModel, Plan, RedeemCode, PromoCode, PaymentOrder, User, UsageLog)
+// with fast in-memory caching and local memoryStore fallback. Zero Supabase dependency.
 const { memoryStore, debouncedSave } = require('../server/config/memoryStore');
 
 // Cache: avoid repeated DB hits per request cycle (1 min TTL)
-const keyCache = new Map(); // model_id -> { api_key, ts }
-const CACHE_TTL = 60 * 1000; // 1 minute
+const keyCache = new Map(); // keyId -> { api_key, ts }
+const CACHE_TTL = 60 * 1000;
 
-async function getApiKeyFromSupabase(modelId) {
+async function getStoredApiKey(modelId) {
+  if (!modelId) return null;
   const now = Date.now();
   const cached = keyCache.get(modelId);
   if (cached && (now - cached.ts) < CACHE_TTL) {
     return cached.api_key;
   }
 
-  if (!supabase) return null;
-
-  try {
-    const { data, error } = await supabase
-      .from('api_keys')
-      .select('api_key')
-      .eq('model_id', modelId)
-      .single();
-
-    if (!error && data && data.api_key) {
-      keyCache.set(modelId, { api_key: data.api_key, ts: now });
-      return data.api_key;
+  const { getIsMongoConnected } = require('../server/config/db');
+  if (getIsMongoConnected()) {
+    try {
+      const SystemSetting = require('../server/models/SystemSetting');
+      const doc = await SystemSetting.findOne({ key: `__api_key__:${modelId}` }).lean();
+      if (doc && typeof doc.value === 'string' && doc.value.trim()) {
+        keyCache.set(modelId, { api_key: doc.value, ts: now });
+        return doc.value;
+      }
+      if (!String(modelId).startsWith('__')) {
+        const AiModel = require('../server/models/AiModel');
+        const mDoc = await AiModel.findOne({ $or: [{ model_id: modelId }, { id: modelId }] }).select('api_key').lean();
+        if (mDoc && mDoc.api_key) {
+          keyCache.set(modelId, { api_key: mDoc.api_key, ts: now });
+          return mDoc.api_key;
+        }
+      }
+    } catch (e) {
+      console.warn('[MongoDB] api_key lookup warning for', modelId, e.message);
     }
-  } catch (e) {
-    console.warn('[Supabase] api_key fetch failed for', modelId, e.message);
   }
+
+  if (memoryStore.apiKeys && typeof memoryStore.apiKeys[modelId] === 'string' && memoryStore.apiKeys[modelId]) {
+    const k = memoryStore.apiKeys[modelId];
+    keyCache.set(modelId, { api_key: k, ts: now });
+    return k;
+  }
+
   return null;
 }
+
+async function saveStoredApiKey(modelId, apiKey) {
+  if (!modelId) return;
+  const cleanKey = typeof apiKey === 'string' ? apiKey.trim() : '';
+  if (!memoryStore.apiKeys || typeof memoryStore.apiKeys !== 'object') {
+    memoryStore.apiKeys = {};
+  }
+  if (cleanKey) {
+    memoryStore.apiKeys[modelId] = cleanKey;
+    keyCache.set(modelId, { api_key: cleanKey, ts: Date.now() });
+  } else {
+    delete memoryStore.apiKeys[modelId];
+    keyCache.delete(modelId);
+  }
+  debouncedSave();
+
+  const { getIsMongoConnected } = require('../server/config/db');
+  if (getIsMongoConnected()) {
+    try {
+      const SystemSetting = require('../server/models/SystemSetting');
+      if (cleanKey) {
+        await SystemSetting.findOneAndUpdate(
+          { key: `__api_key__:${modelId}` },
+          { $set: { value: cleanKey } },
+          { upsert: true }
+        );
+      } else {
+        await SystemSetting.deleteOne({ key: `__api_key__:${modelId}` });
+      }
+    } catch (e) {
+      console.error('[MongoDB] saveStoredApiKey error:', e.message);
+    }
+  }
+  invalidateModelKeyCache(modelId);
+}
+
+async function deleteStoredApiKey(modelId) {
+  return saveStoredApiKey(modelId, '');
+}
+
+// Backward-compatible alias used by controllers
+const getApiKeyFromSupabase = getStoredApiKey;
 
 const MODEL_ALIASES = {
   'gemini-1.5-flash': 'gemini-3.6-flash',
@@ -59,7 +114,6 @@ async function getModelConfig(rawId) {
   if (!rawId) return null;
   const { getIsMongoConnected } = require('../server/config/db');
 
-  // Check if this exact model ID was deleted by admin
   const deletedSet = await getDeletedModelIds();
   const cleanRaw = String(rawId || '').toLowerCase().trim();
   if (deletedSet.has(cleanRaw)) {
@@ -79,7 +133,7 @@ async function getModelConfig(rawId) {
     } catch (e) {}
   }
 
-  // 2. Direct match in persisted models (Supabase / memoryStore) BEFORE resolving any alias
+  // 2. Direct match in persisted models / memoryStore BEFORE resolving any alias
   const allModels = await getPersistedModels();
   if (!model) {
     model = allModels.find(m => m && (m.id === rawId || m.model_id === rawId));
@@ -115,13 +169,13 @@ async function getModelConfig(rawId) {
 
   const effectiveId = model ? (model.id || model.model_id) : rawId;
 
-  // 4. Load API key from model first, then Supabase if missing
+  // 4. Load API key from model first, then SystemSetting store if missing
   let apiKey = (model && model.api_key) ? model.api_key : null;
   if (!apiKey) {
-    apiKey = await getApiKeyFromSupabase(effectiveId);
+    apiKey = await getStoredApiKey(effectiveId);
   }
   if (!apiKey && rawId !== effectiveId) {
-    apiKey = await getApiKeyFromSupabase(rawId);
+    apiKey = await getStoredApiKey(rawId);
   }
 
   if (model) {
@@ -135,7 +189,6 @@ async function getModelConfig(rawId) {
   return null;
 }
 
-
 function invalidateModelKeyCache(modelId) {
   modelsCache = null;
   modelsCacheTs = 0;
@@ -146,7 +199,6 @@ function invalidateModelKeyCache(modelId) {
   }
 }
 
-// Cache for models metadata
 let modelsCache = null;
 let modelsCacheTs = 0;
 
@@ -155,7 +207,6 @@ function invalidateModelsCache() {
   modelsCacheTs = 0;
 }
 
-// Cache for deleted model IDs to permanently prevent resurrection
 let deletedModelIdsCache = null;
 let deletedModelIdsTs = 0;
 
@@ -184,23 +235,6 @@ async function getDeletedModelIds() {
         doc.value.forEach(id => {
           if (id) set.add(String(id).toLowerCase().trim());
         });
-      }
-    } catch (e) {}
-  }
-  if (supabase) {
-    try {
-      const { data, error } = await supabase
-        .from('api_keys')
-        .select('api_key')
-        .eq('model_id', '__deleted_models__')
-        .limit(1);
-      if (!error && data && data.length > 0 && data[0].api_key) {
-        const parsed = JSON.parse(data[0].api_key);
-        if (Array.isArray(parsed)) {
-          parsed.forEach(id => {
-            if (id) set.add(String(id).toLowerCase().trim());
-          });
-        }
       }
     } catch (e) {}
   }
@@ -238,16 +272,6 @@ async function addDeletedModelId(modelId) {
     } catch (e) {}
   }
 
-  if (supabase) {
-    try {
-      await supabase
-        .from('api_keys')
-        .upsert(
-          { model_id: '__deleted_models__', api_key: JSON.stringify(list), updated_at: new Date().toISOString() },
-          { onConflict: 'model_id' }
-        );
-    } catch (e) {}
-  }
   invalidateDeletedModelsCache();
   invalidateModelsCache();
 }
@@ -281,23 +305,13 @@ async function removeDeletedModelId(modelId) {
     } catch (e) {}
   }
 
-  if (supabase) {
-    try {
-      await supabase
-        .from('api_keys')
-        .upsert(
-          { model_id: '__deleted_models__', api_key: JSON.stringify(list), updated_at: new Date().toISOString() },
-          { onConflict: 'model_id' }
-        );
-    } catch (e) {}
-  }
   invalidateDeletedModelsCache();
   invalidateModelsCache();
 }
 
 async function getPersistedModels() {
   const now = Date.now();
-  if (modelsCache && (now - modelsCacheTs) < 10000) { // 10s cache
+  if (modelsCache && (now - modelsCacheTs) < 10000) {
     return modelsCache;
   }
 
@@ -312,7 +326,6 @@ async function getPersistedModels() {
     });
   };
 
-  // 1. When MongoDB is connected, MongoDB is the canonical source of truth
   const { getIsMongoConnected } = require('../server/config/db');
   if (getIsMongoConnected()) {
     try {
@@ -329,34 +342,10 @@ async function getPersistedModels() {
         return normalized;
       }
     } catch (e) {
-      console.warn('[Mongo] getPersistedModels query warning:', e.message);
+      console.warn('[MongoDB] getPersistedModels query warning:', e.message);
     }
   }
 
-  if (supabase) {
-    try {
-      const { data, error } = await supabase
-        .from('api_keys')
-        .select('api_key')
-        .eq('model_id', '__models_metadata__')
-        .limit(1);
-
-      if (!error && data && data.length > 0 && data[0].api_key) {
-        const parsed = JSON.parse(data[0].api_key);
-        if (Array.isArray(parsed)) {
-          // __models_metadata__ in Supabase is the canonical source of truth set by Admin
-          const filtered = filterDeleted(parsed);
-          modelsCache = filtered;
-          modelsCacheTs = now;
-          return filtered;
-        }
-      }
-    } catch (e) {
-      console.warn('[Supabase] __models_metadata__ fetch failed:', e.message);
-    }
-  }
-
-  // Fallback to memoryStore.models only if database has no record
   const fallback = filterDeleted(memoryStore.models || []);
   modelsCache = fallback;
   modelsCacheTs = now;
@@ -367,36 +356,17 @@ async function savePersistedModels(models) {
   modelsCache = models;
   modelsCacheTs = Date.now();
 
-  // Mark models as explicitly initialized by Admin so empty arrays are respected and defaults never resurrect
   if (!memoryStore.settings || typeof memoryStore.settings !== 'object') {
     memoryStore.settings = {};
   }
   memoryStore.settings.modelsInitialized = true;
-
-  // Also update memoryStore so it's in sync locally
   memoryStore.models = models;
   debouncedSave();
-
-  if (!supabase) return;
-
-  try {
-    const { error } = await supabase
-      .from('api_keys')
-      .upsert(
-        { model_id: '__models_metadata__', api_key: JSON.stringify(models), updated_at: new Date().toISOString() },
-        { onConflict: 'model_id' }
-      );
-    if (error) {
-      console.error('[Supabase] Failed to persist models:', error.message);
-    }
-  } catch (e) {
-    console.error('[Supabase] Failed to persist models exception:', e.message);
-  }
 }
 
 // High-Performance In-Memory Cache for User Quotas & Rate Limits (10s TTL)
-const userUsageCache = new Map(); // userId -> { count, start, ts }
-const userImgUsageCache = new Map(); // userId -> { count, start, ts }
+const userUsageCache = new Map();
+const userImgUsageCache = new Map();
 const USAGE_CACHE_TTL = 10 * 1000;
 
 function invalidateUserUsageCache(userId) {
@@ -416,31 +386,29 @@ async function getUserUsageDetails(userId, windowHours) {
   let count = 0;
   let start = now;
 
-  // 1. Check in-memory cache first (<0.01ms)
   const cached = userUsageCache.get(String(userId));
   if (cached && (now - cached.ts) < USAGE_CACHE_TTL && (now - cached.start) < windowMs) {
     count = cached.count || 0;
     start = cached.start;
-  } else if (supabase) {
-    try {
-      const { data } = await supabase
-        .from('api_keys')
-        .select('api_key')
-        .eq('model_id', '__usage_' + userId + '__')
-        .limit(1);
-
-      if (data && data.length > 0 && data[0].api_key) {
-        const usage = JSON.parse(data[0].api_key);
-        if (now - usage.start < windowMs) {
-          count = usage.count || 0;
-          start = usage.start;
+  } else {
+    const { getIsMongoConnected } = require('../server/config/db');
+    if (getIsMongoConnected()) {
+      try {
+        const UsageLog = require('../server/models/UsageLog');
+        const logs = await UsageLog.find({
+          user_id: String(userId),
+          model_id: { $ne: 'image-generation' },
+          timestamp: { $gte: new Date(windowStart) }
+        }).select('timestamp').lean();
+        if (logs && logs.length > 0) {
+          count = logs.length;
+          start = Math.min(...logs.map(l => new Date(l.timestamp).getTime()));
         }
-      }
-      userUsageCache.set(String(userId), { count, start, ts: now });
-    } catch (e) {}
+        userUsageCache.set(String(userId), { count, start, ts: now });
+      } catch (e) {}
+    }
   }
 
-  // Also check memoryStore to get true count
   const memLogs = (memoryStore.usageLogs || []).filter(l => String(l.user_id) === String(userId) && l.model_id !== 'image-generation' && new Date(l.timestamp).getTime() >= windowStart);
   if (memLogs.length > count) {
     count = memLogs.length;
@@ -469,34 +437,32 @@ async function getUserImageUsageDetails(userId, windowHours) {
   let count = 0;
   let start = now;
 
-  // 1. Check in-memory cache first (<0.01ms)
   const cached = userImgUsageCache.get(String(userId));
   if (cached && (now - cached.ts) < USAGE_CACHE_TTL && (now - cached.start) < windowMs) {
     count = cached.count || 0;
     start = cached.start;
-  } else if (supabase) {
-    try {
-      const { data } = await supabase
-        .from('api_keys')
-        .select('api_key')
-        .eq('model_id', '__img_usage_' + userId + '__')
-        .limit(1);
-
-      if (data && data.length > 0 && data[0].api_key) {
-        const usage = JSON.parse(data[0].api_key);
-        if (now - usage.start < windowMs) {
-          count = usage.count || 0;
-          start = usage.start;
+  } else {
+    const { getIsMongoConnected } = require('../server/config/db');
+    if (getIsMongoConnected()) {
+      try {
+        const UsageLog = require('../server/models/UsageLog');
+        const logs = await UsageLog.find({
+          user_id: String(userId),
+          model_id: 'image-generation',
+          timestamp: { $gte: new Date(windowStart) }
+        }).select('timestamp').lean();
+        if (logs && logs.length > 0) {
+          count = logs.length;
+          start = Math.min(...logs.map(l => new Date(l.timestamp).getTime()));
         }
-      }
-      userImgUsageCache.set(String(userId), { count, start, ts: now });
-    } catch (e) {}
+        userImgUsageCache.set(String(userId), { count, start, ts: now });
+      } catch (e) {}
+    }
   }
 
-  // Also check memoryStore to get true count for image generations
-  const memLogs = (memoryStore.usageLogs || []).filter(l => 
-    String(l.user_id) === String(userId) && 
-    (l.model_id === 'image-generation') && 
+  const memLogs = (memoryStore.usageLogs || []).filter(l =>
+    String(l.user_id) === String(userId) &&
+    (l.model_id === 'image-generation') &&
     new Date(l.timestamp).getTime() >= windowStart
   );
   if (memLogs.length > count) {
@@ -525,38 +491,6 @@ async function incrementUserImageUsage(userId, windowHours) {
     start = cached.start;
   }
   userImgUsageCache.set(String(userId), { count, start, ts: now });
-
-  if (!supabase) return;
-  // Non-blocking background sync to Supabase
-  (async () => {
-    try {
-      let finalCount = count;
-      let finalStart = start;
-      const { data } = await supabase
-        .from('api_keys')
-        .select('api_key')
-        .eq('model_id', '__img_usage_' + userId + '__')
-        .limit(1);
-
-      if (data && data.length > 0 && data[0].api_key) {
-        try {
-          const prev = JSON.parse(data[0].api_key);
-          if (now - prev.start < windowMs) {
-            finalCount = Math.max(finalCount, (prev.count || 0) + 1);
-            finalStart = prev.start;
-          }
-        } catch (e) {}
-      }
-
-      await supabase
-        .from('api_keys')
-        .upsert({
-          model_id: '__img_usage_' + userId + '__',
-          api_key: JSON.stringify({ count: finalCount, start: finalStart }),
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'model_id' });
-    } catch (e) {}
-  })().catch(() => {});
 }
 
 async function incrementUserUsage(userId, windowHours) {
@@ -570,38 +504,6 @@ async function incrementUserUsage(userId, windowHours) {
     start = cached.start;
   }
   userUsageCache.set(String(userId), { count, start, ts: now });
-
-  if (!supabase) return;
-  // Non-blocking background sync to Supabase
-  (async () => {
-    try {
-      let finalCount = count;
-      let finalStart = start;
-      const { data } = await supabase
-        .from('api_keys')
-        .select('api_key')
-        .eq('model_id', '__usage_' + userId + '__')
-        .limit(1);
-
-      if (data && data.length > 0 && data[0].api_key) {
-        try {
-          const prev = JSON.parse(data[0].api_key);
-          if (now - prev.start < windowMs) {
-            finalCount = Math.max(finalCount, (prev.count || 0) + 1);
-            finalStart = prev.start;
-          }
-        } catch (e) {}
-      }
-
-      await supabase
-        .from('api_keys')
-        .upsert({
-          model_id: '__usage_' + userId + '__',
-          api_key: JSON.stringify({ count: finalCount, start: finalStart }),
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'model_id' });
-    } catch (e) {}
-  })().catch(() => {});
 }
 
 let plansCache = null;
@@ -619,40 +521,30 @@ async function getPersistedPlans() {
   }
 
   const { ensureAllCanonicalPlans, DEFAULT_PLANS } = require('../server/utils/planDefaults');
+  const { getIsMongoConnected } = require('../server/config/db');
 
-  if (!supabase) {
-    const localPlans = ensureAllCanonicalPlans(
-      memoryStore.plans && memoryStore.plans.length > 0 ? memoryStore.plans : DEFAULT_PLANS
-    );
-    memoryStore.plans = localPlans;
-    return localPlans;
-  }
-
-  try {
-    const { data, error } = await supabase
-      .from('api_keys')
-      .select('api_key')
-      .eq('model_id', '__plans_metadata__')
-      .limit(1);
-
-    if (!error && data && data.length > 0 && data[0].api_key) {
-      const parsed = JSON.parse(data[0].api_key);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        const normalized = ensureAllCanonicalPlans(parsed);
+  if (getIsMongoConnected()) {
+    try {
+      const Plan = require('../server/models/Plan');
+      const docs = await Plan.find().lean();
+      if (Array.isArray(docs) && docs.length > 0) {
+        const normalized = ensureAllCanonicalPlans(docs);
         plansCache = normalized;
         plansCacheTs = now;
         memoryStore.plans = normalized;
         return normalized;
       }
+    } catch (e) {
+      console.warn('[MongoDB] getPersistedPlans warning:', e.message);
     }
-  } catch (e) {
-    console.warn('[Supabase] __plans_metadata__ fetch failed:', e.message);
   }
 
   const resPlans = ensureAllCanonicalPlans(
     memoryStore.plans && memoryStore.plans.length > 0 ? memoryStore.plans : DEFAULT_PLANS
   );
   memoryStore.plans = resPlans;
+  plansCache = resPlans;
+  plansCacheTs = now;
   return resPlans;
 }
 
@@ -662,24 +554,21 @@ async function savePersistedPlans(plans) {
   memoryStore.plans = plans;
   debouncedSave();
 
-  if (!supabase) return;
-
-  try {
-    const { error } = await supabase
-      .from('api_keys')
-      .upsert(
-        { model_id: '__plans_metadata__', api_key: JSON.stringify(plans), updated_at: new Date().toISOString() },
-        { onConflict: 'model_id' }
-      );
-    if (error) {
-      console.error('[Supabase] Failed to persist plans:', error.message);
+  const { getIsMongoConnected } = require('../server/config/db');
+  if (getIsMongoConnected() && Array.isArray(plans)) {
+    try {
+      const Plan = require('../server/models/Plan');
+      for (const p of plans) {
+        if (!p || !p.name) continue;
+        const { _id, __v, ...rest } = p;
+        await Plan.findOneAndUpdate({ name: p.name }, { $set: rest }, { upsert: true });
+      }
+    } catch (e) {
+      console.error('[MongoDB] Failed to persist plans:', e.message);
     }
-  } catch (e) {
-    console.error('[Supabase] Failed to persist plans exception:', e.message);
   }
 }
 
-// Cache for redeem codes metadata
 let redeemCodesCache = null;
 let redeemCodesCacheTs = 0;
 
@@ -690,33 +579,24 @@ function invalidateRedeemCodesCache() {
 
 async function getPersistedRedeemCodes() {
   const now = Date.now();
-  if (redeemCodesCache && (now - redeemCodesCacheTs) < 5000) { // 5s cache
+  if (redeemCodesCache && (now - redeemCodesCacheTs) < 5000) {
     return redeemCodesCache;
   }
 
-  if (!supabase) return memoryStore.redeemCodes || [];
-  try {
-    const { data, error } = await supabase
-      .from('api_keys')
-      .select('api_key')
-      .eq('model_id', '__redeem_codes_metadata__')
-      .limit(1);
-
-    if (!error && data && data.length > 0 && data[0].api_key) {
-      const parsed = JSON.parse(data[0].api_key);
-      if (Array.isArray(parsed)) {
-        const codeMap = new Map();
-        for (const c of parsed) {
-          if (c && c.code) codeMap.set(String(c.code).trim().toUpperCase(), c);
-        }
-        const cleanCodes = Array.from(codeMap.values());
-        memoryStore.redeemCodes = cleanCodes;
-        redeemCodesCache = cleanCodes;
+  const { getIsMongoConnected } = require('../server/config/db');
+  if (getIsMongoConnected()) {
+    try {
+      const RedeemCode = require('../server/models/RedeemCode');
+      const docs = await RedeemCode.find().sort({ createdAt: -1 }).lean();
+      if (Array.isArray(docs)) {
+        memoryStore.redeemCodes = docs;
+        redeemCodesCache = docs;
         redeemCodesCacheTs = now;
-        return cleanCodes;
+        return docs;
       }
-    }
-  } catch (e) {}
+    } catch (e) {}
+  }
+
   return memoryStore.redeemCodes || [];
 }
 
@@ -732,22 +612,6 @@ async function savePersistedRedeemCodes(codes) {
   redeemCodesCache = cleanCodes;
   redeemCodesCacheTs = Date.now();
   debouncedSave();
-
-  if (!supabase) return;
-  try {
-    const { error } = await supabase
-      .from('api_keys')
-      .upsert({
-        model_id: '__redeem_codes_metadata__',
-        api_key: JSON.stringify(cleanCodes),
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'model_id' });
-    if (error) {
-      console.error('[Supabase] Failed to persist redeem codes:', error.message);
-    }
-  } catch (e) {
-    console.error('[Supabase] Failed to persist redeem codes exception:', e.message);
-  }
 }
 
 let promoCodesCache = null;
@@ -763,28 +627,21 @@ async function getPersistedPromoCodes() {
   if (promoCodesCache && (now - promoCodesCacheTs) < 5000) {
     return promoCodesCache;
   }
-  if (!supabase) return memoryStore.promoCodes || [];
-  try {
-    const { data, error } = await supabase
-      .from('api_keys')
-      .select('api_key')
-      .eq('model_id', '__promo_codes_metadata__')
-      .limit(1);
-    if (!error && data && data.length > 0 && data[0].api_key) {
-      const parsed = JSON.parse(data[0].api_key);
-      if (Array.isArray(parsed)) {
-        const map = new Map();
-        for (const p of parsed) {
-          if (p && p.code) map.set(String(p.code).trim().toUpperCase(), p);
-        }
-        const clean = Array.from(map.values());
-        memoryStore.promoCodes = clean;
-        promoCodesCache = clean;
+
+  const { getIsMongoConnected } = require('../server/config/db');
+  if (getIsMongoConnected()) {
+    try {
+      const PromoCode = require('../server/models/PromoCode');
+      const docs = await PromoCode.find().sort({ createdAt: -1 }).lean();
+      if (Array.isArray(docs)) {
+        memoryStore.promoCodes = docs;
+        promoCodesCache = docs;
         promoCodesCacheTs = now;
-        return clean;
+        return docs;
       }
-    }
-  } catch (e) {}
+    } catch (e) {}
+  }
+
   return memoryStore.promoCodes || [];
 }
 
@@ -801,18 +658,15 @@ async function savePersistedPromoCodes(promos) {
   promoCodesCacheTs = Date.now();
   debouncedSave();
 
-  if (!supabase) return;
-  try {
-    const { error } = await supabase
-      .from('api_keys')
-      .upsert({
-        model_id: '__promo_codes_metadata__',
-        api_key: JSON.stringify(clean),
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'model_id' });
-    if (error) console.error('[Supabase] Failed to persist promo codes:', error.message);
-  } catch (e) {
-    console.error('[Supabase] Failed to persist promo codes exception:', e.message);
+  const { getIsMongoConnected } = require('../server/config/db');
+  if (getIsMongoConnected()) {
+    try {
+      const PromoCode = require('../server/models/PromoCode');
+      for (const p of clean) {
+        const { _id, __v, ...rest } = p;
+        await PromoCode.findOneAndUpdate({ code: String(p.code).trim().toUpperCase() }, { $set: rest }, { upsert: true });
+      }
+    } catch (e) {}
   }
 }
 
@@ -829,28 +683,21 @@ async function getPersistedPaymentOrders() {
   if (paymentOrdersCache && (now - paymentOrdersCacheTs) < 3000) {
     return paymentOrdersCache;
   }
-  if (!supabase) return memoryStore.paymentOrders || [];
-  try {
-    const { data, error } = await supabase
-      .from('api_keys')
-      .select('api_key')
-      .eq('model_id', '__payment_orders_metadata__')
-      .limit(1);
-    if (!error && data && data.length > 0 && data[0].api_key) {
-      const parsed = JSON.parse(data[0].api_key);
-      if (Array.isArray(parsed)) {
-        const map = new Map();
-        for (const o of parsed) {
-          if (o && o.order_id) map.set(String(o.order_id).trim(), o);
-        }
-        const clean = Array.from(map.values()).sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-        memoryStore.paymentOrders = clean;
-        paymentOrdersCache = clean;
+
+  const { getIsMongoConnected } = require('../server/config/db');
+  if (getIsMongoConnected()) {
+    try {
+      const PaymentOrder = require('../server/models/PaymentOrder');
+      const docs = await PaymentOrder.find().sort({ createdAt: -1 }).limit(1000).lean();
+      if (Array.isArray(docs)) {
+        memoryStore.paymentOrders = docs;
+        paymentOrdersCache = docs;
         paymentOrdersCacheTs = now;
-        return clean;
+        return docs;
       }
-    }
-  } catch (e) {}
+    } catch (e) {}
+  }
+
   return memoryStore.paymentOrders || [];
 }
 
@@ -865,22 +712,18 @@ async function savePersistedPaymentOrders(orders) {
   paymentOrdersCacheTs = Date.now();
   debouncedSave();
 
-  if (!supabase) return;
-  try {
-    const { error } = await supabase
-      .from('api_keys')
-      .upsert({
-        model_id: '__payment_orders_metadata__',
-        api_key: JSON.stringify(clean),
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'model_id' });
-    if (error) console.error('[Supabase] Failed to persist payment orders:', error.message);
-  } catch (e) {
-    console.error('[Supabase] Failed to persist payment orders exception:', e.message);
+  const { getIsMongoConnected } = require('../server/config/db');
+  if (getIsMongoConnected()) {
+    try {
+      const PaymentOrder = require('../server/models/PaymentOrder');
+      for (const o of clean.slice(0, 50)) {
+        const { _id, __v, ...rest } = o;
+        await PaymentOrder.findOneAndUpdate({ order_id: o.order_id }, { $set: rest }, { upsert: true });
+      }
+    } catch (e) {}
   }
 }
 
-// Cache for users metadata
 let usersCache = null;
 let usersCacheTs = 0;
 
@@ -891,47 +734,25 @@ function invalidateUsersCache() {
 
 async function getPersistedUsers() {
   const now = Date.now();
-  if (usersCache && (now - usersCacheTs) < 3000) { // 3s cache
+  if (usersCache && (now - usersCacheTs) < 3000) {
     return usersCache;
   }
 
-  if (!supabase) return memoryStore.users || [];
-  try {
-    const { data, error } = await supabase
-      .from('api_keys')
-      .select('api_key')
-      .eq('model_id', '__users_metadata__')
-      .limit(1);
-
-    if (!error && data && data.length > 0 && data[0].api_key) {
-      const parsed = JSON.parse(data[0].api_key);
-      if (Array.isArray(parsed)) {
-        const userMap = new Map();
-        for (const u of parsed) {
-          const key = u.email ? u.email.toLowerCase().trim() : String(u._id || u.id);
-          userMap.set(key, u);
-        }
-        const cleanUsers = Array.from(userMap.values());
-
-        // Never invent admin accounts on a read path: only promote rows that actually exist.
-        const adminEmails = ['zihanfakir@gmail.com', 'x@zihan.uk'];
-        for (const adminEmail of adminEmails) {
-          const adm = cleanUsers.find(u => u.email && u.email.toLowerCase().trim() === adminEmail);
-          if (adm) {
-            adm.role = 'admin';
-            if (!adm.subscription || adm.subscription.plan_name !== 'Max') {
-              adm.subscription = { plan_name: 'Max', starts_at: new Date(), expires_at: null, is_active: true };
-            }
-          }
-        }
-
-        memoryStore.users = cleanUsers;
-        usersCache = cleanUsers;
+  const { getIsMongoConnected } = require('../server/config/db');
+  if (getIsMongoConnected()) {
+    try {
+      const User = require('../server/models/User');
+      const docs = await User.find().lean();
+      if (Array.isArray(docs)) {
+        const normalized = docs.map(u => ({ ...u, _id: String(u._id), id: String(u._id) }));
+        memoryStore.users = normalized;
+        usersCache = normalized;
         usersCacheTs = now;
-        return cleanUsers;
+        return normalized;
       }
-    }
-  } catch (e) {}
+    } catch (e) {}
+  }
+
   return memoryStore.users || [];
 }
 
@@ -949,22 +770,6 @@ async function savePersistedUsers(users) {
   usersCache = cleanUsers;
   usersCacheTs = Date.now();
   debouncedSave();
-
-  if (!supabase) return;
-  try {
-    const { error } = await supabase
-      .from('api_keys')
-      .upsert({
-        model_id: '__users_metadata__',
-        api_key: JSON.stringify(cleanUsers),
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'model_id' });
-    if (error) {
-      console.error('[Supabase] Failed to persist users:', error.message);
-    }
-  } catch (e) {
-    console.error('[Supabase] Failed to persist users exception:', e.message);
-  }
 }
 
 let settingsCache = null;
@@ -1020,31 +825,6 @@ async function getSystemSettings() {
     }
   }
 
-  if (supabase) {
-    try {
-      const { data, error } = await supabase
-        .from('api_keys')
-        .select('api_key')
-        .eq('model_id', '__system_settings__')
-        .limit(1);
-
-      if (!error && data && data.length > 0 && data[0].api_key) {
-        let parsed = null;
-        try { parsed = JSON.parse(data[0].api_key); } catch {}
-        if (parsed && typeof parsed === 'object') {
-          const merged = { ...defaultSettings, ...parsed };
-          settingsCache = merged;
-          settingsCacheTs = now;
-          if (!memoryStore.settings) memoryStore.settings = {};
-          Object.assign(memoryStore.settings, merged);
-          return merged;
-        }
-      }
-    } catch (e) {
-      console.warn('[Supabase] __system_settings__ fetch failed:', e.message);
-    }
-  }
-
   const def = { ...defaultSettings, ...(memoryStore.settings || {}) };
   settingsCache = def;
   settingsCacheTs = now;
@@ -1072,51 +852,32 @@ async function saveSystemSettings(settings) {
     }
   }
 
-  if (!supabase) return updated;
-
-  try {
-    const { error } = await supabase
-      .from('api_keys')
-      .upsert({
-        model_id: '__system_settings__',
-        api_key: JSON.stringify(updated),
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'model_id' });
-    if (error) {
-      console.error('[Supabase] Failed to persist system settings:', error.message);
-    }
-  } catch (e) {
-    console.error('[Supabase] Failed to persist system settings exception:', e.message);
-  }
   return updated;
 }
 
-/**
- * Automatically purges all orphaned caches, dangling references, and ghost keys
- * across MongoDB, Supabase, memoryStore, and disk backup whenever any admin delete occurs.
- */
 async function autoPurgeOrphanedDatabaseCaches() {
   const { saveBackup } = require('../server/config/memoryStore');
 
-  // 1. Invalidate all memory caches immediately
   modelsCache = null;
   modelsCacheTs = 0;
   usersCache = null;
   usersCacheTs = 0;
   redeemCodesCache = null;
   redeemCodesCacheTs = 0;
+  promoCodesCache = null;
+  promoCodesCacheTs = 0;
+  paymentOrdersCache = null;
+  paymentOrdersCacheTs = 0;
   plansCache = null;
   plansCacheTs = 0;
   settingsCache = null;
   settingsCacheTs = 0;
   keyCache.clear();
 
-  // 2. Clean plans allowed_models referencing non-existent models
   try {
     const currentModels = await getPersistedModels();
     const validModelIds = new Set(currentModels.map(m => String(m.id || m.model_id || '').toLowerCase().trim()));
 
-    // Clean plans allowed_models
     const plans = await getPersistedPlans();
     let plansChanged = false;
     plans.forEach(p => {
@@ -1136,109 +897,36 @@ async function autoPurgeOrphanedDatabaseCaches() {
     console.warn('[AutoPurge] Model reference cleanup warning:', e.message);
   }
 
-  // 3. Clean orphaned redeem code references for deleted users
   try {
     const { getIsMongoConnected } = require('../server/config/db');
-    const currentUsers = await getPersistedUsers();
-    const validUserIds = new Set(currentUsers.map(u => String(u._id || u.id)));
-    const validEmails = new Set(currentUsers.filter(u => u.email).map(u => u.email.toLowerCase().trim()));
-
     if (getIsMongoConnected()) {
-      try {
-        const User = require('../server/models/User');
-        const mongoUsers = await User.find().select('_id email').lean();
-        for (const mu of mongoUsers) {
-          if (mu._id) validUserIds.add(String(mu._id));
-          if (mu.email) validEmails.add(mu.email.toLowerCase().trim());
-        }
-      } catch (e) {}
-    }
-
-    const codes = await getPersistedRedeemCodes();
-    let codesChanged = false;
-    codes.forEach(c => {
-      if (c.used_by && !validUserIds.has(String(c.used_by)) && !validEmails.has(String(c.used_by).toLowerCase().trim())) {
-        c.used_by = null;
-        c.is_used = false;
-        c.used_at = null;
-        codesChanged = true;
-      }
-      if (Array.isArray(c.used_by_list)) {
-        const origLen = c.used_by_list.length;
-        c.used_by_list = c.used_by_list.filter(item => {
-          const uId = String(item.user_id || '');
-          const email = item.email ? item.email.toLowerCase().trim() : '';
-          return validUserIds.has(uId) || (email && validEmails.has(email));
-        });
-        if (c.used_by_list.length !== origLen) {
-          c.use_count = c.used_by_list.length;
-          c.is_used = c.use_count >= (c.max_uses || 1);
-          codesChanged = true;
-        }
-      }
-    });
-    if (codesChanged) {
-      await savePersistedRedeemCodes(codes);
-    }
-  } catch (e) {
-    console.warn('[AutoPurge] Redeem code cleanup warning:', e.message);
-  }
-
-  // 4. Purge orphaned usage and image usage rows from Supabase
-  if (supabase) {
-    try {
-      const currentUsers = await getPersistedUsers();
-      const validUserIds = new Set(currentUsers.map(u => String(u._id || u.id)));
-      const validEmails = new Set(currentUsers.filter(u => u.email).map(u => u.email.toLowerCase().trim()));
-
-      const { data: usageRows } = await supabase
-        .from('api_keys')
-        .select('model_id')
-        .or('model_id.like.__usage_%,model_id.like.__img_usage_%');
-      if (usageRows && usageRows.length > 0) {
-        for (const row of usageRows) {
-          const uId = row.model_id.replace(/^__(usage|img_usage)_/, '').replace(/__$/, '');
-          if (!validUserIds.has(uId) && !validEmails.has(uId.toLowerCase())) {
-            await supabase.from('api_keys').delete().eq('model_id', row.model_id);
-          }
-        }
-      }
-    } catch (e) {
-      console.warn('[AutoPurge] Usage row cleanup warning:', e.message);
-    }
-  }
-
-  // 5. Purge orphaned individual model API key rows from Supabase
-  if (supabase) {
-    try {
+      const SystemSetting = require('../server/models/SystemSetting');
       const currentModels = await getPersistedModels();
       const validModelIds = new Set(currentModels.map(m => String(m.id || m.model_id || '')));
-      const { data: allRows } = await supabase.from('api_keys').select('model_id');
-      if (allRows && allRows.length > 0) {
-        for (const row of allRows) {
-          // Skip metadata rows (prefixed with __)
-          if (row.model_id.startsWith('__')) continue;
-          // If this model_id is not in the active models list, it's orphaned
-          if (!validModelIds.has(row.model_id)) {
-            await supabase.from('api_keys').delete().eq('model_id', row.model_id);
-            console.log(`[AutoPurge] Deleted orphaned API key row: ${row.model_id}`);
-          }
+      const keyDocs = await SystemSetting.find({ key: { $regex: /^__api_key__:/ } }).select('key').lean();
+      for (const kd of (keyDocs || [])) {
+        const rawId = kd.key.replace(/^__api_key__:/, '');
+        if (rawId.startsWith('__')) continue;
+        if (!validModelIds.has(rawId)) {
+          await SystemSetting.deleteOne({ key: kd.key });
         }
       }
-    } catch (e) {
-      console.warn('[AutoPurge] Orphaned API key cleanup warning:', e.message);
     }
+  } catch (e) {
+    console.warn('[AutoPurge] Orphaned API key cleanup warning:', e.message);
   }
 
-  // 6. Flush to local backup
   await saveBackup();
 }
 
-module.exports = { 
-  getModelConfig, 
+module.exports = {
+  getModelConfig,
   MODEL_ALIASES,
   resolveModelAlias,
-  getApiKeyFromSupabase, 
+  getStoredApiKey,
+  saveStoredApiKey,
+  deleteStoredApiKey,
+  getApiKeyFromSupabase,
   invalidateModelKeyCache,
   getPersistedModels,
   savePersistedModels,
@@ -1272,4 +960,3 @@ module.exports = {
   removeDeletedModelId,
   invalidateDeletedModelsCache
 };
-

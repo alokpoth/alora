@@ -6,8 +6,7 @@ const UsageLog = require('../models/UsageLog');
 const AiModel = require('../models/AiModel');
 const { getIsMongoConnected } = require('../config/db');
 const { memoryStore, debouncedSave, saveBackup } = require('../config/memoryStore');
-const supabase = require('../config/supabase');
-const { invalidateModelKeyCache, invalidateUsersCache, invalidateUserUsageCache } = require('../../utils/getModelConfig');
+const { invalidateModelKeyCache, invalidateUsersCache, invalidateUserUsageCache, saveStoredApiKey, deleteStoredApiKey } = require('../../utils/getModelConfig');
 const { invalidateCachedUser, invalidateCachedPlans, invalidateCachedModels } = require('../config/dbCache');
 const { sendServerError, redactSecrets } = require('../utils/safeError');
 const { PLAN_ORDER, USER_PLANS, PAID_PLANS, DEFAULT_PLANS_MAP, ensureAllCanonicalPlans } = require('../utils/planDefaults');
@@ -41,21 +40,15 @@ const redactSettingsSecretsForAdmin = (s) => {
   return copy;
 };
 
-// Supabase তে api_key upsert করার helper
+// MongoDB SystemSetting + memoryStore API key persistence helper
 async function upsertApiKeyToSupabase(modelId, apiKey) {
-  if (!supabase || !modelId) return;
+  if (!modelId) return;
   try {
-    const { error } = await supabase
-      .from('api_keys')
-      .upsert({ model_id: modelId, api_key: apiKey || '', updated_at: new Date().toISOString() }, { onConflict: 'model_id' });
-    if (error) console.error('[Supabase] api_key upsert error:', error.message);
-    else {
-      invalidateModelKeyCache(modelId); // Cache clear করো
-      invalidateCachedModels();
-      console.log(`[Supabase] api_key saved for model: ${modelId}`);
-    }
+    await saveStoredApiKey(modelId, apiKey || '');
+    invalidateModelKeyCache(modelId);
+    invalidateCachedModels();
   } catch (e) {
-    console.error('[Supabase] api_key upsert exception:', e.message);
+    console.error('[MongoDB] api_key upsert exception:', e.message);
   }
 }
 
@@ -546,26 +539,10 @@ const deleteUser = async (req, res) => {
     await savePersistedUsers(users);
     invalidateUsersCache();
 
-    // 3. Purge user usage quota rows from Supabase api_keys table (by userId AND targetId AND email)
-    if (supabase) {
-      try {
-        await supabase.from('api_keys').delete().eq('model_id', `__usage_${userId}__`);
-        await supabase.from('api_keys').delete().eq('model_id', `__img_usage_${userId}__`);
-        if (targetId !== userId) {
-          await supabase.from('api_keys').delete().eq('model_id', `__usage_${targetId}__`);
-          await supabase.from('api_keys').delete().eq('model_id', `__img_usage_${targetId}__`);
-        }
-        // Also purge by email-based key patterns in case new registrations would match
-        if (targetEmail) {
-          await supabase.from('api_keys').delete().eq('model_id', `__usage_${targetEmail}__`);
-          await supabase.from('api_keys').delete().eq('model_id', `__img_usage_${targetEmail}__`);
-          // Purge any profile or quota rows with email as key
-          await supabase.from('api_keys').delete().eq('model_id', `__profile_${targetEmail}__`);
-        }
-      } catch (e) {
-        console.warn('[Supabase] Usage row purge warning:', e.message);
-      }
-    }
+    // 3. Invalidate user usage caches (by userId AND targetId AND email)
+    invalidateUserUsageCache(userId);
+    if (targetId && targetId !== userId) invalidateUserUsageCache(targetId);
+    if (targetEmail) invalidateUserUsageCache(targetEmail);
 
     // 4. ALWAYS purge from memoryStore and write synchronously to disk
     if (memoryStore.users) {
@@ -1465,15 +1442,13 @@ const deleteModel = async (req, res) => {
       } catch (e) {}
     }
 
-    // 2. Delete individual model api_key rows from Supabase api_keys table
-    if (supabase) {
-      const keysToDelete = [cleanModelId, cleanDecoded, `key_${cleanModelId}`, `key_${cleanDecoded}`];
-      for (const k of keysToDelete) {
-        if (k) {
-          try {
-            await supabase.from('api_keys').delete().eq('model_id', k);
-          } catch (e) {}
-        }
+    // 2. Delete individual model api_key rows from MongoDB SystemSetting / memoryStore
+    const keysToDelete = [cleanModelId, cleanDecoded, `key_${cleanModelId}`, `key_${cleanDecoded}`];
+    for (const k of keysToDelete) {
+      if (k) {
+        try {
+          await deleteStoredApiKey(k);
+        } catch (e) {}
       }
     }
 
@@ -1811,10 +1786,7 @@ const deleteApiKey = async (req, res) => {
     if (!SUPPORTED_PROVIDERS.includes(cleanProvider)) {
       return res.status(400).json({ success: false, error: 'সঠিক প্রোভাইডারের নাম প্রদান করুন' });
     }
-    if (supabase) {
-      await supabase.from('api_keys').delete().eq('model_id', `__${cleanProvider}_key__`).catch(() => {});
-    }
-    const { invalidateModelKeyCache } = require('../../utils/getModelConfig');
+    await deleteStoredApiKey(`__${cleanProvider}_key__`).catch(() => {});
     if (typeof invalidateModelKeyCache === 'function') {
       invalidateModelKeyCache(`__${cleanProvider}_key__`);
     }

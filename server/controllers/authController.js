@@ -803,7 +803,10 @@ const getRequestOrigin = (req) => {
 };
 
 const ALLOWED_FRONTEND_ORIGINS = new Set([
+  'https://alora.zdots.net',
+  'https://www.alora.zdots.net',
   'https://alora.zihan.xyz',
+  'https://www.alora.zihan.xyz',
   'https://ai.zihan.xyz',
   'https://alora-backend-emw3.onrender.com',
   'http://localhost:5000',

@@ -68,7 +68,7 @@ connectDB().then(async () => {
           for (const p of pPlans) {
             await Plan.findOneAndUpdate({ name: p.name }, p, { upsert: true });
           }
-          console.log(`[Database Seed] Synced ${pPlans.length} plans from Supabase to MongoDB.`);
+          console.log(`[Database Seed] Seeded ${pPlans.length} default plans in MongoDB.`);
         }
       }
       await Plan.seedDefaultPlans();
@@ -105,7 +105,7 @@ connectDB().then(async () => {
               { upsert: true }
             );
           }
-          console.log(`[Database Seed] Synced ${pModels.length} models from Supabase to MongoDB.`);
+          console.log(`[Database Seed] Seeded ${pModels.length} default models in MongoDB.`);
         } else {
           await AiModel.seedDefaultModels();
         }
