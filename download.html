@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="oled">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
@@ -10,40 +10,41 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="application-name" content="Alora">
   <title>Download App — Alora</title>
-  <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=3">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png?v=3">
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png?v=3">
-  <link rel="shortcut icon" href="favicon.ico?v=3">
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=3">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=3">
+  <link rel="shortcut icon" href="/favicon.ico?v=3">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   
   <style>
     :root {
-      --bg-base: #000000;
-      --bg-card: #18181b;
-      --bg-card-hover: #222226;
+      --bg-base: #212121;
+      --bg-card: #171717;
+      --bg-card-hover: #2f2f2f;
       --border-card: rgba(255, 255, 255, 0.08);
       --border-divider: rgba(255, 255, 255, 0.06);
-      --text-main: #ffffff;
+      --text-main: #ececec;
       --text-sub: #a1a1aa;
       --text-dim: #71717a;
-      --accent-blue: #3b82f6;
-      --accent-blue-hover: #2563eb;
-      --accent-purple: #8b5cf6;
-      --accent-green: #10b981;
+      --accent-blue: #ececec;
+      --accent-ink: #0d0d0d;
+      --accent-blue-hover: #ffffff;
+      --accent-purple: var(--accent-blue);
+      --accent-green: var(--accent-blue);
       --font-main: 'Plus Jakarta Sans', 'Hind Siliguri', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
 
     [data-theme="dark"] {
-      --bg-base: #09090b;
-      --bg-card: #18181b;
-      --bg-card-hover: #222226;
+      --bg-base: #212121;
+      --bg-card: #171717;
+      --bg-card-hover: #2f2f2f;
       --border-card: rgba(255, 255, 255, 0.08);
       --border-divider: rgba(255, 255, 255, 0.06);
-      --text-main: #ffffff;
+      --text-main: #ececec;
       --text-sub: #a1a1aa;
     }
 
@@ -53,7 +54,7 @@
       --bg-card-hover: #1c1c1f;
       --border-card: rgba(255, 255, 255, 0.12);
       --border-divider: rgba(255, 255, 255, 0.06);
-      --text-main: #ffffff;
+      --text-main: #ececec;
       --text-sub: #a1a1aa;
     }
 
@@ -76,18 +77,24 @@
       --text-main: #4a3b2c;
       --text-sub: #7a6b5c;
       --text-dim: #9e8e7e;
-    }
+    
+      --accent-blue: #2d2318;
+      --accent-blue-hover: #1f170f;
+      --accent-ink: #f5eedc;}
 
     [data-theme="light"] {
-      --bg-base: #f4f4f5;
+      --bg-base: #ffffff;
       --bg-card: #ffffff;
-      --bg-card-hover: #f8fafc;
+      --bg-card-hover: #ececec;
       --border-card: rgba(0, 0, 0, 0.08);
       --border-divider: rgba(0, 0, 0, 0.05);
-      --text-main: #09090b;
+      --text-main: #0d0d0d;
       --text-sub: #52525b;
       --text-dim: #71717a;
-    }
+    
+      --accent-blue: #0d0d0d;
+      --accent-blue-hover: #2f2f2f;
+      --accent-ink: #ffffff;}
 
     *, *::before, *::after {
       box-sizing: border-box;
@@ -206,7 +213,7 @@
       height: 180px;
       top: 15px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(59, 130, 246, 0.3) 0%, rgba(139, 92, 246, 0.15) 50%, transparent 75%);
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.15) 50%, transparent 75%);
       filter: blur(28px);
       z-index: 0;
       pointer-events: none;
@@ -242,7 +249,7 @@
       margin-bottom: 8px;
       position: relative;
       z-index: 1;
-      background: linear-gradient(135deg, #ffffff 40%, #93c5fd 100%);
+      background: linear-gradient(135deg, #ffffff 40%, #a1a1aa 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
@@ -279,8 +286,8 @@
       gap: 5px;
     }
     .meta-tag.highlight {
-      background: rgba(59, 130, 246, 0.12);
-      border-color: rgba(59, 130, 246, 0.3);
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.3);
       color: #93c5fd;
     }
 
@@ -299,8 +306,8 @@
       border-color: rgba(255, 255, 255, 0.16);
     }
     .platform-card.featured {
-      border: 1px solid rgba(59, 130, 246, 0.35);
-      background: linear-gradient(180deg, rgba(59, 130, 246, 0.05) 0%, var(--bg-card) 40%);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, var(--bg-card) 40%);
     }
 
     .card-header {
@@ -326,9 +333,9 @@
       flex-shrink: 0;
     }
     .platform-icon.android {
-      background: rgba(16, 185, 129, 0.14);
-      color: #10b981;
-      border: 1px solid rgba(16, 185, 129, 0.25);
+      background: rgba(255, 255, 255, 0.14);
+      color: var(--text-main);
+      border: 1px solid rgba(255, 255, 255, 0.25);
     }
     .platform-icon.apple {
       background: rgba(255, 255, 255, 0.08);
@@ -336,9 +343,9 @@
       border: 1px solid rgba(255, 255, 255, 0.12);
     }
     .platform-icon.desktop {
-      background: rgba(59, 130, 246, 0.14);
-      color: #60a5fa;
-      border: 1px solid rgba(59, 130, 246, 0.25);
+      background: rgba(255, 255, 255, 0.14);
+      color: var(--text-main);
+      border: 1px solid rgba(255, 255, 255, 0.25);
     }
     .platform-icon svg {
       width: 24px;
@@ -365,14 +372,14 @@
       letter-spacing: 0.02em;
     }
     .badge-pill.green {
-      background: rgba(16, 185, 129, 0.15);
-      color: #34d399;
-      border: 1px solid rgba(16, 185, 129, 0.3);
+      background: rgba(255, 255, 255, 0.15);
+      color: var(--text-main);
+      border: 1px solid rgba(255, 255, 255, 0.3);
     }
     .badge-pill.blue {
-      background: rgba(59, 130, 246, 0.15);
-      color: #60a5fa;
-      border: 1px solid rgba(59, 130, 246, 0.3);
+      background: rgba(255, 255, 255, 0.15);
+      color: var(--text-main);
+      border: 1px solid rgba(255, 255, 255, 0.3);
     }
 
     .features-list {
@@ -393,7 +400,7 @@
     .feature-item svg {
       width: 17px;
       height: 17px;
-      stroke: #10b981;
+      stroke: var(--text-main);
       stroke-width: 2.2;
       fill: none;
       flex-shrink: 0;
@@ -405,8 +412,8 @@
       height: 52px;
       border-radius: 14px;
       border: none;
-      background: linear-gradient(135deg, #3b82f6, #2563eb);
-      color: #ffffff;
+      background: var(--accent-blue);
+      color: var(--accent-ink, #0d0d0d);
       font-size: 1rem;
       font-weight: 700;
       font-family: inherit;
@@ -416,13 +423,13 @@
       gap: 10px;
       cursor: pointer;
       text-decoration: none;
-      box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
       transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .btn-download-primary:hover {
-      background: linear-gradient(135deg, #60a5fa, #3b82f6);
+      background: var(--accent-blue-hover);
       transform: none !important;
-      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
     }
     .btn-download-primary:active {
       transform: scale(0.98);
@@ -536,13 +543,13 @@
     }
     [data-theme="light"] .meta-tag.highlight,
     [data-theme="eyecare"] .meta-tag.highlight {
-      background: rgba(59, 130, 246, 0.1);
-      border-color: rgba(59, 130, 246, 0.3);
-      color: #2563eb;
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.3);
+      color: var(--text-main);
     }
     [data-theme="light"] .hero-title,
     [data-theme="eyecare"] .hero-title {
-      background: linear-gradient(135deg, #09090b 40%, #2563eb 100%);
+      background: linear-gradient(135deg, #0d0d0d 40%, #52525b 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
@@ -571,8 +578,8 @@
     }
     [data-theme="light"] .platform-card.featured,
     [data-theme="eyecare"] .platform-card.featured {
-      background: linear-gradient(180deg, rgba(59, 130, 246, 0.05) 0%, #ffffff 40%);
-      border-color: rgba(59, 130, 246, 0.35);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, #ffffff 40%);
+      border-color: rgba(255, 255, 255, 0.35);
     }
     [data-theme="light"] .safe-badge,
     [data-theme="eyecare"] .safe-badge {
@@ -616,7 +623,7 @@
       gap: 6px;
       margin-top: 14px;
       font-size: 0.78rem;
-      color: #10b981;
+      color: var(--text-main);
     }
     .safe-badge svg {
       width: 14px;
@@ -827,7 +834,7 @@
       flex-shrink: 0;
     }
     .pwa-banner-btn-install {
-      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      background: var(--accent-blue);
       color: #ffffff;
       border: none;
       padding: 8px 16px;
@@ -950,8 +957,10 @@
     /* Alokpath Theme Images */
     .alokpath-theme-logo-dark { display: inline-block; }
     .alokpath-theme-logo-light { display: none; }
-    :root[data-theme="light"] .alokpath-theme-logo-dark { display: none !important; }
-    :root[data-theme="light"] .alokpath-theme-logo-light { display: inline-block !important; }
+    :root[data-theme="light"] .alokpath-theme-logo-dark,
+    :root[data-theme="eyecare"] .alokpath-theme-logo-dark { display: none !important; }
+    :root[data-theme="light"] .alokpath-theme-logo-light,
+    :root[data-theme="eyecare"] .alokpath-theme-logo-light { display: inline-block !important; }
   
     
     /* Clean Modern Controls (Vercel/Linear Design System) */
@@ -989,22 +998,33 @@
 </script>
 <script>
   (function() {
-    try {
-      var saved = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "oled";
-      if (saved !== "light" && saved !== "eyecare") saved = "oled";
-      document.documentElement.setAttribute("data-theme-mode", saved);
-      document.documentElement.setAttribute("data-theme", saved);
-    } catch(e) {}
-  })();
+      try {
+        var raw = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "dark";
+        var valid = ["dark", "oled", "sapphire", "light", "eyecare"];
+        var mode = raw;
+        if (raw === "system") {
+          mode = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? "dark" : "light";
+        } else if (valid.indexOf(raw) === -1) {
+          mode = "dark";
+        }
+        document.documentElement.setAttribute("data-theme-mode", raw);
+        document.documentElement.setAttribute("data-theme", mode);
+      } catch(e) {}
+      if (window.location.pathname.endsWith('.html')) {
+        var clean = window.location.pathname.replace(/\.html$/, '');
+        if (clean === '/index') clean = '/';
+        window.history.replaceState(null, '', clean + window.location.search + window.location.hash);
+      }
+    })();
 </script>
 </head>
 <body>
 
   <!-- Top Navigation -->
   <header class="nav-bar">
-    <a href="account" class="back-btn" id="navBackBtn">
+    <a href="/" class="back-btn" id="navBackBtn">
       <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-      <span id="navBackText">Settings</span>
+      <span id="navBackText">Back to Chat</span>
     </a>
     <div class="nav-actions">
       <button type="button" class="lang-pill-btn" id="langToggleBtn" title="Language Switch">
@@ -1064,7 +1084,7 @@
         </li>
         <li class="feature-item">
           <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-          <span id="feat2">Pure AMOLED dark mode for maximum battery savings</span>
+          <span id="feat2">True contrast dark mode & monochrome reading comfort</span>
         </li>
         <li class="feature-item">
           <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
@@ -1077,7 +1097,7 @@
       </ul>
 
       <!-- Primary APK Download CTA -->
-      <a href="Alora.apk" download="Alora.apk" class="btn-download-primary" id="btnDownloadApk">
+      <a href="/Alora.apk" download="Alora.apk" class="btn-download-primary" id="btnDownloadApk">
         <svg viewBox="0 0 24 24">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
           <polyline points="7 10 12 15 17 10"/>
@@ -1088,7 +1108,7 @@
 
       <!-- Secondary Mirror & PWA Options -->
       <div style="display: flex; gap: 10px; margin-top: 10px;">
-        <a href="AloAI.apk" download="AloAI.apk" class="btn-secondary" id="btnDownloadApkMirror" style="flex: 1; height: 44px; font-size: 0.86rem; text-decoration: none;">
+        <a href="/AloAI.apk" download="AloAI.apk" class="btn-secondary" id="btnDownloadApkMirror" style="flex: 1; height: 44px; font-size: 0.86rem; text-decoration: none;">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           <span id="btnMirrorApkText">Direct Download (AloAI.apk)</span>
         </a>
@@ -1166,7 +1186,7 @@
       </ul>
 
       <!-- Primary IPA Download CTA -->
-      <a href="Alora.ipa" download="Alora.ipa" class="btn-download-ios" id="btnDownloadIpa">
+      <a href="/Alora.ipa" download="Alora.ipa" class="btn-download-ios" id="btnDownloadIpa">
         <svg viewBox="0 0 24 24">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
           <polyline points="7 10 12 15 17 10"/>
@@ -1311,12 +1331,12 @@
       <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; margin-bottom: 12px;">
         <span style="font-size: 0.72rem; color: var(--text-muted); letter-spacing: 0.8px; text-transform: lowercase;">from</span>
         <div style="display: flex; align-items: center; gap: 8px;">
-          <img src="alokpath_logo_dark.png" alt="আলোকপথ" class="alokpath-theme-logo-dark" style="height: 24px; width: auto; object-fit: contain;">
-          <img src="alokpath_logo_light.png" alt="আলোকপথ" class="alokpath-theme-logo-light" style="height: 24px; width: auto; object-fit: contain;">
+          <img src="/logo_icon_white.png" alt="আলোকপথ" class="alokpath-theme-logo-dark" style="height: 24px; width: auto; object-fit: contain;">
+          <img src="/logo_icon_black.png" alt="আলোকপথ" class="alokpath-theme-logo-light" style="height: 24px; width: auto; object-fit: contain;">
         </div>
       </div>
       <span>Alora v1.2.0 (Build 12) • An Alokpath Product • Developed by Zihan Fakir</span>
-      <span><a href="/">Home</a> • <a href="account">Settings</a> • <a href="help">Help Center</a></span>
+      <span><a href="/">Home</a> • <a href="/account">Settings</a> • <a href="/help">Help Center</a></span>
     </footer>
 
   </main>
@@ -1334,14 +1354,14 @@
     const I18N = {
       en: {
         pageTitle: "Download App — Alora",
-        navBack: "Settings",
+        navBack: "Back to Chat",
         heroTitle: "Alora for Android & iOS",
-        heroSubtitle: "Enjoy ultra-fast responses, 120Hz smooth scrolling, voice intelligence, and AMOLED true dark mode on your favorite device.",
+        heroSubtitle: "Enjoy ultra-fast responses, 120Hz smooth scrolling, voice intelligence, and clean monochrome workspaces on your favorite device.",
         androidCardTitle: "Android Native App (APK)",
         androidCardSub: "Universal 64-bit / 32-bit • Direct APK Download",
         badgeOfficial: "Official Release",
         feat1: "120Hz high-refresh rate fluid scrolling & touch response",
-        feat2: "Pure AMOLED dark mode for maximum battery savings",
+        feat2: "True contrast dark mode & monochrome reading comfort",
         feat3: "Real-time Bengali & English Speech-to-Text & Native TTS",
         feat4: "Offline message caching & persistent seamless login",
         btnDownload: "Fast Download (Alora.apk • 9.5 MB)",
@@ -1518,6 +1538,23 @@
         }
       });
     }
+
+    let deferredPwaPrompt = null;
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferredPwaPrompt = e;
+    });
+    document.getElementById("btnAndroidPwa")?.addEventListener("click", async () => {
+      if (deferredPwaPrompt) {
+        deferredPwaPrompt.prompt();
+        try { await deferredPwaPrompt.userChoice; } catch {}
+        deferredPwaPrompt = null;
+      } else if (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) {
+        alert(currentLang === "bn" ? "Alora ইতিমধ্যেই অ্যাপ হিসেবে ইনস্টল করা আছে।" : "Alora is already installed as an app.");
+      } else {
+        alert(currentLang === "bn" ? "ব্রাউজার মেনু থেকে \"Add to Home Screen\" বা \"Install App\" নির্বাচন করুন।" : "Use your browser menu and choose \"Install App\" or \"Add to Home Screen\".");
+      }
+    });
 
     // Apply language on load
     applyLanguage(currentLang);

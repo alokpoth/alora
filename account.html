@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="oled">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
-  <meta name="theme-color" content="#000000">
+  <meta name="theme-color" content="#212121">
   <title>Settings — Alora</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=3">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png?v=3">
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png?v=3">
-  <link rel="shortcut icon" href="favicon.ico?v=3">
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=3">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=3">
+  <link rel="shortcut icon" href="/favicon.ico?v=3">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -25,28 +25,29 @@
     }
 
     :root {
-      --bg-base: #000000;
-      --bg-card: #18181b;
-      --bg-card-hover: #222226;
+      --bg-base: #212121;
+      --bg-card: #171717;
+      --bg-card-hover: #2f2f2f;
       --border-card: rgba(255, 255, 255, 0.08);
       --border-divider: rgba(255, 255, 255, 0.06);
-      --text-main: #ffffff;
-      --text-sub: #71717a;
-      --text-dim: #a1a1aa;
-      --accent-blue: #3b82f6;
-      --accent-blue-hover: #2563eb;
+      --text-main: #ececec;
+      --text-sub: #b4b4b4;
+      --text-dim: #8e8e8e;
+      --accent-blue: #ececec;
+      --accent-ink: #0d0d0d;
+      --accent-blue-hover: #ffffff;
       --accent-danger: #ef4444;
       --font-main: 'Plus Jakarta Sans', 'Hind Siliguri', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
 
     [data-theme="dark"] {
-      --bg-base: #09090b;
-      --bg-card: #18181b;
-      --bg-card-hover: #222226;
+      --bg-base: #212121;
+      --bg-card: #171717;
+      --bg-card-hover: #2f2f2f;
       --border-card: rgba(255, 255, 255, 0.08);
       --border-divider: rgba(255, 255, 255, 0.06);
-      --text-main: #ffffff;
-      --text-sub: #71717a;
+      --text-main: #ececec;
+      --text-sub: #b4b4b4;
     }
 
     [data-theme="oled"] {
@@ -55,8 +56,8 @@
       --bg-card-hover: #1c1c1f;
       --border-card: rgba(255, 255, 255, 0.12);
       --border-divider: rgba(255, 255, 255, 0.06);
-      --text-main: #ffffff;
-      --text-sub: #71717a;
+      --text-main: #ececec;
+      --text-sub: #b4b4b4;
     }
 
     [data-theme="sapphire"] {
@@ -78,18 +79,24 @@
       --text-main: #4a3b2c;
       --text-sub: #7a6b5c;
       --text-dim: #9e8e7e;
-    }
+    
+      --accent-blue: #2d2318;
+      --accent-blue-hover: #1f170f;
+      --accent-ink: #f5eedc;}
 
     [data-theme="light"] {
-      --bg-base: #f4f4f5;
+      --bg-base: #ffffff;
       --bg-card: #ffffff;
-      --bg-card-hover: #f8fafc;
+      --bg-card-hover: #ececec;
       --border-card: rgba(0, 0, 0, 0.08);
       --border-divider: rgba(0, 0, 0, 0.05);
-      --text-main: #09090b;
-      --text-sub: #71717a;
+      --text-main: #0d0d0d;
+      --text-sub: #b4b4b4;
       --text-dim: #52525b;
-    }
+    
+      --accent-blue: #0d0d0d;
+      --accent-blue-hover: #2f2f2f;
+      --accent-ink: #ffffff;}
 
     *, *::before, *::after {
       box-sizing: border-box;
@@ -232,7 +239,7 @@
       width: 46px;
       height: 46px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #2563eb, #38bdf8);
+      background: #343434;
       color: #ffffff;
       display: flex;
       align-items: center;
@@ -406,9 +413,8 @@
       box-shadow: 0 2px 4px rgba(0,0,0,0.3);
     }
 
-    .toggle-switch input:checked + .toggle-slider {
-      background-color: var(--accent-blue);
-    }
+    .toggle-switch input:checked + .toggle-slider { background-color: var(--accent-blue); }
+    .toggle-switch input:checked + .toggle-slider::before { background-color: var(--accent-ink, #0d0d0d); }
 
     .toggle-switch input:checked + .toggle-slider::before {
       transform: translateX(18px);
@@ -518,7 +524,7 @@
       height: 44px;
       border-radius: 12px;
       background: var(--accent-blue);
-      color: #ffffff;
+      color: var(--accent-ink, #0d0d0d);
       border: none;
       font-size: 0.95rem;
       font-weight: 600;
@@ -559,7 +565,7 @@
     .account-quota-fill {
       height: 100%;
       width: 100%;
-      background: linear-gradient(90deg, #2563eb, #38bdf8);
+      background: var(--accent-blue);
       border-radius: 9999px;
       transition: width 0.4s ease;
     }
@@ -615,7 +621,7 @@
       -webkit-backdrop-filter: blur(8px);
       white-space: nowrap;
     }
-    .toast.success { border-color: #10b981; }
+    .toast.success { border-color: rgba(255, 255, 255, 0.25);  }
     .toast.error { border-color: #ef4444; }
 
     #confettiCanvas {
@@ -669,13 +675,24 @@
 </script>
 <script>
   (function() {
-    try {
-      var saved = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "oled";
-      if (saved !== "light" && saved !== "eyecare") saved = "oled";
-      document.documentElement.setAttribute("data-theme-mode", saved);
-      document.documentElement.setAttribute("data-theme", saved);
-    } catch(e) {}
-  })();
+      try {
+        var raw = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "dark";
+        var valid = ["dark", "oled", "sapphire", "light", "eyecare"];
+        var mode = raw;
+        if (raw === "system") {
+          mode = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? "dark" : "light";
+        } else if (valid.indexOf(raw) === -1) {
+          mode = "dark";
+        }
+        document.documentElement.setAttribute("data-theme-mode", raw);
+        document.documentElement.setAttribute("data-theme", mode);
+      } catch(e) {}
+      if (window.location.pathname.endsWith('.html')) {
+        var clean = window.location.pathname.replace(/\.html$/, '');
+        if (clean === '/index') clean = '/';
+        window.history.replaceState(null, '', clean + window.location.search + window.location.hash);
+      }
+    })();
 </script>
 </head>
 <body>
@@ -698,7 +715,7 @@
   <main class="settings-container">
     
     <!-- CARD 1: User Profile Card (Screenshot 4) -->
-    <a href="profile" class="settings-group settings-profile-group" id="rowEditProfile">
+    <a href="/profile" class="settings-group settings-profile-group" id="rowEditProfile">
       <div class="profile-left-meta">
         <div class="profile-avatar-large" id="avatarLetter">Z</div>
         <div class="profile-name-text" id="profileNameDisplay">Zihan Fakir</div>
@@ -711,7 +728,7 @@
 
     <!-- CARD 2: Account Card (Screenshot 4) -->
     <div class="settings-group">
-      <a href="security" class="settings-row" id="rowAccount">
+      <a href="/security" class="settings-row" id="rowAccount">
         <div class="row-lead">
           <span class="row-icon">
             <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -728,7 +745,7 @@
     <!-- CARD 3: Subscription & Usage Card (Screenshot 4) -->
     <div class="settings-group">
       <!-- Subscription Row -->
-      <a href="subscription" class="settings-row" id="rowSubscription">
+      <a href="/subscription" class="settings-row" id="rowSubscription">
         <div class="row-lead">
           <span class="row-icon">
             <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
@@ -744,7 +761,7 @@
       <div class="row-divider"></div>
 
       <!-- Usage Row -->
-      <a href="usage" class="settings-row" id="rowUsage">
+      <a href="/usage" class="settings-row" id="rowUsage">
         <div class="row-lead">
           <span class="row-icon">
             <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
@@ -759,7 +776,7 @@
       <div class="row-divider"></div>
 
       <!-- Upgrade Row -->
-      <a href="plans" class="settings-row" id="rowUpgrade">
+      <a href="/pricing" class="settings-row" id="rowUpgrade">
         <div class="row-lead">
           <span class="row-icon">
             <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
@@ -776,7 +793,7 @@
     <!-- CARD 4: Preferences Card (Screenshot 4) -->
     <div class="settings-group">
       <!-- Color Theme Row -->
-      <a href="theme" class="settings-row" id="rowTheme">
+      <a href="/theme" class="settings-row" id="rowTheme">
         <div class="row-lead">
           <span class="row-icon">
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
@@ -792,7 +809,7 @@
       <div class="row-divider"></div>
 
       <!-- App Language Row -->
-      <a href="language" class="settings-row" id="rowLanguage">
+      <a href="/language" class="settings-row" id="rowLanguage">
         <div class="row-lead">
           <span class="row-icon">
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
@@ -808,7 +825,7 @@
       <div class="row-divider"></div>
 
       <!-- Personalization Row -->
-      <a href="personalization" class="settings-row" id="rowPersonalization">
+      <a href="/personalization" class="settings-row" id="rowPersonalization">
         <div class="row-lead">
           <span class="row-icon">
             <svg viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
@@ -819,12 +836,27 @@
           <svg class="row-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
       </a>
+
+      <div class="row-divider"></div>
+
+      <!-- Sound Settings Row -->
+      <a href="/sound" class="settings-row" id="rowSound">
+        <div class="row-lead">
+          <span class="row-icon">
+            <svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+          </span>
+          <span class="row-title" id="soundRowLabel">Sound &amp; Audio</span>
+        </div>
+        <div class="row-tail">
+          <svg class="row-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </a>
     </div>
 
     <!-- CARD 5: Help Center & Redeem Card (Screenshot 4) -->
     <div class="settings-group">
       <!-- Help Center Row -->
-      <a href="help" class="settings-row" id="rowHelp">
+      <a href="/help" class="settings-row" id="rowHelp">
         <div class="row-lead">
           <span class="row-icon">
             <svg viewBox="0 0 24 24"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
@@ -839,7 +871,7 @@
       <div class="row-divider"></div>
 
       <!-- Redeem Promo Code Row -->
-      <a href="redeem" class="settings-row" id="rowRedeem">
+      <a href="/redeem" class="settings-row" id="rowRedeem">
         <div class="row-lead">
           <span class="row-icon">
             <svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="14" rx="2"/><path d="M12 5a3 3 0 1 0-3 3h6a3 3 0 1 0-3-3"/></svg>
@@ -854,7 +886,7 @@
       <div class="row-divider"></div>
 
       <!-- Download App Row -->
-      <a href="download" class="settings-row" id="rowDownloadApp">
+      <a href="/download" class="settings-row" id="rowDownloadApp">
         <div class="row-lead">
           <span class="row-icon">
             <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -895,7 +927,7 @@
         <div style="font-size: 0.82rem; color: var(--text-sub);">Signed in as</div>
         <div style="font-size: 0.95rem; font-weight: 600; color: #fff; margin-top: 2px;" id="modalEmailDisplay">user@example.com</div>
         <div style="display: flex; gap: 8px; margin-top: 8px;">
-          <span id="profileRoleBadge" style="font-size: 0.75rem; background: rgba(59,130,246,0.2); color: #60a5fa; padding: 2px 8px; border-radius: 999px; font-weight: 600;">Member</span>
+          <span id="profileRoleBadge" style="font-size: 0.75rem; background: rgba(255,255,255,0.12); color: var(--text-main); padding: 2px 8px; border-radius: 999px; font-weight: 600;">Member</span>
           <span id="profilePlanBadge" style="font-size: 0.75rem; background: rgba(255,255,255,0.1); color: #e4e4e7; padding: 2px 8px; border-radius: 999px; font-weight: 600;">Free Plan</span>
         </div>
       </div>
@@ -930,7 +962,7 @@
         <div style="font-size: 1.8rem; font-weight: 800; color: #fff; margin: 4px 0 2px;" id="currentPlanTitleModal">Free Plan</div>
         <div style="font-size: 0.88rem; color: var(--accent-blue);" id="currentPlanExpiry">Validity: Lifetime / No Expiry</div>
       </div>
-      <button type="button" class="btn-submit" onclick="window.location.href='plans'">
+      <button type="button" class="btn-submit" onclick="window.location.href='/pricing'">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
         <span>View All Plans & Upgrade</span>
       </button>
@@ -960,13 +992,13 @@
       <div class="quota-meter-box" id="accountImageQuotaCard" style="margin-top: 10px;">
         <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
           <span style="font-weight: 600; display: flex; align-items: center; gap: 6px;" id="imageQuotaCardTitle">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #ec4899;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #71717a;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
             <span id="imageQuotaTitleText">Image Generation Quota</span>
           </span>
           <span id="imageQuotaCountDisplay"><strong id="imageQuotaRemainingDigits">5</strong> / <span id="imageQuotaTotalDigits">5</span> left</span>
         </div>
         <div class="account-quota-track" id="accountImageQuotaTrack">
-          <div class="account-quota-fill" id="accountImageQuotaFill" style="background: linear-gradient(90deg, #ec4899, #8b5cf6);"></div>
+          <div class="account-quota-fill" id="accountImageQuotaFill" style="background: var(--accent-blue);"></div>
         </div>
         <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--text-sub);">
           <span id="imageQuotaResetLabel">Reset in:</span>
@@ -1028,11 +1060,11 @@
         </div>
         <div style="padding: 10px; background: rgba(255,255,255,0.03); border-radius: 12px;">
           <div style="font-size: 0.82rem; color: var(--text-sub);">Support Contact</div>
-          <div style="color: #60a5fa; font-weight: 600;">x@zihan.uk</div>
+          <div style="color: var(--text-main); font-weight: 600;">x@zihan.uk</div>
         </div>
         <div style="padding: 10px; background: rgba(255,255,255,0.03); border-radius: 12px;">
           <div style="font-size: 0.82rem; color: var(--text-sub);">Official Portal</div>
-          <div style="color: #60a5fa; font-weight: 600;">https://alora.zihan.xyz</div>
+          <div style="color: var(--text-main); font-weight: 600;">https://alora.zihan.xyz</div>
         </div>
         <div style="font-size: 0.8rem; color: var(--text-sub); text-align: center; margin-top: 8px;">
           Version 2.0.0 (Native AMOLED Edition)
@@ -1081,15 +1113,15 @@
         const tab = urlParams.get("tab");
         if (tab) {
           const tabRedirects = {
-            "tabPlan": "subscription.html", "subscription": "subscription.html", "settingsPlanView": "subscription.html",
-            "limits": "usage.html", "settingsLimitsView": "usage.html", "usage": "usage.html",
-            "redeem": "redeem.html", "settingsRedeemView": "redeem.html",
-            "account": "security.html", "settingsAccountView": "security.html", "security": "security.html",
-            "help": "help.html",
-            "profile": "profile.html",
-            "theme": "theme.html",
-            "sound": "sound.html",
-            "personalization": "personalization.html"
+            "tabPlan": "/subscription", "subscription": "/subscription", "settingsPlanView": "/subscription",
+            "limits": "/usage", "settingsLimitsView": "/usage", "usage": "/usage",
+            "redeem": "/redeem", "settingsRedeemView": "/redeem",
+            "account": "/security", "settingsAccountView": "/security", "security": "/security",
+            "help": "/help",
+            "profile": "/profile",
+            "theme": "/theme",
+            "sound": "/sound",
+            "personalization": "/personalization"
           };
           if (tabRedirects[tab]) {
             window.location.replace(tabRedirects[tab]);
@@ -1255,6 +1287,9 @@
       const personalizationRowLabel = document.getElementById("personalizationRowLabel");
       if (personalizationRowLabel) personalizationRowLabel.textContent = d.personalizationLabel;
 
+      const soundRowLabel = document.getElementById("soundRowLabel");
+      if (soundRowLabel) soundRowLabel.textContent = d.soundLabel || (isEn ? "Sound & Audio" : "শব্দ");
+
       const helpRowLabel = document.getElementById("helpRowLabel");
       if (helpRowLabel) helpRowLabel.textContent = d.helpLabel;
 
@@ -1352,18 +1387,18 @@
     });
 
     // Row Click Listeners - Navigate to dedicated standalone pages
-    document.getElementById("rowEditProfile")?.addEventListener("click", () => { window.location.href = "profile"; });
-    document.getElementById("rowAccount")?.addEventListener("click", () => { window.location.href = "security"; });
-    document.getElementById("rowSubscription")?.addEventListener("click", () => { window.location.href = "subscription"; });
-    document.getElementById("rowUsage")?.addEventListener("click", () => { window.location.href = "usage"; });
-    document.getElementById("rowUpgrade")?.addEventListener("click", () => { window.location.href = "plans"; });
-    document.getElementById("rowTheme")?.addEventListener("click", () => { window.location.href = "theme"; });
-    document.getElementById("rowPersonalization")?.addEventListener("click", () => { window.location.href = "personalization"; });
-    document.getElementById("rowHelp")?.addEventListener("click", () => { window.location.href = "help"; });
-    document.getElementById("rowRedeem")?.addEventListener("click", () => { window.location.href = "redeem"; });
+    document.getElementById("rowEditProfile")?.addEventListener("click", () => { window.location.href = "/profile"; });
+    document.getElementById("rowAccount")?.addEventListener("click", () => { window.location.href = "/security"; });
+    document.getElementById("rowSubscription")?.addEventListener("click", () => { window.location.href = "/subscription"; });
+    document.getElementById("rowUsage")?.addEventListener("click", () => { window.location.href = "/usage"; });
+    document.getElementById("rowUpgrade")?.addEventListener("click", () => { window.location.href = "/pricing"; });
+    document.getElementById("rowTheme")?.addEventListener("click", () => { window.location.href = "/theme"; });
+    document.getElementById("rowPersonalization")?.addEventListener("click", () => { window.location.href = "/personalization"; });
+    document.getElementById("rowHelp")?.addEventListener("click", () => { window.location.href = "/help"; });
+    document.getElementById("rowRedeem")?.addEventListener("click", () => { window.location.href = "/redeem"; });
     document.getElementById("rowDownloadApp")?.addEventListener("click", (e) => {
       e.preventDefault();
-      window.location.href = "download";
+      window.location.href = "/download";
     });
 
     // Language Toggle
@@ -1450,14 +1485,14 @@
 
     // API & Auth Config
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const BACKEND_URL = (isLocal && window.location.port === '5000') 
-      ? window.location.origin 
-      : (isLocal ? 'http://localhost:5000' : (window.location.origin.includes('vercel.app') ? window.location.origin : 'https://alora-backend-emw3.onrender.com'));
+    const BACKEND_URL = isLocal
+      ? (window.location.port === '5000' ? '' : 'http://localhost:5000')
+      : (window.location.hostname.endsWith('onrender.com') ? '' : 'https://alora-backend-emw3.onrender.com');
     const API_BASE = BACKEND_URL + "/api";
 
     const token = localStorage.getItem("alokpoth_token");
     if (!token) {
-      window.location.href = "/";
+      window.location.href = "/auth/login";
     }
 
     let dynamicPlanLimits = {
@@ -1513,7 +1548,7 @@
         if (res.status === 401) {
           localStorage.removeItem("alokpoth_token");
           localStorage.removeItem("alokpoth_user");
-          window.location.href = "login";
+          window.location.href = "/auth/login";
           return;
         }
         const data = await res.json();
@@ -1566,7 +1601,7 @@
           } else {
             avatarEl.innerHTML = "";
             avatarEl.textContent = (userName || userEmail || "U").charAt(0).toUpperCase();
-            avatarEl.style.background = "linear-gradient(135deg, #2563eb, #38bdf8)";
+            avatarEl.style.background = "#343434";
           }
         }
 
@@ -1837,6 +1872,7 @@
         });
         const data = await res.json();
         if (res.ok && data.success) {
+          if (data.token) localStorage.setItem("alokpoth_token", data.token);
           const userStr = localStorage.getItem("alokpoth_user");
           if (userStr) {
             try {

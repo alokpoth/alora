@@ -61,4 +61,18 @@ mongoose.connection.on('error', (err) => {
 
 const getIsMongoConnected = () => isMongoConnected && mongoose.connection.readyState === 1;
 
-module.exports = { connectDB, getIsMongoConnected };
+let hasAttemptedInitialConnect = false;
+const ensureDBConnected = async () => {
+  if (getIsMongoConnected()) return true;
+  if (hasAttemptedInitialConnect && !cachedPromise) return false;
+  hasAttemptedInitialConnect = true;
+  try {
+    await Promise.race([
+      connectDB(),
+      new Promise((resolve) => setTimeout(resolve, 2600))
+    ]);
+  } catch (e) {}
+  return getIsMongoConnected();
+};
+
+module.exports = { connectDB, getIsMongoConnected, ensureDBConnected };

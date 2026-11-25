@@ -1,5 +1,5 @@
-/* Alora AI - Progressive Web App Service Worker (v2.0.1) */
-const CACHE_NAME = 'alora-ai-v2.0.1';
+/* Alora AI - Progressive Web App Service Worker (v3.0.0) */
+const CACHE_NAME = 'alora-ai-v3.0.0';
 
 // Core assets to pre-cache on service worker install
 const CORE_ASSETS = [
@@ -282,9 +282,21 @@ self.addEventListener('fetch', (event) => {
           const cached = await caches.match(req);
           if (cached) return cached;
 
-          // Clean URL handling (e.g. /download -> /download.html)
-          const cleanPath = url.pathname;
-          const htmlPath = cleanPath.endsWith('.html') ? cleanPath : `${cleanPath.replace(/\/$/, '')}.html`;
+          // Clean URL & ChatGPT Route Mapping
+          const cleanPath = url.pathname.replace(/\/+$/, '') || '/';
+          if (cleanPath === '/auth/login' || cleanPath === '/auth/signup' || cleanPath === '/login' || cleanPath === '/signup') {
+            const authCached = await caches.match('/login.html');
+            if (authCached) return authCached;
+          }
+          if (cleanPath === '/pricing' || cleanPath === '/plans') {
+            const plansCached = await caches.match('/plans.html');
+            if (plansCached) return plansCached;
+          }
+          if (cleanPath.startsWith('/c/') || cleanPath.startsWith('/share/') || cleanPath.startsWith('/settings')) {
+            const appCached = (await caches.match('/index.html')) || (await caches.match('/'));
+            if (appCached) return appCached;
+          }
+          const htmlPath = cleanPath.endsWith('.html') ? cleanPath : `${cleanPath}.html`;
           const altCached = await caches.match(htmlPath);
           if (altCached) return altCached;
 
@@ -292,7 +304,7 @@ self.addEventListener('fetch', (event) => {
           const fallback = (await caches.match('/index.html')) || (await caches.match('/'));
           if (fallback) return fallback;
 
-          // Final offline page fallback
+          // Final monochrome offline page fallback
           return new Response(
             `<!DOCTYPE html>
 <html lang="bn">
@@ -301,12 +313,12 @@ self.addEventListener('fetch', (event) => {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Offline — Alora</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #09090b; color: #fff; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; text-align: center; padding: 24px; box-sizing: border-box; }
-    .box { max-width: 420px; background: #18181b; border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 32px 24px; box-shadow: 0 12px 32px rgba(0,0,0,0.5); }
-    h1 { font-size: 1.4rem; margin-bottom: 10px; font-weight: 700; }
-    p { color: #a1a1aa; font-size: 0.95rem; line-height: 1.6; margin-bottom: 24px; }
-    button { background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff; border: none; padding: 12px 28px; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 1rem; transition: opacity 0.2s; }
-    button:active { opacity: 0.8; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #212121; color: #ececec; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; text-align: center; padding: 24px; box-sizing: border-box; }
+    .box { max-width: 400px; background: #2a2a2a; border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 32px 24px; box-shadow: 0 12px 32px rgba(0,0,0,0.5); }
+    h1 { font-size: 1.35rem; margin-bottom: 10px; font-weight: 700; }
+    p { color: #b4b4b4; font-size: 0.92rem; line-height: 1.6; margin-bottom: 24px; }
+    button { background: #ffffff; color: #000000; border: none; padding: 12px 28px; border-radius: 9999px; font-weight: 600; cursor: pointer; font-size: 0.95rem; transition: opacity 0.2s; }
+    button:active { opacity: 0.85; }
   </style>
 </head>
 <body>

@@ -424,7 +424,7 @@ const getMe = async (req, res) => {
 
       const planImageLimit = (plan.image_limit !== undefined && !isNaN(Number(plan.image_limit)))
         ? Number(plan.image_limit)
-        : (currentPlanName === 'Free' ? 3 : (currentPlanName === 'Pro' ? 20 : 100));
+        : (currentPlanName === 'Free' ? 5 : (currentPlanName === 'Pro' ? 25 : 100));
       
       rateLimit = {
         used: messageCount,
@@ -495,6 +495,8 @@ const getMe = async (req, res) => {
     res.json({
       success: true,
       token: refreshedToken,
+      rateLimit,
+      usage,
       user: {
         _id: finalId,
         id: finalId,
@@ -627,8 +629,10 @@ const updateProfile = async (req, res) => {
     invalidateCachedUser(targetUserId);
     if (user.email) invalidateCachedUser(user.email);
 
+    const refreshedToken = generateToken(user);
     res.json({
       success: true,
+      token: refreshedToken,
       user: { _id: user._id || user.id, id: user._id || user.id, name: user.name, email: user.email, role: user.role, subscription: user.subscription, avatar: user.avatar }
     });
   } catch (error) {
@@ -676,7 +680,7 @@ const changePassword = async (req, res) => {
       if (!user) {
         return res.status(404).json({ success: false, error: 'ব্যবহারকারী পাওয়া যায়নি' });
       }
-      const isMatch = await bcrypt.compare(current_password, user.password);
+      const isMatch = await bcrypt.compare(current_password.trim(), user.password) || await bcrypt.compare(current_password, user.password);
       if (!isMatch) {
         return res.status(400).json({ success: false, error: 'বর্তমান পাসওয়ার্ডটি সঠিক নয়' });
       }
@@ -695,7 +699,7 @@ const changePassword = async (req, res) => {
         return res.status(404).json({ success: false, error: 'ব্যবহারকারী পাওয়া যায়নি' });
       }
 
-      const isMatch = await bcrypt.compare(current_password, targetUser.password);
+      const isMatch = await bcrypt.compare(current_password.trim(), targetUser.password) || await bcrypt.compare(current_password, targetUser.password);
       if (!isMatch) {
         return res.status(400).json({ success: false, error: 'বর্তমান পাসওয়ার্ডটি সঠিক নয়' });
       }
@@ -785,6 +789,67 @@ const googleAuth = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, loginUser, getMe, updateProfile, changePassword, forgotPassword, googleAuth };
+
+const deleteAccount = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ success: false, error: 'অননুমোদিত রিকোয়েস্ট' });
+    }
+    const userId = String(req.user._id || req.user.id || '');
+    const userEmail = String(req.user.email || '').toLowerCase().trim();
+    if (isSuperAdminEmail(userEmail)) {
+      return res.status(400).json({ success: false, error: 'মূল অ্যাডমিন অ্যাকাউন্ট মুছে ফেলা সম্ভব নয়।' });
+    }
+
+    if (getIsMongoConnected()) {
+      const UsageLog = require('../models/UsageLog');
+      const queryOr = [];
+      if (mongoose.Types.ObjectId.isValid(userId)) queryOr.push({ _id: userId });
+      if (userId) queryOr.push({ id: userId });
+      if (userEmail) queryOr.push({ email: userEmail });
+      if (queryOr.length > 0) {
+        await User.deleteMany({ $or: queryOr }).catch(() => {});
+      }
+      await UsageLog.deleteMany({ user_id: userId }).catch(() => {});
+    }
+
+    try {
+      const { getPersistedUsers, savePersistedUsers, invalidateUsersCache, invalidateUserUsageCache } = require('../../utils/getModelConfig');
+      let users = await getPersistedUsers();
+      users = users.filter(u => {
+        const uId = String(u._id || u.id || '');
+        const uEm = String(u.email || '').toLowerCase().trim();
+        return uId !== userId && (!userEmail || uEm !== userEmail);
+      });
+      await savePersistedUsers(users);
+      if (memoryStore.users) {
+        memoryStore.users = memoryStore.users.filter(u => {
+          const uId = String(u._id || u.id || '');
+          const uEm = String(u.email || '').toLowerCase().trim();
+          return uId !== userId && (!userEmail || uEm !== userEmail);
+        });
+      }
+      if (memoryStore.usageLogs) {
+        memoryStore.usageLogs = memoryStore.usageLogs.filter(l => String(l.user_id) !== userId);
+      }
+      debouncedSave();
+      if (typeof invalidateUsersCache === 'function') invalidateUsersCache();
+      if (typeof invalidateUserUsageCache === 'function') {
+        invalidateUserUsageCache(userId);
+        if (userEmail) invalidateUserUsageCache(userEmail);
+      }
+    } catch (e) {}
+
+    invalidateCachedUser(userId);
+    if (userEmail) invalidateCachedUser(userEmail);
+
+    return res.json({ success: true, message: 'আপনার অ্যাকাউন্ট সম্পূর্ণ মুছে ফেলা হয়েছে।' });
+  } catch (error) {
+    return res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+module.exports = { registerUser, loginUser, getMe, updateProfile, changePassword, forgotPassword, googleAuth, deleteAccount };
+
 
 

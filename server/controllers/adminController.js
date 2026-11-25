@@ -451,7 +451,12 @@ const deleteUser = async (req, res) => {
     }
     const cleanTarget = String(userId).toLowerCase().trim();
 
-    if (isSuperAdminEmail(cleanTarget) || (req.user && (cleanTarget === String(req.user._id).toLowerCase() || cleanTarget === String(req.user.id).toLowerCase() || isSuperAdminEmail(req.user.email)))) {
+    const isSelfTarget = Boolean(req.user && (
+      cleanTarget === String(req.user._id || '').toLowerCase() ||
+      cleanTarget === String(req.user.id || '').toLowerCase() ||
+      (req.user.email && cleanTarget === String(req.user.email).toLowerCase().trim())
+    ));
+    if (isSuperAdminEmail(cleanTarget) || isSelfTarget) {
       return res.status(400).json({ success: false, error: 'মূল অ্যাডমিন অ্যাকাউন্ট মুছে ফেলা সম্ভব নয়।' });
     }
 
@@ -571,7 +576,7 @@ const getPlans = async (req, res) => {
       const obj = { ...p };
       obj.image_limit = (obj.image_limit !== undefined && obj.image_limit !== null && !isNaN(Number(obj.image_limit)))
         ? Number(obj.image_limit)
-        : (obj.name === 'Free' ? 3 : (obj.name === 'Pro' ? 20 : 100));
+        : (obj.name === 'Free' ? 5 : (obj.name === 'Pro' ? 25 : 100));
       return obj;
     });
     return res.json({ success: true, count: plans.length, plans });
@@ -633,8 +638,8 @@ const updatePlanLimits = async (req, res) => {
           displayName: validDisplayName || defaultNames[planName] || (planName + ' প্ল্যান'),
           message_limit: validLimit !== undefined ? validLimit : 10,
           window_hours: validWindow !== undefined ? validWindow : 3,
-          image_limit: validImageLimit !== undefined ? validImageLimit : (planName === 'Free' ? 3 : (planName === 'Pro' ? 20 : 100)),
-          allowed_models: validModels || (planName === 'Free' ? ['openrouter/free', 'gemini-3.5-flash-lite', 'mimo-v2.5', 'hy3'] : ['*']),
+          image_limit: validImageLimit !== undefined ? validImageLimit : (planName === 'Free' ? 5 : (planName === 'Pro' ? 25 : 100)),
+          allowed_models: validModels || ['*'],
           is_active: true
         });
       }
@@ -702,8 +707,8 @@ const updatePlanLimits = async (req, res) => {
           displayName: validDisplayName || defaultNames[planName] || (planName + ' প্ল্যান'),
           message_limit: validLimit !== undefined ? validLimit : 10,
           window_hours: validWindow !== undefined ? validWindow : 3,
-          image_limit: validImageLimit !== undefined ? validImageLimit : (planName === 'Free' ? 3 : (planName === 'Pro' ? 20 : 100)),
-          allowed_models: validModels || (planName === 'Free' ? ['openrouter/free', 'gemini-3.5-flash-lite', 'mimo-v2.5', 'hy3'] : ['*']),
+          image_limit: validImageLimit !== undefined ? validImageLimit : (planName === 'Free' ? 5 : (planName === 'Pro' ? 25 : 100)),
+          allowed_models: validModels || ['*'],
           is_active: true
         };
         plans.push(plan);
@@ -1059,6 +1064,14 @@ const normalizeBaseUrl = (url) => {
   let trimmed = url.trim();
   if (!trimmed) return '';
   if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) return '';
+  if (
+    trimmed.includes(':streamGenerateContent') ||
+    trimmed.includes(':generateContent') ||
+    trimmed.includes('/v1/messages') ||
+    trimmed.includes('/models/')
+  ) {
+    return trimmed;
+  }
   trimmed = trimmed.replace(/\/+$/, '');
   if (!trimmed.endsWith('/chat/completions')) {
     if (trimmed.endsWith('/completions')) {
@@ -1075,11 +1088,20 @@ const updateModel = async (req, res) => {
     let { modelId } = req.params;
     try { modelId = decodeURIComponent(modelId); } catch {}
     const {
-      premium, efficient, name,
+      premium, efficient, name, description, provider, type, is_active, context_window, order,
       base_url, api_key, clear_api_key, api_model_1,
       fallback_url_1, fallback_key_1, fallback_model_1, api_model_2, clear_fallback_key_1,
       fallback_url_2, fallback_key_2, fallback_model_2, api_model_3, clear_fallback_key_2
     } = req.body;
+
+    const effPremium = premium !== undefined ? (premium === true || premium === 'true' || premium === 1 || premium === '1') : undefined;
+    const effEfficient = efficient !== undefined ? (efficient === true || efficient === 'true' || efficient === 1 || efficient === '1') : undefined;
+    const cleanIsActive = is_active !== undefined ? (is_active === true || is_active === 'true' || is_active === 1 || is_active === '1') : undefined;
+    const cleanContext = (context_window !== undefined && !isNaN(Number(context_window)) && Number(context_window) > 0) ? Number(context_window) : undefined;
+    const cleanOrder = (order !== undefined && !isNaN(Number(order))) ? Number(order) : undefined;
+    const cleanProvider = (typeof provider === 'string' && provider.trim()) ? provider.trim().slice(0, 50) : undefined;
+    const cleanType = (typeof type === 'string' && type.trim()) ? type.trim().slice(0, 50) : undefined;
+    const cleanDesc = description !== undefined ? String(description || '').trim().slice(0, 300) : undefined;
 
     const hasValidKey = typeof api_key === 'string' && api_key.trim().length > 0;
     const shouldClearKey = clear_api_key === true || (typeof api_key === 'string' && api_key.trim() === '');
@@ -1100,28 +1122,33 @@ const updateModel = async (req, res) => {
     const hasFbKey2 = typeof fallback_key_2 === 'string' && fallback_key_2.trim().length > 0;
     const shouldClearFbKey2 = clear_fallback_key_2 === true || (typeof fallback_key_2 === 'string' && fallback_key_2.trim() === '');
 
-    // 1. Save api_key in Supabase api_keys table only if non-empty or explicitly requested to clear
     if (hasValidKey) {
       await upsertApiKeyToSupabase(modelId, api_key.trim());
     } else if (shouldClearKey) {
       await upsertApiKeyToSupabase(modelId, '');
     }
 
-    // 2. If Mongo connected, update or create Mongo document with fields
+    const { getPersistedModels, savePersistedModels, invalidateModelsCache, invalidateModelKeyCache, getApiKeyFromSupabase, removeDeletedModelId } = require('../../utils/getModelConfig');
+    if (typeof removeDeletedModelId === 'function') {
+      await removeDeletedModelId(modelId);
+    }
+
     if (getIsMongoConnected()) {
       let mongoModel = await AiModel.findOne({ $or: [{ model_id: modelId }, { id: modelId }] });
       if (mongoModel) {
-        if (effPremium !== undefined) mongoModel.premium = Boolean(effPremium);
-        if (effEfficient !== undefined) mongoModel.efficient = Boolean(effEfficient);
+        if (effPremium !== undefined) mongoModel.premium = effPremium;
+        if (effEfficient !== undefined) mongoModel.efficient = effEfficient;
         if (cleanIsActive !== undefined) mongoModel.is_active = cleanIsActive;
         if (cleanContext !== undefined) mongoModel.context_window = cleanContext;
+        if (cleanOrder !== undefined) mongoModel.order = cleanOrder;
+        if (cleanProvider !== undefined) mongoModel.provider = cleanProvider;
+        if (cleanType !== undefined) mongoModel.type = cleanType;
         if (name !== undefined) mongoModel.name = (typeof name === 'string' && name.trim()) ? name.trim().slice(0, 100) : (modelId || 'Alo AI');
         if (cleanBaseUrl !== undefined) mongoModel.base_url = cleanBaseUrl;
         if (cleanApiModel1 !== undefined) mongoModel.api_model_1 = cleanApiModel1;
         if (hasValidKey) mongoModel.api_key = api_key.trim();
         else if (shouldClearKey) mongoModel.api_key = '';
 
-        // Fallback 1 (API 2)
         if (cleanFbUrl1 !== undefined) mongoModel.fallback_url_1 = cleanFbUrl1;
         if (cleanFbModel1 !== undefined) {
           mongoModel.fallback_model_1 = cleanFbModel1;
@@ -1130,7 +1157,6 @@ const updateModel = async (req, res) => {
         if (hasFbKey1) mongoModel.fallback_key_1 = fallback_key_1.trim();
         else if (shouldClearFbKey1) mongoModel.fallback_key_1 = '';
 
-        // Fallback 2 (API 3)
         if (cleanFbUrl2 !== undefined) mongoModel.fallback_url_2 = cleanFbUrl2;
         if (cleanFbModel2 !== undefined) {
           mongoModel.fallback_model_2 = cleanFbModel2;
@@ -1141,7 +1167,8 @@ const updateModel = async (req, res) => {
 
         await mongoModel.save();
       } else {
-        await AiModel.create({
+        const count = await AiModel.countDocuments();
+        mongoModel = await AiModel.create({
           model_id: modelId,
           name: (typeof name === 'string' && name.trim()) ? name.trim().slice(0, 100) : (modelId || 'Alo AI'),
           base_url: cleanBaseUrl || '',
@@ -1155,20 +1182,28 @@ const updateModel = async (req, res) => {
           fallback_key_2: hasFbKey2 ? fallback_key_2.trim() : '',
           fallback_model_2: cleanFbModel2 || '',
           api_model_3: cleanFbModel2 || '',
-          premium: Boolean(premium),
-          efficient: Boolean(efficient),
-          provider: 'Alora',
-          type: 'custom',
-          order: 99
-        }).catch(() => {});
+          premium: Boolean(effPremium),
+          efficient: Boolean(effEfficient),
+          is_active: cleanIsActive !== undefined ? cleanIsActive : true,
+          context_window: cleanContext || 8192,
+          provider: cleanProvider || 'Alora',
+          type: cleanType || 'custom',
+          order: cleanOrder !== undefined ? cleanOrder : (count + 1)
+        });
       }
+
+      const freshMongo = await AiModel.find().sort({ order: 1, createdAt: 1 }).lean();
+      const syncedModels = freshMongo.map(m => ({ ...m, id: m.id || m.model_id, model_id: m.model_id || m.id }));
+      await savePersistedModels(syncedModels);
+      invalidateModelsCache();
+      invalidateModelKeyCache(modelId);
+      invalidateCachedModels();
+      await saveBackup();
+
+      const modelOut = syncedModels.find(m => m.id === modelId || m.model_id === modelId) || mongoModel;
+      return res.json({ success: true, message: 'মডেল ও ৩টি API কনফিগারেশন সফলভাবে আপডেট হয়েছে', model: modelOut });
     }
 
-    // 3. ALWAYS update Supabase __models_metadata__ and local memoryStore
-    const { getPersistedModels, savePersistedModels, invalidateModelsCache, invalidateModelKeyCache, getApiKeyFromSupabase, removeDeletedModelId } = require('../../utils/getModelConfig');
-    if (typeof removeDeletedModelId === 'function') {
-      await removeDeletedModelId(modelId);
-    }
     let models = await getPersistedModels();
     models = [...models];
     let model = models.find(m => m.id === modelId || m.model_id === modelId || (m.id && decodeURIComponent(m.id) === modelId));
@@ -1178,6 +1213,7 @@ const updateModel = async (req, res) => {
         id: modelId,
         model_id: modelId,
         name: (typeof name === 'string' && name.trim()) ? name.trim().slice(0, 100) : (modelId || 'Alo AI'),
+        description: cleanDesc || '',
         base_url: cleanBaseUrl || '',
         api_key: hasValidKey ? api_key.trim() : (dbKey || ''),
         api_model_1: cleanApiModel1 || modelId,
@@ -1189,21 +1225,29 @@ const updateModel = async (req, res) => {
         fallback_key_2: hasFbKey2 ? fallback_key_2.trim() : '',
         fallback_model_2: cleanFbModel2 || '',
         api_model_3: cleanFbModel2 || '',
-        premium: Boolean(premium),
-        efficient: Boolean(efficient),
-        provider: 'Alora',
-        type: 'custom',
-        order: models.length + 1
+        premium: Boolean(effPremium),
+        efficient: Boolean(effEfficient),
+        is_active: cleanIsActive !== undefined ? cleanIsActive : true,
+        context_window: cleanContext || 8192,
+        provider: cleanProvider || 'Alora',
+        type: cleanType || 'custom',
+        order: cleanOrder !== undefined ? cleanOrder : (models.length + 1)
       };
       models.push(model);
     } else {
       model.id = modelId;
       model.model_id = modelId;
       if (name !== undefined) model.name = (typeof name === 'string' && name.trim()) ? name.trim().slice(0, 100) : (modelId || 'Alo AI');
+      if (cleanDesc !== undefined) model.description = cleanDesc;
       if (cleanBaseUrl !== undefined) model.base_url = cleanBaseUrl;
       if (cleanApiModel1 !== undefined) model.api_model_1 = cleanApiModel1;
-      if (premium !== undefined) model.premium = Boolean(premium);
-      if (efficient !== undefined) model.efficient = Boolean(efficient);
+      if (effPremium !== undefined) model.premium = effPremium;
+      if (effEfficient !== undefined) model.efficient = effEfficient;
+      if (cleanIsActive !== undefined) model.is_active = cleanIsActive;
+      if (cleanContext !== undefined) model.context_window = cleanContext;
+      if (cleanOrder !== undefined) model.order = cleanOrder;
+      if (cleanProvider !== undefined) model.provider = cleanProvider;
+      if (cleanType !== undefined) model.type = cleanType;
 
       if (cleanFbUrl1 !== undefined) model.fallback_url_1 = cleanFbUrl1;
       if (cleanFbModel1 !== undefined) {
@@ -1388,6 +1432,19 @@ const deleteModel = async (req, res) => {
         queryList.push({ _id: cleanDecoded });
       }
       await AiModel.deleteMany({ $or: queryList }).catch(() => {});
+      const remainingMongo = await AiModel.find().sort({ order: 1, createdAt: 1 });
+      for (let i = 0; i < remainingMongo.length; i++) {
+        if (remainingMongo[i].order !== i + 1) {
+          remainingMongo[i].order = i + 1;
+          await remainingMongo[i].save().catch(() => {});
+        }
+      }
+      try {
+        await Plan.updateMany(
+          { allowed_models: { $in: [cleanModelId, cleanDecoded] } },
+          { $pull: { allowed_models: { $in: [cleanModelId, cleanDecoded] } } }
+        );
+      } catch (e) {}
     }
 
     // 2. Delete individual model api_key rows from Supabase api_keys table
@@ -1537,6 +1594,7 @@ const reorderModels = async (req, res) => {
 
       await savePersistedModels(reordered);
       invalidateModelsCache();
+      invalidateModelKeyCache();
       invalidateCachedModels();
       debouncedSave();
       await saveBackup();

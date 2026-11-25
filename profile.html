@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
-  <meta name="theme-color" content="#000000">
+  <meta name="theme-color" content="#212121">
   <title>Edit Profile — Alora</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=3">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png?v=3">
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png?v=3">
-  <link rel="shortcut icon" href="favicon.ico?v=3">
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=3">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=3">
+  <link rel="shortcut icon" href="/favicon.ico?v=3">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -19,18 +19,19 @@
       --bg-base: #000000;
       --bg-card: #121214;
       --bg-card-elevated: #18181b;
-      --bg-card-hover: #222226;
+      --bg-card-hover: #2f2f2f;
       --border-card: rgba(255, 255, 255, 0.08);
       --border-strong: rgba(255, 255, 255, 0.16);
       --border-divider: rgba(255, 255, 255, 0.06);
-      --text-main: #ffffff;
+      --text-main: #ececec;
       --text-sub: #a1a1aa;
       --text-dim: #71717a;
-      --accent-blue: #3b82f6;
-      --accent-blue-hover: #2563eb;
+      --accent-blue: #ececec;
+      --accent-ink: #0d0d0d;
+      --accent-blue-hover: #ffffff;
       --accent-danger: #ef4444;
       --danger-bg: rgba(239, 68, 68, 0.1);
-      --success-green: #10b981;
+      --success-green: var(--accent-blue);
       --radius-sm: 8px;
       --radius-md: 12px;
       --radius-lg: 18px;
@@ -38,7 +39,7 @@
     }
 
     [data-theme="dark"] {
-      --bg-base: #09090b;
+      --bg-base: #212121;
       --bg-card: #141416;
       --bg-card-elevated: #1a1a1e;
       --bg-card-hover: #242428;
@@ -65,23 +66,25 @@
       --border-divider: rgba(56, 189, 248, 0.08);
       --text-main: #f8fafc;
       --text-sub: #94a3b8;
-      --accent-blue: #38bdf8;
-      --accent-blue-hover: #0284c7;
+      --accent-blue: #ececec;
+      --accent-ink: #0d0d0d;
+      --accent-blue-hover: #ffffff;
     }
 
     [data-theme="light"] {
-      --bg-base: #f4f4f5;
+      --bg-base: #ffffff;
       --bg-card: #ffffff;
       --bg-card-elevated: #f8fafc;
-      --bg-card-hover: #f1f5f9;
+      --bg-card-hover: #ececec;
       --border-card: rgba(0, 0, 0, 0.08);
       --border-strong: rgba(0, 0, 0, 0.16);
       --border-divider: rgba(0, 0, 0, 0.05);
-      --text-main: #09090b;
+      --text-main: #0d0d0d;
       --text-sub: #52525b;
       --text-dim: #71717a;
-      --accent-blue: #2563eb;
-      --accent-blue-hover: #1d4ed8;
+      --accent-blue: #0d0d0d;
+      --accent-ink: #ffffff;
+      --accent-blue-hover: #2f2f2f;
       --danger-bg: rgba(239, 68, 68, 0.08);
     }
 
@@ -96,8 +99,9 @@
       --text-main: #4a3b2c;
       --text-sub: #7a6b5c;
       --text-dim: #9e8e7e;
-      --accent-blue: #92400e;
-      --accent-blue-hover: #78350f;
+      --accent-blue: #2d2318;
+      --accent-ink: #f5eedc;
+      --accent-blue-hover: #1f170f;
     }
 
     *, *::before, *::after {
@@ -259,14 +263,14 @@
       width: 92px;
       height: 92px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #2563eb, #38bdf8);
+      background: #343434;
       color: #ffffff;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 2.4rem;
       font-weight: 800;
-      box-shadow: 0 8px 24px rgba(37, 99, 235, 0.3);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
       border: 2px solid var(--border-strong);
       overflow: hidden;
       flex-shrink: 0;
@@ -304,9 +308,9 @@
       padding: 4px 10px;
       border-radius: 8px;
       font-weight: 700;
-      background: rgba(59, 130, 246, 0.15);
-      color: #60a5fa;
-      border: 1px solid rgba(59, 130, 246, 0.3);
+      background: rgba(255, 255, 255, 0.15);
+      color: var(--text-main);
+      border: 1px solid rgba(255, 255, 255, 0.3);
       letter-spacing: 0.02em;
     }
     .badge-pill.plan {
@@ -385,11 +389,11 @@
     }
     .avatar-option:hover {
       transform: scale(1.08);
-      border-color: rgba(59, 130, 246, 0.6);
+      border-color: rgba(255, 255, 255, 0.6);
     }
     .avatar-option.selected {
       border-color: var(--accent-blue);
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35);
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.35);
       transform: scale(1.04);
     }
     .avatar-option img {
@@ -404,7 +408,7 @@
       font-weight: 800;
       font-size: 1.15rem;
       color: #ffffff;
-      background: linear-gradient(135deg, #2563eb, #38bdf8);
+      background: #343434;
       border-color: transparent;
     }
     .avatar-option-badge {
@@ -464,7 +468,7 @@
     }
     .form-input:focus {
       border-color: var(--accent-blue);
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.25);
     }
     .form-input.is-invalid {
       border-color: var(--accent-danger) !important;
@@ -498,7 +502,7 @@
       height: 46px;
       border-radius: var(--radius-md);
       background: var(--accent-blue);
-      color: #ffffff;
+      color: var(--accent-ink, #0d0d0d);
       border: none;
       font-size: 0.98rem;
       font-weight: 600;
@@ -552,9 +556,9 @@
       from { opacity: 0; transform: translate(-50%, 8px); }
       to { opacity: 1; transform: translate(-50%, 0); }
     }
-    .toast.success { border-color: var(--success-green); color: #6ee7b7; }
+    .toast.success { border-color: rgba(255, 255, 255, 0.28); color: #ececec; }
     .toast.error { border-color: var(--accent-danger); color: #fca5a5; }
-    .toast.info { border-color: var(--accent-blue); color: #93c5fd; }
+    .toast.info { border-color: rgba(255, 255, 255, 0.25); color: #ececec; }
   
     /* Clean Modern Controls (Vercel/Linear Design System) */
     button, .btn, .btn-primary, .btn-secondary, .page-back-btn, .option-card, .btn-test-sound, .auth-btn, .download-btn, .plan-cta-btn, .plan-toggle-btn, .pill-btn, .tab-btn, .cta-btn, .submit-btn, .back-btn, .settings-back-link {
@@ -584,10 +588,16 @@
   <script>
     (function() {
       try {
-        var saved = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "oled";
-        if (saved !== "light" && saved !== "eyecare" && saved !== "sapphire") saved = "oled";
-        document.documentElement.setAttribute("data-theme-mode", saved);
-        document.documentElement.setAttribute("data-theme", saved);
+        var raw = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "dark";
+        var valid = ["dark", "oled", "sapphire", "light", "eyecare"];
+        var mode = raw;
+        if (raw === "system") {
+          mode = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? "dark" : "light";
+        } else if (valid.indexOf(raw) === -1) {
+          mode = "dark";
+        }
+        document.documentElement.setAttribute("data-theme-mode", raw);
+        document.documentElement.setAttribute("data-theme", mode);
       } catch(e) {}
       if (window.location.pathname.endsWith('.html')) {
         var clean = window.location.pathname.replace(/\.html$/, '');
@@ -602,7 +612,7 @@
 
   <!-- Top Navigation -->
   <header class="settings-nav">
-    <a href="account" class="settings-back-link" id="backBtn">
+    <a href="/account" class="settings-back-link" id="backBtn">
       <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
       <span id="backText">Settings</span>
     </a>
@@ -719,32 +729,32 @@
 
   <script>
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const BACKEND_URL = (isLocal && window.location.port === '5000') 
-      ? window.location.origin 
-      : (window.location.origin.includes('vercel.app') ? window.location.origin : 'https://alora-backend-emw3.onrender.com');
+    const BACKEND_URL = isLocal
+      ? (window.location.port === '5000' ? '' : 'http://localhost:5000')
+      : (window.location.hostname.endsWith('onrender.com') ? '' : 'https://alora-backend-emw3.onrender.com');
     const API_BASE = BACKEND_URL + "/api";
 
     const token = localStorage.getItem("alokpoth_token");
     if (!token) {
-      window.location.href = "/";
+      window.location.href = "/auth/login";
     }
 
     let currentLanguage = localStorage.getItem("alokpoth_lang") || "en";
 
     const MINIMAL_AVATARS = [
       { id: "default", path: "default", name: "Letter Initial", isInitial: true },
-      { id: "avatar_1.svg", path: "avatars/avatar_1.svg", name: "Cosmic Orb" },
-      { id: "avatar_2.svg", path: "avatars/avatar_2.svg", name: "Emerald Star" },
-      { id: "avatar_3.svg", path: "avatars/avatar_3.svg", name: "Geometric Fox" },
-      { id: "avatar_4.svg", path: "avatars/avatar_4.svg", name: "Amethyst Crystal" },
-      { id: "avatar_5.svg", path: "avatars/avatar_5.svg", name: "Ocean Wave" },
-      { id: "avatar_6.svg", path: "avatars/avatar_6.svg", name: "Cyber Astronaut" },
-      { id: "avatar_7.svg", path: "avatars/avatar_7.svg", name: "Minimal Cat" },
-      { id: "avatar_8.svg", path: "avatars/avatar_8.svg", name: "Cute Bot" },
-      { id: "avatar_9.svg", path: "avatars/avatar_9.svg", name: "Phoenix Flame" },
-      { id: "avatar_10.svg", path: "avatars/avatar_10.svg", name: "Zen Leaf" },
-      { id: "avatar_11.svg", path: "avatars/avatar_11.svg", name: "Neon Bolt" },
-      { id: "avatar_12.svg", path: "avatars/avatar_12.svg", name: "Night Moon" }
+      { id: "avatar_1.svg", path: "/avatars/avatar_1.svg", name: "Cosmic Orb" },
+      { id: "avatar_2.svg", path: "/avatars/avatar_2.svg", name: "Emerald Star" },
+      { id: "avatar_3.svg", path: "/avatars/avatar_3.svg", name: "Geometric Fox" },
+      { id: "avatar_4.svg", path: "/avatars/avatar_4.svg", name: "Amethyst Crystal" },
+      { id: "avatar_5.svg", path: "/avatars/avatar_5.svg", name: "Ocean Wave" },
+      { id: "avatar_6.svg", path: "/avatars/avatar_6.svg", name: "Cyber Astronaut" },
+      { id: "avatar_7.svg", path: "/avatars/avatar_7.svg", name: "Minimal Cat" },
+      { id: "avatar_8.svg", path: "/avatars/avatar_8.svg", name: "Cute Bot" },
+      { id: "avatar_9.svg", path: "/avatars/avatar_9.svg", name: "Phoenix Flame" },
+      { id: "avatar_10.svg", path: "/avatars/avatar_10.svg", name: "Zen Leaf" },
+      { id: "avatar_11.svg", path: "/avatars/avatar_11.svg", name: "Neon Bolt" },
+      { id: "avatar_12.svg", path: "/avatars/avatar_12.svg", name: "Night Moon" }
     ];
 
     let selectedAvatar = "default";
@@ -847,7 +857,7 @@
       } else {
         avatarEl.innerHTML = '';
         avatarEl.textContent = initial;
-        avatarEl.style.background = "linear-gradient(135deg, #2563eb, #38bdf8)";
+        avatarEl.style.background = "#343434";
       }
     }
 
@@ -1056,7 +1066,7 @@
         if (res.status === 401) {
           localStorage.removeItem("alokpoth_token");
           localStorage.removeItem("alokpoth_user");
-          window.location.href = "/";
+          window.location.href = "/auth/login";
           return;
         }
         const data = await res.json();
@@ -1163,6 +1173,9 @@
           u.avatar = selectedAvatar;
           if (data.user) {
             u = { ...u, ...data.user };
+          }
+          if (data.token) {
+            localStorage.setItem("alokpoth_token", data.token);
           }
           localStorage.setItem("alokpoth_user", JSON.stringify(u));
           localStorage.setItem("alokpoth_account_name", newName);

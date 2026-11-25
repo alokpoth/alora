@@ -30,17 +30,25 @@ router.get('/models', async (req, res) => {
       return !deletedSet.has(mId) && !deletedSet.has(mName);
     };
 
+    const isActiveAndNotDeleted = (m) => {
+      if (!isNotDeleted(m)) return false;
+      if (m.is_active === false) return false;
+      return true;
+    };
+
     const sanitizeModel = (m) => {
       const cleanName = (typeof m.name === 'string' && m.name.trim()) ? m.name.trim() : (m.id || m.model_id || 'Alo AI');
 
       return {
         id: m.id || m.model_id,
         name: cleanName,
-        provider: "Alora",
+        description: m.description || '',
+        provider: m.provider || "Alora",
         type: m.type,
         premium: !!m.premium,
         efficient: !!m.efficient,
         order: m.order,
+        context_window: m.context_window || 8192,
         api_model_1: m.api_model_1 || m.model_id || m.id || '',
         api_model_2: m.api_model_2 || m.fallback_model_1 || '',
         api_model_3: m.api_model_3 || m.fallback_model_2 || '',
@@ -52,13 +60,13 @@ router.get('/models', async (req, res) => {
     let result = [];
     if (getIsMongoConnected()) {
       let models = await AiModel.find().sort({ order: 1, createdAt: 1 }).lean();
-      if (!models || models.length === 0) {
+      if ((!models || models.length === 0) && deletedSet.size === 0 && !memoryStore.settings?.modelsInitialized) {
         models = await getPersistedModels();
       }
-      result = (models || []).filter(isNotDeleted).map(sanitizeModel);
+      result = (models || []).filter(isActiveAndNotDeleted).map(sanitizeModel);
     } else {
       const models = await getPersistedModels();
-      const sorted = [...(models || [])].filter(isNotDeleted).sort((a, b) => (a.order || 0) - (b.order || 0));
+      const sorted = [...(models || [])].filter(isActiveAndNotDeleted).sort((a, b) => (a.order || 0) - (b.order || 0));
       result = sorted.map(sanitizeModel);
     }
 
@@ -142,7 +150,7 @@ router.get('/ping', async (req, res) => {
     }
     
     // Gemini specific logic (GET models list)
-    if ((aiModelConfig.type === 'gemini' || cleanModel.startsWith('gemini') || cleanModel.includes('gemini')) && (targetUrl.includes('generativelanguage.googleapis.com') || targetUrl.includes('openrouter.ai') || !targetUrl)) {
+    if ((aiModelConfig.type === 'gemini' || cleanModel.startsWith('gemini-')) && (targetUrl.includes('generativelanguage.googleapis.com') && !targetUrl.includes('/openai/'))) {
       const gKey = targetKey || process.env.GEMINI_API_KEY || (process.env.GEMINI_API_KEYS ? process.env.GEMINI_API_KEYS.split(',')[0].trim() : '');
       pingUrl = "https://generativelanguage.googleapis.com/v1beta/models" + (gKey ? ("?key=" + gKey) : "");
       delete headers['Authorization'];
