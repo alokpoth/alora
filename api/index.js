@@ -19,6 +19,7 @@ const adminRoutes  = require('../server/routes/adminRoutes');
 const searchRoutes = require('../server/routes/searchRoutes');
 
 const app = express();
+app.disable('x-powered-by');
 
 // Rate Limiters for High-Traffic and Brute Force Protection
 const authLimiter = createRateLimiter({
@@ -69,14 +70,12 @@ app.use((req, res, next) => {
   next();
 });
 
-// Diagnostic debug endpoint
-app.get(['/api/debug-route', '/debug-route'], (req, res) => {
+// Diagnostic debug endpoint (admin-only)
+app.get(['/api/debug-route', '/debug-route'], protect, adminOnly, (req, res) => {
   res.json({
     success: true,
-    url: req.url,
-    originalUrl: req.originalUrl,
-    matchedPath: req.headers['x-matched-path'],
-    forwardedUri: req.headers['x-forwarded-uri']
+    matched: Boolean(req.headers['x-matched-path']),
+    forwarded: Boolean(req.headers['x-forwarded-uri'])
   });
 });
 
@@ -201,8 +200,8 @@ app.use((req, res) => {
 
 // Global error handler
 app.use((err, req, res, next) => {
-  console.error('[Global Error]:', err.message);
-  res.status(500).json({ success: false, error: err.message });
+  const { sendServerError } = require('../server/utils/safeError');
+  return sendServerError(res, err, 'Internal server error', '[Global Error]:');
 });
 
 // Cold-start DB connect (non-blocking)

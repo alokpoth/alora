@@ -1,6 +1,15 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+}
+
+val keystorePropsFile = rootProject.file("keystore.properties")
+val keystoreProps = Properties().apply {
+    if (keystorePropsFile.exists()) {
+        keystorePropsFile.inputStream().use { load(it) }
+    }
 }
 
 android {
@@ -11,18 +20,28 @@ android {
         applicationId = "xyz.zihan.aloai"
         minSdk = 24
         targetSdk = 35
-        versionCode = 13
-        versionName = "1.2.1"
+        versionCode = 14
+        versionName = "1.3.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {
         create("release") {
-            storeFile = file("alora-release.jks")
-            storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD") ?: ""
-            keyAlias = "zihanfakir"
-            keyPassword = System.getenv("ANDROID_KEY_PASSWORD") ?: ""
+            val ksPath = keystoreProps.getProperty("storeFile")
+                ?: System.getenv("ANDROID_KEYSTORE_PATH")
+                ?: "alora-release.jks"
+            val resolvedKs = rootProject.file(ksPath).takeIf { it.exists() } ?: file(ksPath)
+            storeFile = resolvedKs
+            storePassword = keystoreProps.getProperty("storePassword")
+                ?: System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                ?: ""
+            keyAlias = keystoreProps.getProperty("keyAlias")
+                ?: System.getenv("ANDROID_KEY_ALIAS")
+                ?: "zihanfakir"
+            keyPassword = keystoreProps.getProperty("keyPassword")
+                ?: System.getenv("ANDROID_KEY_PASSWORD")
+                ?: ""
             enableV1Signing = true
             enableV2Signing = true
         }
@@ -30,8 +49,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
-            isShrinkResources = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

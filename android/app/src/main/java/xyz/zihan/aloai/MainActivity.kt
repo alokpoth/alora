@@ -26,7 +26,12 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -107,14 +112,17 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         window.setFlags(
             WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
             WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED
         )
         enableHighRefreshRate()
         setContentView(R.layout.activity_main)
+        applySystemBarsTheme(false, "#212121")
 
         initViews()
+        setupEdgeToEdgeInsets()
         setupWebView()
         setupSwipeRefresh()
         setupBackNavigation()
@@ -125,10 +133,73 @@ class MainActivity : AppCompatActivity() {
         } else {
             WebSettings.LOAD_CACHE_ELSE_NETWORK
         }
-        val prefs = getSharedPreferences("AloAiPrefs", Context.MODE_PRIVATE)
-        val token = prefs.getString("auth_token", null)
-        val initialUrl = if (token.isNullOrEmpty()) AUTH_URL else APP_URL
+        val initialUrl = extractTrustedDeepLink(intent) ?: APP_URL
         webView.loadUrl(initialUrl)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        val deepLink = extractTrustedDeepLink(intent)
+        if (!deepLink.isNullOrBlank()) {
+            webView.loadUrl(deepLink)
+        }
+    }
+
+    private fun isTrustedHost(host: String?): Boolean {
+        if (host.isNullOrBlank()) return false
+        val h = host.lowercase(Locale.US)
+        return h == "alora.zihan.xyz" || h.endsWith(".alora.zihan.xyz") ||
+               h == "ai.zihan.xyz" || h.endsWith(".ai.zihan.xyz")
+    }
+
+    private fun extractTrustedDeepLink(intent: Intent?): String? {
+        val data = intent?.data ?: return null
+        val scheme = data.scheme?.lowercase(Locale.US) ?: return null
+        if (scheme != "https") return null
+        return if (isTrustedHost(data.host)) data.toString() else null
+    }
+
+    private fun setupEdgeToEdgeInsets() {
+        val root = findViewById<View>(R.id.mainRoot) ?: return
+        ViewCompat.setOnApplyWindowInsetsListener(root) { view, windowInsets ->
+            val sysBars = windowInsets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+            val ime = windowInsets.getInsets(WindowInsetsCompat.Type.ime())
+            view.setPadding(
+                sysBars.left,
+                sysBars.top,
+                sysBars.right,
+                maxOf(sysBars.bottom, ime.bottom)
+            )
+            WindowInsetsCompat.CONSUMED
+        }
+    }
+
+    fun applySystemBarsTheme(isLight: Boolean, bgHex: String?) {
+        runOnUiThread {
+            try {
+                val parsed = try {
+                    Color.parseColor(bgHex ?: if (isLight) "#FFFFFF" else "#212121")
+                } catch (_: Exception) {
+                    if (isLight) Color.WHITE else Color.parseColor("#212121")
+                }
+                findViewById<View>(R.id.mainRoot)?.setBackgroundColor(parsed)
+                if (::webView.isInitialized) {
+                    webView.setBackgroundColor(parsed)
+                }
+                @Suppress("DEPRECATION")
+                window.statusBarColor = parsed
+                @Suppress("DEPRECATION")
+                window.navigationBarColor = parsed
+                val controller = WindowInsetsControllerCompat(window, window.decorView)
+                controller.isAppearanceLightStatusBars = isLight
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+                    controller.isAppearanceLightNavigationBars = isLight
+                }
+            } catch (_: Exception) {}
+        }
     }
 
     private fun enableHighRefreshRate() {
@@ -160,14 +231,15 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("SetJavaScriptEnabled")
     private fun setupWebView() {
         webView.setLayerType(View.LAYER_TYPE_HARDWARE, null)
-        webView.setBackgroundColor(Color.parseColor("#060709"))
+        webView.setBackgroundColor(Color.parseColor("#212121"))
         webView.settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true
             databaseEnabled = true
             mediaPlaybackRequiresUserGesture = false
-            allowFileAccess = true
+            allowFileAccess = false
             allowContentAccess = true
+            mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
             cacheMode = if (isNetworkAvailable()) WebSettings.LOAD_DEFAULT else WebSettings.LOAD_CACHE_ELSE_NETWORK
             useWideViewPort = true
             loadWithOverviewMode = true
@@ -179,7 +251,7 @@ class MainActivity : AppCompatActivity() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 offscreenPreRaster = true
             }
-            userAgentString = "$userAgentString AloAI-Android/1.2.1"
+            userAgentString = "$userAgentString AloraAndroid/${BuildConfig.VERSION_NAME} AloAI-Android/${BuildConfig.VERSION_NAME}"
         }
 
         CookieManager.getInstance().apply {
@@ -269,7 +341,9 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onConsoleMessage(consoleMessage: ConsoleMessage): Boolean {
-                Log.d(TAG, "[WebView Console] ${consoleMessage.message()} -- From line ${consoleMessage.lineNumber()} of ${consoleMessage.sourceId()}")
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, "[WebView Console] ${consoleMessage.message()} -- From line ${consoleMessage.lineNumber()} of ${consoleMessage.sourceId()}")
+                }
                 return true
             }
         }
@@ -277,13 +351,14 @@ class MainActivity : AppCompatActivity() {
         webView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                 val uri = request.url
-                val scheme = uri.scheme
+                val scheme = uri.scheme?.lowercase(Locale.US) ?: return true
 
-                if (scheme != null && (scheme.equals("http", ignoreCase = true) || scheme.equals("https", ignoreCase = true))) {
-                    val host = uri.host
-                    if (host != null && (host.contains("alora.zihan.xyz") || host.contains("ai.zihan.xyz"))) {
-                        return false
-                    }
+                if (scheme == "https" && isTrustedHost(uri.host)) {
+                    return false
+                }
+
+                if (scheme != "https" && scheme != "http" && scheme != "mailto" && scheme != "tel") {
+                    return true
                 }
 
                 return try {
@@ -291,7 +366,7 @@ class MainActivity : AppCompatActivity() {
                     true
                 } catch (e: Exception) {
                     Log.w(TAG, "Could not launch external URL: $uri", e)
-                    false
+                    true
                 }
             }
 
@@ -306,13 +381,9 @@ class MainActivity : AppCompatActivity() {
                         if (!s) {
                             s = document.createElement('style');
                             s.id = 'alo-android-early-style';
-                            s.textContent = '#heroAppDownloadBanner,#drawerDownloadAppWrap,#brandMenuDownloadAppBtn,#appDownloadModalOverlay,.hero-app-banner,#modelSearchInput,.model-search-wrap{display:none!important;visibility:hidden!important;height:0!important;margin:0!important;padding:0!important;}';
+                            s.textContent = '.android-only-hide,#heroAppDownloadBanner,#drawerDownloadAppWrap,#brandMenuDownloadAppBtn,#appDownloadModalOverlay,.hero-app-banner{display:none!important;visibility:hidden!important;height:0!important;margin:0!important;padding:0!important;}';
                             (document.head || document.documentElement).appendChild(s);
                         }
-                        var b = document.getElementById('heroAppDownloadBanner');
-                        if (b) b.remove();
-                        var search = document.getElementById('modelSearchInput');
-                        if (search) { var w = search.closest('.model-search-wrap'); if (w) w.remove(); else search.remove(); }
                     })();
                 """.trimIndent()
                 view.evaluateJavascript(hideAppBannerJs, null)
@@ -329,50 +400,66 @@ class MainActivity : AppCompatActivity() {
                         if (document.body) document.body.classList.add('is-android-app');
                         var b = document.getElementById('heroAppDownloadBanner');
                         if (b) b.remove();
-                        var search = document.getElementById('modelSearchInput');
-                        if (search) { var w = search.closest('.model-search-wrap'); if (w) w.remove(); else search.remove(); }
+                        try {
+                            var meta = document.querySelector('meta[name="theme-color"]');
+                            var eff = document.documentElement ? document.documentElement.getAttribute('data-theme') : 'dark';
+                            var bg = (meta && meta.content) || '#212121';
+                            if (window.AloAI && window.AloAI.setSystemBarsTheme) {
+                                window.AloAI.setSystemBarsTheme(eff === 'light' || eff === 'eyecare', bg);
+                            }
+                        } catch(e){}
                     })();
                 """.trimIndent()
                 view.evaluateJavascript(cleanupJs, null)
-                
-                // Inject Native Auth Token and User Info if available
+
+                // Inject Native Auth Token safely if WebView has no active session
                 val prefs = getSharedPreferences("AloAiPrefs", Context.MODE_PRIVATE)
                 val token = prefs.getString("auth_token", null)
-                val userName = prefs.getString("user_name", null)
-                val userEmail = prefs.getString("user_email", null)
-                val userPlan = prefs.getString("user_plan", null)
-                if (token != null) {
-                    val safeName = (userName ?: "").replace("'", "\\'").replace("\"", "\\\"")
-                    val safeEmail = (userEmail ?: "").replace("'", "\\'").replace("\"", "\\\"")
-                    val userJson = "{\\\"name\\\":\\\"$safeName\\\",\\\"email\\\":\\\"$safeEmail\\\"}"
+                val userName = prefs.getString("user_name", null) ?: ""
+                val userEmail = prefs.getString("user_email", null) ?: ""
+                val userPlan = prefs.getString("user_plan", null) ?: ""
+                if (!token.isNullOrBlank()) {
+                    val qToken = JSONObject.quote(token)
+                    val qName = JSONObject.quote(userName)
+                    val qEmail = JSONObject.quote(userEmail)
+                    val userObj = JSONObject().apply {
+                        put("name", userName)
+                        put("email", userEmail)
+                    }.toString()
+                    val qUserJson = JSONObject.quote(userObj)
                     val js = StringBuilder()
-                    js.append("if (!localStorage.getItem('alokpoth_token')) {")
-                    js.append("localStorage.setItem('alokpoth_token', '$token');")
-                    js.append("localStorage.setItem('alokpoth_account_name', '$safeName');")
-                    js.append("localStorage.setItem('alokpoth_name', '$safeName');")
-                    js.append("localStorage.setItem('alokpoth_email', '$safeEmail');")
-                    js.append("localStorage.setItem('alokpoth_user', '$userJson');")
-                    if (!userPlan.isNullOrEmpty()) {
-                        js.append("localStorage.setItem('alokpoth_current_plan', '$userPlan');")
-                        js.append("localStorage.setItem('alokpoth_user_plan', '$userPlan');")
-                        js.append("localStorage.setItem('alokpoth_plan', '$userPlan');")
+                    js.append("(function(){ try { if (!localStorage.getItem('alokpoth_token')) {")
+                    js.append("localStorage.setItem('alokpoth_token', $qToken);")
+                    js.append("localStorage.setItem('alokpoth_account_name', $qName);")
+                    js.append("localStorage.setItem('alokpoth_name', $qName);")
+                    js.append("localStorage.setItem('alokpoth_email', $qEmail);")
+                    js.append("localStorage.setItem('alokpoth_user', $qUserJson);")
+                    if (userPlan.isNotBlank()) {
+                        val qPlan = JSONObject.quote(userPlan)
+                        js.append("localStorage.setItem('alokpoth_current_plan', $qPlan);")
+                        js.append("localStorage.setItem('alokpoth_user_plan', $qPlan);")
+                        js.append("localStorage.setItem('alokpoth_plan', $qPlan);")
                     }
-                    js.append("if (typeof applyAccountName === 'function') applyAccountName('$safeName');")
-                    js.append("if (typeof updateAuthUIState === 'function') updateAuthUIState();")
-                    js.append("}")
+                    js.append("if (typeof syncUserUI === 'function') syncUserUI();")
+                    js.append("if (typeof refreshUserFromServer === 'function') refreshUserFromServer();")
+                    js.append("} } catch(e){} })();")
                     view.evaluateJavascript(js.toString(), null)
                 }
 
-                // Sync web session back to native storage when user logs in via web
+                // Sync web session back to native storage (or clear native storage on logout)
                 val syncBackJs = """
                     (function(){
                         try {
                             var t = localStorage.getItem('alokpoth_token');
-                            var n = localStorage.getItem('alokpoth_account_name') || localStorage.getItem('alokpoth_name') || '';
-                            var e = localStorage.getItem('alokpoth_email') || '';
-                            var p = localStorage.getItem('alokpoth_current_plan') || localStorage.getItem('alokpoth_user_plan') || 'Free';
                             if (t && window.AloAI && window.AloAI.saveAuth) {
+                                var u = {};
+                                try { u = JSON.parse(localStorage.getItem('alokpoth_user') || '{}') || {}; } catch(err){}
+                                var n = u.name || localStorage.getItem('alokpoth_account_name') || localStorage.getItem('alokpoth_name') || '';
+                                var e = u.email || localStorage.getItem('alokpoth_email') || '';
+                                var p = (u.subscription && u.subscription.plan_name) || localStorage.getItem('alokpoth_current_plan') || localStorage.getItem('alokpoth_user_plan') || 'Free';
                                 window.AloAI.saveAuth(t, n, e, p);
+                            } else if (!t && window.AloAI && window.AloAI.clearAuth) {
+                                window.AloAI.clearAuth();
                             }
                         } catch(err){}
                     })();
@@ -462,9 +549,8 @@ class MainActivity : AppCompatActivity() {
         } else {
             WebSettings.LOAD_CACHE_ELSE_NETWORK
         }
-        val prefs = getSharedPreferences("AloAiPrefs", Context.MODE_PRIVATE)
-        val token = prefs.getString("auth_token", null)
-        val targetUrl = if (token.isNullOrEmpty()) AUTH_URL else APP_URL
+        val current = webView.url
+        val targetUrl = if (!current.isNullOrBlank() && current != "about:blank" && !current.startsWith("data:")) current else APP_URL
         webView.loadUrl(targetUrl)
     }
 
@@ -533,7 +619,7 @@ class MainActivity : AppCompatActivity() {
             }
         } catch (e: Exception) {
             Log.e(TAG, "Download failed", e)
-            Toast.makeText(this, "ডাউনলোড করা সম্ভব হয়নি", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.download_failed), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -547,7 +633,7 @@ class MainActivity : AppCompatActivity() {
 
             val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
             val ext = if (mimeType != null && mimeType.contains("png")) ".png" else ".jpg"
-            val filename = "AloAI_$timeStamp$ext"
+            val filename = "Alora_$timeStamp$ext"
 
             val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
             val file = File(downloadsDir, filename)
@@ -560,7 +646,7 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, "${getString(R.string.download_complete)}: $filename", Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {
             Log.e(TAG, "Error saving data URI", e)
-            Toast.makeText(this, "ফাইল সংরক্ষণ ব্যর্থ হয়েছে", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.save_failed), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -619,7 +705,7 @@ class MainActivity : AppCompatActivity() {
             CookieManager.getInstance().flush()
 
             webView.post {
-                webView.loadUrl(AUTH_URL)
+                webView.loadUrl(APP_URL)
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error logging out", e)

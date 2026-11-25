@@ -12,6 +12,7 @@ import android.os.VibratorManager
 import android.speech.tts.TextToSpeech
 import android.webkit.JavascriptInterface
 import android.widget.Toast
+import java.io.File
 import java.util.Locale
 
 class WebAppInterface(private val activity: MainActivity) : TextToSpeech.OnInitListener {
@@ -169,7 +170,7 @@ class WebAppInterface(private val activity: MainActivity) : TextToSpeech.OnInitL
                         putExtra(Intent.EXTRA_TEXT, text)
                         type = "text/plain"
                     }
-                    val shareIntent = Intent.createChooser(sendIntent, "Alo AI - Share")
+                    val shareIntent = Intent.createChooser(sendIntent, "Share via Alora")
                     activity.startActivity(shareIntent)
                 } catch (_: Exception) {}
             }
@@ -181,20 +182,25 @@ class WebAppInterface(private val activity: MainActivity) : TextToSpeech.OnInitL
         if (url.isNullOrBlank()) return
         activity.runOnUiThread {
             try {
-                val dm = activity.getSystemService(Context.DOWNLOAD_SERVICE) as? DownloadManager ?: return@runOnUiThread
                 val uri = Uri.parse(url)
-                val targetName = filename ?: "AloAI_Image_${System.currentTimeMillis()}.png"
+                if (uri.scheme?.equals("https", ignoreCase = true) != true) {
+                    Toast.makeText(activity, activity.getString(R.string.download_failed), Toast.LENGTH_SHORT).show()
+                    return@runOnUiThread
+                }
+                val dm = activity.getSystemService(Context.DOWNLOAD_SERVICE) as? DownloadManager ?: return@runOnUiThread
+                val rawName = filename?.takeIf { it.isNotBlank() } ?: "Alora_Image_${System.currentTimeMillis()}.png"
+                val targetName = File(rawName).name.replace(Regex("[^a-zA-Z0-9._-]"), "_")
                 val request = DownloadManager.Request(uri)
                     .setTitle(targetName)
-                    .setDescription("Alo AI Image Download")
+                    .setDescription("Alora Image Download")
                     .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
                     .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, targetName)
                     .setAllowedOverMetered(true)
                     .setAllowedOverRoaming(true)
                 dm.enqueue(request)
-                Toast.makeText(activity, "ছবি ডাউনলোড শুরু হয়েছে...", Toast.LENGTH_SHORT).show()
-            } catch (e: Exception) {
-                Toast.makeText(activity, "ডাউনলোড ব্যর্থ হয়েছে", Toast.LENGTH_SHORT).show()
+                Toast.makeText(activity, activity.getString(R.string.download_started), Toast.LENGTH_SHORT).show()
+            } catch (_: Exception) {
+                Toast.makeText(activity, activity.getString(R.string.download_failed), Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -225,6 +231,17 @@ class WebAppInterface(private val activity: MainActivity) : TextToSpeech.OnInitL
     }
 
     @JavascriptInterface
+    fun clearAuth() {
+        val prefs = activity.getSharedPreferences("AloAiPrefs", Context.MODE_PRIVATE)
+        prefs.edit().clear().apply()
+    }
+
+    @JavascriptInterface
+    fun setSystemBarsTheme(isLight: Boolean, bgHex: String?) {
+        activity.applySystemBarsTheme(isLight, bgHex)
+    }
+
+    @JavascriptInterface
     fun getAuthToken(): String? {
         val prefs = activity.getSharedPreferences("AloAiPrefs", Context.MODE_PRIVATE)
         return prefs.getString("auth_token", null)
@@ -252,5 +269,5 @@ class WebAppInterface(private val activity: MainActivity) : TextToSpeech.OnInitL
     fun isNativeApp(): Boolean = true
 
     @JavascriptInterface
-    fun getAppVersion(): String = "1.2.1"
+    fun getAppVersion(): String = BuildConfig.VERSION_NAME
 }

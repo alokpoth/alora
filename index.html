@@ -20,14 +20,18 @@
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3">
   <link rel="manifest" href="/manifest.json">
 
-  <!-- Core Markdown and Sanitizer -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+  <!-- Core Markdown and Sanitizer (deferred so shell paints immediately) -->
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 
-  <!-- Prevent FOUC Theme Script -->
+  <!-- Prevent FOUC Theme Script & Native Android Shell Sync -->
   <script>
     (function() {
       try {
+        var isNative = !!(window.AloAI || window.AloAndroid || /AloraAndroid/i.test(navigator.userAgent || ""));
+        if (isNative) {
+          document.documentElement.classList.add("is-android-app");
+        }
         var raw = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "dark";
         var t = raw;
         if (raw === "system") {
@@ -37,13 +41,15 @@
         }
         document.documentElement.setAttribute("data-theme-mode", raw);
         document.documentElement.setAttribute("data-theme", t);
+        var bgHex = "#212121";
+        if (t === "oled") bgHex = "#000000";
+        else if (t === "light") bgHex = "#ffffff";
+        else if (t === "eyecare") bgHex = "#f5eedc";
+        else if (t === "sapphire") bgHex = "#090f1d";
         var meta = document.querySelector('meta[name="theme-color"]');
-        if (meta) {
-          if (t === "oled") meta.content = "#000000";
-          else if (t === "light") meta.content = "#ffffff";
-          else if (t === "eyecare") meta.content = "#f5eedc";
-          else if (t === "sapphire") meta.content = "#090f1d";
-          else meta.content = "#212121";
+        if (meta) meta.content = bgHex;
+        if (isNative && window.AloAI && typeof window.AloAI.setSystemBarsTheme === "function") {
+          window.AloAI.setSystemBarsTheme(t === "light" || t === "eyecare", bgHex);
         }
         var lang = localStorage.getItem("alokpoth_lang") || "en";
         document.documentElement.setAttribute("lang", lang);
@@ -241,6 +247,7 @@
       height: 100%;
       height: 100dvh;
       overflow: hidden;
+      overscroll-behavior-y: contain;
       background-color: var(--main-bg);
       color: var(--text-main);
       font-family: var(--font-chat);
@@ -248,7 +255,18 @@
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+      -webkit-touch-callout: none;
       user-select: none;
+    }
+
+    input, textarea, .user-bubble-text, .assistant-markdown-body, pre, code {
+      -webkit-user-select: text;
+      user-select: text;
+      -webkit-touch-callout: default;
+    }
+
+    html.is-android-app .android-only-hide {
+      display: none !important;
     }
 
     input, textarea, button {
@@ -621,9 +639,9 @@
     }
 
     .chatgpt-header {
-      height: var(--header-height);
-      min-height: var(--header-height);
-      padding: 0 14px;
+      height: calc(var(--header-height) + env(safe-area-inset-top, 0px));
+      min-height: calc(var(--header-height) + env(safe-area-inset-top, 0px));
+      padding: env(safe-area-inset-top, 0px) 14px 0;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -1870,11 +1888,15 @@
         left: 0;
         top: 0;
         bottom: 0;
-        width: min(272px, 84vw);
+        width: min(278px, 84vw);
         min-width: 0;
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        overscroll-behavior-y: contain;
         transform: translateX(-100%);
         margin-left: 0 !important;
         box-shadow: none;
+        will-change: transform;
       }
       .chatgpt-sidebar.open {
         transform: translateX(0);
@@ -1885,6 +1907,8 @@
       }
       .chatgpt-scroll-area {
         padding: 16px 12px 136px;
+        overscroll-behavior-y: contain;
+        -webkit-overflow-scrolling: touch;
       }
       .chatgpt-main.empty-state .chatgpt-scroll-area {
         padding: 16px 12px 58px;
@@ -1908,11 +1932,20 @@
         max-width: 100%;
       }
       .composer-wrapper {
-        padding: 6px 12px calc(8px + env(safe-area-inset-bottom, 0px));
+        padding: 6px 12px max(10px, env(safe-area-inset-bottom, 10px));
       }
       .chatgpt-composer-pill {
-        padding: 6px 10px;
+        padding: 7px 10px 7px 12px;
         border-radius: 26px;
+      }
+      .composer-textarea {
+        font-size: 16px;
+        line-height: 24px;
+      }
+      .chatgpt-user-popover,
+      .attach-menu,
+      .model-dropdown-menu {
+        max-width: calc(100vw - 24px);
       }
       .composer-legal-note {
         font-size: 0.68rem;
@@ -1938,6 +1971,8 @@
         max-width: 100%;
         height: 100%;
         max-height: 100%;
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
         border-radius: 0;
         border: none;
       }
@@ -1945,7 +1980,7 @@
 
     @media (max-width: 520px) {
       .chatgpt-header {
-        padding: 0 8px;
+        padding: env(safe-area-inset-top, 0px) 8px 0;
         gap: 4px;
       }
       .header-left {
@@ -2740,7 +2775,7 @@
           </svg>
           <span id="popoverSettingsText">Settings</span>
         </button>
-        <a href="/download" class="user-popover-item">
+        <a href="/download" class="user-popover-item android-only-hide">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg>
           <span id="popoverDownloadText">Download app</span>
         </a>
@@ -3852,6 +3887,18 @@
       setTimeout(() => { if (item.parentNode) item.remove(); }, 2800);
     }
 
+    function triggerHaptic(type = "light") {
+      try {
+        if (window.AloAI && typeof window.AloAI.haptic === "function") {
+          window.AloAI.haptic(type);
+          return;
+        }
+        if (navigator.vibrate) {
+          navigator.vibrate(type === "medium" ? 18 : 8);
+        }
+      } catch(e) {}
+    }
+
     function setTheme(rawTheme) {
       const valid = ["system", "dark", "oled", "light", "sapphire", "eyecare"];
       const chosen = valid.includes(rawTheme) ? rawTheme : "dark";
@@ -3864,16 +3911,19 @@
       localStorage.setItem(KEYS.THEME, chosen);
       localStorage.setItem("alokpoth-theme", chosen);
 
+      let bgHex = "#212121";
+      if (eff === "oled") bgHex = "#000000";
+      else if (eff === "light") bgHex = "#ffffff";
+      else if (eff === "eyecare") bgHex = "#f5eedc";
+      else if (eff === "sapphire") bgHex = "#090f1d";
+
       const meta = document.querySelector('meta[name="theme-color"]');
-      if (meta) {
-        if (eff === "oled") meta.content = "#000000";
-        else if (eff === "light") meta.content = "#ffffff";
-        else if (eff === "eyecare") meta.content = "#f5eedc";
-        else if (eff === "sapphire") meta.content = "#090f1d";
-        else meta.content = "#212121";
-      }
+      if (meta) meta.content = bgHex;
 
       const isLightSurface = eff === "light" || eff === "eyecare";
+      if (window.AloAI && typeof window.AloAI.setSystemBarsTheme === "function") {
+        try { window.AloAI.setSystemBarsTheme(isLightSurface, bgHex); } catch(e) {}
+      }
       const iconPath = isLightSurface ? "/logo_icon_black.png" : "/logo_icon_white.png";
       const emblem = document.getElementById("brandEmblemImg");
       if (emblem) emblem.src = iconPath;
@@ -6009,6 +6059,7 @@
     }
 
     function toggleSidebar() {
+      triggerHaptic("light");
       const sb = document.getElementById("sidebar");
       const bd = document.getElementById("mobileBackdrop");
       if (window.innerWidth <= 768) {
@@ -6026,6 +6077,33 @@
       document.getElementById("sidebar")?.classList.remove("open");
       document.getElementById("mobileBackdrop")?.classList.remove("active");
     }
+
+    window.handleAppBackButton = function() {
+      try {
+        const claimBd = document.getElementById("claimOfferBackdrop");
+        if (claimBd && claimBd.classList.contains("open")) { closeClaimOfferModal(); return true; }
+        const settingsBd = document.getElementById("settingsDialogBackdrop");
+        if (settingsBd && settingsBd.classList.contains("open")) { closeSettingsModal(true); return true; }
+        const searchBd = document.getElementById("searchModalBackdrop");
+        if (searchBd && searchBd.classList.contains("open")) { searchBd.classList.remove("open"); return true; }
+        const shareBd = document.getElementById("shareModalBackdrop");
+        if (shareBd && shareBd.classList.contains("open")) { shareBd.classList.remove("open"); return true; }
+        const ctx = document.getElementById("historyContextMenu");
+        if (ctx && ctx.classList.contains("open")) { closeHistoryContextMenu(); return true; }
+        const modelMenu = document.getElementById("modelDropdownMenu");
+        if (modelMenu && modelMenu.classList.contains("open")) { modelMenu.classList.remove("open"); return true; }
+        const attachMenu = document.getElementById("attachMenu");
+        if (attachMenu && attachMenu.classList.contains("open")) { attachMenu.classList.remove("open"); return true; }
+        const userPopover = document.getElementById("userPopover");
+        if (userPopover && userPopover.classList.contains("open")) { userPopover.classList.remove("open"); return true; }
+        const sb = document.getElementById("sidebar");
+        if (window.innerWidth <= 768 && sb && sb.classList.contains("open")) {
+          closeSidebar();
+          return true;
+        }
+      } catch(e) {}
+      return false;
+    };
 
     function initVoice() {
       const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -6832,16 +6910,60 @@
           e.preventDefault();
           startNewChat({ pushUrl: true });
         } else if (e.key === "Escape") {
-          document.getElementById("searchModalBackdrop")?.classList.remove("open");
-          document.getElementById("shareModalBackdrop")?.classList.remove("open");
-          closeClaimOfferModal();
-          closeSettingsModal(true);
-          closeHistoryContextMenu();
-          modelMenu?.classList.remove("open");
-          attachMenu?.classList.remove("open");
-          userPopover?.classList.remove("open");
+          window.handleAppBackButton();
         }
       });
+
+      // Native-feel mobile edge-swipe drawer & soft keyboard viewport sync
+      if ("ontouchstart" in window || navigator.maxTouchPoints > 0) {
+        let touchStartX = 0, touchStartY = 0, touchOriginOpen = false, edgeSwipeActive = false;
+        document.addEventListener("touchstart", (e) => {
+          if (window.innerWidth > 768 || e.touches.length !== 1) return;
+          const t = e.touches[0];
+          touchStartX = t.clientX;
+          touchStartY = t.clientY;
+          const sb = document.getElementById("sidebar");
+          touchOriginOpen = !!(sb && sb.classList.contains("open"));
+          const anyModalOpen = document.querySelector(".chatgpt-dialog-backdrop.open");
+          if (anyModalOpen) { edgeSwipeActive = false; return; }
+          edgeSwipeActive = touchOriginOpen || (touchStartX <= 30 && !e.target.closest("pre, code, .chatgpt-composer-pill"));
+        }, { passive: true });
+
+        document.addEventListener("touchend", (e) => {
+          if (!edgeSwipeActive || window.innerWidth > 768 || e.changedTouches.length !== 1) return;
+          edgeSwipeActive = false;
+          const t = e.changedTouches[0];
+          const dx = t.clientX - touchStartX;
+          const dy = Math.abs(t.clientY - touchStartY);
+          if (dy > 64) return;
+          if (!touchOriginOpen && dx > 58) {
+            const sb = document.getElementById("sidebar");
+            const bd = document.getElementById("mobileBackdrop");
+            if (sb && !sb.classList.contains("open")) {
+              sb.classList.add("open");
+              bd?.classList.add("active");
+              triggerHaptic("light");
+            }
+          } else if (touchOriginOpen && dx < -54) {
+            closeSidebar();
+            triggerHaptic("light");
+          }
+        }, { passive: true });
+      }
+
+      if (window.visualViewport) {
+        let lastHeight = window.visualViewport.height;
+        window.visualViewport.addEventListener("resize", () => {
+          const curH = window.visualViewport.height;
+          if (window.innerWidth <= 768 && curH < lastHeight - 90) {
+            const scrollEl = document.getElementById("chatScrollArea");
+            if (scrollEl && messagesHistory.length > 0) {
+              setTimeout(() => { scrollEl.scrollTop = scrollEl.scrollHeight; }, 60);
+            }
+          }
+          lastHeight = curH;
+        });
+      }
     });
   </script>
 </body>
