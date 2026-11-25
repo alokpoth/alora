@@ -32,7 +32,9 @@
     { "source": "/language", "destination": "/#settings/general", "permanent": false },
     { "source": "/sound", "destination": "/#settings/speech", "permanent": false },
     { "source": "/usage", "destination": "/#settings/account", "permanent": false },
-    { "source": "/subscription", "destination": "/#settings/account", "permanent": false }
+    { "source": "/subscription", "destination": "/#settings/account", "permanent": false },
+    { "source": "/admin", "destination": "/", "permanent": false },
+    { "source": "/admin.html", "destination": "/", "permanent": false }
   ],
   "rewrites": [
     { "source": "/c/:chatId*", "destination": "/index.html" },
@@ -50,12 +52,15 @@
     { "source": "/pricing/", "destination": "/plans.html" },
     { "source": "/plans", "destination": "/plans.html" },
     { "source": "/plans/", "destination": "/plans.html" },
+    { "source": "/checkout", "destination": "/checkout.html" },
+    { "source": "/checkout/", "destination": "/checkout.html" },
     { "source": "/api/(.*)", "destination": "/api/index.js" },
     { "source": "/api", "destination": "/api/index.js" },
     { "source": "/auth/(.*)", "destination": "/api/index.js" },
     { "source": "/chat/(.*)", "destination": "/api/index.js" },
     { "source": "/redeem/(.*)", "destination": "/api/index.js" },
     { "source": "/search/(.*)", "destination": "/api/index.js" },
+    { "source": "/payments/(.*)", "destination": "/api/index.js" },
     { "source": "/download", "destination": "/download.html" },
     { "source": "/app", "destination": "/download.html" },
     { "source": "/account", "destination": "/account.html" },
@@ -63,7 +68,9 @@
     { "source": "/personalization", "destination": "/personalization.html" },
     { "source": "/profile", "destination": "/profile.html" },
     { "source": "/help", "destination": "/help.html" },
-    { "source": "/admin", "destination": "/admin.html" },
-    { "source": "/redeem", "destination": "/redeem.html" }
+    { "source": "/zihan", "destination": "/zihan.html" },
+    { "source": "/zihan/", "destination": "/zihan.html" },
+    { "source": "/redeem", "destination": "/redeem.html" },
+    { "source": "/((?!api|assets|.*\\..*).*)", "destination": "/index.html" }
   ]
 }

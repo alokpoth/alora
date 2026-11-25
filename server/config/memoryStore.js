@@ -16,6 +16,8 @@ const memoryStore = {
   users: [],
   plans: DEFAULT_PLANS.map(p => ({ ...p })),
   redeemCodes: [],
+  promoCodes: [],
+  paymentOrders: [],
   usageLogs: [],
   deletedModelIds: [],
   models: [...DEFAULT_MEMORY_MODELS],
@@ -50,6 +52,8 @@ const saveBackup = async () => {
       users: memoryStore.users || [],
       plans: memoryStore.plans || [],
       redeemCodes: memoryStore.redeemCodes || [],
+      promoCodes: memoryStore.promoCodes || [],
+      paymentOrders: memoryStore.paymentOrders || [],
       usageLogs: memoryStore.usageLogs || [],
       models: memoryStore.models || [],
       deletedModelIds: memoryStore.deletedModelIds || [],
@@ -85,6 +89,8 @@ const seedDefaultAdmin = async () => {
       if (Array.isArray(data.users)) memoryStore.users = data.users;
       if (Array.isArray(data.plans)) memoryStore.plans = data.plans;
       if (Array.isArray(data.redeemCodes)) memoryStore.redeemCodes = data.redeemCodes;
+      if (Array.isArray(data.promoCodes)) memoryStore.promoCodes = data.promoCodes;
+      if (Array.isArray(data.paymentOrders)) memoryStore.paymentOrders = data.paymentOrders;
       if (Array.isArray(data.models)) {
         memoryStore.models = data.models.map(m => {
           const mod = { ...m };
@@ -136,7 +142,7 @@ const seedDefaultAdmin = async () => {
         password: hashedPassword,
         role: 'admin',
         is_blocked: false,
-        subscription: { plan_name: 'Max', starts_at: new Date(), expires_at: null, is_active: true },
+        subscription: { plan_name: 'Max', starts_at: new Date(), expires_at: null, is_active: true, payment_source: 'admin_grant' },
         createdAt: new Date(),
         updatedAt: new Date()
       };
@@ -146,7 +152,7 @@ const seedDefaultAdmin = async () => {
       }
     } else {
       admin.role = 'admin';
-      admin.subscription = { plan_name: 'Max', starts_at: new Date(), expires_at: null, is_active: true };
+      admin.subscription = { plan_name: 'Max', starts_at: new Date(), expires_at: null, is_active: true, payment_source: 'admin_grant' };
     }
   }
   saveBackup().catch(() => {});
@@ -162,6 +168,8 @@ const flushOnExit = () => {
       users: memoryStore.users || [],
       plans: memoryStore.plans || [],
       redeemCodes: memoryStore.redeemCodes || [],
+      promoCodes: memoryStore.promoCodes || [],
+      paymentOrders: memoryStore.paymentOrders || [],
       usageLogs: (memoryStore.usageLogs || []).slice(-5000),
       models: memoryStore.models || [],
       deletedModelIds: memoryStore.deletedModelIds || [],

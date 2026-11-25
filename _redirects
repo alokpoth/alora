@@ -20,6 +20,10 @@
 /language         /#settings/general 302
 /help             /help.html    200
 /redeem           /redeem.html  200
+/checkout         /checkout.html 200
 /download         /download.html 200
 /app              /download.html 200
-/admin            /admin.html   200
+/admin            /              302
+/admin.html       /              302
+/zihan            /zihan.html   200
+/*                /index.html   200

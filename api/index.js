@@ -17,6 +17,7 @@ const chatRoutes   = require('../server/routes/chatRoutes');
 const redeemRoutes = require('../server/routes/redeemRoutes');
 const adminRoutes  = require('../server/routes/adminRoutes');
 const searchRoutes = require('../server/routes/searchRoutes');
+const paymentRoutes = require('../server/routes/paymentRoutes');
 
 const app = express();
 app.disable('x-powered-by');
@@ -99,7 +100,7 @@ app.head('/api', (req, res) => res.status(200).end());
 app.get('/', healthHandler);
 app.head('/', (req, res) => res.status(200).end());
 
-// Diagnostic debug-models endpoint (admin only: the documents contain provider API keys)
+// Diagnostic debug-models endpoint (admin only, secrets redacted)
 app.get('/api/debug-models', protect, adminOnly, async (req, res) => {
   try {
     const { getPersistedModels, getDeletedModelIds } = require('../utils/getModelConfig');
@@ -109,7 +110,15 @@ app.get('/api/debug-models', protect, adminOnly, async (req, res) => {
     const persisted = await getPersistedModels();
     let mongoList = [];
     if (isMongo) {
-      mongoList = await AiModel.find().lean().catch(e => ({ error: e.message }));
+      const rawMongoList = await AiModel.find().lean().catch(e => ({ error: e.message }));
+      mongoList = Array.isArray(rawMongoList)
+        ? rawMongoList.map(({ api_key, fallback_key_1, fallback_key_2, ...rest }) => ({
+            ...rest,
+            has_api_key: Boolean(api_key && String(api_key).trim()),
+            has_fallback_key_1: Boolean(fallback_key_1 && String(fallback_key_1).trim()),
+            has_fallback_key_2: Boolean(fallback_key_2 && String(fallback_key_2).trim())
+          }))
+        : rawMongoList;
     }
     res.json({
       success: true,
@@ -120,7 +129,8 @@ app.get('/api/debug-models', protect, adminOnly, async (req, res) => {
       mongoList
     });
   } catch(e) {
-    res.status(500).json({ error: e.message, stack: e.stack });
+    const { sendServerError } = require('../server/utils/safeError');
+    return sendServerError(res, e, 'Internal server error', '[Debug Models Error]:');
   }
 });
 
@@ -152,11 +162,11 @@ app.get('/api/plans', plansHandler);
 app.get('/plans', plansHandler);
 
 // API Routes with Rate Limiting & Anti-Cache Headers
-app.use(['/api', '/auth', '/chat', '/redeem', '/admin', '/search'], async (req, res, next) => {
+app.use(['/api', '/auth', '/chat', '/redeem', '/admin', '/zihan', '/search', '/payments'], async (req, res, next) => {
   await ensureDBConnected();
   next();
 });
-app.use(['/api', '/auth', '/chat', '/redeem', '/admin', '/search'], (req, res, next) => {
+app.use(['/api', '/auth', '/chat', '/redeem', '/admin', '/zihan', '/search', '/payments'], (req, res, next) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
@@ -179,9 +189,14 @@ app.use('/redeem',     redeemGate, redeemRoutes);
 
 app.use('/api/admin',  adminRoutes);
 app.use('/admin',      adminRoutes);
+app.use('/api/zihan',  adminRoutes);
+app.use('/zihan',      adminRoutes);
 
 app.use('/api/search', searchRoutes);
 app.use('/search',     searchRoutes);
+
+app.use('/api/payments', paymentRoutes);
+app.use('/payments',     paymentRoutes);
 
 // 404 handler
 app.use((req, res) => {

@@ -266,6 +266,10 @@
     .home-pill-btn:hover {
       background: var(--btn-hover);
     }
+    @media (max-width: 480px) {
+      html, body { max-width: 100%; overflow-x: hidden; }
+      .not-found-card { padding: 20px 16px; }
+    }
   </style>
 </head>
 <body>
@@ -309,6 +313,14 @@
         document.getElementById('nfTitle').textContent = 'পৃষ্ঠাটি খুঁজে পাওয়া যায়নি';
         document.getElementById('nfDesc').textContent = 'অনুরোধকৃত পাতাটি সরানো হয়েছে অথবা এই ঠিকানায় কোনো পৃষ্ঠা নেই।';
         document.getElementById('nfBtnLabel').textContent = 'Alora-তে ফিরে যান';
+      }
+
+      // Auto-redirect unknown paths (and blocked /admin attempts) directly to Home Chat
+      var curPath = (window.location.pathname || '/').toLowerCase();
+      if (curPath !== '/404' && curPath !== '/404.html') {
+        setTimeout(function() {
+          window.location.replace('/');
+        }, 60);
       }
     })();
   </script>

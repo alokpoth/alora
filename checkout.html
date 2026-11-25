@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Checkout — Alora</title>
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=3">
+  <link rel="shortcut icon" href="/favicon.ico?v=3">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3">
+
+  <script>
+    (function() {
+      try {
+        if ((window.location.protocol === 'http:' || window.location.protocol === 'https:') &&
+            window.location.pathname.endsWith('/checkout.html')) {
+          window.history.replaceState(null, '', '/checkout' + window.location.search + window.location.hash);
+        }
+      } catch (e) {}
+
+      try {
+        var qTheme = new URLSearchParams(window.location.search).get('theme');
+        var rawTheme = qTheme || localStorage.getItem('alokpoth_theme') || 'dark';
+        var effective = rawTheme;
+        if (rawTheme === 'system') {
+          effective = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+        }
+        var allowed = ['dark', 'oled', 'light', 'eyecare', 'sapphire'];
+        if (allowed.indexOf(effective) === -1) effective = 'dark';
+        document.documentElement.setAttribute('data-theme', effective);
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root,
+    [data-theme="dark"],
+    [data-theme="sapphire"] {
+      --bg: #212121;
+      --surface: #171717;
+      --card: #2a2a2a;
+      --input: #2f2f2f;
+      --border: rgba(255, 255, 255, 0.12);
+      --border-strong: rgba(255, 255, 255, 0.34);
+      --text-main: #ececec;
+      --text-sub: #b4b4b4;
+      --text-muted: #8e8e8e;
+      --btn-bg: #ffffff;
+      --btn-text: #000000;
+      --btn-hover: #e5e5e5;
+      --pill-bg: rgba(255, 255, 255, 0.08);
+      --pill-hover: rgba(255, 255, 255, 0.14);
+      --success: #22c55e;
+      --danger: #ef4444;
+      --warn: #f59e0b;
+    }
+
+    [data-theme="oled"] {
+      --bg: #000000;
+      --surface: #0a0a0a;
+      --card: #141414;
+      --input: #1c1c1c;
+      --border: rgba(255, 255, 255, 0.12);
+      --border-strong: rgba(255, 255, 255, 0.38);
+      --text-main: #ececec;
+      --text-sub: #b4b4b4;
+      --text-muted: #8e8e8e;
+      --btn-bg: #ffffff;
+      --btn-text: #000000;
+      --btn-hover: #e5e5e5;
+      --pill-bg: rgba(255, 255, 255, 0.08);
+      --pill-hover: rgba(255, 255, 255, 0.14);
+      --success: #22c55e;
+      --danger: #ef4444;
+      --warn: #f59e0b;
+    }
+
+    [data-theme="light"] {
+      --bg: #ffffff;
+      --surface: #f7f7f7;
+      --card: #f2f2f2;
+      --input: #ffffff;
+      --border: rgba(0, 0, 0, 0.12);
+      --border-strong: rgba(0, 0, 0, 0.4);
+      --text-main: #0d0d0d;
+      --text-sub: #4a4a4a;
+      --text-muted: #6e6e6e;
+      --btn-bg: #0d0d0d;
+      --btn-text: #ffffff;
+      --btn-hover: #242424;
+      --pill-bg: rgba(0, 0, 0, 0.06);
+      --pill-hover: rgba(0, 0, 0, 0.12);
+      --success: #16a34a;
+      --danger: #dc2626;
+      --warn: #d97706;
+    }
+
+    [data-theme="eyecare"] {
+      --bg: #f4eedc;
+      --surface: #ebe2cc;
+      --card: #eae0c9;
+      --input: #fbf7ec;
+      --border: rgba(59, 47, 30, 0.14);
+      --border-strong: rgba(59, 47, 30, 0.38);
+      --text-main: #2e2418;
+      --text-sub: #544634;
+      --text-muted: #786752;
+      --btn-bg: #2e2418;
+      --btn-text: #f4eedc;
+      --btn-hover: #423525;
+      --pill-bg: rgba(59, 47, 30, 0.07);
+      --pill-hover: rgba(59, 47, 30, 0.14);
+      --success: #15803d;
+      --danger: #b91c1c;
+      --warn: #b45309;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      min-height: 100%;
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', 'Hind Siliguri', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: calc(12px + env(safe-area-inset-top, 0px)) 20px 12px;
+      background-color: var(--bg);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .icon-circle-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 9999px;
+      border: 1px solid var(--border);
+      background: var(--pill-bg);
+      color: var(--text-main);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background-color 0.15s ease;
+    }
+    .icon-circle-btn:hover { background: var(--pill-hover); }
+
+    .brand-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: var(--text-main);
+      font-weight: 700;
+      font-size: 1rem;
+    }
+    .brand-link img { width: 24px; height: 24px; object-fit: contain; border-radius: 6px; }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .pill-btn {
+      padding: 8px 14px;
+      border-radius: 9999px;
+      border: 1px solid var(--border);
+      background: var(--pill-bg);
+      color: var(--text-main);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: inherit;
+    }
+    .pill-btn:hover { background: var(--pill-hover); }
+
+    .checkout-main {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 24px 16px 56px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .page-head {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .page-title {
+      font-size: clamp(1.5rem, 3.2vw, 2rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .page-sub {
+      color: var(--text-sub);
+      font-size: 0.94rem;
+      line-height: 1.5;
+    }
+
+    .rate-banner {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 16px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      font-size: 0.85rem;
+      color: var(--text-sub);
+    }
+
+    .checkout-grid {
+      display: grid;
+      grid-template-columns: 1.18fr 0.82fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .section-label {
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .tier-chips {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .tier-chip {
+      padding: 10px 8px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-main);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      font-family: inherit;
+      transition: border-color 0.15s ease, background-color 0.15s ease;
+    }
+    .tier-chip.active {
+      border-color: var(--border-strong);
+      background: var(--btn-bg);
+      color: var(--btn-text);
+    }
+    .tier-chip-name { font-weight: 700; font-size: 0.9rem; }
+    .tier-chip-price { font-size: 0.78rem; opacity: 0.85; }
+
+    .segment-switch {
+      display: inline-flex;
+      padding: 4px;
+      border-radius: 9999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      gap: 4px;
+      width: 100%;
+    }
+    .segment-opt {
+      flex: 1;
+      padding: 9px 12px;
+      border-radius: 9999px;
+      border: none;
+      background: transparent;
+      color: var(--text-sub);
+      font-size: 0.86rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .segment-opt.active {
+      background: var(--btn-bg);
+      color: var(--btn-text);
+    }
+
+    .method-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .method-card {
+      padding: 13px 14px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-main);
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-family: inherit;
+    }
+    .method-card.active {
+      border-color: var(--border-strong);
+      background: var(--pill-hover);
+    }
+    .method-card.disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    .method-title { font-weight: 700; font-size: 0.92rem; }
+    .method-sub { font-size: 0.76rem; color: var(--text-muted); }
+
+    .chain-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .chain-pill {
+      padding: 8px 14px;
+      border-radius: 9999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-sub);
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .chain-pill.active {
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      border-color: var(--btn-bg);
+    }
+
+    .dest-box {
+      padding: 15px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .dest-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .dest-value {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.86rem;
+      word-break: break-all;
+      color: var(--text-main);
+      background: var(--input);
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      flex: 1;
+      min-width: 180px;
+    }
+
+    .field-col {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .field-col label {
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--text-sub);
+    }
+    .text-input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--input);
+      color: var(--text-main);
+      font-size: 16px;
+      font-family: inherit;
+      outline: none;
+    }
+    .text-input:focus {
+      border-color: var(--border-strong);
+    }
+
+    .promo-row {
+      display: flex;
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    .summary-line {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.92rem;
+      color: var(--text-sub);
+      padding: 4px 0;
+    }
+    .summary-total {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      border-top: 1px solid var(--border);
+      padding-top: 14px;
+      margin-top: 6px;
+    }
+    .total-amount {
+      font-size: 1.45rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .primary-cta {
+      width: 100%;
+      padding: 13px 18px;
+      border-radius: 9999px;
+      border: none;
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      font-size: 0.96rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      text-align: center;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .primary-cta:hover { background: var(--btn-hover); }
+    .primary-cta:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    .feedback-box {
+      display: none;
+      padding: 12px 14px;
+      border-radius: 14px;
+      font-size: 0.88rem;
+      line-height: 1.45;
+      border: 1px solid var(--border);
+    }
+    .feedback-box.success { display: block; border-color: rgba(34, 197, 94, 0.45); color: var(--success); background: rgba(34, 197, 94, 0.08); }
+    .feedback-box.error { display: block; border-color: rgba(239, 68, 68, 0.45); color: var(--danger); background: rgba(239, 68, 68, 0.08); }
+    .feedback-box.info { display: block; border-color: var(--border-strong); color: var(--text-main); background: var(--pill-bg); }
+
+    .orders-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .order-item {
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .status-chip {
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      border: 1px solid var(--border);
+    }
+    .status-chip.pending { color: var(--warn); border-color: rgba(245, 158, 11, 0.4); }
+    .status-chip.approved { color: var(--success); border-color: rgba(34, 197, 94, 0.45); }
+    .status-chip.rejected { color: var(--danger); border-color: rgba(239, 68, 68, 0.45); }
+
+    @media (max-width: 780px) {
+      .checkout-grid {
+        grid-template-columns: 1fr;
+      }
+      .tier-chips {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 480px) {
+      .topbar { padding: calc(10px + env(safe-area-inset-top, 0px)) 12px 10px; }
+      .checkout-main { padding: 16px 12px 44px; }
+      .panel { padding: 16px; border-radius: 18px; }
+      .method-grid { grid-template-columns: 1fr; }
+      .promo-row { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-left">
+      <a href="/pricing" class="icon-circle-btn" title="Back to Pricing" aria-label="Back to Pricing">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      </a>
+      <a href="/" class="brand-link">
+        <img src="/logo_icon_white.png" alt="Alora" id="brandLogo">
+        <span>Alora</span>
+      </a>
+    </div>
+    <div class="topbar-actions">
+      <button type="button" class="pill-btn" id="langToggleBtn">বাংলা</button>
+      <a href="/" class="pill-btn" id="homeChatBtn">Open Chat</a>
+    </div>
+  </header>
+
+  <main class="checkout-main">
+    <div class="page-head">
+      <h1 class="page-title" id="checkoutTitle">Complete your upgrade</h1>
+      <p class="page-sub" id="checkoutSub">Pay directly with Crypto (USDT), Binance Pay, Bybit Pay, or bKash. Verified payments receive a Paid badge once approved.</p>
+    </div>
+
+    <div class="rate-banner" id="rateBanner">
+      <span id="rateInfoText">Live Rate: 1 USD = 1.00 USDT · 1 USD = ৳120 BDT</span>
+      <span id="userSessionLabel" style="font-weight: 600;"></span>
+    </div>
+
+    <div id="checkoutAlert" class="feedback-box" role="alert"></div>
+
+    <div class="checkout-grid">
+      <!-- Left Column: Plan, Payment Method, Details, Submit -->
+      <section class="panel">
+        <div>
+          <span class="section-label" id="lblSelectPlan">1. Select Plan</span>
+          <div class="tier-chips" id="planSelectorGrid"></div>
+        </div>
+
+        <div>
+          <span class="section-label" id="lblSelectCurrency">2. Currency</span>
+          <div class="segment-switch" role="tablist">
+            <button type="button" class="segment-opt active" id="currUsdtBtn">USDT (USD)</button>
+            <button type="button" class="segment-opt" id="currBdtBtn">BDT (৳)</button>
+          </div>
+        </div>
+
+        <div>
+          <span class="section-label" id="lblSelectMethod">3. Payment Method</span>
+          <div class="method-grid" id="methodGrid">
+            <button type="button" class="method-card active" data-method="direct_crypto" id="methodDirectCrypto">
+              <span class="method-title">Direct Crypto (USDT)</span>
+              <span class="method-sub">BSC (BEP-20) or TRC-20</span>
+            </button>
+            <button type="button" class="method-card" data-method="binance_pay" id="methodBinance">
+              <span class="method-title">Binance Pay</span>
+              <span class="method-sub">Instant internal transfer (USDT)</span>
+            </button>
+            <button type="button" class="method-card" data-method="bybit_pay" id="methodBybit">
+              <span class="method-title">Bybit Pay</span>
+              <span class="method-sub">Bybit UID / Pay ID (USDT)</span>
+            </button>
+            <button type="button" class="method-card" data-method="bkash" id="methodBkash">
+              <span class="method-title">bKash (বিকাশ)</span>
+              <span class="method-sub">Bangladesh BDT mobile payment</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="chainWrap">
+          <span class="section-label" id="lblSelectChain">Network / Chain</span>
+          <div class="chain-row">
+            <button type="button" class="chain-pill active" data-chain="BSC (BEP-20)" id="chainBscBtn">BSC (BEP-20)</button>
+            <button type="button" class="chain-pill" data-chain="TRC-20" id="chainTrcBtn">TRON (TRC-20)</button>
+          </div>
+        </div>
+
+        <div class="dest-box" id="paymentDestBox">
+          <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-sub);" id="destHeading">Send payment to:</div>
+          <div class="dest-row">
+            <div class="dest-value" id="destValueText">Loading...</div>
+            <button type="button" class="pill-btn" id="copyDestBtn">Copy</button>
+            <a href="#" target="_blank" rel="noopener noreferrer" class="pill-btn" id="destPayUrlLink" style="display:none;">Open Link</a>
+          </div>
+          <div style="font-size: 0.78rem; color: var(--text-muted);" id="destInstruction"></div>
+        </div>
+
+        <form id="checkoutForm" style="display:flex; flex-direction:column; gap:14px;">
+          <div class="field-col">
+            <label for="senderAccountInput" id="lblSender">Your Sender Wallet / Pay ID / bKash Number *</label>
+            <input type="text" id="senderAccountInput" class="text-input" placeholder="e.g. 0x... / Pay ID / 017XXXXXXXX" required>
+          </div>
+          <div class="field-col">
+            <label for="trxIdInput" id="lblTrxId">Transaction Hash / TrxID *</label>
+            <input type="text" id="trxIdInput" class="text-input" placeholder="e.g. 0x9f2a... or BKD7X9P1..." required>
+          </div>
+
+          <div id="submitWrap">
+            <button type="submit" class="primary-cta" id="submitOrderBtn">Submit Payment Order</button>
+            <a href="/auth/login" class="primary-cta" id="loginToPayBtn" style="display:none;">Log in to complete payment</a>
+          </div>
+        </form>
+      </section>
+
+      <!-- Right Column: Promo Code + Order Summary + Recent Orders -->
+      <aside style="display:flex; flex-direction:column; gap:18px;">
+        <div class="panel">
+          <div>
+            <span class="section-label" id="lblSummary">Order Summary</span>
+            <h2 style="font-size:1.15rem; font-weight:700;" id="summaryPlanTitle">Alora Plus</h2>
+            <p style="font-size:0.84rem; color:var(--text-sub); margin-top:4px;" id="summaryPlanLimits"></p>
+          </div>
+
+          <div>
+            <span class="section-label" id="lblPromo">Discount / Promo Code</span>
+            <div class="promo-row">
+              <input type="text" id="promoCodeInput" class="text-input" placeholder="SAVE20" style="text-transform:uppercase;">
+              <button type="button" class="pill-btn" id="applyPromoBtn" style="white-space:nowrap; justify-content:center;">Apply</button>
+              <button type="button" class="pill-btn" id="removePromoBtn" style="display:none; white-space:nowrap;">✕</button>
+            </div>
+            <div id="promoMsg" style="font-size:0.8rem; margin-top:6px; color:var(--text-muted);"></div>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:6px; border-top:1px solid var(--border); padding-top:12px;">
+            <div class="summary-line">
+              <span id="lblSubtotal">Subtotal (USD)</span>
+              <span id="valSubtotal">$0.00</span>
+            </div>
+            <div class="summary-line" id="discountRow" style="display:none; color:var(--success);">
+              <span id="lblDiscount">Promo Discount</span>
+              <span id="valDiscount">-$0.00</span>
+            </div>
+            <div class="summary-line">
+              <span id="lblFinalUsd">Net USD</span>
+              <span id="valFinalUsd">$0.00</span>
+            </div>
+            <div class="summary-line">
+              <span id="lblRateRow">Applied Rate</span>
+              <span id="valRateRow">1 USD = 1 USDT</span>
+            </div>
+            <div class="summary-total">
+              <span style="font-weight:700;" id="lblPayable">Total Payable</span>
+              <span class="total-amount" id="valPayable">0.00 USDT</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+            <span class="section-label" style="margin:0;" id="lblMyOrders">Your Payment Orders</span>
+            <button type="button" class="pill-btn" id="refreshOrdersBtn" style="padding:5px 10px; font-size:12px;">Refresh</button>
+          </div>
+          <div class="orders-list" id="myOrdersList">
+            <p style="font-size:0.85rem; color:var(--text-muted);" id="noOrdersText">No payment orders yet.</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <script>
+    const isLocalHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const BACKEND_URL = isLocalHost
+      ? (window.location.port === '5000' ? '' : 'http://localhost:5000')
+      : (window.location.hostname.endsWith('onrender.com') ? '' : 'https://alora-backend-emw3.onrender.com');
+    const API_BASE = BACKEND_URL + '/api';
+
+    let currentLang = (function() {
+      try { return localStorage.getItem('alokpoth_lang') === 'bn' ? 'bn' : 'en'; } catch (e) { return 'en'; }
+    })();
+
+    const I18N = {
+      en: {
+        docTitle: 'Checkout — Alora',
+        langBtn: 'বাংলা',
+        homeChat: 'Open Chat',
+        title: 'Complete your upgrade',
+        sub: 'Pay directly via Crypto (USDT), Binance Pay, Bybit Pay, or bKash. Verified orders unlock a Paid checkmark badge on your account.',
+        lblPlan: '1. Select Plan',
+        lblCurrency: '2. Currency',
+        lblMethod: '3. Payment Method',
+        lblChain: 'Network / Chain',
+        sendTo: 'Send payment to:',
+        openLink: 'Open Payment URL',
+        copy: 'Copy',
+        copied: 'Copied!',
+        lblSender: 'Your Sender Wallet / Pay ID / bKash Number *',
+        lblTrx: 'Transaction Hash / TrxID *',
+        submitBtn: 'Submit Payment Order',
+        submitting: 'Submitting...',
+        loginBtn: 'Log in to complete payment',
+        lblSummary: 'Order Summary',
+        lblPromo: 'Discount / Promo Code',
+        apply: 'Apply',
+        lblSubtotal: 'Subtotal (USD)',
+        lblDiscount: 'Discount',
+        lblFinalUsd: 'Net USD',
+        lblRateRow: 'Conversion Rate',
+        lblPayable: 'Total Payable',
+        lblMyOrders: 'Your Payment Orders',
+        refresh: 'Refresh',
+        noOrders: 'No payment orders submitted yet.',
+        needLoginPromo: 'Please log in first to apply a promo code.',
+        notConfigured: 'Admin has not configured this address yet. Choose another method or check later.',
+        instrCrypto: 'Send the exact USDT total shown on the right using the selected chain, then submit your wallet address and TxHash.',
+        instrBinance: 'Send exact USDT to this Binance Pay ID / Email and submit your Pay ID & Order/Tx ID.',
+        instrBybit: 'Send exact USDT to this Bybit UID / Pay ID and submit your sender ID & Transaction ID.',
+        instrBkash: 'Send exact BDT total via bKash and enter your sender bKash number & TrxID.'
+      },
+      bn: {
+        docTitle: 'চেকআউট — Alora',
+        langBtn: 'English',
+        homeChat: 'চ্যাটে যান',
+        title: 'প্ল্যান আপগ্রেড সম্পন্ন করুন',
+        sub: 'Crypto (USDT), Binance Pay, Bybit Pay অথবা bKash দিয়ে সরাসরি পেমেন্ট করুন। অ্যাডমিন অনুমোদন করলে ভেরিফায়েড Paid (✓) ব্যাজ পাবেন।',
+        lblPlan: '১. প্ল্যান নির্বাচন করুন',
+        lblCurrency: '২. কারেন্সি',
+        lblMethod: '৩. পেমেন্ট মাধ্যম',
+        lblChain: 'নেটওয়ার্ক / চেইন',
+        sendTo: 'নিচের ঠিকানায় পেমেন্ট পাঠান:',
+        openLink: 'পেমেন্ট লিংক খুলুন',
+        copy: 'কপি',
+        copied: 'কপি হয়েছে!',
+        lblSender: 'আপনার প্রেরক ওয়ালেট / Pay ID / বিকাশ নম্বর *',
+        lblTrx: 'Transaction Hash / TrxID *',
+        submitBtn: 'পেমেন্ট অর্ডার জমা দিন',
+        submitting: 'জমা হচ্ছে...',
+        loginBtn: 'পেমেন্ট করতে আগে লগইন করুন',
+        lblSummary: 'অর্ডার সামারি',
+        lblPromo: 'ডিসকাউন্ট / প্রোমো কোড',
+        apply: 'প্রয়োগ করুন',
+        lblSubtotal: 'মূল্য (USD)',
+        lblDiscount: 'ডিসকাউন্ট ছাড়',
+        lblFinalUsd: 'সর্বমোট USD',
+        lblRateRow: 'রেট',
+        lblPayable: 'পরিশোধযোগ্য পরিমাণ',
+        lblMyOrders: 'আপনার পেমেন্ট অর্ডারসমূহ',
+        refresh: 'রিফ্রেশ',
+        noOrders: 'এখনো কোনো পেমেন্ট অর্ডার জমা দেওয়া হয়নি।',
+        needLoginPromo: 'প্রোমো কোড ব্যবহার করতে আগে লগইন করুন।',
+        notConfigured: 'অ্যাডমিন এখনো এই মাধ্যমের তথ্য যোগ করেননি। অন্য মাধ্যম দেখুন।',
+        instrCrypto: 'ডানদিকে দেখানো সঠিক USDT পরিমাণ নির্বাচিত চেইনে পাঠিয়ে আপনার ওয়ালেট ও TxHash জমা দিন।',
+        instrBinance: 'সঠিক পরিমাণ USDT এই Binance Pay ID-তে পাঠিয়ে আপনার আইডি ও ট্রানজেকশন আইডি দিন।',
+        instrBybit: 'সঠিক পরিমাণ USDT এই Bybit UID / Pay ID-তে পাঠিয়ে ট্রানজেকশন আইডি দিন।',
+        instrBkash: 'ডানদিকে দেখানো BDT পরিমাণ বিকাশে পাঠিয়ে আপনার নম্বর ও TrxID জমা দিন।'
+      }
+    };
+
+    const PAID_DEFAULTS = [
+      { name: 'Go', displayName: 'Alora Go', price_usd: 5, message_limit: 20, window_hours: 3, image_limit: 15 },
+      { name: 'Plus', displayName: 'Alora Plus', price_usd: 20, message_limit: 30, window_hours: 3, image_limit: 25 },
+      { name: 'Pro', displayName: 'Alora Pro', price_usd: 55, message_limit: 40, window_hours: 2, image_limit: 50 },
+      { name: 'Max', displayName: 'Alora Max', price_usd: 120, message_limit: 50, window_hours: 1, image_limit: 100 }
+    ];
+
+    let paymentConfig = {
+      usd_to_bdt_rate: 120,
+      usd_to_usdt_rate: 1,
+      direct_crypto: {
+        enabled: true,
+        chains: [
+          { id: 'BSC (BEP-20)', label: 'BNB Smart Chain (BEP-20 / BSC)', address: '', pay_url: '' },
+          { id: 'TRC-20', label: 'TRON Network (TRC-20)', address: '', pay_url: '' }
+        ]
+      },
+      binance_pay: { enabled: true, pay_id: '' },
+      bybit_pay: { enabled: true, pay_id: '' },
+      bkash: { enabled: true, number: '', account_type: 'Send Money' }
+    };
+    let plansList = [...PAID_DEFAULTS];
+    const queryPlan = new URLSearchParams(window.location.search).get('plan');
+    let selectedPlan = ['Go', 'Plus', 'Pro', 'Max'].includes(queryPlan) ? queryPlan : 'Plus';
+    let selectedCurrency = 'USDT';
+    let selectedMethod = 'direct_crypto';
+    let selectedChain = 'BSC (BEP-20)';
+    let appliedPromo = null;
+
+    function getAuthToken() {
+      try { return localStorage.getItem('alokpoth_token') || ''; } catch (e) { return ''; }
+    }
+
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function showCheckoutAlert(type, msg) {
+      const box = document.getElementById('checkoutAlert');
+      if (!box) return;
+      if (!msg) {
+        box.className = 'feedback-box';
+        box.textContent = '';
+        return;
+      }
+      box.className = 'feedback-box ' + type;
+      box.textContent = msg;
+    }
+
+    function syncThemeLogo() {
+      const th = document.documentElement.getAttribute('data-theme') || 'dark';
+      const logo = document.getElementById('brandLogo');
+      if (logo) logo.src = (th === 'light' || th === 'eyecare') ? '/logo_icon_black.png' : '/logo_icon_white.png';
+    }
+    syncThemeLogo();
+
+    function getSelectedPlanObj() {
+      return plansList.find(p => p.name === selectedPlan) || PAID_DEFAULTS[1];
+    }
+
+    function computeQuoteClient() {
+      const planObj = getSelectedPlanObj();
+      const baseUsd = Math.max(0, Math.round((Number(planObj.price_usd) || 0) * 100) / 100);
+      let discountUsd = 0;
+      if (appliedPromo) {
+        const val = Math.max(0, Number(appliedPromo.discount_value) || 0);
+        discountUsd = appliedPromo.discount_type === 'fixed_usd'
+          ? Math.min(baseUsd, val)
+          : Math.round((baseUsd * Math.min(100, val) / 100) * 100) / 100;
+      }
+      const finalUsd = Math.max(0, Math.round((baseUsd - discountUsd) * 100) / 100);
+      const rate = selectedCurrency === 'BDT' ? paymentConfig.usd_to_bdt_rate : paymentConfig.usd_to_usdt_rate;
+      const payable = selectedCurrency === 'BDT'
+        ? Math.round(finalUsd * rate)
+        : Math.round(finalUsd * rate * 100) / 100;
+      return { baseUsd, discountUsd, finalUsd, rate, payable };
+    }
+
+    function renderCheckoutUI() {
+      const t = I18N[currentLang] || I18N.en;
+      document.documentElement.setAttribute('lang', currentLang);
+      document.title = t.docTitle;
+      document.getElementById('langToggleBtn').textContent = t.langBtn;
+      document.getElementById('homeChatBtn').textContent = t.homeChat;
+      document.getElementById('checkoutTitle').textContent = t.title;
+      document.getElementById('checkoutSub').textContent = t.sub;
+      document.getElementById('lblSelectPlan').textContent = t.lblPlan;
+      document.getElementById('lblSelectCurrency').textContent = t.lblCurrency;
+      document.getElementById('lblSelectMethod').textContent = t.lblMethod;
+      document.getElementById('lblSelectChain').textContent = t.lblChain;
+      document.getElementById('destHeading').textContent = t.sendTo;
+      document.getElementById('copyDestBtn').textContent = t.copy;
+      document.getElementById('destPayUrlLink').textContent = t.openLink;
+      document.getElementById('lblSender').textContent = t.lblSender;
+      document.getElementById('lblTrxId').textContent = t.lblTrx;
+      document.getElementById('submitOrderBtn').textContent = t.submitBtn;
+      document.getElementById('loginToPayBtn').textContent = t.loginBtn;
+      document.getElementById('lblSummary').textContent = t.lblSummary;
+      document.getElementById('lblPromo').textContent = t.lblPromo;
+      document.getElementById('applyPromoBtn').textContent = t.apply;
+      document.getElementById('lblSubtotal').textContent = t.lblSubtotal;
+      document.getElementById('lblDiscount').textContent = t.lblDiscount;
+      document.getElementById('lblFinalUsd').textContent = t.lblFinalUsd;
+      document.getElementById('lblRateRow').textContent = t.lblRateRow;
+      document.getElementById('lblPayable').textContent = t.lblPayable;
+      document.getElementById('lblMyOrders').textContent = t.lblMyOrders;
+      document.getElementById('refreshOrdersBtn').textContent = t.refresh;
+
+      // Rate Banner + Auth state
+      document.getElementById('rateInfoText').textContent =
+        `Live Rate: 1 USD = ${paymentConfig.usd_to_usdt_rate} USDT · 1 USD = ৳${paymentConfig.usd_to_bdt_rate} BDT`;
+
+      const hasToken = Boolean(getAuthToken());
+      let userEmail = '';
+      try {
+        const u = JSON.parse(localStorage.getItem('alokpoth_user') || 'null');
+        if (u && u.email) userEmail = u.email;
+      } catch (e) {}
+      document.getElementById('userSessionLabel').textContent = hasToken ? (userEmail || 'Logged in') : 'Guest';
+      document.getElementById('submitOrderBtn').style.display = hasToken ? 'inline-flex' : 'none';
+      const loginBtn = document.getElementById('loginToPayBtn');
+      loginBtn.style.display = hasToken ? 'none' : 'inline-flex';
+      loginBtn.href = '/auth/login?redirect=' + encodeURIComponent('/checkout?plan=' + encodeURIComponent(selectedPlan));
+
+      // Plan selector chips
+      const planGrid = document.getElementById('planSelectorGrid');
+      planGrid.innerHTML = '';
+      plansList.forEach(p => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'tier-chip' + (p.name === selectedPlan ? ' active' : '');
+        const usdtPrice = Math.round((Number(p.price_usd) || 0) * paymentConfig.usd_to_usdt_rate * 100) / 100;
+        btn.innerHTML = `<span class="tier-chip-name">${escapeHtml(p.name)}</span><span class="tier-chip-price">$${usdtPrice} USDT</span>`;
+        btn.onclick = () => {
+          selectedPlan = p.name;
+          appliedPromo = null;
+          document.getElementById('removePromoBtn').style.display = 'none';
+          document.getElementById('promoMsg').textContent = '';
+          if (window.history && window.history.replaceState) {
+            window.history.replaceState(null, '', '/checkout?plan=' + encodeURIComponent(selectedPlan));
+          }
+          renderCheckoutUI();
+        };
+        planGrid.appendChild(btn);
+      });
+
+      // Currency toggle
+      document.getElementById('currUsdtBtn').classList.toggle('active', selectedCurrency === 'USDT');
+      document.getElementById('currBdtBtn').classList.toggle('active', selectedCurrency === 'BDT');
+
+      // Payment method cards + enabled flags
+      const methodsMeta = {
+        direct_crypto: paymentConfig.direct_crypto?.enabled !== false,
+        binance_pay: paymentConfig.binance_pay?.enabled !== false,
+        bybit_pay: paymentConfig.bybit_pay?.enabled !== false,
+        bkash: paymentConfig.bkash?.enabled !== false
+      };
+      document.querySelectorAll('.method-card').forEach(card => {
+        const m = card.getAttribute('data-method');
+        const enabled = methodsMeta[m];
+        card.classList.toggle('disabled', !enabled);
+        card.classList.toggle('active', m === selectedMethod);
+      });
+
+      // Chain selector & Destination card
+      const chainWrap = document.getElementById('chainWrap');
+      chainWrap.style.display = selectedMethod === 'direct_crypto' ? 'block' : 'none';
+      document.querySelectorAll('.chain-pill').forEach(pill => {
+        pill.classList.toggle('active', pill.getAttribute('data-chain') === selectedChain);
+      });
+
+      const destValEl = document.getElementById('destValueText');
+      const payUrlEl = document.getElementById('destPayUrlLink');
+      const instrEl = document.getElementById('destInstruction');
+      payUrlEl.style.display = 'none';
+      payUrlEl.href = '#';
+
+      if (selectedMethod === 'direct_crypto') {
+        const chains = paymentConfig.direct_crypto?.chains || [];
+        const cObj = chains.find(c => c.id === selectedChain) || chains[0] || {};
+        destValEl.textContent = cObj.address || t.notConfigured;
+        if (cObj.pay_url) {
+          payUrlEl.href = cObj.pay_url;
+          payUrlEl.style.display = 'inline-flex';
+        }
+        instrEl.textContent = t.instrCrypto;
+      } else if (selectedMethod === 'binance_pay') {
+        destValEl.textContent = paymentConfig.binance_pay?.pay_id || t.notConfigured;
+        instrEl.textContent = t.instrBinance;
+      } else if (selectedMethod === 'bybit_pay') {
+        destValEl.textContent = paymentConfig.bybit_pay?.pay_id || t.notConfigured;
+        instrEl.textContent = t.instrBybit;
+      } else if (selectedMethod === 'bkash') {
+        const bk = paymentConfig.bkash || {};
+        destValEl.textContent = bk.number ? `${bk.number} (${bk.account_type || 'Send Money'})` : t.notConfigured;
+        instrEl.textContent = t.instrBkash;
+      }
+
+      // Order Summary
+      const planObj = getSelectedPlanObj();
+      const q = computeQuoteClient();
+      document.getElementById('summaryPlanTitle').textContent = `Alora ${planObj.name}`;
+      document.getElementById('summaryPlanLimits').textContent =
+        `${planObj.message_limit} msgs / ${planObj.window_hours}h · ${planObj.image_limit} images`;
+      document.getElementById('valSubtotal').textContent = `$${q.baseUsd.toFixed(2)} USD`;
+
+      const discRow = document.getElementById('discountRow');
+      if (appliedPromo && q.discountUsd > 0) {
+        discRow.style.display = 'flex';
+        document.getElementById('valDiscount').textContent = `-$${q.discountUsd.toFixed(2)} USD (${appliedPromo.code})`;
+      } else {
+        discRow.style.display = 'none';
+      }
+      document.getElementById('valFinalUsd').textContent = `$${q.finalUsd.toFixed(2)} USD`;
+      document.getElementById('valRateRow').textContent = selectedCurrency === 'BDT'
+        ? `1 USD = ৳${q.rate} BDT`
+        : `1 USD = ${q.rate} USDT`;
+      document.getElementById('valPayable').textContent = selectedCurrency === 'BDT'
+        ? `৳${Number(q.payable).toLocaleString('en-US')} BDT`
+        : `${q.payable.toFixed(2)} USDT`;
+    }
+
+    document.getElementById('langToggleBtn').addEventListener('click', () => {
+      currentLang = currentLang === 'en' ? 'bn' : 'en';
+      try { localStorage.setItem('alokpoth_lang', currentLang); } catch (e) {}
+      renderCheckoutUI();
+      loadMyOrders();
+    });
+
+    document.getElementById('currUsdtBtn').addEventListener('click', () => {
+      selectedCurrency = 'USDT';
+      renderCheckoutUI();
+    });
+    document.getElementById('currBdtBtn').addEventListener('click', () => {
+      selectedCurrency = 'BDT';
+      renderCheckoutUI();
+    });
+
+    document.querySelectorAll('.method-card').forEach(card => {
+      card.addEventListener('click', () => {
+        if (card.classList.contains('disabled')) return;
+        selectedMethod = card.getAttribute('data-method');
+        if (selectedMethod === 'bkash') selectedCurrency = 'BDT';
+        else if (selectedCurrency === 'BDT') selectedCurrency = 'USDT';
+        renderCheckoutUI();
+      });
+    });
+
+    document.querySelectorAll('.chain-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        selectedChain = pill.getAttribute('data-chain');
+        renderCheckoutUI();
+      });
+    });
+
+    document.getElementById('copyDestBtn').addEventListener('click', async () => {
+      const rawText = document.getElementById('destValueText').textContent.trim();
+      const t = I18N[currentLang] || I18N.en;
+      if (!rawText || rawText === t.notConfigured || rawText === 'Loading...') return;
+      const toCopy = selectedMethod === 'bkash' ? rawText.split(' ')[0] : rawText;
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(toCopy);
+        } else {
+          const ta = document.createElement('textarea');
+          ta.value = toCopy;
+          ta.style.position = 'fixed';
+          ta.style.top = '-9999px';
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+        }
+        const btn = document.getElementById('copyDestBtn');
+        btn.textContent = t.copied;
+        setTimeout(() => { btn.textContent = t.copy; }, 1600);
+      } catch (e) {}
+    });
+
+    document.getElementById('applyPromoBtn').addEventListener('click', async () => {
+      const t = I18N[currentLang] || I18N.en;
+      const token = getAuthToken();
+      const msgEl = document.getElementById('promoMsg');
+      if (!token) {
+        msgEl.style.color = 'var(--danger)';
+        msgEl.textContent = t.needLoginPromo;
+        return;
+      }
+      const code = document.getElementById('promoCodeInput').value.trim().toUpperCase();
+      if (!code) return;
+      try {
+        const res = await fetch(API_BASE + '/payments/validate-promo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify({ code, plan_name: selectedPlan, currency: selectedCurrency })
+        });
+        const data = await res.json();
+        if (res.ok && data.success && data.valid && data.promo) {
+          appliedPromo = data.promo;
+          document.getElementById('removePromoBtn').style.display = 'inline-flex';
+          msgEl.style.color = 'var(--success)';
+          msgEl.textContent = `✓ ${data.promo.code} applied (-$${data.quote.discount_usd.toFixed(2)} USD)`;
+          renderCheckoutUI();
+        } else {
+          appliedPromo = null;
+          msgEl.style.color = 'var(--danger)';
+          msgEl.textContent = data.error || 'Invalid promo code';
+          renderCheckoutUI();
+        }
+      } catch (e) {
+        msgEl.style.color = 'var(--danger)';
+        msgEl.textContent = 'Network error';
+      }
+    });
+
+    document.getElementById('removePromoBtn').addEventListener('click', () => {
+      appliedPromo = null;
+      document.getElementById('promoCodeInput').value = '';
+      document.getElementById('promoMsg').textContent = '';
+      document.getElementById('removePromoBtn').style.display = 'none';
+      renderCheckoutUI();
+    });
+
+    document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const t = I18N[currentLang] || I18N.en;
+      const token = getAuthToken();
+      if (!token) {
+        window.location.href = '/auth/login?redirect=' + encodeURIComponent('/checkout?plan=' + selectedPlan);
+        return;
+      }
+
+      const sender_account = document.getElementById('senderAccountInput').value.trim();
+      const trx_id = document.getElementById('trxIdInput').value.trim();
+      const btn = document.getElementById('submitOrderBtn');
+      btn.disabled = true;
+      btn.textContent = t.submitting;
+      showCheckoutAlert('', '');
+
+      try {
+        const res = await fetch(API_BASE + '/payments/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify({
+            plan_name: selectedPlan,
+            currency: selectedCurrency,
+            payment_method: selectedMethod,
+            chain: selectedMethod === 'direct_crypto' ? selectedChain : '',
+            promo_code: appliedPromo ? appliedPromo.code : '',
+            sender_account,
+            trx_id
+          })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showCheckoutAlert('success', `${data.message} (Order ID: ${data.order?.order_id || ''})`);
+          document.getElementById('senderAccountInput').value = '';
+          document.getElementById('trxIdInput').value = '';
+          appliedPromo = null;
+          document.getElementById('promoCodeInput').value = '';
+          document.getElementById('removePromoBtn').style.display = 'none';
+          document.getElementById('promoMsg').textContent = '';
+          renderCheckoutUI();
+          loadMyOrders();
+        } else {
+          showCheckoutAlert('error', data.error || 'Failed to submit order');
+        }
+      } catch (err) {
+        showCheckoutAlert('error', 'Server connection error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = t.submitBtn;
+      }
+    });
+
+    async function loadPaymentConfig() {
+      try {
+        const res = await fetch(API_BASE + '/payments/config?_t=' + Date.now(), { cache: 'no-store' });
+        const data = await res.json();
+        if (data && data.success) {
+          if (data.billing) paymentConfig = data.billing;
+          if (Array.isArray(data.plans) && data.plans.length > 0) plansList = data.plans;
+          renderCheckoutUI();
+        }
+      } catch (e) {}
+    }
+
+    async function loadMyOrders() {
+      const token = getAuthToken();
+      const listEl = document.getElementById('myOrdersList');
+      const t = I18N[currentLang] || I18N.en;
+      if (!token) {
+        listEl.innerHTML = `<p style="font-size:0.85rem; color:var(--text-muted);">${escapeHtml(t.noOrders)}</p>`;
+        return;
+      }
+      try {
+        const res = await fetch(API_BASE + '/payments/my-orders?_t=' + Date.now(), {
+          headers: { 'Authorization': 'Bearer ' + token },
+          cache: 'no-store'
+        });
+        const data = await res.json();
+        if (!data.success || !Array.isArray(data.orders) || data.orders.length === 0) {
+          listEl.innerHTML = `<p style="font-size:0.85rem; color:var(--text-muted);">${escapeHtml(t.noOrders)}</p>`;
+          return;
+        }
+        listEl.innerHTML = '';
+        data.orders.forEach(o => {
+          const item = document.createElement('div');
+          item.className = 'order-item';
+          const statusLabel = o.status === 'approved' ? '✓ Paid · Approved' : (o.status === 'rejected' ? '✕ Rejected' : 'Pending Review');
+          const amtText = o.currency === 'BDT' ? `৳${Number(o.payable_amount).toLocaleString('en-US')} BDT` : `${Number(o.payable_amount).toFixed(2)} USDT`;
+          item.innerHTML = `
+            <div style="display:flex; flex-direction:column; gap:3px; min-width:0;">
+              <span style="font-weight:700; font-size:0.9rem;">${escapeHtml(o.plan_name)} · ${escapeHtml(amtText)}</span>
+              <span style="font-size:0.76rem; color:var(--text-muted); word-break:break-all;">${escapeHtml(o.order_id)} · ${escapeHtml(o.payment_method)}${o.chain ? ' (' + escapeHtml(o.chain) + ')' : ''}</span>
+              <span style="font-size:0.75rem; color:var(--text-sub);">TrxID: ${escapeHtml(o.trx_id)}</span>
+            </div>
+            <span class="status-chip ${escapeHtml(o.status || 'pending')}">${escapeHtml(statusLabel)}</span>
+          `;
+          listEl.appendChild(item);
+        });
+      } catch (e) {}
+    }
+
+    document.getElementById('refreshOrdersBtn').addEventListener('click', loadMyOrders);
+
+    renderCheckoutUI();
+    loadPaymentConfig();
+    loadMyOrders();
+  </script>
+</body>
+</html>

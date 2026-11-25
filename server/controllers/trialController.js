@@ -75,7 +75,7 @@ const claimFreeTrial = async (req, res) => {
     }
 
     const expiresAt = new Date(now.getTime() + promo.days * 24 * 60 * 60 * 1000);
-    const subscriptionData = { plan_name: promo.plan, starts_at: now, expires_at: expiresAt, is_active: true, is_trial: true };
+    const subscriptionData = { plan_name: promo.plan, starts_at: now, expires_at: expiresAt, is_active: true, is_trial: true, payment_source: 'trial' };
     const userId = user._id || user.id;
     const email = (user.email || '').toLowerCase().trim();
 
@@ -86,7 +86,7 @@ const claimFreeTrial = async (req, res) => {
     if (getIsMongoConnected()) {
       const mongoose = require('mongoose');
       const q = mongoose.Types.ObjectId.isValid(userId) ? { _id: userId } : { email };
-      await User.updateOne(q, { $set: { subscription: { plan_name: promo.plan, starts_at: now, expires_at: expiresAt, is_active: true } } });
+      await User.updateOne(q, { $set: { subscription: { plan_name: promo.plan, starts_at: now, expires_at: expiresAt, is_active: true, payment_source: 'trial' } } });
     }
 
     try {

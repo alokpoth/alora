@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const User = require('../models/User');
 const Plan = require('../models/Plan');
 const RedeemCode = require('../models/RedeemCode');
@@ -13,6 +14,32 @@ const { PLAN_ORDER, USER_PLANS, PAID_PLANS, DEFAULT_PLANS_MAP, ensureAllCanonica
 
 const SUPER_ADMIN_EMAILS = ['zihanfakir@gmail.com', 'x@zihan.uk'];
 const isSuperAdminEmail = (email) => !!email && SUPER_ADMIN_EMAILS.includes(String(email).toLowerCase().trim());
+
+// Strictly write-only secret redaction for Admin API responses (saved keys are NEVER echoed back)
+const redactModelSecretsForAdmin = (m) => {
+  if (!m || typeof m !== 'object') return m;
+  const copy = { ...m };
+  const hasPrimary = Boolean(copy.api_key && String(copy.api_key).trim());
+  const hasFb1 = Boolean(copy.fallback_key_1 && String(copy.fallback_key_1).trim());
+  const hasFb2 = Boolean(copy.fallback_key_2 && String(copy.fallback_key_2).trim());
+  delete copy.api_key;
+  delete copy.fallback_key_1;
+  delete copy.fallback_key_2;
+  copy.has_api_key = hasPrimary;
+  copy.has_fallback_key_1 = hasFb1;
+  copy.has_fallback_key_2 = hasFb2;
+  return copy;
+};
+
+const redactSettingsSecretsForAdmin = (s) => {
+  if (!s || typeof s !== 'object') return s;
+  const copy = { ...s };
+  copy.has_image_api_key = Boolean(copy.image_api_key && String(copy.image_api_key).trim());
+  copy.has_web_search_api_key = Boolean(copy.web_search_api_key && String(copy.web_search_api_key).trim());
+  delete copy.image_api_key;
+  delete copy.web_search_api_key;
+  return copy;
+};
 
 // Supabase তে api_key upsert করার helper
 async function upsertApiKeyToSupabase(modelId, apiKey) {
@@ -164,7 +191,8 @@ const updateUserPlan = async (req, res) => {
         plan_name: plan_name || 'Free',
         starts_at: now,
         expires_at: expiresAt,
-        is_active: true
+        is_active: true,
+        payment_source: (!plan_name || plan_name === 'Free') ? 'free' : 'admin_grant'
       };
 
       await user.save();
@@ -234,7 +262,8 @@ const updateUserPlan = async (req, res) => {
         plan_name: plan_name || 'Free',
         starts_at: now,
         expires_at: expiresAt,
-        is_active: true
+        is_active: true,
+        payment_source: (!plan_name || plan_name === 'Free') ? 'free' : 'admin_grant'
       };
       await savePersistedUsers(users);
       debouncedSave();
@@ -587,7 +616,7 @@ const updatePlanLimits = async (req, res) => {
     if (!planName || !PLAN_ORDER.includes(planName)) {
       return res.status(400).json({ success: false, error: `সঠিক প্ল্যানের নাম দিন (${PLAN_ORDER.join(', ')})` });
     }
-    const { message_limit, window_hours, image_limit, price_bdt, tagline, displayName, allowed_models, is_active } = req.body;
+    const { message_limit, window_hours, image_limit, price_usd, price_bdt, tagline, displayName, allowed_models, is_active } = req.body;
     const minMsgLimit = planName === 'Guest' ? 0 : 1;
 
     let validLimit = undefined;
@@ -611,6 +640,13 @@ const updatePlanLimits = async (req, res) => {
       const n = parseInt(image_limit, 10);
       if (isNaN(n) || n < 0 || n > 100000) return res.status(400).json({ success: false, error: 'ছবি তৈরির সীমা ০ থেকে ১,০০,০০০ এর মধ্যে হতে হবে।' });
       validImageLimit = n;
+    }
+
+    let validPriceUsd = undefined;
+    if (price_usd !== undefined) {
+      const n = Number(price_usd);
+      if (isNaN(n) || n < 0 || n > 100000) return res.status(400).json({ success: false, error: 'সঠিক মূল্য (USD >= 0) লিখুন।' });
+      validPriceUsd = Math.round(n * 100) / 100;
     }
 
     let validPrice = undefined;
@@ -644,6 +680,7 @@ const updatePlanLimits = async (req, res) => {
       if (validLimit !== undefined) target.message_limit = validLimit;
       if (validWindow !== undefined) target.window_hours = validWindow;
       if (validImageLimit !== undefined) target.image_limit = validImageLimit;
+      if (validPriceUsd !== undefined) target.price_usd = validPriceUsd;
       if (validPrice !== undefined) target.price_bdt = validPrice;
       if (validTagline !== undefined) target.tagline = validTagline;
       if (validDisplayName !== undefined) target.displayName = validDisplayName;
@@ -674,6 +711,7 @@ const updatePlanLimits = async (req, res) => {
             message_limit: plan.message_limit,
             window_hours: plan.window_hours,
             image_limit: plan.image_limit,
+            price_usd: plan.price_usd,
             price_bdt: plan.price_bdt,
             tagline: plan.tagline,
             allowed_models: plan.allowed_models || ['*'],
@@ -724,9 +762,9 @@ const generateRandomCode = (planName) => {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let rand = '';
   for (let i = 0; i < 12; i++) {
-    rand += chars.charAt(Math.floor(Math.random() * chars.length));
+    rand += chars.charAt(crypto.randomInt(0, chars.length));
   }
-  return `ALO-${planName.toUpperCase()}-${rand}`;
+  return `ALO-${String(planName || '').toUpperCase()}-${rand}`;
 };
 
 const generateRedeemCodes = async (req, res) => {
@@ -900,8 +938,8 @@ const createCustomRedeemCode = async (req, res) => {
     }
     
     const cleanCode = custom_code.trim().toUpperCase();
-    if (cleanCode.length < 3 || cleanCode.length > 50) {
-      return res.status(400).json({ success: false, error: 'কাস্টম কোড ৩ থেকে ৫০ অক্ষরের মধ্যে হতে হবে' });
+    if (cleanCode.length < 1 || cleanCode.length > 50) {
+      return res.status(400).json({ success: false, error: 'কাস্টম কোড ১ থেকে ৫০ অক্ষরের মধ্যে হতে হবে' });
     }
     
     const validDuration = Math.floor(Math.min(Math.max(Number(duration_days) || 30, 1), 3650));
@@ -1032,7 +1070,7 @@ const getModels = async (req, res) => {
       m.context_window = m.context_window !== undefined && !isNaN(Number(m.context_window)) ? Number(m.context_window) : 8192;
     }
 
-    const sorted = models.sort((a, b) => (a.order || 0) - (b.order || 0));
+    const sorted = models.sort((a, b) => (a.order || 0) - (b.order || 0)).map(redactModelSecretsForAdmin);
     return res.json({ success: true, models: sorted });
   } catch (error) {
     return sendServerError(res, error, 'Internal server error', '[Admin Error]:');
@@ -1084,7 +1122,7 @@ const updateModel = async (req, res) => {
     const cleanDesc = description !== undefined ? String(description || '').trim().slice(0, 300) : undefined;
 
     const hasValidKey = typeof api_key === 'string' && api_key.trim().length > 0;
-    const shouldClearKey = clear_api_key === true || (typeof api_key === 'string' && api_key.trim() === '');
+    const shouldClearKey = clear_api_key === true;
     const cleanBaseUrl = base_url !== undefined ? normalizeBaseUrl(base_url) : undefined;
     const cleanApiModel1 = api_model_1 !== undefined ? String(api_model_1).trim() : undefined;
 
@@ -1093,14 +1131,14 @@ const updateModel = async (req, res) => {
       ? String(api_model_2 !== undefined ? api_model_2 : fallback_model_1).trim()
       : undefined;
     const hasFbKey1 = typeof fallback_key_1 === 'string' && fallback_key_1.trim().length > 0;
-    const shouldClearFbKey1 = clear_fallback_key_1 === true || (typeof fallback_key_1 === 'string' && fallback_key_1.trim() === '');
+    const shouldClearFbKey1 = clear_fallback_key_1 === true;
 
     const cleanFbUrl2 = fallback_url_2 !== undefined ? (fallback_url_2.trim() ? normalizeBaseUrl(fallback_url_2) : '') : undefined;
     const cleanFbModel2 = (api_model_3 !== undefined || fallback_model_2 !== undefined)
       ? String(api_model_3 !== undefined ? api_model_3 : fallback_model_2).trim()
       : undefined;
     const hasFbKey2 = typeof fallback_key_2 === 'string' && fallback_key_2.trim().length > 0;
-    const shouldClearFbKey2 = clear_fallback_key_2 === true || (typeof fallback_key_2 === 'string' && fallback_key_2.trim() === '');
+    const shouldClearFbKey2 = clear_fallback_key_2 === true;
 
     if (hasValidKey) {
       await upsertApiKeyToSupabase(modelId, api_key.trim());
@@ -1181,7 +1219,7 @@ const updateModel = async (req, res) => {
       await saveBackup();
 
       const modelOut = syncedModels.find(m => m.id === modelId || m.model_id === modelId) || mongoModel;
-      return res.json({ success: true, message: 'মডেল ও ৩টি API কনফিগারেশন সফলভাবে আপডেট হয়েছে', model: modelOut });
+      return res.json({ success: true, message: 'মডেল ও ৩টি API কনফিগারেশন সফলভাবে আপডেট হয়েছে', model: redactModelSecretsForAdmin(modelOut) });
     }
 
     let models = await getPersistedModels();
@@ -1261,7 +1299,7 @@ const updateModel = async (req, res) => {
     invalidateCachedModels();
     await saveBackup();
 
-    return res.json({ success: true, message: 'মডেল ও ৩টি API কনফিগারেশন সফলভাবে আপডেট হয়েছে', model });
+    return res.json({ success: true, message: 'মডেল ও ৩টি API কনফিগারেশন সফলভাবে আপডেট হয়েছে', model: redactModelSecretsForAdmin(model) });
   } catch (error) {
     return sendServerError(res, error, 'Internal server error', '[Admin Error]:');
   }
@@ -1373,7 +1411,7 @@ const addModel = async (req, res) => {
     invalidateCachedModels();
     await saveBackup();
 
-    return res.status(201).json({ success: true, message: 'নতুন মডেল সফলভাবে যোগ করা হয়েছে', model: newModel });
+    return res.status(201).json({ success: true, message: 'নতুন মডেল সফলভাবে যোগ করা হয়েছে', model: redactModelSecretsForAdmin(newModel) });
   } catch (error) {
     return sendServerError(res, error, 'Internal server error', '[Admin Error]:');
   }
@@ -1579,7 +1617,7 @@ const reorderModels = async (req, res) => {
       debouncedSave();
       await saveBackup();
 
-      return res.json({ success: true, message: 'মডেলের ক্রম সফলভাবে সাজানো হয়েছে', models: reordered });
+      return res.json({ success: true, message: 'মডেলের ক্রম সফলভাবে সাজানো হয়েছে', models: reordered.map(redactModelSecretsForAdmin) });
     }
 
     if (modelId && direction) {
@@ -1607,9 +1645,9 @@ const reorderModels = async (req, res) => {
         invalidateModelKeyCache();
         invalidateCachedModels();
         await saveBackup();
-        return res.json({ success: true, message: 'মডেলের অবস্থান পরিবর্তন হয়েছে', models });
+        return res.json({ success: true, message: 'মডেলের অবস্থান পরিবর্তন হয়েছে', models: models.map(redactModelSecretsForAdmin) });
       }
-      return res.json({ success: true, models });
+      return res.json({ success: true, models: models.map(redactModelSecretsForAdmin) });
     }
 
     return res.status(400).json({ success: false, error: 'সঠিক তথ্য দিন' });
@@ -1622,7 +1660,7 @@ const getSettings = async (req, res) => {
   try {
     const { getSystemSettings } = require('../../utils/getModelConfig');
     const settings = await getSystemSettings();
-    return res.json({ success: true, settings });
+    return res.json({ success: true, settings: redactSettingsSecretsForAdmin(settings) });
   } catch (error) {
     return sendServerError(res, error, 'Internal server error', '[Admin Error]:');
   }
@@ -1630,11 +1668,38 @@ const getSettings = async (req, res) => {
 
 const updateSettings = async (req, res) => {
   try {
-    const { saveSystemSettings } = require('../../utils/getModelConfig');
-    const toSave = typeof req.body === 'object' && req.body !== null ? req.body : {};
+    const { getSystemSettings, saveSystemSettings } = require('../../utils/getModelConfig');
+    const rawBody = (typeof req.body === 'object' && req.body !== null && !Array.isArray(req.body)) ? req.body : {};
+    const existingSettings = await getSystemSettings();
+    const toSave = {};
+    for (const [k, v] of Object.entries(rawBody)) {
+      if (k === '__proto__' || k === 'constructor' || k === 'prototype') continue;
+      if (k === 'clear_image_api_key' || k === 'clear_web_search_api_key') continue;
+      if (k === 'image_api_key') {
+        const str = typeof v === 'string' ? v.trim() : '';
+        if (str) toSave.image_api_key = str;
+        continue;
+      }
+      if (k === 'web_search_api_key') {
+        const str = typeof v === 'string' ? v.trim() : '';
+        if (str) toSave.web_search_api_key = str;
+        continue;
+      }
+      toSave[k] = v;
+    }
+    if (rawBody.clear_image_api_key === true) {
+      toSave.image_api_key = '';
+    } else if (!Object.prototype.hasOwnProperty.call(toSave, 'image_api_key') && existingSettings.image_api_key) {
+      toSave.image_api_key = existingSettings.image_api_key;
+    }
+    if (rawBody.clear_web_search_api_key === true) {
+      toSave.web_search_api_key = '';
+    } else if (!Object.prototype.hasOwnProperty.call(toSave, 'web_search_api_key') && existingSettings.web_search_api_key) {
+      toSave.web_search_api_key = existingSettings.web_search_api_key;
+    }
     const saved = await saveSystemSettings(toSave);
     debouncedSave();
-    return res.json({ success: true, settings: saved, message: 'সিস্টেম সেটিংস সফলভাবে আপডেট হয়েছে' });
+    return res.json({ success: true, settings: redactSettingsSecretsForAdmin(saved), message: 'সিস্টেম সেটিংস সফলভাবে আপডেট হয়েছে' });
   } catch (error) {
     return sendServerError(res, error, 'Internal server error', '[Admin Error]:');
   }
@@ -1644,10 +1709,13 @@ const testWebSearchSetting = async (req, res) => {
   try {
     const { query, provider, api_key, custom_url, max_results } = req.body || {};
     const cleanQuery = String(query || 'AI news').trim();
+    const { getSystemSettings } = require('../../utils/getModelConfig');
+    const saved = await getSystemSettings();
+    const effectiveKey = (typeof api_key === 'string' && api_key.trim()) ? api_key.trim() : (saved.web_search_api_key || '');
     const { executeSearch } = require('./searchController');
     const forcedSettings = {
       web_search_provider: provider,
-      web_search_api_key: api_key,
+      web_search_api_key: effectiveKey,
       web_search_custom_url: custom_url,
       web_search_max_results: max_results
     };
@@ -1662,11 +1730,14 @@ const testImageGenSetting = async (req, res) => {
   try {
     const { prompt, model, api_url, api_key, size } = req.body || {};
     const cleanPrompt = String(prompt || 'a cute glowing baby robot in cybernetic world, photorealistic, 8k').trim();
+    const { getSystemSettings } = require('../../utils/getModelConfig');
+    const saved = await getSystemSettings();
+    const effectiveKey = (typeof api_key === 'string' && api_key.trim()) ? api_key.trim() : (saved.image_api_key || '');
     const { executeImageGeneration } = require('./chatController');
     const forcedSettings = {
       image_model: model,
       image_api_url: api_url,
-      image_api_key: api_key,
+      image_api_key: effectiveKey,
       image_size: size
     };
     const result = await executeImageGeneration(cleanPrompt, forcedSettings);
@@ -1692,9 +1763,7 @@ const getApiKeys = async (req, res) => {
       } catch (e) {}
 
       const effectiveKey = dbKey || envKey || '';
-      const masked = effectiveKey 
-        ? (effectiveKey.length > 8 ? `${effectiveKey.slice(0, 4)}...${effectiveKey.slice(-4)}` : '••••••••')
-        : '';
+      const masked = effectiveKey ? '••••••••' : '';
 
       result.push({
         provider: p,
@@ -1787,6 +1856,335 @@ const getSystemLogs = async (req, res) => {
   }
 };
 
+const getPromoCodes = async (req, res) => {
+  try {
+    const PromoCode = require('../models/PromoCode');
+    const { getPersistedPromoCodes } = require('../../utils/getModelConfig');
+    let promos = [];
+    if (getIsMongoConnected()) {
+      promos = await PromoCode.find().sort({ createdAt: -1 }).lean();
+    }
+    if (!promos || promos.length === 0) {
+      promos = await getPersistedPromoCodes();
+    }
+    const sorted = [...(promos || [])].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    return res.json({ success: true, promos: sorted });
+  } catch (error) {
+    return sendServerError(res, error, 'Internal server error', '[Admin Promo Error]:');
+  }
+};
+
+const createPromoCode = async (req, res) => {
+  try {
+    const PromoCode = require('../models/PromoCode');
+    const { getPersistedPromoCodes, savePersistedPromoCodes } = require('../../utils/getModelConfig');
+    const {
+      code,
+      discount_type = 'percent',
+      discount_value,
+      applicable_plans = ['*'],
+      max_uses = 100,
+      expires_days = 0,
+      note = ''
+    } = req.body || {};
+
+    if (!code || typeof code !== 'string' || !code.trim()) {
+      return res.status(400).json({ success: false, error: 'প্রোমো কোড লিখুন' });
+    }
+    const cleanCode = code.trim().toUpperCase().slice(0, 50);
+    if (cleanCode.length < 1 || cleanCode.length > 50 || /\s/.test(cleanCode)) {
+      return res.status(400).json({ success: false, error: 'প্রোমো কোড ১-৫০ অক্ষরের মধ্যে হতে হবে এবং স্পেস থাকা যাবে না' });
+    }
+    const cleanType = discount_type === 'fixed_usd' ? 'fixed_usd' : 'percent';
+    const numVal = Number(discount_value);
+    if (isNaN(numVal) || numVal <= 0 || (cleanType === 'percent' && numVal > 100) || (cleanType === 'fixed_usd' && numVal > 10000)) {
+      return res.status(400).json({ success: false, error: cleanType === 'percent' ? 'ছাড়ের পরিমাণ ১% থেকে ১০০% এর মধ্যে হতে হবে' : 'সঠিক ডিসকাউন্ট (USD > 0) লিখুন' });
+    }
+    const validMaxUses = Math.floor(Math.min(Math.max(Number(max_uses) || 100, 1), 1000000));
+    const expDays = Number(expires_days) || 0;
+    const expiresAt = expDays > 0 ? new Date(Date.now() + expDays * 24 * 60 * 60 * 1000) : null;
+    const cleanPlans = Array.isArray(applicable_plans) && applicable_plans.length > 0
+      ? applicable_plans.filter(p => p === '*' || PAID_PLANS.includes(p))
+      : ['*'];
+    if (cleanPlans.length === 0) cleanPlans.push('*');
+
+    const now = new Date();
+    const promoPayload = {
+      code: cleanCode,
+      discount_type: cleanType,
+      discount_value: Math.round(numVal * 100) / 100,
+      applicable_plans: cleanPlans,
+      max_uses: validMaxUses,
+      use_count: 0,
+      expires_at: expiresAt,
+      is_active: true,
+      note: String(note || '').trim().slice(0, 120),
+      createdAt: now
+    };
+
+    if (getIsMongoConnected()) {
+      const exists = await PromoCode.findOne({ code: cleanCode }).lean();
+      if (exists) {
+        return res.status(400).json({ success: false, error: 'এই প্রোমো কোডটি ইতিমধ্যে রয়েছে!' });
+      }
+      await PromoCode.create(promoPayload);
+    }
+
+    let persisted = [...(await getPersistedPromoCodes())];
+    if (persisted.find(p => p && String(p.code || '').toUpperCase() === cleanCode)) {
+      return res.status(400).json({ success: false, error: 'এই প্রোমো কোডটি ইতিমধ্যে রয়েছে!' });
+    }
+    persisted.unshift(promoPayload);
+    await savePersistedPromoCodes(persisted);
+    debouncedSave();
+    await saveBackup();
+
+    return res.status(201).json({ success: true, promo: promoPayload, message: `প্রোমো কোড '${cleanCode}' সফলভাবে তৈরি হয়েছে!` });
+  } catch (error) {
+    return sendServerError(res, error, 'Internal server error', '[Admin Promo Error]:');
+  }
+};
+
+const deletePromoCode = async (req, res) => {
+  try {
+    const PromoCode = require('../models/PromoCode');
+    const { getPersistedPromoCodes, savePersistedPromoCodes, invalidatePromoCodesCache } = require('../../utils/getModelConfig');
+    const target = String(req.params.codeId || '').trim();
+    if (!target) return res.status(400).json({ success: false, error: 'কোড আইডি প্রয়োজন' });
+    const upperTarget = target.toUpperCase();
+
+    if (getIsMongoConnected()) {
+      const mongoose = require('mongoose');
+      const conds = [{ code: upperTarget }];
+      if (mongoose.Types.ObjectId.isValid(target)) conds.push({ _id: target });
+      await PromoCode.deleteMany({ $or: conds }).catch(() => {});
+    }
+
+    let persisted = await getPersistedPromoCodes();
+    persisted = (persisted || []).filter(p => p && String(p._id || '') !== target && String(p.code || '').toUpperCase() !== upperTarget);
+    await savePersistedPromoCodes(persisted);
+    if (typeof invalidatePromoCodesCache === 'function') invalidatePromoCodesCache();
+    debouncedSave();
+    await saveBackup();
+
+    return res.json({ success: true, message: 'প্রোমো কোড মুছে ফেলা হয়েছে' });
+  } catch (error) {
+    return sendServerError(res, error, 'Internal server error', '[Admin Promo Error]:');
+  }
+};
+
+const getPaymentOrders = async (req, res) => {
+  try {
+    const PaymentOrder = require('../models/PaymentOrder');
+    const { getPersistedPaymentOrders } = require('../../utils/getModelConfig');
+    const statusFilter = String(req.query.status || 'all').toLowerCase().trim();
+
+    let orders = [];
+    if (getIsMongoConnected()) {
+      const q = ['pending', 'approved', 'rejected'].includes(statusFilter) ? { status: statusFilter } : {};
+      orders = await PaymentOrder.find(q).sort({ createdAt: -1 }).lean();
+    }
+    if (!orders || orders.length === 0) {
+      const persisted = await getPersistedPaymentOrders();
+      orders = ['pending', 'approved', 'rejected'].includes(statusFilter)
+        ? (persisted || []).filter(o => o && o.status === statusFilter)
+        : (persisted || []);
+    }
+    orders = [...(orders || [])].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    return res.json({ success: true, orders });
+  } catch (error) {
+    return sendServerError(res, error, 'Internal server error', '[Admin Orders Error]:');
+  }
+};
+
+const approvePaymentOrder = async (req, res) => {
+  try {
+    const PaymentOrder = require('../models/PaymentOrder');
+    const {
+      getPersistedUsers,
+      savePersistedUsers,
+      invalidateUsersCache,
+      invalidateUserUsageCache,
+      getPersistedPaymentOrders,
+      savePersistedPaymentOrders
+    } = require('../../utils/getModelConfig');
+
+    const orderId = String(req.params.orderId || '').trim();
+    if (!orderId) return res.status(400).json({ success: false, error: 'সঠিক Order ID দিন' });
+
+    const note = String((req.body && req.body.admin_note) || 'Verified direct payment').trim().slice(0, 300);
+    const reviewer = String((req.user && req.user.email) || 'admin');
+    const now = new Date();
+    let order = null;
+
+    if (getIsMongoConnected()) {
+      order = await PaymentOrder.findOneAndUpdate(
+        { order_id: orderId, status: 'pending' },
+        { $set: { status: 'approved', admin_note: note, reviewed_by: reviewer, reviewed_at: now } },
+        { new: true }
+      ).lean();
+
+      if (!order) {
+        const existing = await PaymentOrder.findOne({ order_id: orderId }).lean();
+        if (existing) {
+          return res.status(400).json({ success: false, error: `এই অর্ডারটি ইতিমধ্যে ${existing.status} অবস্থায় আছে` });
+        }
+      }
+    }
+
+    let persistedOrders = [...(await getPersistedPaymentOrders())];
+    const pOrderIdx = persistedOrders.findIndex(o => o && String(o.order_id) === orderId);
+    if (!order) {
+      if (pOrderIdx === -1) {
+        return res.status(404).json({ success: false, error: 'অর্ডারটি পাওয়া যায়নি' });
+      }
+      if (persistedOrders[pOrderIdx].status !== 'pending') {
+        return res.status(400).json({ success: false, error: `এই অর্ডারটি ইতিমধ্যে ${persistedOrders[pOrderIdx].status} অবস্থায় আছে` });
+      }
+      persistedOrders[pOrderIdx] = {
+        ...persistedOrders[pOrderIdx],
+        status: 'approved',
+        admin_note: note,
+        reviewed_by: reviewer,
+        reviewed_at: now
+      };
+      order = persistedOrders[pOrderIdx];
+    } else if (pOrderIdx !== -1) {
+      persistedOrders[pOrderIdx] = order;
+    } else {
+      persistedOrders.unshift(order);
+    }
+    await savePersistedPaymentOrders(persistedOrders);
+
+    // Activate User Plan & mark payment_source = 'direct_payment'
+    const durationDays = Math.max(1, Number(order.duration_days) || 30);
+    const addMs = durationDays * 24 * 60 * 60 * 1000;
+    const targetId = String(order.user_id || '').trim();
+    const targetEmail = String(order.user_email || '').toLowerCase().trim();
+
+    let updatedSub = {
+      plan_name: order.plan_name,
+      starts_at: now,
+      expires_at: new Date(now.getTime() + addMs),
+      is_active: true,
+      payment_source: 'direct_payment',
+      order_id: order.order_id
+    };
+
+    if (getIsMongoConnected()) {
+      const mongoose = require('mongoose');
+      const conds = [];
+      if (mongoose.Types.ObjectId.isValid(targetId)) conds.push({ _id: targetId });
+      if (targetId) conds.push({ id: targetId });
+      if (targetEmail) conds.push({ email: targetEmail });
+      const mongoUser = conds.length > 0 ? await User.findOne({ $or: conds }) : null;
+      if (mongoUser) {
+        const curSub = mongoUser.subscription || {};
+        let baseDate = now;
+        if (curSub.plan_name === order.plan_name && curSub.expires_at && new Date(curSub.expires_at) > now) {
+          baseDate = new Date(curSub.expires_at);
+        }
+        updatedSub.expires_at = new Date(baseDate.getTime() + addMs);
+        await User.updateOne({ _id: mongoUser._id }, { $set: { subscription: updatedSub } });
+      }
+    }
+
+    let users = [...(await getPersistedUsers())];
+    const uIdx = users.findIndex(u =>
+      (targetId && (String(u._id) === targetId || String(u.id) === targetId)) ||
+      (targetEmail && u.email && String(u.email).toLowerCase().trim() === targetEmail)
+    );
+    if (uIdx !== -1) {
+      const curSub = users[uIdx].subscription || {};
+      let baseDate = now;
+      if (!getIsMongoConnected() && curSub.plan_name === order.plan_name && curSub.expires_at && new Date(curSub.expires_at) > now) {
+        baseDate = new Date(curSub.expires_at);
+        updatedSub.expires_at = new Date(baseDate.getTime() + addMs);
+      }
+      users[uIdx].subscription = updatedSub;
+      await savePersistedUsers(users);
+    }
+    if (memoryStore.users) {
+      const mUser = memoryStore.users.find(u =>
+        (targetId && (String(u._id) === targetId || String(u.id) === targetId)) ||
+        (targetEmail && u.email && String(u.email).toLowerCase().trim() === targetEmail)
+      );
+      if (mUser) mUser.subscription = updatedSub;
+    }
+
+    [targetId, targetEmail].filter(Boolean).forEach(k => {
+      invalidateCachedUser(k);
+      if (typeof invalidateUserUsageCache === 'function') invalidateUserUsageCache(k);
+    });
+    if (typeof invalidateUsersCache === 'function') invalidateUsersCache();
+    debouncedSave();
+    await saveBackup();
+
+    return res.json({
+      success: true,
+      message: `অর্ডার ${order.order_id} অনুমোদিত হয়েছে এবং ${order.plan_name} (✓ Paid) চালু করা হয়েছে!`,
+      order,
+      subscription: updatedSub
+    });
+  } catch (error) {
+    return sendServerError(res, error, 'Internal server error', '[Admin Order Approve Error]:');
+  }
+};
+
+const rejectPaymentOrder = async (req, res) => {
+  try {
+    const PaymentOrder = require('../models/PaymentOrder');
+    const { getPersistedPaymentOrders, savePersistedPaymentOrders } = require('../../utils/getModelConfig');
+    const orderId = String(req.params.orderId || '').trim();
+    if (!orderId) return res.status(400).json({ success: false, error: 'সঠিক Order ID দিন' });
+
+    const note = String((req.body && req.body.admin_note) || 'Payment verification failed').trim().slice(0, 300);
+    const reviewer = String((req.user && req.user.email) || 'admin');
+    const now = new Date();
+    let order = null;
+
+    if (getIsMongoConnected()) {
+      order = await PaymentOrder.findOneAndUpdate(
+        { order_id: orderId, status: 'pending' },
+        { $set: { status: 'rejected', admin_note: note, reviewed_by: reviewer, reviewed_at: now } },
+        { new: true }
+      ).lean();
+      if (!order) {
+        const existing = await PaymentOrder.findOne({ order_id: orderId }).lean();
+        if (existing) {
+          return res.status(400).json({ success: false, error: `এই অর্ডারটি ইতিমধ্যে ${existing.status} অবস্থায় আছে` });
+        }
+      }
+    }
+
+    let persistedOrders = [...(await getPersistedPaymentOrders())];
+    const pOrderIdx = persistedOrders.findIndex(o => o && String(o.order_id) === orderId);
+    if (!order) {
+      if (pOrderIdx === -1) return res.status(404).json({ success: false, error: 'অর্ডারটি পাওয়া যায়নি' });
+      if (persistedOrders[pOrderIdx].status !== 'pending') {
+        return res.status(400).json({ success: false, error: `এই অর্ডারটি ইতিমধ্যে ${persistedOrders[pOrderIdx].status} অবস্থায় আছে` });
+      }
+      persistedOrders[pOrderIdx] = {
+        ...persistedOrders[pOrderIdx],
+        status: 'rejected',
+        admin_note: note,
+        reviewed_by: reviewer,
+        reviewed_at: now
+      };
+      order = persistedOrders[pOrderIdx];
+    } else if (pOrderIdx !== -1) {
+      persistedOrders[pOrderIdx] = order;
+    }
+    await savePersistedPaymentOrders(persistedOrders);
+    debouncedSave();
+    await saveBackup();
+
+    return res.json({ success: true, message: `অর্ডার ${order.order_id} বাতিল করা হয়েছে`, order });
+  } catch (error) {
+    return sendServerError(res, error, 'Internal server error', '[Admin Order Reject Error]:');
+  }
+};
+
 module.exports = { 
   getModels, 
   updateModel, 
@@ -1812,6 +2210,12 @@ module.exports = {
   getSettings,
   updateSettings,
   testWebSearchSetting,
-  testImageGenSetting
+  testImageGenSetting,
+  getPromoCodes,
+  createPromoCode,
+  deletePromoCode,
+  getPaymentOrders,
+  approvePaymentOrder,
+  rejectPaymentOrder
 };
 

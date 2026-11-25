@@ -1,5 +1,5 @@
-/* Alora AI - Progressive Web App Service Worker (v3.5.0) */
-const CACHE_NAME = 'alora-ai-v3.5.0';
+/* Alora AI - Progressive Web App Service Worker (v3.6.0) */
+const CACHE_NAME = 'alora-ai-v3.6.0';
 
 // Core assets to pre-cache on service worker install
 const CORE_ASSETS = [
@@ -8,6 +8,7 @@ const CORE_ASSETS = [
   '/download.html',
   '/account.html',
   '/plans.html',
+  '/checkout.html',
   '/login.html',
   '/profile.html',
   '/security.html',
@@ -167,10 +168,15 @@ function isDynamicOrApiRequest(url, req) {
     path.startsWith('/chat/') ||
     path === '/redeem' ||
     path.startsWith('/redeem/') ||
+    path === '/payments' ||
+    path.startsWith('/payments/') ||
     path === '/search' ||
     path.startsWith('/search/') ||
     path === '/admin' ||
     path.startsWith('/admin/') ||
+    path === '/zihan' ||
+    path.startsWith('/zihan/') ||
+    path === '/zihan.html' ||
     path === '/health' ||
     path.startsWith('/health/') ||
     path === '/debug-route'

@@ -15,6 +15,8 @@ router.post('/change-password', protect, authController.changePassword);
 router.post('/forgot-password', authController.forgotPassword);
 router.get('/google', authController.googleAuth);
 router.get('/google/callback', authController.googleCallback);
+router.get('/discord', authController.discordAuth);
+router.get('/discord/callback', authController.discordCallback);
 
 module.exports = router;
 

@@ -405,6 +405,13 @@
       border-radius: 9999px !important;
     }
 
+    @media (max-width: 640px) {
+      html, body { max-width: 100%; overflow-x: hidden; }
+      .header, header { padding-left: 12px; padding-right: 12px; gap: 8px; flex-wrap: wrap; }
+      .container, main { padding: 16px 12px 32px; }
+      .help-card, .card { padding: 18px 14px; }
+      input, select, textarea { font-size: 16px !important; }
+    }
 </style>
 
   <script>

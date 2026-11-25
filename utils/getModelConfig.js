@@ -714,6 +714,136 @@ async function savePersistedRedeemCodes(codes) {
   }
 }
 
+let promoCodesCache = null;
+let promoCodesCacheTs = 0;
+
+function invalidatePromoCodesCache() {
+  promoCodesCache = null;
+  promoCodesCacheTs = 0;
+}
+
+async function getPersistedPromoCodes() {
+  const now = Date.now();
+  if (promoCodesCache && (now - promoCodesCacheTs) < 5000) {
+    return promoCodesCache;
+  }
+  if (!supabase) return memoryStore.promoCodes || [];
+  try {
+    const { data, error } = await supabase
+      .from('api_keys')
+      .select('api_key')
+      .eq('model_id', '__promo_codes_metadata__')
+      .limit(1);
+    if (!error && data && data.length > 0 && data[0].api_key) {
+      const parsed = JSON.parse(data[0].api_key);
+      if (Array.isArray(parsed)) {
+        const map = new Map();
+        for (const p of parsed) {
+          if (p && p.code) map.set(String(p.code).trim().toUpperCase(), p);
+        }
+        const clean = Array.from(map.values());
+        memoryStore.promoCodes = clean;
+        promoCodesCache = clean;
+        promoCodesCacheTs = now;
+        return clean;
+      }
+    }
+  } catch (e) {}
+  return memoryStore.promoCodes || [];
+}
+
+async function savePersistedPromoCodes(promos) {
+  const map = new Map();
+  for (const p of (promos || [])) {
+    if (p && p.code) {
+      map.set(String(p.code).trim().toUpperCase(), p);
+    }
+  }
+  const clean = Array.from(map.values());
+  memoryStore.promoCodes = clean;
+  promoCodesCache = clean;
+  promoCodesCacheTs = Date.now();
+  debouncedSave();
+
+  if (!supabase) return;
+  try {
+    const { error } = await supabase
+      .from('api_keys')
+      .upsert({
+        model_id: '__promo_codes_metadata__',
+        api_key: JSON.stringify(clean),
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'model_id' });
+    if (error) console.error('[Supabase] Failed to persist promo codes:', error.message);
+  } catch (e) {
+    console.error('[Supabase] Failed to persist promo codes exception:', e.message);
+  }
+}
+
+let paymentOrdersCache = null;
+let paymentOrdersCacheTs = 0;
+
+function invalidatePaymentOrdersCache() {
+  paymentOrdersCache = null;
+  paymentOrdersCacheTs = 0;
+}
+
+async function getPersistedPaymentOrders() {
+  const now = Date.now();
+  if (paymentOrdersCache && (now - paymentOrdersCacheTs) < 3000) {
+    return paymentOrdersCache;
+  }
+  if (!supabase) return memoryStore.paymentOrders || [];
+  try {
+    const { data, error } = await supabase
+      .from('api_keys')
+      .select('api_key')
+      .eq('model_id', '__payment_orders_metadata__')
+      .limit(1);
+    if (!error && data && data.length > 0 && data[0].api_key) {
+      const parsed = JSON.parse(data[0].api_key);
+      if (Array.isArray(parsed)) {
+        const map = new Map();
+        for (const o of parsed) {
+          if (o && o.order_id) map.set(String(o.order_id).trim(), o);
+        }
+        const clean = Array.from(map.values()).sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+        memoryStore.paymentOrders = clean;
+        paymentOrdersCache = clean;
+        paymentOrdersCacheTs = now;
+        return clean;
+      }
+    }
+  } catch (e) {}
+  return memoryStore.paymentOrders || [];
+}
+
+async function savePersistedPaymentOrders(orders) {
+  const map = new Map();
+  for (const o of (orders || [])) {
+    if (o && o.order_id) map.set(String(o.order_id).trim(), o);
+  }
+  const clean = Array.from(map.values()).sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)).slice(0, 1000);
+  memoryStore.paymentOrders = clean;
+  paymentOrdersCache = clean;
+  paymentOrdersCacheTs = Date.now();
+  debouncedSave();
+
+  if (!supabase) return;
+  try {
+    const { error } = await supabase
+      .from('api_keys')
+      .upsert({
+        model_id: '__payment_orders_metadata__',
+        api_key: JSON.stringify(clean),
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'model_id' });
+    if (error) console.error('[Supabase] Failed to persist payment orders:', error.message);
+  } catch (e) {
+    console.error('[Supabase] Failed to persist payment orders exception:', e.message);
+  }
+}
+
 // Cache for users metadata
 let usersCache = null;
 let usersCacheTs = 0;
@@ -819,7 +949,21 @@ async function getSystemSettings() {
     web_search_provider: 'duckduckgo',
     web_search_api_key: '',
     web_search_custom_url: '',
-    web_search_max_results: 4
+    web_search_max_results: 4,
+    usd_to_bdt_rate: 120,
+    usd_to_usdt_rate: 1,
+    payment_crypto_enabled: true,
+    crypto_bsc_address: '',
+    crypto_bsc_url: '',
+    crypto_trc20_address: '',
+    crypto_trc20_url: '',
+    payment_binance_enabled: true,
+    binance_pay_id: '',
+    payment_bybit_enabled: true,
+    bybit_pay_id: '',
+    payment_bkash_enabled: true,
+    bkash_number: '',
+    bkash_account_type: 'Send Money'
   };
 
   if (supabase) {
@@ -1042,6 +1186,12 @@ module.exports = {
   getPersistedRedeemCodes,
   savePersistedRedeemCodes,
   invalidateRedeemCodesCache,
+  getPersistedPromoCodes,
+  savePersistedPromoCodes,
+  invalidatePromoCodesCache,
+  getPersistedPaymentOrders,
+  savePersistedPaymentOrders,
+  invalidatePaymentOrdersCache,
   getPersistedUsers,
   savePersistedUsers,
   invalidateUsersCache,

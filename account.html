@@ -671,6 +671,15 @@
       border-radius: 9999px !important;
     }
 
+    @media (max-width: 640px) {
+      html, body { max-width: 100%; overflow-x: hidden; }
+      .header, .top-nav, header { padding-left: 12px; padding-right: 12px; flex-wrap: wrap; gap: 8px; }
+      .container, main { padding: 14px 12px 32px; }
+      .card, .account-card { padding: 16px 14px; }
+      input, select, textarea { font-size: 16px !important; }
+      .setting-row, .action-row, .flex-row { flex-wrap: wrap; gap: 10px; }
+      .toast { white-space: normal; max-width: calc(100vw - 24px); text-align: center; }
+    }
 </style>
 <script>
   (function() {
@@ -1641,14 +1650,27 @@
           }
         }
 
+        const isDirectPaid = Boolean(!isAdmin && user.subscription && user.subscription.payment_source === "direct_payment" && currentPlan !== "Free");
+        const safePlanStr = String(currentPlan).replace(/[<>&"]/g, "");
+        const paidTick = isDirectPaid ? ` <span style="color:#22c55e;font-weight:700;" title="Verified Paid">✓ Paid</span>` : "";
+
         const planBadge = document.getElementById("profilePlanBadge");
-        if (planBadge) planBadge.textContent = isAdmin ? (isEn ? "Admin (Unlimited)" : "অ্যাডমিন (আনলিমিটেড)") : `${currentPlan} Plan`;
+        if (planBadge) {
+          if (isAdmin) planBadge.textContent = isEn ? "Admin (Unlimited)" : "অ্যাডমিন (আনলিমিটেড)";
+          else planBadge.innerHTML = `${safePlanStr} Plan${paidTick}`;
+        }
 
         const planTitle = document.getElementById("currentPlanTitle");
-        if (planTitle) planTitle.textContent = isAdmin ? (isEn ? "Admin (Unlimited)" : "অ্যাডমিন (সীমাহীন)") : currentPlan;
+        if (planTitle) {
+          if (isAdmin) planTitle.textContent = isEn ? "Admin (Unlimited)" : "অ্যাডমিন (সীমাহীন)";
+          else planTitle.innerHTML = `${safePlanStr}${paidTick}`;
+        }
 
         const planTitleModal = document.getElementById("currentPlanTitleModal");
-        if (planTitleModal) planTitleModal.textContent = isAdmin ? (isEn ? "Admin Unlimited Plan" : "অ্যাডমিন সীমাহীন প্ল্যান") : `${currentPlan} Plan`;
+        if (planTitleModal) {
+          if (isAdmin) planTitleModal.textContent = isEn ? "Admin Unlimited Plan" : "অ্যাডমিন সীমাহীন প্ল্যান";
+          else planTitleModal.innerHTML = `${safePlanStr} Plan${paidTick}`;
+        }
 
         const expiryEl = document.getElementById("currentPlanExpiry");
         if (expiryEl) {

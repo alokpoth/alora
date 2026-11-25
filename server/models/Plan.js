@@ -26,6 +26,12 @@ const PlanSchema = new mongoose.Schema({
       return (DEFAULT_PLANS_MAP[this.name] && DEFAULT_PLANS_MAP[this.name].image_limit) || 5;
     }
   },
+  price_usd: {
+    type: Number,
+    default: function() {
+      return (DEFAULT_PLANS_MAP[this.name] && DEFAULT_PLANS_MAP[this.name].price_usd) || 0;
+    }
+  },
   price_bdt: {
     type: Number,
     default: function() {

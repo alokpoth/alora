@@ -5,12 +5,12 @@ pages:
   stage: deploy
   script:
     - mkdir -p public
-    # Copy all static root files
-    - cp -r *.html public/ 2>/dev/null || true
-    - cp -r *.json *.js *.css _redirects CNAME robots.txt sitemap.xml site.webmanifest public/ 2>/dev/null || true
-    - cp -r *.png *.jpg *.jpeg *.svg *.ico *.webp public/ 2>/dev/null || true
-    - cp -r *.apk *.ipa public/ 2>/dev/null || true
-    - cp -r avatars logo utils public/ 2>/dev/null || true
+    # Copy ONLY explicit safe public static files (never backend utils/, package*.json, vercel.json, or .env)
+    - cp *.html _redirects CNAME public/ 2>/dev/null || true
+    - cp manifest.json sw.js robots.txt sitemap.xml site.webmanifest public/ 2>/dev/null || true
+    - cp *.png *.jpg *.jpeg *.svg *.ico *.webp public/ 2>/dev/null || true
+    - cp *.apk *.ipa public/ 2>/dev/null || true
+    - cp -r avatars logo public/ 2>/dev/null || true
     # Create clean URL directories (e.g. /download -> /download/index.html)
     - |
       for f in *.html; do
@@ -21,6 +21,7 @@ pages:
           cp "$f" "public/$name/index.html"
         fi
       done
+    - rm -f public/zihan.html public/admin.html || true
     # ChatGPT alias directories (/auth/login, /auth/signup, /signup, /pricing, /settings, /app)
     - mkdir -p public/auth/login public/auth/signup public/signup public/pricing public/settings public/app
     - cp login.html public/auth/login/index.html
