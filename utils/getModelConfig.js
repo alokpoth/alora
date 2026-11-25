@@ -175,6 +175,18 @@ async function getDeletedModelIds() {
       if (id) set.add(String(id).toLowerCase().trim());
     });
   }
+  const { getIsMongoConnected } = require('../server/config/db');
+  if (getIsMongoConnected()) {
+    try {
+      const SystemSetting = require('../server/models/SystemSetting');
+      const doc = await SystemSetting.findOne({ key: '__deleted_models__' }).lean();
+      if (doc && Array.isArray(doc.value)) {
+        doc.value.forEach(id => {
+          if (id) set.add(String(id).toLowerCase().trim());
+        });
+      }
+    } catch (e) {}
+  }
   if (supabase) {
     try {
       const { data, error } = await supabase
@@ -214,6 +226,18 @@ async function addDeletedModelId(modelId) {
   memoryStore.deletedModelIds = list;
   debouncedSave();
 
+  const { getIsMongoConnected } = require('../server/config/db');
+  if (getIsMongoConnected()) {
+    try {
+      const SystemSetting = require('../server/models/SystemSetting');
+      await SystemSetting.findOneAndUpdate(
+        { key: '__deleted_models__' },
+        { $set: { value: list } },
+        { upsert: true }
+      );
+    } catch (e) {}
+  }
+
   if (supabase) {
     try {
       await supabase
@@ -244,6 +268,18 @@ async function removeDeletedModelId(modelId) {
   const list = Array.from(set);
   memoryStore.deletedModelIds = list;
   debouncedSave();
+
+  const { getIsMongoConnected } = require('../server/config/db');
+  if (getIsMongoConnected()) {
+    try {
+      const SystemSetting = require('../server/models/SystemSetting');
+      await SystemSetting.findOneAndUpdate(
+        { key: '__deleted_models__' },
+        { $set: { value: list } },
+        { upsert: true }
+      );
+    } catch (e) {}
+  }
 
   if (supabase) {
     try {
@@ -966,6 +1002,24 @@ async function getSystemSettings() {
     bkash_account_type: 'Send Money'
   };
 
+  const { getIsMongoConnected } = require('../server/config/db');
+  if (getIsMongoConnected()) {
+    try {
+      const SystemSetting = require('../server/models/SystemSetting');
+      const doc = await SystemSetting.findOne({ key: '__system_settings__' }).lean();
+      if (doc && doc.value && typeof doc.value === 'object') {
+        const merged = { ...defaultSettings, ...doc.value };
+        settingsCache = merged;
+        settingsCacheTs = now;
+        if (!memoryStore.settings) memoryStore.settings = {};
+        Object.assign(memoryStore.settings, merged);
+        return merged;
+      }
+    } catch (e) {
+      console.warn('[MongoDB] __system_settings__ fetch failed:', e.message);
+    }
+  }
+
   if (supabase) {
     try {
       const { data, error } = await supabase
@@ -1002,6 +1056,21 @@ async function saveSystemSettings(settings) {
   settingsCache = updated;
   settingsCacheTs = Date.now();
   memoryStore.settings = updated;
+  debouncedSave();
+
+  const { getIsMongoConnected } = require('../server/config/db');
+  if (getIsMongoConnected()) {
+    try {
+      const SystemSetting = require('../server/models/SystemSetting');
+      await SystemSetting.findOneAndUpdate(
+        { key: '__system_settings__' },
+        { $set: { value: updated } },
+        { upsert: true }
+      );
+    } catch (e) {
+      console.error('[MongoDB] Failed to persist system settings:', e.message);
+    }
+  }
 
   if (!supabase) return updated;
 
