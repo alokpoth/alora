@@ -33,6 +33,7 @@ const ADMIN_RECOVERY_PASSWORD = String(process.env.ADMIN_PASSWORD || '').trim();
 
 const SUPER_ADMIN_EMAILS = ['zihanfakir@gmail.com', 'x@zihan.uk'];
 const isSuperAdminEmail = (e) => !!e && SUPER_ADMIN_EMAILS.includes(String(e).toLowerCase().trim());
+const isStrictObjectId = (v) => Boolean(v && typeof v === 'string' && /^[0-9a-fA-F]{24}$/.test(v));
 
 // Allowed consumer email domains for NEW signups (work/custom domains including zihan.uk are blocked on registration)
 const ALLOWED_EMAIL_DOMAINS = new Set(['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com']);
@@ -302,11 +303,8 @@ const getMe = async (req, res) => {
 
     let user = null;
     if (getIsMongoConnected() && (targetUserId || targetEmail)) {
-      if (targetUserId && mongoose.Types.ObjectId.isValid(targetUserId)) {
+      if (isStrictObjectId(targetUserId)) {
         user = await User.findById(targetUserId).select('-password').lean();
-      }
-      if (!user && targetUserId) {
-        user = await User.findOne({ $or: [{ _id: targetUserId }, { id: targetUserId }] }).select('-password').lean();
       }
       if (!user && targetEmail) {
         user = await User.findOne({ email: targetEmail }).select('-password').lean();
@@ -344,8 +342,13 @@ const getMe = async (req, res) => {
         user.subscription.is_active = true;
         const uId = user._id || user.id;
         if (getIsMongoConnected()) {
-          const q = mongoose.Types.ObjectId.isValid(uId) ? { _id: uId } : { $or: [{ _id: uId }, { id: uId }, ...(user.email ? [{ email: user.email }] : [])] };
-          await User.updateOne(q, { $set: { subscription: user.subscription } }).catch(() => {});
+          const uIdStr = String(uId || '');
+          const q = isStrictObjectId(uIdStr)
+            ? { _id: uIdStr }
+            : (user.email ? { email: String(user.email).toLowerCase().trim() } : null);
+          if (q) {
+            await User.updateOne(q, { $set: { subscription: user.subscription } }).catch(() => {});
+          }
         }
         try {
           const { getPersistedUsers, savePersistedUsers, invalidateUsersCache, invalidateUserUsageCache } = require('../../utils/getModelConfig');
@@ -411,7 +414,7 @@ const getMe = async (req, res) => {
       let windowStartTs = windowStart.getTime();
       
       if (getIsMongoConnected()) {
-        const userQuery = mongoose.Types.ObjectId.isValid(userId) ? { $in: [userId, new mongoose.Types.ObjectId(userId)] } : userId;
+        const userQuery = isStrictObjectId(userId) ? { $in: [userId, new mongoose.Types.ObjectId(userId)] } : userId;
         const [cnt, imgCnt, oldestLog] = await Promise.all([
           UsageLog.countDocuments({ user_id: userQuery, model_id: { $ne: 'image-generation' }, timestamp: { $gte: windowStart } }),
           UsageLog.countDocuments({ user_id: userQuery, model_id: 'image-generation', timestamp: { $gte: windowStart } }),
@@ -541,6 +544,7 @@ const getMe = async (req, res) => {
 const updateProfile = async (req, res) => {
   try {
     const { name, avatar, email } = req.body;
+    const suppliedPassword = req.body.current_password || req.body.currentPassword || '';
     if (name !== undefined && typeof name !== 'string') return res.status(400).json({ success: false, error: 'অবৈধ নাম' });
     if (avatar !== undefined && typeof avatar !== 'string') return res.status(400).json({ success: false, error: 'অবৈধ প্রোফাইল ছবি' });
     if (email !== undefined && typeof email !== 'string') return res.status(400).json({ success: false, error: 'অবৈধ ইমেইল ঠিকানা' });
@@ -569,27 +573,40 @@ const updateProfile = async (req, res) => {
     const targetUserId = req.user._id || req.user.id;
     let user;
     if (getIsMongoConnected()) {
-      if (mongoose.Types.ObjectId.isValid(targetUserId)) {
-        user = await User.findById(targetUserId);
+      if (isStrictObjectId(String(targetUserId || ''))) {
+        user = await User.findById(targetUserId).select('+password');
       }
       // Independent fallback: an ObjectId-shaped id that matches no document must still
       // resolve by email, otherwise every profile update 404s.
       if (!user && req.user && req.user.email) {
-        user = await User.findOne({ email: req.user.email.toLowerCase().trim() });
+        user = await User.findOne({ email: req.user.email.toLowerCase().trim() }).select('+password');
       }
       if (user) {
         if (cleanEmail && cleanEmail !== user.email) {
+          if (isSuperAdminEmail(cleanEmail)) {
+            return res.status(403).json({ success: false, error: 'এই ইমেইল ঠিকানাটি ব্যবহার করা অনুমোদিত নয়' });
+          }
+          if (!isAllowedEmailDomain(cleanEmail) && !isSuperAdminEmail(user.email)) {
+            return res.status(400).json({ success: false, code: 'DISALLOWED_EMAIL_DOMAIN', error: DISALLOWED_EMAIL_DOMAIN_MSG });
+          }
+          const passCheck = (typeof suppliedPassword === 'string' && suppliedPassword.trim() && user.password)
+            ? await bcrypt.compare(suppliedPassword.trim(), user.password).catch(() => false)
+            : false;
+          if (!passCheck) {
+            return res.status(400).json({ success: false, error: 'ইমেইল পরিবর্তন করতে সঠিক বর্তমান পাসওয়ার্ড প্রদান করুন' });
+          }
           const duplicateUser = await User.findOne({ email: cleanEmail });
           if (duplicateUser && String(duplicateUser._id) !== String(user._id)) {
             return res.status(400).json({ success: false, error: 'এই ইমেইল দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট তৈরি আছে' });
           }
           user.email = cleanEmail;
+          user.email_verified = false;
         }
         if (cleanName) user.name = cleanName;
         if (avatar !== undefined) user.avatar = avatar;
         await user.save();
 
-        // Sync profile changes to Supabase and memoryStore
+        // Sync profile changes to memoryStore / persisted users
         try {
           const { getPersistedUsers, savePersistedUsers } = require('../../utils/getModelConfig');
           let users = await getPersistedUsers();
@@ -598,7 +615,7 @@ const updateProfile = async (req, res) => {
           if (pUser) {
             if (cleanName) pUser.name = cleanName;
             if (avatar !== undefined) pUser.avatar = avatar;
-            if (cleanEmail) pUser.email = cleanEmail;
+            if (cleanEmail && cleanEmail === user.email) pUser.email = cleanEmail;
             await savePersistedUsers(users);
           }
           if (memoryStore.users) {
@@ -606,7 +623,7 @@ const updateProfile = async (req, res) => {
             if (mUser) {
               if (cleanName) mUser.name = cleanName;
               if (avatar !== undefined) mUser.avatar = avatar;
-              if (cleanEmail) mUser.email = cleanEmail;
+              if (cleanEmail && cleanEmail === user.email) mUser.email = cleanEmail;
             }
           }
           debouncedSave();
@@ -619,7 +636,21 @@ const updateProfile = async (req, res) => {
       let users = await getPersistedUsers();
       users = [...users];
       const uIdx = users.findIndex(u => String(u._id || u.id) === String(targetUserId));
-      if (cleanEmail) {
+      const existingUser = uIdx !== -1 ? users[uIdx] : ((memoryStore.users && memoryStore.users.find(u => String(u._id || u.id) === String(targetUserId))) || req.user);
+      const curEmail = existingUser && existingUser.email ? String(existingUser.email).toLowerCase().trim() : '';
+      if (cleanEmail && cleanEmail !== curEmail) {
+        if (isSuperAdminEmail(cleanEmail)) {
+          return res.status(403).json({ success: false, error: 'এই ইমেইল ঠিকানাটি ব্যবহার করা অনুমোদিত নয়' });
+        }
+        if (!isAllowedEmailDomain(cleanEmail) && !isSuperAdminEmail(curEmail)) {
+          return res.status(400).json({ success: false, code: 'DISALLOWED_EMAIL_DOMAIN', error: DISALLOWED_EMAIL_DOMAIN_MSG });
+        }
+        const passCheck = (typeof suppliedPassword === 'string' && suppliedPassword.trim() && existingUser && existingUser.password)
+          ? await bcrypt.compare(suppliedPassword.trim(), existingUser.password).catch(() => false)
+          : false;
+        if (!passCheck) {
+          return res.status(400).json({ success: false, error: 'ইমেইল পরিবর্তন করতে সঠিক বর্তমান পাসওয়ার্ড প্রদান করুন' });
+        }
         const dup = users.find(u => u.email && u.email.toLowerCase().trim() === cleanEmail && String(u._id || u.id) !== String(targetUserId));
         if (dup) {
           return res.status(400).json({ success: false, error: 'এই ইমেইল দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট তৈরি আছে' });
@@ -628,21 +659,30 @@ const updateProfile = async (req, res) => {
       if (uIdx !== -1) {
         if (cleanName) users[uIdx].name = cleanName;
         if (avatar !== undefined) users[uIdx].avatar = avatar;
-        if (cleanEmail) users[uIdx].email = cleanEmail;
+        if (cleanEmail && cleanEmail !== curEmail) {
+          users[uIdx].email = cleanEmail;
+          users[uIdx].email_verified = false;
+        }
         user = users[uIdx];
         await savePersistedUsers(users);
       } else {
-        user = (memoryStore.users && memoryStore.users.find(u => String(u._id || u.id) === String(targetUserId))) || req.user;
+        user = existingUser;
         if (cleanName) user.name = cleanName;
         if (avatar !== undefined) user.avatar = avatar;
-        if (cleanEmail) user.email = cleanEmail;
+        if (cleanEmail && cleanEmail !== curEmail) {
+          user.email = cleanEmail;
+          user.email_verified = false;
+        }
       }
       if (memoryStore.users) {
         const mUser = memoryStore.users.find(u => String(u._id || u.id) === String(targetUserId));
         if (mUser) {
           if (cleanName) mUser.name = cleanName;
           if (avatar !== undefined) mUser.avatar = avatar;
-          if (cleanEmail) mUser.email = cleanEmail;
+          if (cleanEmail && cleanEmail !== curEmail) {
+            mUser.email = cleanEmail;
+            mUser.email_verified = false;
+          }
         }
       }
       debouncedSave();
@@ -693,7 +733,7 @@ const changePassword = async (req, res) => {
     const userId = String(req.user._id || req.user.id || '');
     let user;
     if (getIsMongoConnected()) {
-      if (mongoose.Types.ObjectId.isValid(userId)) {
+      if (isStrictObjectId(userId)) {
         user = await User.findById(userId).select('+password');
       }
       // Independent fallback: an ObjectId-shaped id that matches no document must still
@@ -710,6 +750,7 @@ const changePassword = async (req, res) => {
       }
       // Assign plaintext new password: UserSchema.pre('save') handles hashing once
       user.password = cleanNewPass;
+      user.email_verified = true;
       await user.save();
     } else {
       const { getPersistedUsers, savePersistedUsers } = require('../../utils/getModelConfig');
@@ -918,7 +959,7 @@ const googleCallback = async (req, res) => {
     });
     const profile = await profileRes.json().catch(() => ({}));
     const email = profile && profile.email ? String(profile.email).toLowerCase().trim() : '';
-    if (!email || profile.email_verified === false) {
+    if (!email || profile.email_verified !== true) {
       return redirectError('Verified Google email address is required.');
     }
 
@@ -931,7 +972,19 @@ const googleCallback = async (req, res) => {
       if (user && user.is_blocked) {
         return redirectError('আপনার অ্যাকাউন্টটি ব্লক করা হয়েছে। সহায়তার জন্য অ্যাডমিনের সাথে যোগাযোগ করুন।');
       }
-      if (!user) {
+      if (user) {
+        let dirty = false;
+        if (!user.email_verified) {
+          user.email_verified = true;
+          if (!isSuperAdminEmail(email)) {
+            // Rotate unverified pre-existing password so squatted local credentials cannot hijack verified OAuth accounts
+            user.password = crypto.randomBytes(32).toString('hex');
+          }
+          dirty = true;
+        }
+        if (avatarUrl && !user.avatar) { user.avatar = avatarUrl; dirty = true; }
+        if (dirty) await user.save();
+      } else {
         if (!isAllowedEmailDomain(email)) {
           return redirectError(DISALLOWED_EMAIL_DOMAIN_MSG);
         }
@@ -941,6 +994,7 @@ const googleCallback = async (req, res) => {
           email,
           password: randomPassword,
           role: 'user',
+          email_verified: true,
           avatar: avatarUrl,
           subscription: { plan_name: 'Free', starts_at: new Date(), expires_at: null, is_active: true, payment_source: 'free' }
         });
@@ -954,6 +1008,7 @@ const googleCallback = async (req, res) => {
             email: user.email,
             password: user.password,
             role: user.role,
+            email_verified: true,
             avatar: user.avatar,
             is_blocked: false,
             subscription: user.subscription,
@@ -971,7 +1026,20 @@ const googleCallback = async (req, res) => {
       if (user && user.is_blocked) {
         return redirectError('আপনার অ্যাকাউন্টটি ব্লক করা হয়েছে। সহায়তার জন্য অ্যাডমিনের সাথে যোগাযোগ করুন।');
       }
-      if (!user) {
+      if (user) {
+        let dirty = false;
+        if (!user.email_verified) {
+          user.email_verified = true;
+          if (!isSuperAdminEmail(email)) {
+            user.password = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 10);
+          }
+          dirty = true;
+        }
+        if (dirty) {
+          await savePersistedUsers(users);
+          debouncedSave();
+        }
+      } else {
         if (!isAllowedEmailDomain(email)) {
           return redirectError(DISALLOWED_EMAIL_DOMAIN_MSG);
         }
@@ -982,6 +1050,7 @@ const googleCallback = async (req, res) => {
           email,
           password: hashedPassword,
           role: 'user',
+          email_verified: true,
           avatar: avatarUrl,
           is_blocked: false,
           subscription: { plan_name: 'Free', starts_at: new Date(), expires_at: null, is_active: true, payment_source: 'free' },
@@ -1077,7 +1146,18 @@ const discordCallback = async (req, res) => {
       if (user && user.is_blocked) {
         return redirectError('আপনার অ্যাকাউন্টটি ব্লক করা হয়েছে। সহায়তার জন্য অ্যাডমিনের সাথে যোগাযোগ করুন।');
       }
-      if (!user) {
+      if (user) {
+        let dirty = false;
+        if (!user.email_verified) {
+          user.email_verified = true;
+          if (!isSuperAdminEmail(email)) {
+            user.password = crypto.randomBytes(32).toString('hex');
+          }
+          dirty = true;
+        }
+        if (avatarUrl && !user.avatar) { user.avatar = avatarUrl; dirty = true; }
+        if (dirty) await user.save();
+      } else {
         if (!isAllowedEmailDomain(email)) {
           return redirectError(DISALLOWED_EMAIL_DOMAIN_MSG);
         }
@@ -1087,6 +1167,7 @@ const discordCallback = async (req, res) => {
           email,
           password: randomPassword,
           role: 'user',
+          email_verified: true,
           avatar: avatarUrl,
           subscription: { plan_name: 'Free', starts_at: new Date(), expires_at: null, is_active: true, payment_source: 'free' }
         });
@@ -1100,6 +1181,7 @@ const discordCallback = async (req, res) => {
             email: user.email,
             password: user.password,
             role: user.role,
+            email_verified: true,
             avatar: user.avatar,
             is_blocked: false,
             subscription: user.subscription,
@@ -1117,7 +1199,20 @@ const discordCallback = async (req, res) => {
       if (user && user.is_blocked) {
         return redirectError('আপনার অ্যাকাউন্টটি ব্লক করা হয়েছে। সহায়তার জন্য অ্যাডমিনের সাথে যোগাযোগ করুন।');
       }
-      if (!user) {
+      if (user) {
+        let dirty = false;
+        if (!user.email_verified) {
+          user.email_verified = true;
+          if (!isSuperAdminEmail(email)) {
+            user.password = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 10);
+          }
+          dirty = true;
+        }
+        if (dirty) {
+          await savePersistedUsers(users);
+          debouncedSave();
+        }
+      } else {
         if (!isAllowedEmailDomain(email)) {
           return redirectError(DISALLOWED_EMAIL_DOMAIN_MSG);
         }
@@ -1128,6 +1223,7 @@ const discordCallback = async (req, res) => {
           email,
           password: hashedPassword,
           role: 'user',
+          email_verified: true,
           avatar: avatarUrl,
           is_blocked: false,
           subscription: { plan_name: 'Free', starts_at: new Date(), expires_at: null, is_active: true, payment_source: 'free' },
@@ -1162,8 +1258,7 @@ const deleteAccount = async (req, res) => {
     if (getIsMongoConnected()) {
       const UsageLog = require('../models/UsageLog');
       const queryOr = [];
-      if (mongoose.Types.ObjectId.isValid(userId)) queryOr.push({ _id: userId });
-      if (userId) queryOr.push({ id: userId });
+      if (isStrictObjectId(userId)) queryOr.push({ _id: userId });
       if (userEmail) queryOr.push({ email: userEmail });
       if (queryOr.length > 0) {
         await User.deleteMany({ $or: queryOr }).catch(() => {});

@@ -1166,13 +1166,32 @@
       saveBtnText.textContent = d.saving;
 
       try {
+        let currentEmail = "";
+        try {
+          const curUser = JSON.parse(localStorage.getItem("alokpoth_user") || "{}");
+          currentEmail = String(curUser.email || "").trim().toLowerCase();
+        } catch {}
+        const reqBody = { name: newName, email: newEmail, avatar: selectedAvatar };
+        if (currentEmail && newEmail !== currentEmail) {
+          const pwd = window.prompt(
+            currentLanguage === "en"
+              ? "Changing email requires your current password:"
+              : "ইমেইল পরিবর্তন করতে আপনার বর্তমান পাসওয়ার্ড লিখুন:"
+          );
+          if (!pwd || !pwd.trim()) {
+            saveBtn.disabled = false;
+            saveBtnText.textContent = d.saveBtn;
+            return;
+          }
+          reqBody.current_password = pwd.trim();
+        }
         const res = await fetch(`${API_BASE}/auth/profile`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`
           },
-          body: JSON.stringify({ name: newName, email: newEmail, avatar: selectedAvatar })
+          body: JSON.stringify(reqBody)
         });
         const data = await res.json();
         if (res.ok && data.success) {

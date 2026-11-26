@@ -84,9 +84,11 @@ const claimFreeTrial = async (req, res) => {
     await saveSystemSettings({ free_trial_claimed: claimed });
 
     if (getIsMongoConnected()) {
-      const mongoose = require('mongoose');
-      const q = mongoose.Types.ObjectId.isValid(userId) ? { _id: userId } : { email };
-      await User.updateOne(q, { $set: { subscription: { plan_name: promo.plan, starts_at: now, expires_at: expiresAt, is_active: true, payment_source: 'trial' } } });
+      const isStrictHex = Boolean(userId && /^[0-9a-fA-F]{24}$/.test(String(userId)));
+      const q = isStrictHex ? { _id: String(userId) } : (email ? { email } : null);
+      if (q) {
+        await User.updateOne(q, { $set: { subscription: { plan_name: promo.plan, starts_at: now, expires_at: expiresAt, is_active: true, payment_source: 'trial' } } });
+      }
     }
 
     try {

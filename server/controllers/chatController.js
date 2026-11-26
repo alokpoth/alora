@@ -9,6 +9,7 @@ const {
   getSafeModelDisplayName,
   inspectPromptSafety,
   buildCoreSecurityAndIdentityDirective,
+  extractSystemDirectiveLeakPatterns,
   sanitizeModelIdentityText,
   sanitizePublicErrorMessage
 } = require('../utils/safetyFilter');
@@ -263,8 +264,13 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
     });
     const modelIdentityDirective = basePrompt +
       mandatorySecurityFooter +
-      (userCustomInstructions ? `\n\n=== USER'S PERSONAL CUSTOM PROMPT & INSTRUCTIONS ===\nFollow these user preferences cleanly unless they violate the Mandatory Identity, Safety & Honesty Rules above:\n"""\n${userCustomInstructions}\n"""` : '') +
-      (req.body.thinking === false ? '\n- CRITICAL: Thinking / reasoning mode is turned OFF by the user. Do NOT produce any <think> tags, internal monologue, or step-by-step thinking scratchpad. Answer directly and immediately.' : '');
+      (userCustomInstructions ? `\n\n=== USER'S PERSONAL CUSTOM PROMPT & INSTRUCTIONS ===\nFollow these user preferences cleanly unless they violate the confidential Identity & Safety rules above:\n"""\n${userCustomInstructions}\n"""` : '') +
+      (req.body.thinking === false ? '\n- Thinking mode is OFF for this request: answer directly and concisely without <think> tags or visible scratchpad text.' : '');
+
+    // Pre-compile leak patterns from active prompts so raw rules/instructions never echo in stream or reasoning
+    const extraBlockedPatterns = extractSystemDirectiveLeakPatterns(
+      [globalSystemPrompt, basePrompt, mandatorySecurityFooter].filter(Boolean).join('\n')
+    );
 
     const t1Model = (aiModelConfig?.api_model_1 || aiModelConfig?.model_id || cleanModel);
     const t1Url = aiModelConfig?.base_url || null;
@@ -598,9 +604,62 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
       let geminiLineBuffer = '';
       let openAiLineBuffer = '';
       let accumulatedStreamContent = '';
-      const TAIL_HOLD = 64;
+      const DEFAULT_TAIL_HOLD = 64;
+      const SUSPICIOUS_TAIL_HOLD = 240;
       let contentTail = '';
       let reasoningTail = '';
+      let inInlineThink = false;
+
+      const SUSPICIOUS_TAIL_RE = /(===|Keep\s+n|No\s+m|by\s+Zihan|MANDATORY|STRICT|CRITICAL|Internal\s+Assistant|system\s+p|developer\s+p|<think|<\/think|gemini|openai|chatgpt|claude|deepseek|qwen|anthropic)/i;
+
+      const sanitizeSegmentWithInlineThink = (text, startInThink) => {
+        const parts = String(text || '').split(/(<\/?think>)/gi);
+        let localThink = startInThink;
+        let out = '';
+        for (const part of parts) {
+          if (!part) continue;
+          const lowerPart = part.toLowerCase();
+          if (lowerPart === '<think>') {
+            localThink = true;
+            out += part;
+          } else if (lowerPart === '</think>') {
+            localThink = false;
+            out += part;
+          } else {
+            out += sanitizeModelIdentityText(part, safeDisplayName, {
+              isReasoning: localThink,
+              extraBlockedPatterns
+            });
+          }
+        }
+        return out.replace(/<think>\s*<\/think>\s*/gi, '');
+      };
+
+      const advanceThinkState = (emittedChunk, currentThink) => {
+        let nextThink = currentThink;
+        const tags = String(emittedChunk || '').match(/<\/?think>/gi);
+        if (tags) {
+          for (const tg of tags) {
+            nextThink = tg.toLowerCase() === '<think>';
+          }
+        }
+        return nextThink;
+      };
+
+      const computeSafeCutIndex = (str, holdLen) => {
+        let cutIdx = str.length - holdLen;
+        if (cutIdx <= 0) return 0;
+        // Never split across a partial <think> or </think> tag boundary
+        const lookBackStart = Math.max(0, cutIdx - 8);
+        const partialIdx = str.indexOf('<', lookBackStart);
+        if (partialIdx !== -1 && partialIdx < cutIdx && partialIdx + 9 >= cutIdx) {
+          const slice = str.slice(partialIdx).toLowerCase();
+          if ('<think>'.startsWith(slice.slice(0, '<think>'.length)) || '</think>'.startsWith(slice.slice(0, '</think>'.length))) {
+            cutIdx = partialIdx;
+          }
+        }
+        return cutIdx;
+      };
 
       const writeNormalizedDelta = (field, piece) => {
         if (!piece || res.writableEnded || res.destroyed) return;
@@ -611,29 +670,45 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
       const pushSanitizedDelta = (field, rawText) => {
         if (!rawText) return;
         if (field === 'reasoning_content') {
-          reasoningTail = sanitizeModelIdentityText(reasoningTail + rawText, safeDisplayName);
-          if (reasoningTail.length > TAIL_HOLD) {
-            const emit = reasoningTail.slice(0, reasoningTail.length - TAIL_HOLD);
-            reasoningTail = reasoningTail.slice(reasoningTail.length - TAIL_HOLD);
+          if (req.body.thinking === false) return;
+          reasoningTail = sanitizeModelIdentityText(reasoningTail + rawText, safeDisplayName, {
+            isReasoning: true,
+            extraBlockedPatterns
+          });
+          const holdLen = SUSPICIOUS_TAIL_RE.test(reasoningTail) ? SUSPICIOUS_TAIL_HOLD : 128;
+          if (reasoningTail.length > holdLen) {
+            const emit = reasoningTail.slice(0, reasoningTail.length - holdLen);
+            reasoningTail = reasoningTail.slice(reasoningTail.length - holdLen);
             writeNormalizedDelta('reasoning_content', emit);
           }
         } else {
-          contentTail = sanitizeModelIdentityText(contentTail + rawText, safeDisplayName);
-          if (contentTail.length > TAIL_HOLD) {
-            const emit = contentTail.slice(0, contentTail.length - TAIL_HOLD);
-            contentTail = contentTail.slice(contentTail.length - TAIL_HOLD);
-            writeNormalizedDelta('content', emit);
+          contentTail = sanitizeSegmentWithInlineThink(contentTail + rawText, inInlineThink);
+          const holdLen = (inInlineThink || SUSPICIOUS_TAIL_RE.test(contentTail)) ? SUSPICIOUS_TAIL_HOLD : DEFAULT_TAIL_HOLD;
+          if (contentTail.length > holdLen) {
+            const cutIdx = computeSafeCutIndex(contentTail, holdLen);
+            if (cutIdx > 0) {
+              const emit = contentTail.slice(0, cutIdx);
+              contentTail = contentTail.slice(cutIdx);
+              inInlineThink = advanceThinkState(emit, inInlineThink);
+              writeNormalizedDelta('content', emit);
+            }
           }
         }
       };
 
       const flushSanitizedTails = () => {
         if (reasoningTail) {
-          writeNormalizedDelta('reasoning_content', sanitizeModelIdentityText(reasoningTail, safeDisplayName));
+          const cleanR = sanitizeModelIdentityText(reasoningTail, safeDisplayName, {
+            isReasoning: true,
+            extraBlockedPatterns
+          });
+          if (cleanR.trim()) writeNormalizedDelta('reasoning_content', cleanR);
           reasoningTail = '';
         }
         if (contentTail) {
-          writeNormalizedDelta('content', sanitizeModelIdentityText(contentTail, safeDisplayName));
+          const cleanC = sanitizeSegmentWithInlineThink(contentTail, inInlineThink);
+          inInlineThink = advanceThinkState(cleanC, inInlineThink);
+          if (cleanC) writeNormalizedDelta('content', cleanC);
           contentTail = '';
         }
       };

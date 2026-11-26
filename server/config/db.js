@@ -16,11 +16,12 @@ const connectDB = async () => {
   }
 
   const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/alokpoth_ai';
+  const isLocalMongo = mongoUri.includes('localhost') || mongoUri.includes('127.0.0.1');
 
   cachedPromise = mongoose.connect(mongoUri, {
     maxPoolSize: 20,          // Maintain up to 20 socket connections for high concurrency
-    minPoolSize: 5,           // Keep at least 5 warm connections ready (avoids connection lag)
-    serverSelectionTimeoutMS: 2500,
+    minPoolSize: 2,           // Keep at least 2 warm connections ready
+    serverSelectionTimeoutMS: isLocalMongo ? 2500 : 10000,
     socketTimeoutMS: 30000,
     maxIdleTimeMS: 30000,     // Close idle connections after 30s
     autoIndex: true           // Build compound and TTL indexes automatically
@@ -61,15 +62,19 @@ mongoose.connection.on('error', (err) => {
 
 const getIsMongoConnected = () => isMongoConnected && mongoose.connection.readyState === 1;
 
-let hasAttemptedInitialConnect = false;
+let lastConnectAttemptTs = 0;
+const DB_RETRY_COOLDOWN_MS = 15000;
 const ensureDBConnected = async () => {
   if (getIsMongoConnected()) return true;
-  if (hasAttemptedInitialConnect && !cachedPromise) return false;
-  hasAttemptedInitialConnect = true;
+  const now = Date.now();
+  if (!cachedPromise && (now - lastConnectAttemptTs) < DB_RETRY_COOLDOWN_MS) {
+    return false;
+  }
+  lastConnectAttemptTs = now;
   try {
     await Promise.race([
       connectDB(),
-      new Promise((resolve) => setTimeout(resolve, 2600))
+      new Promise((resolve) => setTimeout(resolve, 4000))
     ]);
   } catch (e) {}
   return getIsMongoConnected();

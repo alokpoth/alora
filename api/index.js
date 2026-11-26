@@ -21,6 +21,22 @@ const paymentRoutes = require('../server/routes/paymentRoutes');
 
 const app = express();
 app.disable('x-powered-by');
+app.set('trust proxy', 1);
+
+const ALLOWED_CORS_ORIGINS = new Set([
+  'https://alora.zdots.net',
+  'https://www.alora.zdots.net',
+  'https://alora.zihan.xyz',
+  'https://www.alora.zihan.xyz',
+  'https://ai.zihan.xyz',
+  'https://alora-backend-emw3.onrender.com',
+  'http://localhost:5000',
+  'http://localhost:3000',
+  'http://127.0.0.1:5000',
+  'capacitor://localhost',
+  'http://localhost',
+  'https://localhost'
+]);
 
 // Rate Limiters for High-Traffic and Brute Force Protection
 const authLimiter = createRateLimiter({
@@ -42,10 +58,15 @@ const apiLimiter = createRateLimiter({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Permissive CORS for Vercel deployment
+// Strict CORS allowlist (never reflect arbitrary untrusted origins with credentials)
 app.use(cors({
-  origin: true,
-  credentials: true
+  origin: (origin, cb) => {
+    if (!origin || origin === 'null' || ALLOWED_CORS_ORIGINS.has(origin.toLowerCase()) || /^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin)) {
+      return cb(null, true);
+    }
+    return cb(null, false);
+  },
+  credentials: false
 }));
 
 app.use((req, res, next) => {
@@ -155,7 +176,8 @@ const plansHandler = async (req, res) => {
     const plans = await getPersistedPlans();
     return res.json({ success: true, plans: ensureAllCanonicalPlans(plans).filter(p => p.is_active !== false) });
   } catch (e) {
-    res.status(500).json({ success: false, error: e.message });
+    const { sendServerError } = require('../server/utils/safeError');
+    return sendServerError(res, e, 'প্ল্যানের তথ্য লোড করতে সমস্যা হয়েছে।', '[Plans Error]:');
   }
 };
 app.get('/api/plans', plansHandler);
@@ -163,7 +185,11 @@ app.get('/plans', plansHandler);
 
 // API Routes with Rate Limiting & Anti-Cache Headers
 app.use(['/api', '/auth', '/chat', '/redeem', '/admin', '/zihan', '/search', '/payments'], async (req, res, next) => {
-  await ensureDBConnected();
+  try {
+    await ensureDBConnected();
+  } catch (dbErr) {
+    console.warn('[Vercel DB Middleware Warning]:', dbErr.message);
+  }
   next();
 });
 app.use(['/api', '/auth', '/chat', '/redeem', '/admin', '/zihan', '/search', '/payments'], (req, res, next) => {
@@ -173,7 +199,7 @@ app.use(['/api', '/auth', '/chat', '/redeem', '/admin', '/zihan', '/search', '/p
   res.setHeader('Surrogate-Control', 'no-store');
   next();
 });
-app.use('/api', apiLimiter);
+app.use(['/api', '/chat', '/search', '/payments'], apiLimiter);
 
 // Mount main routes (with and without /api prefix for Vercel path flexibility)
 app.get(['/auth/login', '/auth/signup'], (req, res) => res.sendFile(path.join(__dirname, '..', 'login.html')));
@@ -205,6 +231,7 @@ app.use((req, res) => {
 
 // Global error handler
 app.use((err, req, res, next) => {
+  if (res.headersSent) return next(err);
   const { sendServerError } = require('../server/utils/safeError');
   return sendServerError(res, err, 'Internal server error', '[Global Error]:');
 });

@@ -18,19 +18,10 @@ const createRateLimiter = ({
   return (req, res, next) => {
     if (!req) return next();
     const headers = req.headers || {};
-    const cfIp = headers['cf-connecting-ip'];
-    const realIp = headers['x-real-ip'] || headers['x-vercel-forwarded-for'];
-    const xff = headers['x-forwarded-for'];
-
-    let resolvedIp = req.socket?.remoteAddress || req.ip || '127.0.0.1';
-    if (cfIp) {
-      resolvedIp = Array.isArray(cfIp) ? (cfIp[0] || '').trim() : String(cfIp).split(',')[0].trim();
-    } else if (realIp) {
-      resolvedIp = Array.isArray(realIp) ? (realIp[0] || '').trim() : String(realIp).split(',')[0].trim();
-    } else if (xff) {
-      const parts = Array.isArray(xff) ? xff : String(xff).split(',');
-      resolvedIp = (parts[0] || '').trim();
-    }
+    // Trust Express req.ip (configured via app.set('trust proxy', 1)) or Vercel platform header;
+    // ignore unverified client-supplied forwarding headers (CF-Connecting-IP / X-Real-IP / leftmost XFF).
+    const vercelIp = process.env.VERCEL ? headers['x-vercel-forwarded-for'] : '';
+    const resolvedIp = req.ip || (vercelIp ? String(vercelIp).split(',')[0].trim() : '') || req.socket?.remoteAddress || '127.0.0.1';
 
     const rawIp = resolvedIp || '127.0.0.1';
     const cleanIp = String(rawIp).replace(/^::ffff:/, '').replace(/[^a-zA-Z0-9.:_-]/g, '_');

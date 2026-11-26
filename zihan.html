@@ -8,11 +8,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
   <title>Alora - অ্যাডমিন প্যানেল</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=3">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png?v=3">
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png?v=3">
-  <link rel="shortcut icon" href="favicon.ico?v=3">
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=3">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=3">
+  <link rel="shortcut icon" href="/favicon.ico?v=3">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3">
   <style>
 
     :focus {
@@ -124,6 +124,8 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
       padding: 14px 28px;
       border-bottom: 1px solid var(--border-color);
       background: rgba(7, 8, 10, 0.78);
@@ -263,27 +265,28 @@
       justify-content: flex-start;
       border-bottom: 1px solid var(--border-color);
       padding-bottom: 14px;
-      overflow-x: auto;
+      overflow-x: visible;
     }
     .tabs {
-      display: inline-flex;
+      display: flex;
+      flex-wrap: wrap;
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 12px;
       padding: 4px;
-      gap: 3px;
-      width: fit-content;
+      gap: 4px;
+      width: 100%;
       max-width: 100%;
     }
     .tab-btn {
       background: transparent;
       border: 1px solid transparent;
       color: var(--text-sub);
-      padding: 7px 18px;
+      padding: 7px 12px;
       border-radius: 9px;
       cursor: pointer;
       font-weight: 500;
-      font-size: 0.85rem;
+      font-size: 0.81rem;
       transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
       white-space: nowrap;
       display: inline-flex;
@@ -980,12 +983,9 @@
       background: rgba(255, 255, 255, 0.15);
       border-radius: 4px;
     }
-      .theme-wordmark { content: url('logo_wordmark_white.png'); }
-    body.light-mode .theme-wordmark { content: url('logo_wordmark_black.png'); }
-  
-    :root[data-theme="light"] .theme-wordmark,
-    :root[data-theme="eyecare"] .theme-wordmark {
-      filter: brightness(0) !important;
+    /* Admin dashboard stays in OLED dark palette so header wordmark remains visible */
+    .theme-wordmark {
+      filter: none !important;
     }
 
   
@@ -1026,10 +1026,8 @@
 <script>
   (function() {
     try {
-      var saved = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "oled";
-      if (saved !== "light" && saved !== "eyecare") saved = "oled";
-      document.documentElement.setAttribute("data-theme-mode", saved);
-      document.documentElement.setAttribute("data-theme", saved);
+      document.documentElement.setAttribute("data-theme-mode", "oled");
+      document.documentElement.setAttribute("data-theme", "oled");
     } catch(e) {}
   })();
 </script>
@@ -1235,10 +1233,10 @@
 
   <div class="navbar">
     <div class="logo-area">
-      <a href="/" class="logo-brand-wrap" title="Back"><img src="logo_wordmark_white.png" class="theme-wordmark" alt="Alora" style="height: 28px; width: auto; object-fit: contain;"></a>
+      <a href="/" class="logo-brand-wrap" title="Back"><img src="/logo_wordmark_white.png" class="theme-wordmark" alt="Alora" style="height: 28px; width: auto; object-fit: contain;" onerror="this.onerror=null;this.src='/alokpath_logo_light.png';"></a>
       <span class="admin-badge"><span class="live-dot"></span> Admin Dashboard</span>
     </div>
-    <div style="display: flex; align-items: center; gap: 10px;">
+    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
       <a href="/" class="btn btn-ghost" id="adminBackChatBtn" title="চ্যাটে ফিরে যান">
         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
         <span>চ্যাটে ফিরে যান</span>
@@ -2403,6 +2401,8 @@
     logoutBtn.addEventListener("click", () => {
       token = null;
       localStorage.removeItem("alokpoth_admin_token");
+      localStorage.removeItem("alokpoth_token");
+      localStorage.removeItem("alokpoth_admin_name");
       loginOverlay.style.display = "flex";
       showToast("লগআউট করা হয়েছে", "info");
     });
@@ -2426,6 +2426,8 @@
       if (res.status === 401 || res.status === 403) {
         token = null;
         localStorage.removeItem("alokpoth_admin_token");
+        localStorage.removeItem("alokpoth_token");
+        localStorage.removeItem("alokpoth_admin_name");
         loginOverlay.style.display = "flex";
       }
       return res;
@@ -2485,6 +2487,15 @@
       if (!url || typeof url !== 'string') return '';
       let trimmed = url.trim();
       if (!trimmed) return '';
+      if (
+        trimmed.includes(':streamGenerateContent') ||
+        trimmed.includes(':generateContent') ||
+        trimmed.includes('/v1/messages') ||
+        trimmed.includes('generativelanguage.googleapis.com') ||
+        trimmed.includes('/models/')
+      ) {
+        return trimmed.replace(/\/+$/, '');
+      }
       trimmed = trimmed.replace(/\/+$/, '');
       if (!trimmed.endsWith('/chat/completions')) {
         if (trimmed.endsWith('/completions')) {
@@ -3362,7 +3373,7 @@
       }
       
       try {
-        const res = await authFetch(`${API_BASE}/zihan/users/${userId}/plan`, {
+        const res = await authFetch(`${API_BASE}/zihan/users/${encodeURIComponent(userId)}/plan`, {
           method: "PUT",
           body: JSON.stringify({ plan_name, duration_days: duration })
         });
@@ -3386,7 +3397,7 @@
       const confirmed = await customConfirm(`আপনি কি নিশ্চিত এই ইউজারকে ${action} করতে চান?`, `${action} নিশ্চিতকরণ`);
       if (!confirmed) return;
       try {
-        const res = await authFetch(`${API_BASE}/zihan/users/${userId}/block`, {
+        const res = await authFetch(`${API_BASE}/zihan/users/${encodeURIComponent(userId)}/block`, {
           method: "PUT",
           body: JSON.stringify({ is_blocked })
         });

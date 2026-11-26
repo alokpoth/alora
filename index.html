@@ -16,6 +16,7 @@
 
   <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=3">
   <link rel="shortcut icon" href="/favicon.ico?v=3">
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3">
   <link rel="manifest" href="/manifest.json">
@@ -5906,7 +5907,7 @@
           FORBID_TAGS: ["script", "style", "iframe", "object", "embed"]
         });
       }
-      return rawHtml;
+      return escapeHtml(rawHtml);
     }
 
     function parseMarkdown(md) {
@@ -5918,16 +5919,35 @@
       }
     }
 
+    function stripSystemPromptLeaks(str, isThought = false) {
+      let s = String(str || "");
+      if (!s) return s;
+      s = s
+        .replace(/={2,}\s*(?:MANDATORY|COGNITIVE|CRITICAL|USER'?S PERSONAL)[^=\n]*={2,}/gi, "")
+        .replace(/\bNON-NEGOTIABLE\b[:\s)]*/gi, "")
+        .replace(/\b(?:1\.\s*)?STRICT\s+MODEL\s+IDENTITY\s+CONCEALMENT\b:?/gi, "")
+        .replace(/\s*by\s+Zihan\s+Fakir\.\s*(?:Keep\s+natural|No\s+mention|Never|Do\s+not)[^.\n]*(?:\.[^.\n]*(?:model|models|concise|mention|natural)[^.\n]*\.?)?/gi, "")
+        .replace(/\s*Keep\s+natural[,.]?\s*concise\.?(?:\s*No\s+mention(?:ing)?\s+(?:of\s+)?other\s+models?\.?)?/gi, "")
+        .replace(/\s*No\s+mention(?:ing)?\s+(?:of\s+)?other\s+models?\.?/gi, "")
+        .replace(/Internal\s+Assistant\s+Guidelines\s*\([^)\n]*confidential[^)\n]*\)\s*:?/gi, "")
+        .replace(/NEVER\s+quote,\s*echo,\s*mention,\s*summarize,\s*or\s+refer\s+to\s+these\s+guidelines[^.\n]*\.?/gi, "");
+      if (isThought) {
+        s = s.replace(/[^.!?\n]*\b(?:system\s+prompt|developer\s+(?:prompt|instructions?)|system\s+(?:instructions?|rules?|guidelines?)|identity\s+(?:rules?|concealment)|never\s+mention\s+other\s+models?)\b[^.!?\n]*[.!?]?/gi, "");
+      }
+      return s.replace(/\n{3,}/g, "\n\n");
+    }
+
     function extractThoughts(text) {
       let thoughts = [];
-      let clean = String(text || "");
+      let clean = stripSystemPromptLeaks(String(text || ""), false);
       const regex = /<think>([\s\S]*?)(?:<\/think>|$)/gi;
       let match;
       while ((match = regex.exec(clean)) !== null) {
-        thoughts.push(match[1]);
+        const cleanedThought = stripSystemPromptLeaks(match[1], true).trim();
+        if (cleanedThought) thoughts.push(cleanedThought);
       }
       clean = clean.replace(/<think>[\s\S]*?(?:<\/think>|$)/gi, "");
-      return { thoughts: thoughts.join("\n\n"), cleanText: clean };
+      return { thoughts: thoughts.join("\n\n").trim(), cleanText: clean };
     }
 
     function enhanceCodeBlocks(container) {
@@ -6288,7 +6308,7 @@
       const { thoughts, cleanText } = extractThoughts(rawText);
       let html = "";
 
-      if (thoughts) {
+      if (thoughts && thoughts.trim()) {
         html += `
           <details class="chatgpt-thought-bar" ${isStreaming && !cleanText ? 'open' : ''}>
             <summary class="chatgpt-thought-toggle">
@@ -6774,7 +6794,7 @@
                 ?? json.choices?.[0]?.delta?.reasoning_content
                 ?? "";
 
-              if (deltaReasoning) {
+              if (deltaReasoning && (streamBuffer.includes("<think>") || deltaReasoning.trim())) {
                 if (!streamBuffer.includes("<think>")) streamBuffer = "<think>\n" + streamBuffer;
                 streamBuffer += deltaReasoning;
               }

@@ -22,6 +22,7 @@ function compressionMiddleware(req, res, next) {
 
   function shouldCompress() {
     if (res.headersSent) return false;
+    if (res.statusCode === 206 || Boolean(res.getHeader('Content-Range'))) return false;
     if (res.getHeader('Content-Encoding')) return false;
     const cType = String(res.getHeader('Content-Type') || '');
     if (cType.includes('text/event-stream')) return false;

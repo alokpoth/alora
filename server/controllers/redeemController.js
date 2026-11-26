@@ -125,9 +125,13 @@ const claimRedeemCode = async (req, res) => {
       const subscriptionData = { plan_name: finalPlanName, starts_at: now, expires_at: expiresAt, is_active: true, payment_source: 'redeem_code' };
 
       // Support both ObjectId and custom string user IDs without CastError
-      const mongoose = require('mongoose');
-      const uQuery = mongoose.Types.ObjectId.isValid(userId) ? { _id: userId } : { $or: [{ _id: userId }, { id: userId }, ...(user.email ? [{ email: user.email.toLowerCase().trim() }] : [])] };
-      await User.updateOne(uQuery, { $set: { subscription: subscriptionData } });
+      const isStrictHex = Boolean(userId && /^[0-9a-fA-F]{24}$/.test(String(userId)));
+      const uQuery = isStrictHex
+        ? { _id: String(userId) }
+        : (user.email ? { email: user.email.toLowerCase().trim() } : null);
+      if (uQuery) {
+        await User.updateOne(uQuery, { $set: { subscription: subscriptionData } });
+      }
       user.subscription = subscriptionData;
 
       // Also sync to Supabase and memoryStore so multi-store stays in sync

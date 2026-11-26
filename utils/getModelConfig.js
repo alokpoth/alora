@@ -744,11 +744,32 @@ async function getPersistedUsers() {
       const User = require('../server/models/User');
       const docs = await User.find().lean();
       if (Array.isArray(docs)) {
-        const normalized = docs.map(u => ({ ...u, _id: String(u._id), id: String(u._id) }));
-        memoryStore.users = normalized;
-        usersCache = normalized;
+        const existingByKey = new Map();
+        for (const u of (memoryStore.users || [])) {
+          if (!u) continue;
+          if (u._id) existingByKey.set(String(u._id), u);
+          if (u.email) existingByKey.set(String(u.email).toLowerCase().trim(), u);
+        }
+        const normalized = docs.map(u => {
+          const emailKey = u.email ? String(u.email).toLowerCase().trim() : '';
+          const prev = existingByKey.get(String(u._id)) || (emailKey ? existingByKey.get(emailKey) : null);
+          return {
+            ...u,
+            _id: String(u._id),
+            id: String(u._id),
+            ...(prev && prev.password && !u.password ? { password: prev.password } : {})
+          };
+        });
+        // Preserve any local fallback admin/seed entries not yet in Mongo
+        const seenEmails = new Set(normalized.map(u => String(u.email || '').toLowerCase().trim()).filter(Boolean));
+        const extraAdmins = (memoryStore.users || []).filter(u =>
+          u && String(u._id || '').startsWith('user_admin_') && u.email && !seenEmails.has(String(u.email).toLowerCase().trim())
+        );
+        const merged = [...normalized, ...extraAdmins];
+        memoryStore.users = merged;
+        usersCache = merged;
         usersCacheTs = now;
-        return normalized;
+        return merged;
       }
     } catch (e) {}
   }

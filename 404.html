@@ -81,7 +81,7 @@
       // 6. Known standalone pages (redirect cleanly to /<page>.html only once)
       var knownPages = [
         'account', 'profile', 'security', 'personalization', 'help',
-        'redeem', 'download', 'plans', 'login', 'admin'
+        'redeem', 'download', 'plans', 'checkout', 'login', 'admin'
       ];
       if (clean.charAt(0) === '/' && knownPages.indexOf(clean.slice(1)) !== -1) {
         var pageName = clean.slice(1);

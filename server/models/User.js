@@ -37,6 +37,10 @@ const UserSchema = new mongoose.Schema({
     enum: ['user', 'admin'],
     default: 'user'
   },
+  email_verified: {
+    type: Boolean,
+    default: false
+  },
   is_blocked: {
     type: Boolean,
     default: false

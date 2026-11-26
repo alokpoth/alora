@@ -1,5 +1,5 @@
-/* Alora AI - Progressive Web App Service Worker (v3.6.1) */
-const CACHE_NAME = 'alora-ai-v3.6.1';
+/* Alora AI - Progressive Web App Service Worker (v3.6.2) */
+const CACHE_NAME = 'alora-ai-v3.6.2';
 
 // Core assets to pre-cache on service worker install
 const CORE_ASSETS = [
@@ -220,6 +220,24 @@ function isDynamicOrApiRequest(url, req) {
   return false;
 }
 
+function makeOfflineApiResponse() {
+  return new Response(
+    JSON.stringify({
+      success: false,
+      error: 'Network connection lost. Please check your internet connection.',
+      offline: true
+    }),
+    {
+      status: 503,
+      statusText: 'Service Unavailable (Offline)',
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store, no-cache, must-revalidate'
+      }
+    }
+  );
+}
+
 /**
  * Fetch Event Handler
  */
@@ -227,7 +245,21 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
   const url = new URL(req.url);
 
-  // 1. API & Dynamic Requests: Strictly Network-Only (NEVER CACHED)
+  // Only handle HTTP(S) schemes (skip chrome-extension:, data:, blob:, etc.)
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    return;
+  }
+
+  // Always let browser handle API navigations/OAuth redirects directly without SW interception
+  if (url.pathname === '/api' || url.pathname.startsWith('/api/')) {
+    if (req.mode === 'navigate' || req.destination === 'document' || req.method !== 'GET') {
+      return;
+    }
+    event.respondWith(fetch(req, { cache: 'no-store' }).catch(makeOfflineApiResponse));
+    return;
+  }
+
+  // 1. Dynamic & Non-GET Requests: Strictly Network-Only (NEVER CACHED)
   // Page navigations are NOT API calls: routes like /redeem and /admin are real pages
   // (see vercel.json) and must reach the navigation branch below, even offline.
   const isPageNavigation = req.mode === 'navigate' ||
@@ -239,37 +271,15 @@ self.addEventListener('fetch', (event) => {
       return;
     }
 
-    // For GET API requests, perform network-only fetch and return clean offline JSON if disconnected
-    event.respondWith(
-      fetch(req, { cache: 'no-store' }).catch(() => {
-        return new Response(
-          JSON.stringify({
-            success: false,
-            error: 'Network connection lost. Please check your internet connection.',
-            offline: true
-          }),
-          {
-            status: 503,
-            statusText: 'Service Unavailable (Offline)',
-            headers: {
-              'Content-Type': 'application/json',
-              'Cache-Control': 'no-store, no-cache, must-revalidate'
-            }
-          }
-        );
-      })
-    );
+    // For GET dynamic requests, perform network-only fetch and return clean offline JSON if disconnected
+    event.respondWith(fetch(req, { cache: 'no-store' }).catch(makeOfflineApiResponse));
     return;
   }
 
   // 2. HTML Navigation Requests (Page Loads): Network-First with Cache Fallback
-  if (
-    req.mode === 'navigate' ||
-    req.destination === 'document' ||
-    (req.headers.get('accept') && req.headers.get('accept').includes('text/html'))
-  ) {
+  if (isPageNavigation) {
     event.respondWith(
-      fetch(req, { cache: 'no-cache' })
+      fetch(req)
         .then((networkResponse) => {
           if (networkResponse && networkResponse.status === 200) {
             const clone = networkResponse.clone();

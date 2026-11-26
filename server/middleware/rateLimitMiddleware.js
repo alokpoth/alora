@@ -11,6 +11,7 @@ const { PLAN_HIERARCHY, DEFAULT_PLANS_MAP, normalizePlanDoc } = require('../util
 
 const guestMessageTracker = new Map();
 const guestImageTracker = new Map();
+const isStrictObjectId = (v) => Boolean(v && typeof v === 'string' && /^[0-9a-fA-F]{24}$/.test(v));
 // Clear any test counts for localhost
 guestMessageTracker.delete('127_0_0_1');
 guestMessageTracker.delete('localhost');
@@ -31,17 +32,10 @@ const checkRateLimit = async (req, res, next) => {
       return next();
     }
 
-    // Resolve IP safely for guest tracking
+    // Resolve IP safely via Express trust proxy (never trust client-spoofed CF-Connecting-IP / X-Real-IP headers)
     const headers = req?.headers || {};
-    const vercelIp = headers['x-real-ip'] || headers['x-vercel-forwarded-for'] || headers['cf-connecting-ip'];
-    const xff = headers['x-forwarded-for'];
-    let resolvedIp = req?.socket?.remoteAddress || req?.ip || '127.0.0.1';
-    if (vercelIp) {
-      resolvedIp = Array.isArray(vercelIp) ? (vercelIp[0] || '').trim() : String(vercelIp).split(',')[0].trim();
-    } else if (xff) {
-      const parts = Array.isArray(xff) ? xff : String(xff).split(',');
-      resolvedIp = (parts[parts.length - 1] || '').trim();
-    }
+    const vercelIp = process.env.VERCEL ? headers['x-vercel-forwarded-for'] : '';
+    const resolvedIp = req?.ip || (vercelIp ? String(vercelIp).split(',')[0].trim() : '') || req?.socket?.remoteAddress || '127.0.0.1';
     const cleanIp = String(resolvedIp || '127.0.0.1').replace(/^::ffff:/, '').replace(/[^a-zA-Z0-9]/g, '_');
     const guestId = `guest_${cleanIp}`;
 
@@ -61,7 +55,10 @@ const checkRateLimit = async (req, res, next) => {
       const gImgLimit = Number(guestPlan.image_limit);
       const gWinHours = Number(guestPlan.window_hours) || 3;
       const gWinMs = gWinHours * 60 * 60 * 1000;
-      const isLocalTest = cleanIp === '127_0_0_1' || cleanIp === 'localhost' || cleanIp === '_1';
+      const isHostedProd = process.env.NODE_ENV === 'production' || Boolean(process.env.RENDER) || Boolean(process.env.VERCEL);
+      const socketAddr = String(req?.socket?.remoteAddress || '').replace(/^::ffff:/, '');
+      const isLoopbackSocket = socketAddr === '127.0.0.1' || socketAddr === '::1';
+      const isLocalTest = !isHostedProd && isLoopbackSocket && (cleanIp === '127_0_0_1' || cleanIp === 'localhost' || cleanIp === '_1');
 
       if (isImageRoute) {
         if (gImgLimit <= 0) {
@@ -154,8 +151,10 @@ const checkRateLimit = async (req, res, next) => {
         const uId = user._id || user.id;
         if (getIsMongoConnected()) {
           try {
-            const q = mongoose.Types.ObjectId.isValid(uId) ? { _id: uId } : { $or: [{ _id: uId }, { id: uId }, ...(user.email ? [{ email: user.email }] : [])] };
-            await User.updateOne(q, { $set: { subscription: user.subscription } }).catch(() => {});
+            const q = isStrictObjectId(String(uId || '')) ? { _id: String(uId) } : (user.email ? { email: String(user.email).toLowerCase().trim() } : null);
+            if (q) {
+              await User.updateOne(q, { $set: { subscription: user.subscription } }).catch(() => {});
+            }
           } catch {}
         }
         // Unconditionally persist downgrade across Supabase and memoryStore
@@ -230,7 +229,7 @@ const checkRateLimit = async (req, res, next) => {
       let queriedMongo = false;
       if (getIsMongoConnected()) {
         try {
-          const userQuery = mongoose.Types.ObjectId.isValid(userId) ? { $in: [userId, new mongoose.Types.ObjectId(userId)] } : userId;
+          const userQuery = isStrictObjectId(userId) ? { $in: [userId, new mongoose.Types.ObjectId(userId)] } : userId;
           imageCount = await UsageLog.countDocuments({
             user_id: userQuery,
             model_id: 'image-generation',
@@ -347,7 +346,7 @@ const checkRateLimit = async (req, res, next) => {
     let queriedMongoMessage = false;
     if (getIsMongoConnected()) {
       try {
-        const userQuery = mongoose.Types.ObjectId.isValid(userId) ? { $in: [userId, new mongoose.Types.ObjectId(userId)] } : userId;
+        const userQuery = isStrictObjectId(userId) ? { $in: [userId, new mongoose.Types.ObjectId(userId)] } : userId;
         messageCount = await UsageLog.countDocuments({
           user_id: userQuery,
           model_id: { $ne: 'image-generation' },

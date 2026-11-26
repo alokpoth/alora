@@ -42,7 +42,29 @@ const apiLimiter = createRateLimiter({
 
 // Middleware
 app.disable('x-powered-by');
-app.use(cors());
+app.set('trust proxy', 1);
+const ALLOWED_CORS_ORIGINS = new Set([
+  'https://alora.zdots.net',
+  'https://www.alora.zdots.net',
+  'https://alora.zihan.xyz',
+  'https://www.alora.zihan.xyz',
+  'https://ai.zihan.xyz',
+  'https://alora-backend-emw3.onrender.com',
+  'http://localhost:5000',
+  'http://localhost:3000',
+  'http://127.0.0.1:5000',
+  'capacitor://localhost',
+  'http://localhost',
+  'https://localhost'
+]);
+app.use(cors({
+  origin: (origin, cb) => {
+    if (!origin || origin === 'null' || ALLOWED_CORS_ORIGINS.has(origin.toLowerCase()) || /^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin)) {
+      return cb(null, true);
+    }
+    return cb(null, false);
+  }
+}));
 app.use(compressionMiddleware);
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -128,7 +150,11 @@ connectDB().then(async () => {
 
 // API Routes with Rate Limiting & Anti-Cache Headers (fixes login/logout stale cache)
 app.use('/api', async (req, res, next) => {
-  await ensureDBConnected();
+  try {
+    await ensureDBConnected();
+  } catch (dbErr) {
+    console.warn('[Server DB Middleware Warning]:', dbErr.message);
+  }
   next();
 });
 app.use('/api', (req, res, next) => {
@@ -336,6 +362,7 @@ app.use((req, res) => {
 
 // Global error handler
 app.use((err, req, res, next) => {
+  if (res.headersSent) return next(err);
   console.error('[Server Error]:', err);
   res.status(err.status || 500).json({ success: false, error: 'Internal server error' });
 });

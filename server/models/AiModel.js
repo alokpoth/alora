@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const AiModelSchema = new mongoose.Schema({
   model_id: { type: String, required: true, unique: true },
   name: { type: String, required: true },
+  description: { type: String, default: '' },
   provider: { type: String, default: 'Alora' },
   type: { type: String, default: 'custom' },
   base_url: { type: String, default: '' },

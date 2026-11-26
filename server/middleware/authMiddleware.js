@@ -7,6 +7,8 @@ const { JWT_SECRET } = require('../config/jwtSecret');
 const { getCachedUser, setCachedUser, invalidateCachedUser } = require('../config/dbCache');
 const { USER_PLANS } = require('../utils/planDefaults');
 
+const isStrictObjectId = (v) => Boolean(v && typeof v === 'string' && /^[0-9a-fA-F]{24}$/.test(v));
+
 function extractToken(req) {
   if (!req || !req.headers) return null;
   const authHeader = req.headers.authorization || req.headers.Authorization;
@@ -65,14 +67,12 @@ const protect = async (req, res, next) => {
     }
 
     if (!user && getIsMongoConnected()) {
-      if (mongoose.Types.ObjectId.isValid(userId)) {
-        user = await User.findById(userId).select('-password').lean();
-      }
-      if (!user && userId) {
-        user = await User.findOne({ $or: [{ _id: userId }, { id: userId }] }).select('-password').lean();
+      const userIdStr = userId ? String(userId) : '';
+      if (isStrictObjectId(userIdStr)) {
+        user = await User.findById(userIdStr).select('-password').lean();
       }
       if (!user && decoded.email) {
-        user = await User.findOne({ email: decoded.email.toLowerCase().trim() }).select('-password').lean();
+        user = await User.findOne({ email: String(decoded.email).toLowerCase().trim() }).select('-password').lean();
       }
     }
     
@@ -101,8 +101,13 @@ const protect = async (req, res, next) => {
         user.subscription.is_active = true;
         const uId = user._id || user.id;
         if (getIsMongoConnected()) {
-          const q = mongoose.Types.ObjectId.isValid(uId) ? { _id: uId } : { $or: [{ _id: uId }, { id: uId }, ...(user.email ? [{ email: user.email }] : [])] };
-          User.updateOne(q, { $set: { subscription: user.subscription } }).catch(() => {});
+          const uIdStr = String(uId || '');
+          const q = isStrictObjectId(uIdStr)
+            ? { _id: uIdStr }
+            : (user.email ? { email: String(user.email).toLowerCase().trim() } : null);
+          if (q) {
+            User.updateOne(q, { $set: { subscription: user.subscription } }).catch(() => {});
+          }
         }
         try {
           const { getPersistedUsers, savePersistedUsers, invalidateUsersCache, invalidateUserUsageCache } = require('../../utils/getModelConfig');
@@ -176,14 +181,12 @@ const optionalProtect = async (req, res, next) => {
     }
 
     if (!user && getIsMongoConnected()) {
-      if (mongoose.Types.ObjectId.isValid(userId)) {
-        user = await User.findById(userId).select('-password').lean();
-      }
-      if (!user && userId) {
-        user = await User.findOne({ $or: [{ _id: userId }, { id: userId }] }).select('-password').lean();
+      const userIdStr = userId ? String(userId) : '';
+      if (isStrictObjectId(userIdStr)) {
+        user = await User.findById(userIdStr).select('-password').lean();
       }
       if (!user && decoded.email) {
-        user = await User.findOne({ email: decoded.email.toLowerCase().trim() }).select('-password').lean();
+        user = await User.findOne({ email: String(decoded.email).toLowerCase().trim() }).select('-password').lean();
       }
     }
     
@@ -212,8 +215,13 @@ const optionalProtect = async (req, res, next) => {
         user.subscription.is_active = true;
         const uId = user._id || user.id;
         if (getIsMongoConnected()) {
-          const q = mongoose.Types.ObjectId.isValid(uId) ? { _id: uId } : { $or: [{ _id: uId }, { id: uId }, ...(user.email ? [{ email: user.email }] : [])] };
-          User.updateOne(q, { $set: { subscription: user.subscription } }).catch(() => {});
+          const uIdStr = String(uId || '');
+          const q = isStrictObjectId(uIdStr)
+            ? { _id: uIdStr }
+            : (user.email ? { email: String(user.email).toLowerCase().trim() } : null);
+          if (q) {
+            User.updateOne(q, { $set: { subscription: user.subscription } }).catch(() => {});
+          }
         }
         try {
           const { getPersistedUsers, savePersistedUsers, invalidateUsersCache, invalidateUserUsageCache } = require('../../utils/getModelConfig');

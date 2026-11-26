@@ -13,6 +13,7 @@ const { PLAN_ORDER, USER_PLANS, PAID_PLANS, DEFAULT_PLANS_MAP, ensureAllCanonica
 
 const SUPER_ADMIN_EMAILS = ['zihanfakir@gmail.com', 'x@zihan.uk'];
 const isSuperAdminEmail = (email) => !!email && SUPER_ADMIN_EMAILS.includes(String(email).toLowerCase().trim());
+const isStrictObjectId = (v) => Boolean(v && typeof v === 'string' && /^[0-9a-fA-F]{24}$/.test(v));
 
 // Strictly write-only secret redaction for Admin API responses (saved keys are NEVER echoed back)
 const redactModelSecretsForAdmin = (m) => {
@@ -101,7 +102,7 @@ const getAdminStats = async (req, res) => {
       const persistedCodes = await getPersistedRedeemCodes();
       const totalRedeemCodes = persistedCodes.length;
       const usedRedeemCodes = persistedCodes.filter(c => c.is_used).length;
-      const totalMessages = memoryStore.usageLogs.length;
+      const totalMessages = (memoryStore.usageLogs || []).length;
 
       const stats = {
         totalUsers,
@@ -168,8 +169,7 @@ const updateUserPlan = async (req, res) => {
     }
 
     if (getIsMongoConnected()) {
-      const mongoose = require('mongoose');
-      const user = mongoose.Types.ObjectId.isValid(userId)
+      const user = isStrictObjectId(userId)
         ? await User.findById(userId)
         : await User.findOne({ email: cleanTarget });
       if (!user) {
@@ -299,8 +299,7 @@ const updateUserRole = async (req, res) => {
     }
 
     if (getIsMongoConnected()) {
-      const mongoose = require('mongoose');
-      const user = mongoose.Types.ObjectId.isValid(userId)
+      const user = isStrictObjectId(userId)
         ? await User.findById(userId)
         : await User.findOne({ email: cleanTarget });
       if (!user) {
@@ -388,8 +387,7 @@ const toggleBlockUser = async (req, res) => {
     }
 
     if (getIsMongoConnected()) {
-      const mongoose = require('mongoose');
-      const user = mongoose.Types.ObjectId.isValid(userId)
+      const user = isStrictObjectId(userId)
         ? await User.findById(userId)
         : await User.findOne({ email: cleanTarget });
       if (!user) {
@@ -489,14 +487,12 @@ const deleteUser = async (req, res) => {
 
     // 1. If Mongo connected, purge user, sessions, and usage logs
     if (getIsMongoConnected()) {
-      const mongoose = require('mongoose');
       const UsageLog = require('../models/UsageLog');
 
       const queryOr = [{ email: cleanTarget }];
-      if (mongoose.Types.ObjectId.isValid(userId)) {
+      if (isStrictObjectId(userId)) {
         queryOr.push({ _id: userId });
       }
-      queryOr.push({ id: userId });
 
       const existingUser = await User.findOne({ $or: queryOr });
 
@@ -553,7 +549,7 @@ const deleteUser = async (req, res) => {
     }
 
     // 5. Deep auto-purge orphaned caches & references
-    const { autoPurgeOrphanedDatabaseCaches, invalidateUserUsageCache } = require('../../utils/getModelConfig');
+    const { autoPurgeOrphanedDatabaseCaches } = require('../../utils/getModelConfig');
     await autoPurgeOrphanedDatabaseCaches().catch(() => {});
 
     invalidateCachedUser(userId);
@@ -833,10 +829,54 @@ const generateRedeemCodes = async (req, res) => {
 const getRedeemCodes = async (req, res) => {
   try {
     if (getIsMongoConnected()) {
-      const codes = await RedeemCode.find()
-        .populate({ path: 'used_by', model: 'User', select: 'name email', strictPopulate: false })
+      const rawCodes = await RedeemCode.find()
         .sort({ createdAt: -1 })
         .lean();
+
+      // Resolve used_by safely without Mongoose .populate() CastError when used_by holds a custom string ID
+      const hexIds = [];
+      const nonHexIds = [];
+      for (const c of rawCodes) {
+        if (!c || !c.used_by) continue;
+        const uStr = String(c.used_by._id || c.used_by).trim();
+        if (isStrictObjectId(uStr)) {
+          hexIds.push(uStr);
+        } else if (uStr) {
+          nonHexIds.push(uStr);
+        }
+      }
+
+      const userMap = new Map();
+      if (hexIds.length > 0) {
+        const matchedUsers = await User.find({ _id: { $in: [...new Set(hexIds)] } })
+          .select('name email')
+          .lean()
+          .catch(() => []);
+        for (const u of matchedUsers) {
+          userMap.set(String(u._id), { _id: u._id, name: u.name, email: u.email });
+        }
+      }
+      if (nonHexIds.length > 0) {
+        const { getPersistedUsers } = require('../../utils/getModelConfig');
+        const allPersisted = await getPersistedUsers().catch(() => []);
+        for (const u of allPersisted) {
+          const uId = String(u._id || u.id || '').trim();
+          const uEmail = String(u.email || '').toLowerCase().trim();
+          if (uId && nonHexIds.includes(uId)) {
+            userMap.set(uId, { _id: u._id || u.id, name: u.name, email: u.email });
+          } else if (uEmail && nonHexIds.some(x => x.toLowerCase() === uEmail)) {
+            userMap.set(uEmail, { _id: u._id || u.id, name: u.name, email: u.email });
+          }
+        }
+      }
+
+      const codes = rawCodes.map(c => {
+        if (!c.used_by) return c;
+        if (typeof c.used_by === 'object' && c.used_by.name) return c;
+        const key = String(c.used_by).trim();
+        const found = userMap.get(key) || userMap.get(key.toLowerCase());
+        return { ...c, used_by: found || c.used_by };
+      });
       return res.json({ success: true, count: codes.length, codes });
     } else {
       const { getPersistedRedeemCodes, getPersistedUsers } = require('../../utils/getModelConfig');
@@ -868,9 +908,8 @@ const deleteRedeemCode = async (req, res) => {
 
     // 1. If Mongo connected, purge from MongoDB
     if (getIsMongoConnected()) {
-      const mongoose = require('mongoose');
       const queryList = [{ code: cleanId }];
-      if (mongoose.Types.ObjectId.isValid(codeId)) {
+      if (isStrictObjectId(codeId)) {
         const found = await RedeemCode.findById(codeId);
         if (found && found.code) {
           codeStrToFilter = String(found.code).trim().toUpperCase();
@@ -1139,6 +1178,7 @@ const updateModel = async (req, res) => {
         if (cleanProvider !== undefined) mongoModel.provider = cleanProvider;
         if (cleanType !== undefined) mongoModel.type = cleanType;
         if (name !== undefined) mongoModel.name = (typeof name === 'string' && name.trim()) ? name.trim().slice(0, 100) : (modelId || 'Alo AI');
+        if (cleanDesc !== undefined) mongoModel.description = cleanDesc;
         if (cleanBaseUrl !== undefined) mongoModel.base_url = cleanBaseUrl;
         if (cleanApiModel1 !== undefined) mongoModel.api_model_1 = cleanApiModel1;
         if (hasValidKey) mongoModel.api_key = api_key.trim();
@@ -1166,6 +1206,7 @@ const updateModel = async (req, res) => {
         mongoModel = await AiModel.create({
           model_id: modelId,
           name: (typeof name === 'string' && name.trim()) ? name.trim().slice(0, 100) : (modelId || 'Alo AI'),
+          description: cleanDesc || '',
           base_url: cleanBaseUrl || '',
           api_key: hasValidKey ? api_key.trim() : '',
           api_model_1: cleanApiModel1 || modelId,
@@ -1411,7 +1452,6 @@ const deleteModel = async (req, res) => {
 
     // 1. If Mongo connected, purge from MongoDB
     if (getIsMongoConnected()) {
-      const mongoose = require('mongoose');
       const queryList = [
         { model_id: cleanModelId },
         { model_id: cleanDecoded },
@@ -1420,10 +1460,10 @@ const deleteModel = async (req, res) => {
         { name: cleanModelId },
         { name: cleanDecoded }
       ];
-      if (mongoose.Types.ObjectId.isValid(cleanModelId)) {
+      if (isStrictObjectId(cleanModelId)) {
         queryList.push({ _id: cleanModelId });
       }
-      if (mongoose.Types.ObjectId.isValid(cleanDecoded)) {
+      if (isStrictObjectId(cleanDecoded)) {
         queryList.push({ _id: cleanDecoded });
       }
       await AiModel.deleteMany({ $or: queryList }).catch(() => {});
@@ -1835,8 +1875,7 @@ const getPromoCodes = async (req, res) => {
     let promos = [];
     if (getIsMongoConnected()) {
       promos = await PromoCode.find().sort({ createdAt: -1 }).lean();
-    }
-    if (!promos || promos.length === 0) {
+    } else {
       promos = await getPersistedPromoCodes();
     }
     const sorted = [...(promos || [])].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
@@ -1849,7 +1888,7 @@ const getPromoCodes = async (req, res) => {
 const createPromoCode = async (req, res) => {
   try {
     const PromoCode = require('../models/PromoCode');
-    const { getPersistedPromoCodes, savePersistedPromoCodes } = require('../../utils/getModelConfig');
+    const { getPersistedPromoCodes, savePersistedPromoCodes, invalidatePromoCodesCache } = require('../../utils/getModelConfig');
     const {
       code,
       discount_type = 'percent',
@@ -1900,14 +1939,21 @@ const createPromoCode = async (req, res) => {
         return res.status(400).json({ success: false, error: 'এই প্রোমো কোডটি ইতিমধ্যে রয়েছে!' });
       }
       await PromoCode.create(promoPayload);
+      if (typeof invalidatePromoCodesCache === 'function') invalidatePromoCodesCache();
+    } else {
+      let persisted = [...(await getPersistedPromoCodes())];
+      if (persisted.find(p => p && String(p.code || '').toUpperCase() === cleanCode)) {
+        return res.status(400).json({ success: false, error: 'এই প্রোমো কোডটি ইতিমধ্যে রয়েছে!' });
+      }
+      persisted.unshift(promoPayload);
+      await savePersistedPromoCodes(persisted);
     }
 
-    let persisted = [...(await getPersistedPromoCodes())];
-    if (persisted.find(p => p && String(p.code || '').toUpperCase() === cleanCode)) {
-      return res.status(400).json({ success: false, error: 'এই প্রোমো কোডটি ইতিমধ্যে রয়েছে!' });
+    if (getIsMongoConnected()) {
+      let persisted = [...(memoryStore.promoCodes || [])].filter(p => p && String(p.code || '').toUpperCase() !== cleanCode);
+      persisted.unshift(promoPayload);
+      memoryStore.promoCodes = persisted;
     }
-    persisted.unshift(promoPayload);
-    await savePersistedPromoCodes(persisted);
     debouncedSave();
     await saveBackup();
 
@@ -1926,9 +1972,8 @@ const deletePromoCode = async (req, res) => {
     const upperTarget = target.toUpperCase();
 
     if (getIsMongoConnected()) {
-      const mongoose = require('mongoose');
       const conds = [{ code: upperTarget }];
-      if (mongoose.Types.ObjectId.isValid(target)) conds.push({ _id: target });
+      if (isStrictObjectId(target)) conds.push({ _id: target });
       await PromoCode.deleteMany({ $or: conds }).catch(() => {});
     }
 
@@ -1955,8 +2000,7 @@ const getPaymentOrders = async (req, res) => {
     if (getIsMongoConnected()) {
       const q = ['pending', 'approved', 'rejected'].includes(statusFilter) ? { status: statusFilter } : {};
       orders = await PaymentOrder.find(q).sort({ createdAt: -1 }).lean();
-    }
-    if (!orders || orders.length === 0) {
+    } else {
       const persisted = await getPersistedPaymentOrders();
       orders = ['pending', 'approved', 'rejected'].includes(statusFilter)
         ? (persisted || []).filter(o => o && o.status === statusFilter)
@@ -2044,10 +2088,8 @@ const approvePaymentOrder = async (req, res) => {
     };
 
     if (getIsMongoConnected()) {
-      const mongoose = require('mongoose');
       const conds = [];
-      if (mongoose.Types.ObjectId.isValid(targetId)) conds.push({ _id: targetId });
-      if (targetId) conds.push({ id: targetId });
+      if (isStrictObjectId(targetId)) conds.push({ _id: targetId });
       if (targetEmail) conds.push({ email: targetEmail });
       const mongoUser = conds.length > 0 ? await User.findOne({ $or: conds }) : null;
       if (mongoUser) {
