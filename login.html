@@ -1290,7 +1290,7 @@
             window.location.href = data.url;
           } else {
             const unconfMsg = currentLang === 'bn'
-              ? 'Discord সাইন-ইন চালুর জন্য অ্যাডমিন প্যানেল বা সার্ভারে Discord Client ID ও Secret সেট করুন।'
+              ? 'Discord সাইন-ইন বর্তমানে সার্ভারে কনফিগার করা হয়নি। অনুগ্রহ করে ইমেইল বা Google ব্যবহার করুন।'
               : ((data && data.error) || t.errDiscordUnavailable);
             showError(data && data.code === 'DISCORD_OAUTH_UNCONFIGURED' ? unconfMsg : ((data && data.error) || t.errDiscordUnavailable));
           }

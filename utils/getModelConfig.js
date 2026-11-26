@@ -825,9 +825,7 @@ async function getSystemSettings() {
     bybit_pay_id: '',
     payment_bkash_enabled: true,
     bkash_number: '',
-    bkash_account_type: 'Send Money',
-    discord_client_id: '',
-    discord_client_secret: ''
+    bkash_account_type: 'Send Money'
   };
 
   const { getIsMongoConnected } = require('../server/config/db');

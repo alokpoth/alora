@@ -946,27 +946,12 @@ const sendNativeOAuthBridge = (res, appUrl, webFallbackUrl, isError = false) => 
 </html>`);
 };
 
-const resolveDiscordOAuthCredentials = async () => {
-  const envId = String(process.env.DISCORD_CLIENT_ID || '').trim();
-  const envSecret = String(process.env.DISCORD_CLIENT_SECRET || '').trim();
-  if (envId && envSecret) return { clientId: envId, clientSecret: envSecret };
-  try {
-    const { getSystemSettings } = require('../../utils/getModelConfig');
-    const settings = await getSystemSettings();
-    const dbId = String(settings?.discord_client_id || '').trim();
-    const dbSecret = String(settings?.discord_client_secret || '').trim();
-    if (dbId && dbSecret) return { clientId: dbId, clientSecret: dbSecret };
-  } catch (e) {}
-  return { clientId: envId, clientSecret: envSecret };
-};
-
 const getAuthProviders = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
-  const discordCreds = await resolveDiscordOAuthCredentials();
   return res.json({
     success: true,
     google: Boolean(String(process.env.GOOGLE_CLIENT_ID || '').trim() && String(process.env.GOOGLE_CLIENT_SECRET || '').trim()),
-    discord: Boolean(discordCreds.clientId && discordCreds.clientSecret)
+    discord: Boolean(String(process.env.DISCORD_CLIENT_ID || '').trim() && String(process.env.DISCORD_CLIENT_SECRET || '').trim())
   });
 };
 
@@ -1163,7 +1148,8 @@ const googleCallback = async (req, res) => {
 
 const discordAuth = async (req, res) => {
   try {
-    const { clientId, clientSecret } = await resolveDiscordOAuthCredentials();
+    const clientId = String(process.env.DISCORD_CLIENT_ID || '').trim();
+    const clientSecret = String(process.env.DISCORD_CLIENT_SECRET || '').trim();
     if (clientId && clientSecret) {
       const redirectUri = `${getRequestOrigin(req)}/api/auth/discord/callback`;
       const nativeApp = req.query.native_app === '1' || req.query.native_app === 'true';
@@ -1174,7 +1160,7 @@ const discordAuth = async (req, res) => {
     return res.status(501).json({
       success: false,
       code: 'DISCORD_OAUTH_UNCONFIGURED',
-      error: 'Discord Sign-In requires server OAuth credentials to be configured by the admin.'
+      error: 'Discord Sign-In is currently disabled. Please continue with Google or email and password.'
     });
   } catch (error) {
     return sendServerError(res, error, 'সার্ভারে ত্রুটি হয়েছে। অনুগ্রহ করে পরে আবার চেষ্টা করুন।', '[Auth Error]:');
@@ -1193,7 +1179,8 @@ const discordCallback = async (req, res) => {
     return res.redirect(webUrl);
   };
   try {
-    const { clientId, clientSecret } = await resolveDiscordOAuthCredentials();
+    const clientId = String(process.env.DISCORD_CLIENT_ID || '').trim();
+    const clientSecret = String(process.env.DISCORD_CLIENT_SECRET || '').trim();
     if (!clientId || !clientSecret) {
       return redirectError('Discord OAuth is not configured on the server.');
     }

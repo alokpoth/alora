@@ -36,10 +36,8 @@ const redactSettingsSecretsForAdmin = (s) => {
   const copy = { ...s };
   copy.has_image_api_key = Boolean(copy.image_api_key && String(copy.image_api_key).trim());
   copy.has_web_search_api_key = Boolean(copy.web_search_api_key && String(copy.web_search_api_key).trim());
-  copy.has_discord_client_secret = Boolean(copy.discord_client_secret && String(copy.discord_client_secret).trim());
   delete copy.image_api_key;
   delete copy.web_search_api_key;
-  delete copy.discord_client_secret;
   return copy;
 };
 
@@ -1704,19 +1702,22 @@ const updateSettings = async (req, res) => {
     const toSave = {};
     const WRITE_ONLY_SECRETS = {
       image_api_key: 'clear_image_api_key',
-      web_search_api_key: 'clear_web_search_api_key',
-      discord_client_secret: 'clear_discord_client_secret'
+      web_search_api_key: 'clear_web_search_api_key'
     };
     const clearKeys = new Set(Object.values(WRITE_ONLY_SECRETS));
+    const DISALLOWED_AUTH_SETTING_KEYS = new Set([
+      'discord_client_id', 'discord_client_secret', 'clear_discord_client_secret',
+      'google_client_id', 'google_client_secret', 'jwt_secret'
+    ]);
     for (const [k, v] of Object.entries(rawBody)) {
       if (k === '__proto__' || k === 'constructor' || k === 'prototype') continue;
-      if (clearKeys.has(k)) continue;
+      if (clearKeys.has(k) || DISALLOWED_AUTH_SETTING_KEYS.has(k)) continue;
       if (Object.prototype.hasOwnProperty.call(WRITE_ONLY_SECRETS, k)) {
         const str = typeof v === 'string' ? v.trim() : '';
         if (str) toSave[k] = str;
         continue;
       }
-      toSave[k] = k === 'discord_client_id' && typeof v === 'string' ? v.trim() : v;
+      toSave[k] = v;
     }
     for (const [secretKey, clearFlag] of Object.entries(WRITE_ONLY_SECRETS)) {
       if (rawBody[clearFlag] === true) {
