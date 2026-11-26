@@ -248,6 +248,7 @@ app.get('/api/plans', async (req, res) => {
 const ROOT_DIR = path.join(__dirname, '..');
 app.use('/avatars', express.static(path.join(ROOT_DIR, 'avatars'), { maxAge: '7d' }));
 app.use('/logo', express.static(path.join(ROOT_DIR, 'logo'), { maxAge: '7d' }));
+app.use('/.well-known', express.static(path.join(ROOT_DIR, '.well-known'), { maxAge: '1h' }));
 
 function sendHtmlPage(res, fileName, extraHeaders = {}) {
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');

@@ -13,17 +13,11 @@
     <!-- Camera for chat photo uploads -->
     <uses-permission android:name="android.permission.CAMERA" />
 
-    <!-- Storage permissions across Android versions -->
-    <uses-permission
-        android:name="android.permission.READ_EXTERNAL_STORAGE"
-        android:maxSdkVersion="32" />
+    <!-- Legacy write permission only for Android 9 and below downloads -->
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28"
         tools:ignore="ScopedStorage" />
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
-    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
 
     <!-- Haptic feedback vibration -->
     <uses-permission android:name="android.permission.VIBRATE" />

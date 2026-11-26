@@ -10,7 +10,7 @@ pages:
     - cp manifest.json sw.js robots.txt sitemap.xml site.webmanifest public/ 2>/dev/null || true
     - cp *.png *.jpg *.jpeg *.svg *.ico *.webp public/ 2>/dev/null || true
     - cp *.apk *.ipa public/ 2>/dev/null || true
-    - cp -r avatars logo public/ 2>/dev/null || true
+    - cp -r avatars logo .well-known public/ 2>/dev/null || true
     # Create clean URL directories (e.g. /download -> /download/index.html)
     - |
       for f in *.html; do

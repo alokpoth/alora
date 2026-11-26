@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "xyz.zihan.aloai",
+      "sha256_cert_fingerprints": [
+        "4F:C6:C7:AE:3E:85:34:67:C3:43:BE:A2:67:B7:AF:2E:46:4A:CA:3D:61:C9:F3:CB:AF:A1:9F:E9:7C:D1:AA:5F"
+      ]
+    }
+  }
+]

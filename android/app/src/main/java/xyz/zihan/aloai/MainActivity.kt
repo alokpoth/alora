@@ -47,8 +47,8 @@ class MainActivity : AppCompatActivity() {
     companion object {
         private const val TAG = "AloAI"
         const val NOTIFICATION_CHANNEL_ID = "alora_general"
-        const val APP_URL = "https://alora.zihan.xyz/"
-        const val AUTH_URL = "https://alora.zihan.xyz/login.html"
+        const val APP_URL = "https://alora.zdots.net/"
+        const val AUTH_URL = "https://alora.zdots.net/login.html"
         private const val BACK_PRESS_INTERVAL = 2000L
     }
 
@@ -239,7 +239,6 @@ class MainActivity : AppCompatActivity() {
         setupWebView()
         setupSwipeRefresh()
         setupBackNavigation()
-        checkAndRequestInitialPermissions()
 
         webView.settings.cacheMode = if (isNetworkAvailable()) {
             WebSettings.LOAD_DEFAULT
@@ -746,34 +745,36 @@ class MainActivity : AppCompatActivity() {
             val bytes = Base64.decode(base64Data, Base64.DEFAULT)
 
             val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-            val ext = if (mimeType != null && mimeType.contains("png")) ".png" else ".jpg"
+            val isPng = mimeType != null && mimeType.contains("png")
+            val ext = if (isPng) ".png" else ".jpg"
+            val resolvedMime = if (isPng) "image/png" else "image/jpeg"
             val filename = "Alora_$timeStamp$ext"
 
-            val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-            val file = File(downloadsDir, filename)
-
-            FileOutputStream(file).use { fos ->
-                fos.write(bytes)
-                fos.flush()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val values = android.content.ContentValues().apply {
+                    put(android.provider.MediaStore.Downloads.DISPLAY_NAME, filename)
+                    put(android.provider.MediaStore.Downloads.MIME_TYPE, resolvedMime)
+                    put(android.provider.MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+                }
+                val uri = contentResolver.insert(android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+                    ?: throw IOException("Failed to create MediaStore download entry")
+                contentResolver.openOutputStream(uri)?.use { fos ->
+                    fos.write(bytes)
+                    fos.flush()
+                } ?: throw IOException("Failed to open download output stream")
+            } else {
+                val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                val file = File(downloadsDir, filename)
+                FileOutputStream(file).use { fos ->
+                    fos.write(bytes)
+                    fos.flush()
+                }
             }
 
             Toast.makeText(this, "${getString(R.string.download_complete)}: $filename", Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {
             Log.e(TAG, "Error saving data URI", e)
             Toast.makeText(this, getString(R.string.save_failed), Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun checkAndRequestInitialPermissions() {
-        val neededPermissions = mutableListOf<String>()
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-            neededPermissions.add(Manifest.permission.RECORD_AUDIO)
-        }
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            neededPermissions.add(Manifest.permission.CAMERA)
-        }
-        if (neededPermissions.isNotEmpty()) {
-            permissionLauncher.launch(neededPermissions.toTypedArray())
         }
     }
 
