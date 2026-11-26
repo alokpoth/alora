@@ -368,9 +368,62 @@ class MainActivity : AppCompatActivity() {
                h == "alora-backend-emw3.onrender.com"
     }
 
+    private fun parseQueryOrFragmentParams(raw: String?): Map<String, String> {
+        if (raw.isNullOrBlank()) return emptyMap()
+        val result = mutableMapOf<String, String>()
+        for (pair in raw.split("&")) {
+            if (pair.isBlank()) continue
+            val idx = pair.indexOf('=')
+            val rawKey = if (idx >= 0) pair.substring(0, idx) else pair
+            val rawVal = if (idx >= 0) pair.substring(idx + 1) else ""
+            val key = try { Uri.decode(rawKey) } catch (_: Exception) { rawKey }
+            val value = try { Uri.decode(rawVal) } catch (_: Exception) { rawVal }
+            if (key.isNotBlank()) {
+                result[key] = value
+            }
+        }
+        return result
+    }
+
     private fun extractTrustedDeepLink(intent: Intent?): String? {
         val data = intent?.data ?: return null
         val scheme = data.scheme?.lowercase(Locale.US) ?: return null
+        if (scheme == "alora" && data.host?.lowercase(Locale.US) == "auth") {
+            val fragParams = parseQueryOrFragmentParams(data.encodedFragment)
+            val queryParams = parseQueryOrFragmentParams(data.encodedQuery)
+            val oauthToken = fragParams["oauth_token"] ?: queryParams["oauth_token"]
+            val oauthError = fragParams["oauth_error"] ?: queryParams["oauth_error"]
+            val rawOrigin = fragParams["origin"] ?: queryParams["origin"]
+            val rawRedirect = fragParams["redirect"] ?: queryParams["redirect"]
+            val safeRedirect = if (!rawRedirect.isNullOrBlank() && rawRedirect.startsWith("/") && !rawRedirect.startsWith("//")) rawRedirect else "/"
+
+            val parsedOriginUri = rawOrigin?.let { try { Uri.parse(it) } catch (_: Exception) { null } }
+            val targetOrigin = if (
+                parsedOriginUri != null &&
+                parsedOriginUri.scheme?.lowercase(Locale.US) == "https" &&
+                isTrustedHost(parsedOriginUri.host)
+            ) {
+                "https://${parsedOriginUri.host}"
+            } else {
+                activeBaseOrigin
+            }
+            activeBaseOrigin = targetOrigin
+            val ts = System.currentTimeMillis()
+
+            if (!oauthError.isNullOrBlank()) {
+                return "$targetOrigin/auth/login?oauth_error=${Uri.encode(oauthError)}&native_oauth_ts=$ts"
+            }
+            if (!oauthToken.isNullOrBlank()) {
+                try {
+                    getSharedPreferences("AloAiPrefs", Context.MODE_PRIVATE)
+                        .edit()
+                        .putString("auth_token", oauthToken)
+                        .apply()
+                } catch (_: Exception) {}
+                return "$targetOrigin/auth/login?native_oauth_ts=$ts#oauth_token=${Uri.encode(oauthToken)}&redirect=${Uri.encode(safeRedirect)}"
+            }
+            return "$targetOrigin/auth/login?native_oauth_ts=$ts"
+        }
         if (scheme != "https") return null
         return if (isTrustedHost(data.host)) data.toString() else null
     }
@@ -577,10 +630,25 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 return try {
-                    startActivity(Intent(Intent.ACTION_VIEW, uri))
+                    val launchIntent = Intent(Intent.ACTION_VIEW, uri).apply {
+                        if (scheme == "https" || scheme == "http") {
+                            val extras = Bundle().apply {
+                                putBinder("android.support.customtabs.extra.SESSION", null)
+                                putInt("android.support.customtabs.extra.TOOLBAR_COLOR", Color.parseColor("#212121"))
+                                putInt("android.support.customtabs.extra.TITLE_VISIBILITY", 1)
+                                putInt("android.support.customtabs.extra.SHARE_MENU_ITEM", 2)
+                            }
+                            putExtras(extras)
+                        }
+                    }
+                    startActivity(launchIntent)
                     true
                 } catch (e: Exception) {
-                    Log.w(TAG, "Could not launch external URL: $uri", e)
+                    try {
+                        startActivity(Intent(Intent.ACTION_VIEW, uri))
+                    } catch (e2: Exception) {
+                        Log.w(TAG, "Could not launch external URL: $uri", e2)
+                    }
                     true
                 }
             }

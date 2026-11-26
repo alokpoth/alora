@@ -1,5 +1,5 @@
-/* Alora AI - Progressive Web App Service Worker (v3.6.2) */
-const CACHE_NAME = 'alora-ai-v3.6.2';
+/* Alora AI - Progressive Web App Service Worker (v3.7.0) */
+const CACHE_NAME = 'alora-ai-v3.7.0';
 
 // Core assets to pre-cache on service worker install
 const CORE_ASSETS = [

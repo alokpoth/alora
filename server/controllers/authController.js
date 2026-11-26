@@ -868,10 +868,10 @@ const resolveTrustedFrontendOrigin = (req) => {
   return '';
 };
 
-const signOAuthState = (redirectPath = '/', frontendOrigin = '') => {
+const signOAuthState = (redirectPath = '/', frontendOrigin = '', nativeApp = false) => {
   const safeRedirect = (typeof redirectPath === 'string' && redirectPath.startsWith('/') && !redirectPath.startsWith('//')) ? redirectPath : '/';
   const safeOrigin = ALLOWED_FRONTEND_ORIGINS.has(String(frontendOrigin || '').toLowerCase()) ? String(frontendOrigin).toLowerCase() : '';
-  const payloadB64 = Buffer.from(JSON.stringify({ r: safeRedirect, o: safeOrigin, exp: Date.now() + 10 * 60 * 1000 }), 'utf8').toString('base64url');
+  const payloadB64 = Buffer.from(JSON.stringify({ r: safeRedirect, o: safeOrigin, n: nativeApp ? 1 : 0, exp: Date.now() + 10 * 60 * 1000 }), 'utf8').toString('base64url');
   const sig = crypto.createHmac('sha256', JWT_SECRET).update(payloadB64).digest('base64url');
   return `${payloadB64}.${sig}`;
 };
@@ -890,10 +890,60 @@ const verifyOAuthState = (state, returnObject = false) => {
     const r = String(parsed.r || '/');
     const safeRedirect = (r.startsWith('/') && !r.startsWith('//')) ? r : '/';
     const safeOrigin = ALLOWED_FRONTEND_ORIGINS.has(String(parsed.o || '').toLowerCase()) ? String(parsed.o).toLowerCase() : '';
-    return returnObject ? { redirect: safeRedirect, origin: safeOrigin } : safeRedirect;
+    return returnObject ? { redirect: safeRedirect, origin: safeOrigin, nativeApp: Boolean(parsed.n) } : safeRedirect;
   } catch (e) {
     return null;
   }
+};
+
+const escapeHtmlAttr = (s) => String(s || '')
+  .replace(/&/g, '&amp;')
+  .replace(/"/g, '&quot;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;');
+
+const sendNativeOAuthBridge = (res, appUrl, webFallbackUrl, isError = false) => {
+  const safeAppUrl = escapeHtmlAttr(appUrl);
+  const safeWebUrl = escapeHtmlAttr(webFallbackUrl);
+  const jsAppUrl = JSON.stringify(String(appUrl || 'alora://auth'));
+  const titleText = isError ? 'অ্যাপে ফিরে যান — Alora' : 'Alora অ্যাপে লগইন সম্পন্ন হয়েছে';
+  const subText = isError
+    ? 'লগইন প্রক্রিয়ায় একটি সমস্যা হয়েছে। অ্যাপে ফিরে গিয়ে বিস্তারিত দেখুন।'
+    : 'অটোমেটিক Alora অ্যাপ খুলছে... না খুললে নিচের বাটনে ট্যাপ করুন।';
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  return res.status(200).send(`<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Alora Sign-In</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#212121;color:#ececec;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center}
+    .card{max-width:340px;width:100%;display:flex;flex-direction:column;align-items:center;gap:14px}
+    .title{font-size:1.25rem;font-weight:600;letter-spacing:-0.02em}
+    .sub{font-size:0.9rem;color:#b4b4b4;line-height:1.5}
+    .btn{display:inline-flex;align-items:center;justify-content:center;width:100%;height:48px;border-radius:9999px;background:#fff;color:#000;font-weight:600;font-size:0.95rem;text-decoration:none;margin-top:6px}
+    .alt{font-size:0.84rem;color:#9e9e9e;text-decoration:underline;text-underline-offset:3px;margin-top:6px}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="title">${escapeHtmlAttr(titleText)}</div>
+    <p class="sub">${escapeHtmlAttr(subText)}</p>
+    <a class="btn" id="openAppBtn" href="${safeAppUrl}">Alora অ্যাপে ফিরে যান</a>
+    <a class="alt" href="${safeWebUrl}">ব্রাউজারেই চালিয়ে যান</a>
+  </div>
+  <script>
+    (function(){
+      var appUrl = ${jsAppUrl};
+      try { window.location.replace(appUrl); } catch (e) {}
+      setTimeout(function(){ try { window.location.href = appUrl; } catch (e) {} }, 250);
+    })();
+  </script>
+</body>
+</html>`);
 };
 
 const googleAuth = async (req, res) => {
@@ -902,7 +952,8 @@ const googleAuth = async (req, res) => {
     const clientSecret = String(process.env.GOOGLE_CLIENT_SECRET || '').trim();
     if (clientId && clientSecret) {
       const redirectUri = `${getRequestOrigin(req)}/api/auth/google/callback`;
-      const state = signOAuthState(req.query.redirect || '/', resolveTrustedFrontendOrigin(req));
+      const nativeApp = req.query.native_app === '1' || req.query.native_app === 'true';
+      const state = signOAuthState(req.query.redirect || '/', resolveTrustedFrontendOrigin(req), nativeApp);
       const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent('openid profile email')}&state=${encodeURIComponent(state)}&prompt=select_account`;
       return res.json({ success: true, url });
     }
@@ -919,7 +970,14 @@ const googleAuth = async (req, res) => {
 const googleCallback = async (req, res) => {
   const stateInfo = verifyOAuthState(req.query.state, true);
   const frontBase = (stateInfo && stateInfo.origin) ? stateInfo.origin : '';
-  const redirectError = (msg) => res.redirect(`${frontBase}/auth/login?oauth_error=${encodeURIComponent(msg)}`);
+  const resolvedOrigin = frontBase || getRequestOrigin(req);
+  const redirectError = (msg) => {
+    const webUrl = `${frontBase}/auth/login?oauth_error=${encodeURIComponent(msg)}`;
+    if (stateInfo && stateInfo.nativeApp) {
+      return sendNativeOAuthBridge(res, `alora://auth?oauth_error=${encodeURIComponent(msg)}&origin=${encodeURIComponent(resolvedOrigin)}`, webUrl, true);
+    }
+    return res.redirect(webUrl);
+  };
   try {
     const clientId = String(process.env.GOOGLE_CLIENT_ID || '').trim();
     const clientSecret = String(process.env.GOOGLE_CLIENT_SECRET || '').trim();
@@ -1063,7 +1121,16 @@ const googleCallback = async (req, res) => {
     }
 
     const token = generateToken(user);
-    return res.redirect(`${frontBase}/auth/login#oauth_token=${encodeURIComponent(token)}&redirect=${encodeURIComponent(safeRedirect)}`);
+    const webUrl = `${frontBase}/auth/login#oauth_token=${encodeURIComponent(token)}&redirect=${encodeURIComponent(safeRedirect)}`;
+    if (stateInfo && stateInfo.nativeApp) {
+      return sendNativeOAuthBridge(
+        res,
+        `alora://auth#oauth_token=${encodeURIComponent(token)}&redirect=${encodeURIComponent(safeRedirect)}&origin=${encodeURIComponent(resolvedOrigin)}`,
+        webUrl,
+        false
+      );
+    }
+    return res.redirect(webUrl);
   } catch (error) {
     console.error('[Google OAuth Callback Error]:', error.message);
     return redirectError('Google Sign-In failed. Please try email login or try again.');
@@ -1076,7 +1143,8 @@ const discordAuth = async (req, res) => {
     const clientSecret = String(process.env.DISCORD_CLIENT_SECRET || '').trim();
     if (clientId && clientSecret) {
       const redirectUri = `${getRequestOrigin(req)}/api/auth/discord/callback`;
-      const state = signOAuthState(req.query.redirect || '/', resolveTrustedFrontendOrigin(req));
+      const nativeApp = req.query.native_app === '1' || req.query.native_app === 'true';
+      const state = signOAuthState(req.query.redirect || '/', resolveTrustedFrontendOrigin(req), nativeApp);
       const url = `https://discord.com/api/oauth2/authorize?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent('identify email')}&state=${encodeURIComponent(state)}&prompt=consent`;
       return res.json({ success: true, url });
     }
@@ -1093,7 +1161,14 @@ const discordAuth = async (req, res) => {
 const discordCallback = async (req, res) => {
   const stateInfo = verifyOAuthState(req.query.state, true);
   const frontBase = (stateInfo && stateInfo.origin) ? stateInfo.origin : '';
-  const redirectError = (msg) => res.redirect(`${frontBase}/auth/login?oauth_error=${encodeURIComponent(msg)}`);
+  const resolvedOrigin = frontBase || getRequestOrigin(req);
+  const redirectError = (msg) => {
+    const webUrl = `${frontBase}/auth/login?oauth_error=${encodeURIComponent(msg)}`;
+    if (stateInfo && stateInfo.nativeApp) {
+      return sendNativeOAuthBridge(res, `alora://auth?oauth_error=${encodeURIComponent(msg)}&origin=${encodeURIComponent(resolvedOrigin)}`, webUrl, true);
+    }
+    return res.redirect(webUrl);
+  };
   try {
     const clientId = String(process.env.DISCORD_CLIENT_ID || '').trim();
     const clientSecret = String(process.env.DISCORD_CLIENT_SECRET || '').trim();
@@ -1236,7 +1311,16 @@ const discordCallback = async (req, res) => {
     }
 
     const token = generateToken(user);
-    return res.redirect(`${frontBase}/auth/login#oauth_token=${encodeURIComponent(token)}&redirect=${encodeURIComponent(safeRedirect)}`);
+    const webUrl = `${frontBase}/auth/login#oauth_token=${encodeURIComponent(token)}&redirect=${encodeURIComponent(safeRedirect)}`;
+    if (stateInfo && stateInfo.nativeApp) {
+      return sendNativeOAuthBridge(
+        res,
+        `alora://auth#oauth_token=${encodeURIComponent(token)}&redirect=${encodeURIComponent(safeRedirect)}&origin=${encodeURIComponent(resolvedOrigin)}`,
+        webUrl,
+        false
+      );
+    }
+    return res.redirect(webUrl);
   } catch (error) {
     console.error('[Discord OAuth Callback Error]:', error.message);
     return redirectError('Discord Sign-In failed. Please try email login or try again.');

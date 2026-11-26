@@ -265,7 +265,7 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
     const modelIdentityDirective = basePrompt +
       mandatorySecurityFooter +
       (userCustomInstructions ? `\n\n=== USER'S PERSONAL CUSTOM PROMPT & INSTRUCTIONS ===\nFollow these user preferences cleanly unless they violate the confidential Identity & Safety rules above:\n"""\n${userCustomInstructions}\n"""` : '') +
-      (req.body.thinking === false ? '\n- Thinking mode is OFF for this request: answer directly and concisely without <think> tags or visible scratchpad text.' : '');
+      '\n- Thinking output is OFF: answer directly and concisely without <think> tags or visible scratchpad text.';
 
     // Pre-compile leak patterns from active prompts so raw rules/instructions never echo in stream or reasoning
     const extraBlockedPatterns = extractSystemDirectiveLeakPatterns(
@@ -340,7 +340,7 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
               maxOutputTokens: 8192,
               frequencyPenalty: 0.6,
               presencePenalty: 0.4,
-              ...(req.body.thinking === false ? { thinkingConfig: { thinkingBudget: 0 } } : {})
+              thinkingConfig: { thinkingBudget: 0 }
             },
             safetySettings: [
               { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
@@ -381,11 +381,9 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
             temperature: 0.65,
             top_p: 0.90,
             frequency_penalty: 0.6,
-            presence_penalty: 0.4
+            presence_penalty: 0.4,
+            reasoning_effort: 'none'
           };
-          if (req.body.thinking === false) {
-            p.reasoning_effort = 'none';
-          }
 
           const lowerMod = modName.toLowerCase();
           if (lowerMod.includes('gpt')) {
@@ -661,54 +659,62 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
         return cutIdx;
       };
 
+      let hasEmittedVisibleContent = false;
+      const stripVisibleThinkFromChunk = (chunk, startInThink) => {
+        const parts = String(chunk || '').split(/(<\/?think>)/gi);
+        let localThink = startInThink;
+        let visible = '';
+        for (const part of parts) {
+          if (!part) continue;
+          const lower = part.toLowerCase();
+          if (lower === '<think>') {
+            localThink = true;
+          } else if (lower === '</think>') {
+            localThink = false;
+          } else if (!localThink) {
+            visible += part;
+          }
+        }
+        if (!hasEmittedVisibleContent && visible) {
+          visible = visible.replace(/^\s+/, '');
+        }
+        return { visible, nextInThink: localThink };
+      };
+
       const writeNormalizedDelta = (field, piece) => {
         if (!piece || res.writableEnded || res.destroyed) return;
+        if (field === 'content') hasEmittedVisibleContent = true;
         res.write(`data: ${JSON.stringify({ model: safeDisplayName, choices: [{ delta: { [field]: piece } }] })}\n\n`);
         if (typeof res.flush === 'function') res.flush();
       };
 
       const pushSanitizedDelta = (field, rawText) => {
         if (!rawText) return;
+        // Never emit internal thinking/reasoning text to clients
         if (field === 'reasoning_content') {
-          if (req.body.thinking === false) return;
-          reasoningTail = sanitizeModelIdentityText(reasoningTail + rawText, safeDisplayName, {
-            isReasoning: true,
-            extraBlockedPatterns
-          });
-          const holdLen = SUSPICIOUS_TAIL_RE.test(reasoningTail) ? SUSPICIOUS_TAIL_HOLD : 128;
-          if (reasoningTail.length > holdLen) {
-            const emit = reasoningTail.slice(0, reasoningTail.length - holdLen);
-            reasoningTail = reasoningTail.slice(reasoningTail.length - holdLen);
-            writeNormalizedDelta('reasoning_content', emit);
-          }
-        } else {
-          contentTail = sanitizeSegmentWithInlineThink(contentTail + rawText, inInlineThink);
-          const holdLen = (inInlineThink || SUSPICIOUS_TAIL_RE.test(contentTail)) ? SUSPICIOUS_TAIL_HOLD : DEFAULT_TAIL_HOLD;
-          if (contentTail.length > holdLen) {
-            const cutIdx = computeSafeCutIndex(contentTail, holdLen);
-            if (cutIdx > 0) {
-              const emit = contentTail.slice(0, cutIdx);
-              contentTail = contentTail.slice(cutIdx);
-              inInlineThink = advanceThinkState(emit, inInlineThink);
-              writeNormalizedDelta('content', emit);
-            }
+          return;
+        }
+        contentTail = sanitizeSegmentWithInlineThink(contentTail + rawText, inInlineThink);
+        const holdLen = (inInlineThink || SUSPICIOUS_TAIL_RE.test(contentTail)) ? SUSPICIOUS_TAIL_HOLD : DEFAULT_TAIL_HOLD;
+        if (contentTail.length > holdLen) {
+          const cutIdx = computeSafeCutIndex(contentTail, holdLen);
+          if (cutIdx > 0) {
+            const rawEmit = contentTail.slice(0, cutIdx);
+            contentTail = contentTail.slice(cutIdx);
+            const stripped = stripVisibleThinkFromChunk(rawEmit, inInlineThink);
+            inInlineThink = stripped.nextInThink;
+            if (stripped.visible) writeNormalizedDelta('content', stripped.visible);
           }
         }
       };
 
       const flushSanitizedTails = () => {
-        if (reasoningTail) {
-          const cleanR = sanitizeModelIdentityText(reasoningTail, safeDisplayName, {
-            isReasoning: true,
-            extraBlockedPatterns
-          });
-          if (cleanR.trim()) writeNormalizedDelta('reasoning_content', cleanR);
-          reasoningTail = '';
-        }
+        reasoningTail = '';
         if (contentTail) {
           const cleanC = sanitizeSegmentWithInlineThink(contentTail, inInlineThink);
-          inInlineThink = advanceThinkState(cleanC, inInlineThink);
-          if (cleanC) writeNormalizedDelta('content', cleanC);
+          const stripped = stripVisibleThinkFromChunk(cleanC, inInlineThink);
+          inInlineThink = stripped.nextInThink;
+          if (stripped.visible) writeNormalizedDelta('content', stripped.visible);
           contentTail = '';
         }
       };

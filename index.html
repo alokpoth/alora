@@ -712,10 +712,10 @@
       display: inline-flex;
       align-items: center;
       gap: 2px;
-      padding: 3px;
+      padding: 2px;
       border-radius: 9999px;
-      background: rgba(128, 128, 128, 0.08);
-      border: 1px solid var(--border-subtle);
+      background: transparent;
+      border: 1px solid transparent;
       flex-shrink: 0;
     }
 
@@ -806,7 +806,7 @@
       margin: 0 auto;
       display: flex;
       flex-direction: column;
-      gap: 24px;
+      gap: 26px;
     }
     .chatgpt-main.empty-state .chatgpt-feed {
       margin: auto;
@@ -877,12 +877,12 @@
     }
 
     .chatgpt-user-bubble {
-      max-width: 70%;
+      max-width: 72%;
       background: var(--user-bubble-bg);
       color: var(--user-bubble-text);
-      padding: 12px 20px;
-      border-radius: 26px;
-      font-size: 0.98rem;
+      padding: 10px 16px;
+      border-radius: 22px;
+      font-size: 0.96rem;
       line-height: 1.55;
       word-break: break-word;
       user-select: text;
@@ -1065,7 +1065,7 @@
     }
     .assistant-markdown pre {
       margin: 14px 0;
-      border-radius: var(--radius-md);
+      border-radius: 14px;
       background: var(--code-bg);
       border: 1px solid var(--border);
       overflow: hidden;
@@ -1102,34 +1102,6 @@
       overflow-x: auto;
       font-family: var(--font-code);
       font-size: 0.86rem;
-      line-height: 1.5;
-    }
-
-    /* Thinking / Reasoning Accordion (Alora Exact Style) */
-    .chatgpt-thought-bar {
-      margin-bottom: 10px;
-      border-radius: var(--radius-md);
-      background: var(--composer-bg);
-      border: 1px solid var(--border);
-      overflow: hidden;
-      font-size: 0.84rem;
-    }
-    .chatgpt-thought-toggle {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 8px 12px;
-      cursor: pointer;
-      color: var(--text-muted);
-      font-weight: 500;
-      list-style: none;
-    }
-    .chatgpt-thought-toggle::-webkit-details-marker { display: none; }
-    .chatgpt-thought-inner {
-      padding: 8px 12px 12px;
-      color: var(--text-sub);
-      border-top: 1px solid var(--border-subtle);
-      font-size: 0.82rem;
       line-height: 1.5;
     }
 
@@ -1176,8 +1148,8 @@
       max-width: var(--composer-width);
       background: var(--composer-bg);
       border: 1px solid var(--composer-border);
-      border-radius: var(--radius-pill);
-      padding: 8px 12px 8px 14px;
+      border-radius: 28px;
+      padding: 9px 10px 9px 14px;
       display: flex;
       flex-direction: column;
       gap: 4px;
@@ -1246,41 +1218,12 @@
       flex-shrink: 0;
     }
 
-    .composer-think-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      height: 32px;
-      padding: 0 10px;
-      border-radius: var(--radius-full);
-      border: 1px solid transparent;
-      color: var(--text-sub);
-      font-size: 0.8rem;
-      font-weight: 500;
-      transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
-    }
-    @media (hover: hover) and (pointer: fine) {
-      .composer-think-btn:hover {
-        background: rgba(255, 255, 255, 0.08);
-        color: var(--text-main);
-      }
-      [data-theme="light"] .composer-think-btn:hover,
-      [data-theme="eyecare"] .composer-think-btn:hover {
-        background: rgba(0, 0, 0, 0.06);
-      }
-    }
-    .composer-think-btn.active {
-      background: rgba(59, 130, 246, 0.16);
-      border-color: rgba(59, 130, 246, 0.35);
-      color: #60a5fa;
-    }
-
     .composer-tool-btn {
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 34px;
-      height: 34px;
+      width: 36px;
+      height: 36px;
       border-radius: var(--radius-full);
       color: var(--text-sub);
       touch-action: manipulation;
@@ -1311,8 +1254,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 32px;
-      height: 32px;
+      width: 34px;
+      height: 34px;
       border-radius: var(--radius-full);
       background: var(--send-btn-disabled);
       color: var(--send-btn-disabled-icon);
@@ -1344,8 +1287,8 @@
       left: 4px;
       background: var(--modal-bg);
       border: 1px solid var(--border);
-      border-radius: 24px;
-      padding: 8px;
+      border-radius: 18px;
+      padding: 6px;
       display: none;
       flex-direction: column;
       gap: 2px;
@@ -1411,8 +1354,8 @@
       width: min(246px, calc(100vw - 24px));
       background: var(--modal-bg);
       border: 1px solid var(--border);
-      border-radius: 24px;
-      padding: 8px;
+      border-radius: 18px;
+      padding: 6px;
       display: none;
       flex-direction: column;
       gap: 2px;
@@ -1493,8 +1436,8 @@
       left: 14px;
       background: var(--modal-bg);
       border: 1px solid var(--border);
-      border-radius: 24px;
-      padding: 8px;
+      border-radius: 18px;
+      padding: 6px;
       display: none;
       flex-direction: column;
       gap: 3px;
@@ -2010,14 +1953,6 @@
         font-size: 0.94rem;
         padding: 4px 6px;
         gap: 4px;
-      }
-      .think-btn-label {
-        display: none;
-      }
-      .composer-think-btn {
-        width: 32px;
-        padding: 0;
-        justify-content: center;
       }
       .chatgpt-auth-card {
         padding: 20px 16px;
@@ -3268,11 +3203,6 @@
                 <span id="webChipLabel">Search</span>
                 <span class="mode-chip-close" id="closeWebSearchChip">&times;</span>
               </div>
-              <div class="mode-chip" id="thinkChip" style="display:none;">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7z"/><line x1="9" y1="22" x2="15" y2="22"/></svg>
-                <span id="thinkChipLabel">Think</span>
-                <span class="mode-chip-close" id="closeThinkChip">&times;</span>
-              </div>
               <div class="mode-chip" id="imageGenChip" style="display:none;">
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
                 <span id="imageGenChipLabel">Create image</span>
@@ -3295,13 +3225,6 @@
                 placeholder="Ask anything..."></textarea>
 
               <div class="composer-btn-group">
-                <button type="button" class="composer-think-btn" id="composerThinkBtn" title="Deep thinking" aria-label="Think">
-                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7z"/><line x1="9" y1="22" x2="15" y2="22"/>
-                  </svg>
-                  <span class="think-btn-label" id="composerThinkLabel">Think</span>
-                </button>
-
                 <button type="button" class="composer-tool-btn" id="micBtn" title="Voice dictation" aria-label="Voice dictation">
                   <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
@@ -3351,17 +3274,6 @@
                 <span class="attach-item-copy">
                   <span class="attach-item-title" id="attachWebSearchLabel">Web search</span>
                   <span class="attach-item-sub" id="attachWebSearchSub">Find real-time news and info</span>
-                </span>
-              </button>
-              <button type="button" class="attach-item-btn" id="attachThinkOpt">
-                <span class="attach-item-icon">
-                  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7z"/><line x1="9" y1="22" x2="15" y2="22"/>
-                  </svg>
-                </span>
-                <span class="attach-item-copy">
-                  <span class="attach-item-title" id="attachThinkLabel">Thinking</span>
-                  <span class="attach-item-sub" id="attachThinkSub">For detailed reasoning answers</span>
                 </span>
               </button>
             </div>
@@ -4051,18 +3963,14 @@
         attachFileSub: "Upload images, code, or docs",
         createImage: "Create image",
         createImageSub: "Generate artwork from a prompt",
-        thinkOpt: "Thinking",
-        thinkOptSub: "For detailed reasoning answers",
         webOpt: "Web search",
         webOptSub: "Find real-time news and info",
-        thinkBtnLabel: "Think",
         claimTrialBadge: "FREE TRIAL",
         claimTrialHeading: "Claim your free trial",
         claimTrialLoginBtn: "Log in to claim free trial",
         claimTrialConfirmBtn: "Claim Free Trial",
         claimTrialPlansBtn: "View all plans",
         webChip: "Search",
-        thinkChip: "Think",
         imageChip: "Create image",
         dropOverlay: "Drop photos or files here to attach",
         loadingModels: "Loading models...",
@@ -4255,18 +4163,14 @@
         attachFileSub: "ছবি, কোড বা ডকুমেন্ট আপলোড করুন",
         createImage: "ছবি তৈরি করুন",
         createImageSub: "টেক্সট থেকে ছবি তৈরি করুন",
-        thinkOpt: "চিন্তা (Thinking)",
-        thinkOptSub: "গভীর বিশ্লেষণ ও বিস্তারিত উত্তরের জন্য",
         webOpt: "ওয়েব সার্চ",
         webOptSub: "সাম্প্রতিক তথ্য ও সংবাদ খুঁজুন",
-        thinkBtnLabel: "চিন্তা",
         claimTrialBadge: "ফ্রি ট্রায়াল",
         claimTrialHeading: "আপনার ফ্রি ট্রায়াল নিন",
         claimTrialLoginBtn: "ট্রায়াল নিতে লগইন করুন",
         claimTrialConfirmBtn: "ফ্রি ট্রায়াল সক্রিয় করুন",
         claimTrialPlansBtn: "সকল প্ল্যান দেখুন",
         webChip: "সার্চ",
-        thinkChip: "চিন্তা",
         imageChip: "ছবি তৈরি",
         dropOverlay: "যুক্ত করতে ছবি বা ফাইল এখানে ছাড়ুন",
         loadingModels: "মডেল লোড হচ্ছে...",
@@ -4442,7 +4346,6 @@
 
     let isTemporaryChat = false;
     let isWebSearchActive = false;
-    let isThinkingActive = false;
     let isImageGenActive = false;
     let pendingFiles = [];
 
@@ -4820,13 +4723,9 @@
       setEl("attachFileSub", t("attachFileSub"));
       setEl("attachImageGenLabel", t("createImage"));
       setEl("attachImageGenSub", t("createImageSub"));
-      setEl("attachThinkLabel", t("thinkOpt"));
-      setEl("attachThinkSub", t("thinkOptSub"));
       setEl("attachWebSearchLabel", t("webOpt"));
       setEl("attachWebSearchSub", t("webOptSub"));
-      setEl("composerThinkLabel", t("thinkBtnLabel"));
       setEl("webChipLabel", t("webChip"));
-      setEl("thinkChipLabel", t("thinkChip"));
       setEl("imageGenChipLabel", t("imageChip"));
       setEl("dropOverlayText", t("dropOverlay"));
       setEl("ctxShareText", t("ctxShare"));
@@ -6305,28 +6204,17 @@
     }
 
     function formatAssistantContent(rawText, isStreaming = false) {
-      const { thoughts, cleanText } = extractThoughts(rawText);
+      const { cleanText } = extractThoughts(rawText);
+      const visibleText = cleanText ? cleanText.trimStart() : "";
       let html = "";
 
-      if (thoughts && thoughts.trim()) {
-        html += `
-          <details class="chatgpt-thought-bar" ${isStreaming && !cleanText ? 'open' : ''}>
-            <summary class="chatgpt-thought-toggle">
-              <span>${currentLanguage === "bn" ? "চিন্তা প্রক্রিয়া" : "Thought process"}</span>
-              <span>▾</span>
-            </summary>
-            <div class="chatgpt-thought-inner">${parseMarkdown(thoughts)}</div>
-          </details>
-        `;
-      }
-
-      if (cleanText) {
-        html += parseMarkdown(cleanText);
+      if (visibleText) {
+        html += parseMarkdown(visibleText);
         if (isStreaming) {
           html += `<span class="streaming-cursor"></span>`;
         }
       } else if (isStreaming) {
-        html += `<span class="chatgpt-thinking-bubble" aria-label="Thinking..."></span>`;
+        html += `<span class="chatgpt-thinking-bubble" aria-label="Responding..."></span>`;
       }
 
       return html;
@@ -6737,8 +6625,7 @@
             model: useModel,
             messages: serializeMessagesForApi(sliceHistory),
             stream: true,
-            thinking: true,
-            reasoning: isThinkingActive || undefined,
+            thinking: false,
             web_search_failed: (opts && opts.webSearchFailed) ? true : undefined,
             custom_instructions: customInst || undefined
           }),
@@ -6790,18 +6677,8 @@
                 ?? json.choices?.[0]?.delta?.text
                 ?? json.choices?.[0]?.text
                 ?? "";
-              const deltaReasoning = json.choices?.[0]?.delta?.reasoning
-                ?? json.choices?.[0]?.delta?.reasoning_content
-                ?? "";
 
-              if (deltaReasoning && (streamBuffer.includes("<think>") || deltaReasoning.trim())) {
-                if (!streamBuffer.includes("<think>")) streamBuffer = "<think>\n" + streamBuffer;
-                streamBuffer += deltaReasoning;
-              }
               if (delta) {
-                if (streamBuffer.includes("<think>") && !streamBuffer.includes("</think>")) {
-                  streamBuffer += "\n</think>\n\n";
-                }
                 streamBuffer += delta;
               }
 
@@ -6813,13 +6690,12 @@
           }
         }
 
-        if (streamBuffer.includes("<think>") && !streamBuffer.includes("</think>")) {
-          streamBuffer += "\n</think>\n\n";
-        }
-        if (!streamBuffer.trim()) {
+        const cleanedFinalText = extractThoughts(streamBuffer).cleanText.trim();
+        if (!cleanedFinalText) {
           throw new Error(t("busyDesc"));
         }
 
+        streamBuffer = cleanedFinalText;
         content.innerHTML = formatAssistantContent(streamBuffer, false);
         enhanceCodeBlocks(content);
 
@@ -6850,10 +6726,9 @@
         }
       } catch (err) {
         if (err.name === "AbortError") {
-          if (streamBuffer.trim()) {
-            if (streamBuffer.includes("<think>") && !streamBuffer.includes("</think>")) {
-              streamBuffer += "\n</think>\n\n";
-            }
+          const stoppedClean = extractThoughts(streamBuffer).cleanText.trim();
+          if (stoppedClean) {
+            streamBuffer = stoppedClean;
             content.innerHTML = formatAssistantContent(streamBuffer, false) + `<div style="font-size:0.78rem; color:var(--text-muted); margin-top:6px;">${escapeHtml(t("stoppedNote"))}</div>`;
             enhanceCodeBlocks(content);
             let assistantMsg;
@@ -7046,16 +6921,13 @@
     function updateChipsUI() {
       const row = document.getElementById("composerChipRow");
       const webChip = document.getElementById("webSearchChip");
-      const thinkChip = document.getElementById("thinkChip");
       const imgChip = document.getElementById("imageGenChip");
       if (!row) return;
 
-      const anyActive = isWebSearchActive || isThinkingActive || isImageGenActive;
+      const anyActive = isWebSearchActive || isImageGenActive;
       row.style.display = anyActive ? "flex" : "none";
       if (webChip) webChip.style.display = isWebSearchActive ? "inline-flex" : "none";
-      if (thinkChip) thinkChip.style.display = isThinkingActive ? "inline-flex" : "none";
       if (imgChip) imgChip.style.display = isImageGenActive ? "inline-flex" : "none";
-      document.getElementById("composerThinkBtn")?.classList.toggle("active", isThinkingActive);
 
       const input = document.getElementById("messageInput");
       if (input) input.placeholder = isImageGenActive ? t("imagePlaceholder") : t("askPlaceholder");
@@ -8094,16 +7966,6 @@
         isWebSearchActive = !isWebSearchActive;
         updateChipsUI();
       });
-      document.getElementById("attachThinkOpt")?.addEventListener("click", () => {
-        attachMenu?.classList.remove("open");
-        isThinkingActive = !isThinkingActive;
-        updateChipsUI();
-      });
-      document.getElementById("composerThinkBtn")?.addEventListener("click", () => {
-        isThinkingActive = !isThinkingActive;
-        updateChipsUI();
-        input?.focus();
-      });
       document.getElementById("attachImageGenOpt")?.addEventListener("click", () => {
         attachMenu?.classList.remove("open");
         isImageGenActive = !isImageGenActive;
@@ -8111,7 +7973,6 @@
         input?.focus();
       });
       document.getElementById("closeWebSearchChip")?.addEventListener("click", () => { isWebSearchActive = false; updateChipsUI(); });
-      document.getElementById("closeThinkChip")?.addEventListener("click", () => { isThinkingActive = false; updateChipsUI(); });
       document.getElementById("closeImageGenChip")?.addEventListener("click", () => { isImageGenActive = false; updateChipsUI(); });
 
       const fileInput = document.getElementById("fileUploadInput");

@@ -554,9 +554,9 @@
     }
     @media (max-width: 480px) {
       html, body { max-width: 100%; overflow-x: hidden; }
-      .auth-shell { padding: 20px 14px; }
-      .auth-heading { font-size: 1.55rem; }
-      .auth-input, input, button { font-size: 16px; }
+      .auth-shell { padding: 20px 8px; }
+      .auth-heading { font-size: 1.6rem; }
+      .input-control { font-size: 16px; }
     }
   </style>
 </head>
@@ -1166,6 +1166,11 @@
             localStorage.setItem('alokpoth_current_plan', 'Free');
           }
           localStorage.removeItem('alokpoth_guest_count');
+          const bridge = window.AloAndroid || window.AloAI;
+          if (bridge && typeof bridge.saveAuth === 'function' && data.token && data.user) {
+            const pName = (data.user.subscription && data.user.subscription.plan_name) || data.user.plan || 'Free';
+            bridge.saveAuth(data.token, data.user.name || '', data.user.email || '', pName);
+          }
         } catch (storageErr) {}
 
         window.location.href = getSafeRedirect();
@@ -1175,15 +1180,26 @@
       }
     });
 
+    function isNativeAndroidApp() {
+      return Boolean(
+        window.isAndroidApp ||
+        window.AloAI ||
+        window.AloAndroid ||
+        /AloraAndroid|AloAI-Android/i.test(navigator.userAgent || '')
+      );
+    }
+
     // Google OAuth + Callback Fragment Handling
-    (async function handleOAuthReturn() {
+    async function handleOAuthReturn() {
       try {
-        const qErr = initialParams.get('oauth_error');
-        if (qErr) {
-          showError(qErr);
-          const cleanSearch = new URLSearchParams(window.location.search);
-          cleanSearch.delete('oauth_error');
-          const nextQs = cleanSearch.toString();
+        const curParams = new URLSearchParams(window.location.search);
+        const qErr = curParams.get('oauth_error');
+        const hasNativeTs = curParams.has('native_oauth_ts');
+        if (qErr || hasNativeTs) {
+          if (qErr) showError(qErr);
+          curParams.delete('oauth_error');
+          curParams.delete('native_oauth_ts');
+          const nextQs = curParams.toString();
           window.history.replaceState(null, '', window.location.pathname + (nextQs ? '?' + nextQs : '') + window.location.hash);
         }
         const hashStr = window.location.hash || '';
@@ -1222,14 +1238,18 @@
         setLoading(false);
         showError(t.errGoogleUnavailable);
       }
-    })();
+    }
+    handleOAuthReturn();
+    window.addEventListener('hashchange', handleOAuthReturn);
 
     // Google OAuth
     document.getElementById('googleAuthBtn').addEventListener('click', async () => {
       clearMessages();
       try {
         const redirectDest = getSafeRedirect();
-        const res = await fetch(API_BASE + '/auth/google?redirect=' + encodeURIComponent(redirectDest));
+        const nativeFlag = isNativeAndroidApp() ? '&native_app=1' : '';
+        const originParam = '&origin=' + encodeURIComponent(window.location.origin);
+        const res = await fetch(API_BASE + '/auth/google?redirect=' + encodeURIComponent(redirectDest) + originParam + nativeFlag);
         const data = await res.json();
         if (res.ok && data && data.url) {
           window.location.href = data.url;
@@ -1248,7 +1268,9 @@
         clearMessages();
         try {
           const redirectDest = getSafeRedirect();
-          const res = await fetch(API_BASE + '/auth/discord?redirect=' + encodeURIComponent(redirectDest));
+          const nativeFlag = isNativeAndroidApp() ? '&native_app=1' : '';
+          const originParam = '&origin=' + encodeURIComponent(window.location.origin);
+          const res = await fetch(API_BASE + '/auth/discord?redirect=' + encodeURIComponent(redirectDest) + originParam + nativeFlag);
           const data = await res.json();
           if (res.ok && data && data.url) {
             window.location.href = data.url;
