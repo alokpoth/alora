@@ -6,7 +6,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#212121">
+  <meta name="theme-color" content="#000000">
 
   <title>Alora</title>
 
@@ -21,9 +21,9 @@
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3">
   <link rel="manifest" href="/manifest.json">
 
-  <!-- Core Markdown and Sanitizer (deferred so shell paints immediately) -->
-  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
-  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+  <!-- Core Markdown and Sanitizer (locally bundled for 100% offline execution) -->
+  <script defer src="/vendor/marked.min.js"></script>
+  <script defer src="/vendor/purify.min.js"></script>
 
   <!-- Prevent FOUC Theme Script & Native Android Shell Sync -->
   <script>
@@ -33,20 +33,21 @@
         if (isNative) {
           document.documentElement.classList.add("is-android-app");
         }
-        var raw = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "dark";
+        var raw = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "system";
+        if (raw === "oled") { raw = "dark"; localStorage.setItem("alokpoth_theme", "dark"); }
+        else if (raw === "sapphire") { raw = "system"; localStorage.setItem("alokpoth_theme", "system"); }
         var t = raw;
         if (raw === "system") {
           t = (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
-        } else if (["dark", "oled", "light", "sapphire", "eyecare"].indexOf(raw) === -1) {
-          t = "dark";
+        } else if (["dark", "light", "eyecare"].indexOf(raw) === -1) {
+          raw = "system";
+          t = (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
         }
         document.documentElement.setAttribute("data-theme-mode", raw);
         document.documentElement.setAttribute("data-theme", t);
-        var bgHex = "#212121";
-        if (t === "oled") bgHex = "#000000";
-        else if (t === "light") bgHex = "#ffffff";
+        var bgHex = "#000000";
+        if (t === "light") bgHex = "#ffffff";
         else if (t === "eyecare") bgHex = "#f5eedc";
-        else if (t === "sapphire") bgHex = "#090f1d";
         var meta = document.querySelector('meta[name="theme-color"]');
         if (meta) meta.content = bgHex;
         if (isNative && window.AloAI && typeof window.AloAI.setSystemBarsTheme === "function") {
@@ -78,46 +79,15 @@
       --transition-fast: 0.15s ease;
     }
 
-    /* Alora Authentic Dark Theme (Default) */
+    /* Alora OLED Dark Theme (True Pure Black) */
     :root[data-theme="dark"] {
       color-scheme: dark;
-      --main-bg: #212121;
-      --sidebar-bg: #171717;
-      --sidebar-hover: #212121;
-      --sidebar-active: #212121;
-      --composer-bg: #2f2f2f;
-      --composer-border: rgba(255, 255, 255, 0.08);
-      --composer-border-focus: rgba(255, 255, 255, 0.18);
-      --user-bubble-bg: #2f2f2f;
-      --user-bubble-text: #ececec;
-      --assistant-bubble-bg: transparent;
-      --text-main: #ececec;
-      --text-sub: #b4b4b4;
-      --text-muted: #8e8e8e;
-      --border: rgba(255, 255, 255, 0.1);
-      --border-subtle: rgba(255, 255, 255, 0.05);
-      --modal-bg: #212121;
-      --card-bg: #2a2a2a;
-      --code-header: #2f2f2f;
-      --code-bg: #0d0d0d;
-      --send-btn-disabled: #424242;
-      --send-btn-disabled-icon: #8e8e8e;
-      --send-btn-active: #ffffff;
-      --send-btn-active-icon: #000000;
-      --brand-accent: #ffffff;
-      --danger: #ef4444;
-      --shadow-dropdown: none;
-    }
-
-    /* OLED Pure Black Theme */
-    :root[data-theme="oled"] {
-      color-scheme: dark;
       --main-bg: #000000;
-      --sidebar-bg: #080808;
-      --sidebar-hover: #121212;
-      --sidebar-active: #171717;
+      --sidebar-bg: #070708;
+      --sidebar-hover: #121214;
+      --sidebar-active: #17171a;
       --composer-bg: #141416;
-      --composer-border: rgba(255, 255, 255, 0.1);
+      --composer-border: rgba(255, 255, 255, 0.11);
       --composer-border-focus: rgba(255, 255, 255, 0.25);
       --user-bubble-bg: #18181b;
       --user-bubble-text: #ffffff;
@@ -125,12 +95,12 @@
       --text-main: #ffffff;
       --text-sub: #a1a1aa;
       --text-muted: #71717a;
-      --border: rgba(255, 255, 255, 0.08);
-      --border-subtle: rgba(255, 255, 255, 0.04);
+      --border: rgba(255, 255, 255, 0.09);
+      --border-subtle: rgba(255, 255, 255, 0.05);
       --modal-bg: #0c0c0e;
-      --card-bg: #18181b;
-      --code-header: #18181b;
-      --code-bg: #050505;
+      --card-bg: #141417;
+      --code-header: #161619;
+      --code-bg: #060607;
       --send-btn-disabled: #27272a;
       --send-btn-disabled-icon: #71717a;
       --send-btn-active: #ffffff;
@@ -168,37 +138,6 @@
       --send-btn-active-icon: #ffffff;
       --brand-accent: #000000;
       --danger: #dc2626;
-      --shadow-dropdown: none;
-    }
-
-    /* Sapphire Theme */
-    :root[data-theme="sapphire"] {
-      color-scheme: dark;
-      --main-bg: #090f1d;
-      --sidebar-bg: #060a14;
-      --sidebar-hover: #0f1930;
-      --sidebar-active: #142242;
-      --composer-bg: #101c38;
-      --composer-border: rgba(96, 165, 250, 0.15);
-      --composer-border-focus: rgba(96, 165, 250, 0.35);
-      --user-bubble-bg: #142242;
-      --user-bubble-text: #f0f6ff;
-      --assistant-bubble-bg: transparent;
-      --text-main: #f0f6ff;
-      --text-sub: #93c5fd;
-      --text-muted: #60a5fa;
-      --border: rgba(96, 165, 250, 0.12);
-      --border-subtle: rgba(96, 165, 250, 0.06);
-      --modal-bg: #0c1426;
-      --card-bg: #142242;
-      --code-header: #101c38;
-      --code-bg: #060b17;
-      --send-btn-disabled: #142242;
-      --send-btn-disabled-icon: #60a5fa;
-      --send-btn-active: #3b82f6;
-      --send-btn-active-icon: #ffffff;
-      --brand-accent: #3b82f6;
-      --danger: #ef4444;
       --shadow-dropdown: none;
     }
 
@@ -1103,6 +1042,343 @@
       font-family: var(--font-code);
       font-size: 0.86rem;
       line-height: 1.5;
+    }
+    .assistant-markdown pre code.wrapped {
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .code-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .code-lang-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+      text-transform: lowercase;
+      color: var(--text-main);
+    }
+    .code-line-count {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+    /* Offline Syntax Highlight Tokens */
+    .alora-syn-kw { color: #c084fc; font-weight: 500; }
+    .alora-syn-str { color: #4ade80; }
+    .alora-syn-num { color: #fbbf24; }
+    .alora-syn-cm { color: #71717a; font-style: italic; }
+    .alora-syn-tag { color: #38bdf8; }
+    [data-theme="light"] .alora-syn-kw,
+    [data-theme="eyecare"] .alora-syn-kw { color: #7c3aed; }
+    [data-theme="light"] .alora-syn-str,
+    [data-theme="eyecare"] .alora-syn-str { color: #15803d; }
+    [data-theme="light"] .alora-syn-num,
+    [data-theme="eyecare"] .alora-syn-num { color: #b45309; }
+    [data-theme="light"] .alora-syn-tag,
+    [data-theme="eyecare"] .alora-syn-tag { color: #0284c7; }
+
+    /* Dedicated Table Card Layout */
+    .alora-table-card {
+      margin: 14px 0;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      background: var(--card-bg);
+    }
+    .alora-table-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 14px;
+      background: var(--code-header);
+      border-bottom: 1px solid var(--border);
+      font-size: 0.76rem;
+      color: var(--text-sub);
+    }
+    .alora-table-scroll {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .alora-table-scroll table {
+      margin: 0 !important;
+      width: 100%;
+      border: none !important;
+      border-collapse: collapse;
+    }
+    .alora-table-scroll th {
+      background: rgba(255, 255, 255, 0.04);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    [data-theme="light"] .alora-table-scroll th,
+    [data-theme="eyecare"] .alora-table-scroll th {
+      background: rgba(0, 0, 0, 0.03);
+    }
+
+    /* Dedicated Math Equation Card Layout */
+    .alora-math-block {
+      margin: 14px 0;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      overflow-x: auto;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 1.04rem;
+      line-height: 1.65;
+      color: var(--text-main);
+      text-align: center;
+      letter-spacing: 0.01em;
+    }
+    .alora-math-inline {
+      font-family: Georgia, "Times New Roman", serif;
+      padding: 1px 5px;
+      border-radius: 6px;
+      background: var(--composer-bg);
+      font-size: 0.96em;
+    }
+
+    /* Callout Card Layout */
+    .alora-callout {
+      margin: 12px 0;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--text-main);
+      background: var(--card-bg);
+      font-size: 0.92rem;
+    }
+    .alora-callout.tip { border-left-color: #22c55e; }
+    .alora-callout.warning { border-left-color: #f59e0b; }
+    .alora-callout.important { border-left-color: #8b5cf6; }
+    .alora-callout-head {
+      font-size: 0.74rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+      color: var(--text-sub);
+    }
+
+    /* Image Generation Animated Shimmer Slot */
+    .image-gen-skeleton {
+      width: 100%;
+      max-width: 340px;
+      aspect-ratio: 1 / 1;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+      background: var(--card-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 8px;
+    }
+    .image-gen-shimmer-aura {
+      position: absolute;
+      inset: -35%;
+      background: conic-gradient(from 0deg, rgba(255,255,255,0.03), rgba(148,163,184,0.22), rgba(255,255,255,0.06), rgba(99,102,241,0.18), rgba(255,255,255,0.03));
+      filter: blur(28px);
+      animation: imgAuraSpin 3.6s linear infinite;
+    }
+    .image-gen-skeleton::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(110deg, transparent 25%, rgba(255,255,255,0.09) 48%, transparent 72%);
+      transform: translateX(-100%);
+      animation: imgShimmerSweep 1.6s ease-in-out infinite;
+    }
+    .image-gen-status-pill {
+      position: relative;
+      z-index: 2;
+      padding: 8px 16px;
+      border-radius: 9999px;
+      background: rgba(0, 0, 0, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      color: #ffffff;
+      font-size: 0.82rem;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      backdrop-filter: blur(10px);
+    }
+    [data-theme="light"] .image-gen-status-pill,
+    [data-theme="eyecare"] .image-gen-status-pill {
+      background: rgba(255, 255, 255, 0.78);
+      border-color: rgba(0, 0, 0, 0.12);
+      color: #0d0d0d;
+    }
+    @keyframes imgAuraSpin {
+      to { transform: rotate(360deg); }
+    }
+    @keyframes imgShimmerSweep {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+    .img-stage {
+      position: relative;
+      width: 100%;
+      max-width: 340px;
+      min-height: 220px;
+      border-radius: 20px;
+      overflow: hidden;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+    }
+    .img-stage.is-loading {
+      aspect-ratio: 1 / 1;
+    }
+    .img-stage img {
+      width: 100%;
+      display: block;
+      border: none;
+      border-radius: 20px;
+      opacity: 0;
+      filter: blur(16px);
+      transform: scale(1.03);
+      transition: opacity 0.45s ease, filter 0.55s ease, transform 0.55s ease;
+    }
+    .img-stage img.loaded {
+      opacity: 1;
+      filter: blur(0);
+      transform: scale(1);
+    }
+    .img-stage-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+    .img-stage:not(.is-loading) .img-stage-overlay {
+      display: none;
+    }
+
+    /* Offline Sync Pill & In-App Voice Conversation Overlay */
+    .offline-sync-pill {
+      align-self: center;
+      margin: 6px auto 0;
+      padding: 5px 14px;
+      border-radius: 9999px;
+      background: var(--composer-bg);
+      border: 1px solid var(--border);
+      font-size: 0.76rem;
+      font-weight: 500;
+      color: var(--text-sub);
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      z-index: 25;
+      flex-shrink: 0;
+    }
+    .offline-sync-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #f59e0b;
+    }
+    .voice-mode-backdrop,
+    .code-preview-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.88);
+      backdrop-filter: blur(16px);
+      z-index: 950;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: calc(env(safe-area-inset-top, 0px) + 20px) 20px calc(env(safe-area-inset-bottom, 0px) + 28px);
+      color: #ffffff;
+    }
+    [data-theme="light"] .voice-mode-backdrop {
+      background: rgba(255, 255, 255, 0.94);
+      color: #0d0d0d;
+    }
+    [data-theme="eyecare"] .voice-mode-backdrop {
+      background: rgba(245, 238, 220, 0.95);
+      color: #3d2f21;
+    }
+    .voice-mode-backdrop.open,
+    .code-preview-backdrop.open {
+      display: flex;
+    }
+    .voice-orb-stage {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 28px;
+      flex: 1;
+      width: 100%;
+      max-width: 440px;
+      text-align: center;
+    }
+    .voice-orb {
+      width: 156px;
+      height: 156px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.95), rgba(161,161,170,0.45) 55%, rgba(39,39,42,0.85));
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    [data-theme="light"] .voice-orb {
+      background: radial-gradient(circle at 35% 30%, #e4e4e7, #3f3f46 65%, #09090b);
+    }
+    .voice-orb.listening {
+      animation: voiceOrbPulse 1.3s ease-in-out infinite;
+    }
+    .voice-orb.thinking {
+      animation: voiceOrbSpin 2s linear infinite;
+    }
+    .voice-orb.speaking {
+      animation: voiceOrbSpeak 0.65s ease-in-out infinite alternate;
+    }
+    @keyframes voiceOrbPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.12); }
+    }
+    @keyframes voiceOrbSpin {
+      0% { transform: rotate(0deg) scale(0.95); }
+      50% { transform: rotate(180deg) scale(1.04); }
+      100% { transform: rotate(360deg) scale(0.95); }
+    }
+    @keyframes voiceOrbSpeak {
+      0% { transform: scale(0.98); }
+      100% { transform: scale(1.16); }
+    }
+    .code-preview-card {
+      width: min(860px, 100%);
+      height: min(82vh, 720px);
+      background: var(--modal-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      margin: auto;
+    }
+    .code-preview-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-main);
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+    .code-preview-frame {
+      flex: 1;
+      width: 100%;
+      border: none;
+      background: #ffffff;
     }
 
     /* Assistant Action Toolbar (Alora Exact) */
@@ -3218,6 +3494,12 @@
         </div>
       </header>
 
+      <!-- Non-blocking Native Offline Status Indicator -->
+      <div class="offline-sync-pill" id="offlineSyncPill" style="display:none;" role="status">
+        <span class="offline-sync-dot"></span>
+        <span id="offlineSyncText">Offline • Cached engine active — changes sync automatically when online</span>
+      </div>
+
       <!-- Scrollable Chat Feed Area -->
       <div class="chatgpt-scroll-area" id="chatScrollArea">
         <div class="chatgpt-feed" id="chatFeed">
@@ -3289,6 +3571,12 @@
                     <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
                     <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
                     <line x1="12" x2="12" y1="19" y2="22"/>
+                  </svg>
+                </button>
+
+                <button type="button" class="composer-tool-btn" id="voiceModeBtn" title="Live Voice Mode" aria-label="Live Voice Mode">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <path d="M4 10v4"/><path d="M8 7v10"/><path d="M12 4v16"/><path d="M16 7v10"/><path d="M20 10v4"/>
                   </svg>
                 </button>
 
@@ -3515,7 +3803,7 @@
           </div>
 
           <div class="mset-group" data-mset-group>
-            <button type="button" class="mset-row" data-mset-tab="general" data-search="general theme dark oled light sepia sapphire language english bangla sound">
+            <button type="button" class="mset-row" data-mset-tab="general" data-search="general theme dark light eyecare eye care system language english bangla sound">
               <span class="mset-row-left">
                 <span class="mset-row-icon">
                   <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -3623,10 +3911,8 @@
             <div class="theme-select-chips">
               <button type="button" class="theme-opt-chip" data-theme="system" data-i18n="themeSystem">System</button>
               <button type="button" class="theme-opt-chip" data-theme="dark" data-i18n="themeDark">Dark</button>
-              <button type="button" class="theme-opt-chip" data-theme="oled" data-i18n="themeOled">OLED</button>
               <button type="button" class="theme-opt-chip" data-theme="light" data-i18n="themeLight">Light</button>
-              <button type="button" class="theme-opt-chip" data-theme="sapphire" data-i18n="themeSapphire">Sapphire</button>
-              <button type="button" class="theme-opt-chip" data-theme="eyecare" data-i18n="themeEyecare">Sepia</button>
+              <button type="button" class="theme-opt-chip" data-theme="eyecare" data-i18n="themeEyecare">Eye Care</button>
             </div>
           </div>
 
@@ -3954,6 +4240,40 @@
   <!-- Toast Notification Box -->
   <div class="toast-box" id="toastBox"></div>
 
+  <!-- In-App Live Voice Mode Engine Overlay -->
+  <div class="voice-mode-backdrop" id="voiceModeBackdrop" aria-hidden="true">
+    <div style="width:100%; max-width:520px; display:flex; align-items:center; justify-content:space-between;">
+      <span style="font-size:0.9rem; font-weight:600;" id="voiceModeTitle">Alora Voice Engine</span>
+      <span style="font-size:0.78rem; opacity:0.7;" id="voiceModeModelLabel"></span>
+    </div>
+    <div class="voice-orb-stage">
+      <div class="voice-orb" id="voiceOrbEl"></div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="font-size:1.05rem; font-weight:600;" id="voiceModeStateLabel">Listening...</div>
+        <div style="font-size:0.86rem; opacity:0.8; max-height:110px; overflow-y:auto;" id="voiceModeTranscript"></div>
+      </div>
+    </div>
+    <div style="display:flex; align-items:center; gap:16px;">
+      <button type="button" id="voiceModeMicToggleBtn" style="width:54px; height:54px; border-radius:50%; border:1px solid rgba(255,255,255,0.2); background:rgba(255,255,255,0.12); color:inherit; display:inline-flex; align-items:center; justify-content:center; cursor:pointer;" aria-label="Toggle microphone">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/>
+        </svg>
+      </button>
+      <button type="button" id="voiceModeCloseBtn" style="height:54px; padding:0 24px; border-radius:9999px; border:none; background:#ef4444; color:#ffffff; font-weight:600; font-size:0.92rem; cursor:pointer;">End Voice</button>
+    </div>
+  </div>
+
+  <!-- Live Code Studio Sandboxed Preview Modal -->
+  <div class="code-preview-backdrop" id="codePreviewBackdrop" aria-hidden="true">
+    <div class="code-preview-card">
+      <div class="code-preview-head">
+        <span id="codePreviewTitle">Code Studio Preview</span>
+        <button type="button" class="btn-mono-secondary" id="codePreviewCloseBtn">Close</button>
+      </div>
+      <iframe class="code-preview-frame" id="codePreviewFrame" sandbox="allow-scripts"></iframe>
+    </div>
+  </div>
+
   <!-- ======================================================================
        CHATGPT 1:1 JAVASCRIPT ENGINE (HISTORY ROUTER, MULTIMODAL, BRANCHING)
        ====================================================================== -->
@@ -4072,10 +4392,8 @@
         themeSub: "Customize Alora appearance",
         themeSystem: "System",
         themeDark: "Dark",
-        themeOled: "OLED",
         themeLight: "Light",
-        themeSapphire: "Sapphire",
-        themeEyecare: "Sepia",
+        themeEyecare: "Eye Care",
         langTitle: "Language",
         langSub: "Interface & dictation language",
         soundTitle: "Sound effects",
@@ -4272,10 +4590,8 @@
         themeSub: "Alora-র রঙ ও রূপ নির্বাচন করুন",
         themeSystem: "সিস্টেম",
         themeDark: "ডার্ক",
-        themeOled: "ওলেড",
         themeLight: "লাইট",
-        themeSapphire: "স্যাফায়ার",
-        themeEyecare: "সেপিয়া",
+        themeEyecare: "আই কেয়ার",
         langTitle: "ভাষা",
         langSub: "ইন্টারফেস ও ভয়েস ভাষা",
         soundTitle: "সাউন্ড এফেক্ট",
@@ -4745,8 +5061,11 @@
     }
 
     function setTheme(rawTheme) {
-      const valid = ["system", "dark", "oled", "light", "sapphire", "eyecare"];
-      const chosen = valid.includes(rawTheme) ? rawTheme : "dark";
+      let normalized = rawTheme;
+      if (normalized === "oled") normalized = "dark";
+      else if (normalized === "sapphire") normalized = "system";
+      const valid = ["system", "dark", "light", "eyecare"];
+      const chosen = valid.includes(normalized) ? normalized : "system";
       let eff = chosen;
       if (chosen === "system") {
         eff = (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
@@ -4756,11 +5075,9 @@
       localStorage.setItem(KEYS.THEME, chosen);
       localStorage.setItem("alokpoth-theme", chosen);
 
-      let bgHex = "#212121";
-      if (eff === "oled") bgHex = "#000000";
-      else if (eff === "light") bgHex = "#ffffff";
+      let bgHex = "#000000";
+      if (eff === "light") bgHex = "#ffffff";
       else if (eff === "eyecare") bgHex = "#f5eedc";
-      else if (eff === "sapphire") bgHex = "#090f1d";
 
       const meta = document.querySelector('meta[name="theme-color"]');
       if (meta) meta.content = bgHex;
@@ -4778,6 +5095,14 @@
       document.querySelectorAll(".theme-opt-chip[data-theme]").forEach(chip => {
         chip.classList.toggle("active", chip.getAttribute("data-theme") === chosen);
       });
+    }
+    if (window.matchMedia) {
+      try {
+        window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+          const cur = localStorage.getItem(KEYS.THEME) || "system";
+          if (cur === "system") setTheme("system");
+        });
+      } catch (e) {}
     }
 
     function getWelcomeTitleText() {
@@ -5927,17 +6252,106 @@
     function sanitizeHtml(rawHtml) {
       if (typeof DOMPurify !== "undefined") {
         return DOMPurify.sanitize(rawHtml, {
-          ADD_ATTR: ["target", "rel"],
+          ADD_ATTR: ["target", "rel", "class", "data-tex"],
           FORBID_TAGS: ["script", "style", "iframe", "object", "embed"]
         });
       }
-      return escapeHtml(rawHtml);
+      // Offline emergency sanitizer if vendor DOMPurify hasn't loaded yet
+      return String(rawHtml || "")
+        .replace(/<script[\s\S]*?<\/script>/gi, "")
+        .replace(/<iframe[\s\S]*?<\/iframe>/gi, "")
+        .replace(/\son[a-z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "");
+    }
+
+    function formatMathSymbolsOffline(tex) {
+      let s = escapeHtml(String(tex || "").trim());
+      const repMap = {
+        "\\alpha": "α", "\\beta": "β", "\\gamma": "γ", "\\delta": "δ", "\\theta": "θ",
+        "\\lambda": "λ", "\\mu": "μ", "\\pi": "π", "\\sigma": "σ", "\\phi": "φ", "\\omega": "ω",
+        "\\Delta": "Δ", "\\Sigma": "Σ", "\\Omega": "Ω", "\\sum": "∑", "\\prod": "∏",
+        "\\int": "∫", "\\infty": "∞", "\\times": "×", "\\cdot": "·", "\\div": "÷",
+        "\\pm": "±", "\\leq": "≤", "\\le": "≤", "\\geq": "≥", "\\ge": "≥",
+        "\\neq": "≠", "\\ne": "≠", "\\approx": "≈", "\\rightarrow": "→", "\\to": "→",
+        "\\leftarrow": "←", "\\Rightarrow": "⇒", "\\sqrt": "√"
+      };
+      Object.keys(repMap).forEach(k => {
+        s = s.split(k).join(repMap[k]);
+      });
+      s = s.replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, "($1)/($2)");
+      s = s.replace(/\^\{([^}]+)\}/g, "<sup>$1</sup>").replace(/\^([0-9a-zA-Z+-]+)/g, "<sup>$1</sup>");
+      s = s.replace(/_\{([^}]+)\}/g, "<sub>$1</sub>").replace(/_([0-9a-zA-Z]+)/g, "<sub>$1</sub>");
+      return s.replace(/\\([a-zA-Z]+)/g, "$1");
+    }
+
+    function fallbackMarkdownToHtml(md) {
+      const codeBlocks = [];
+      let text = String(md || "").replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g, (_, lang, code) => {
+        const idx = codeBlocks.length;
+        const cls = lang ? ` class="language-${escapeHtml(lang)}"` : "";
+        codeBlocks.push(`<pre><code${cls}>${escapeHtml(code)}</code></pre>`);
+        return `\n@@CB_${idx}@@\n`;
+      });
+      const lines = text.split("\n");
+      const out = [];
+      let inUl = false;
+      const closeLists = () => { if (inUl) { out.push("</ul>"); inUl = false; } };
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const trim = line.trim();
+        const cbMatch = trim.match(/^@@CB_(\d+)@@$/);
+        if (cbMatch) { closeLists(); out.push(codeBlocks[Number(cbMatch[1])]); continue; }
+        if (!trim) { closeLists(); continue; }
+        if (/^#{1,3}\s+/.test(trim)) {
+          closeLists();
+          const lvl = trim.match(/^(#+)/)[1].length;
+          out.push(`<h${lvl}>${escapeHtml(trim.slice(lvl + 1))}</h${lvl}>`);
+        } else if (/^>\s?/.test(trim)) {
+          closeLists();
+          out.push(`<blockquote>${escapeHtml(trim.replace(/^>\s?/, ""))}</blockquote>`);
+        } else if (/^[-*+]\s+/.test(trim)) {
+          if (!inUl) { out.push("<ul>"); inUl = true; }
+          out.push(`<li>${escapeHtml(trim.replace(/^[-*+]\s+/, ""))}</li>`);
+        } else {
+          closeLists();
+          let inline = escapeHtml(trim)
+            .replace(/`([^`]+)`/g, "<code>$1</code>")
+            .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+            .replace(/\*([^*]+)\*/g, "<em>$1</em>");
+          out.push(`<p>${inline}</p>`);
+        }
+      }
+      closeLists();
+      return out.join("\n");
     }
 
     function parseMarkdown(md) {
       try {
-        const raw = marked.parse(md || "");
-        return sanitizeHtml(raw);
+        let src = String(md || "");
+        const mathHolders = [];
+        // Protect display math blocks ($$ ... $$) and inline math ($...$ non-currency)
+        src = src.replace(/\$\$([\s\S]+?)\$\$/g, (_, expr) => {
+          const id = mathHolders.length;
+          mathHolders.push(`<div class="alora-math-block">${formatMathSymbolsOffline(expr)}</div>`);
+          return `\n@@ALORA_MATH_${id}@@\n`;
+        });
+        src = src.replace(/\\\[([\s\S]+?)\\\]/g, (_, expr) => {
+          const id = mathHolders.length;
+          mathHolders.push(`<div class="alora-math-block">${formatMathSymbolsOffline(expr)}</div>`);
+          return `\n@@ALORA_MATH_${id}@@\n`;
+        });
+        src = src.replace(/\\\(([^)\n]+?)\\\)/g, (_, expr) => {
+          const id = mathHolders.length;
+          mathHolders.push(`<span class="alora-math-inline">${formatMathSymbolsOffline(expr)}</span>`);
+          return `@@ALORA_MATH_${id}@@`;
+        });
+
+        let html = (typeof marked !== "undefined" && typeof marked.parse === "function")
+          ? marked.parse(src, { gfm: true, breaks: true })
+          : fallbackMarkdownToHtml(src);
+
+        html = sanitizeHtml(html);
+        html = html.replace(/@@ALORA_MATH_(\d+)@@/g, (_, idx) => mathHolders[Number(idx)] || "");
+        return html;
       } catch(e) {
         return escapeHtml(md);
       }
@@ -5974,7 +6388,82 @@
       return { thoughts: thoughts.join("\n\n").trim(), cleanText: clean };
     }
 
-    function enhanceCodeBlocks(container) {
+    function highlightCodeOfflineHtml(codeText, lang) {
+      const esc = escapeHtml(codeText);
+      const l = String(lang || "").toLowerCase();
+      if (!codeText || codeText.length > 24000) return esc;
+      if (["html", "htm", "xml", "svg"].includes(l)) {
+        return esc
+          .replace(/(&lt;!--[\s\S]*?--&gt;)/g, '<span class="alora-syn-cm">$1</span>')
+          .replace(/(&lt;\/?)([a-zA-Z0-9:-]+)/g, '$1<span class="alora-syn-tag">$2</span>')
+          .replace(/(&quot;[^&]*?&quot;|&#39;[^&]*?&#39;)/g, '<span class="alora-syn-str">$1</span>');
+      }
+      // Single-pass token highlighting (prevents corrupting inserted HTML spans)
+      const tokenRe = /(\/\/[^\n]*|\/\*[\s\S]*?\*\/|#[^\n]*|&quot;[^&\n]*?&quot;|&#39;[^&\n]*?&#39;|`[^`\n]*`|\b(?:function|const|let|var|return|import|from|export|default|async|await|try|catch|finally|throw|if|else|for|while|switch|case|break|continue|class|extends|new|typeof|def|elif|with|as|pass|yield|lambda|true|false|null|undefined|None|True|False|SELECT|FROM|WHERE|INSERT|UPDATE|DELETE|JOIN|ORDER BY|GROUP BY|pub|fn|struct|impl|enum|int|float|double|string|boolean|void|public|private)\b|\b\d+(?:\.\d+)?\b)/g;
+      return esc.replace(tokenRe, (m) => {
+        if (m.startsWith("//") || m.startsWith("/*") || (m.startsWith("#") && !["css", "scss"].includes(l))) {
+          return `<span class="alora-syn-cm">${m}</span>`;
+        }
+        if (m.startsWith("&quot;") || m.startsWith("&#39;") || m.startsWith("`")) {
+          return `<span class="alora-syn-str">${m}</span>`;
+        }
+        if (/^\d/.test(m)) {
+          return `<span class="alora-syn-num">${m}</span>`;
+        }
+        return `<span class="alora-syn-kw">${m}</span>`;
+      });
+    }
+
+    function enhanceRichLayouts(container) {
+      if (!container) return;
+      // 1. Wrap Markdown Tables in structured scroll + CSV export card
+      container.querySelectorAll("table").forEach(tbl => {
+        if (tbl.closest(".alora-table-card")) return;
+        const card = document.createElement("div");
+        card.className = "alora-table-card";
+        const rowCount = tbl.querySelectorAll("tbody tr").length || tbl.querySelectorAll("tr").length;
+        const bar = document.createElement("div");
+        bar.className = "alora-table-bar";
+        bar.innerHTML = `
+          <span>Table · ${rowCount} rows</span>
+          <button type="button" class="code-copy-action">Copy CSV</button>
+        `;
+        bar.querySelector("button")?.addEventListener("click", async (ev) => {
+          const btn = ev.currentTarget;
+          const rows = Array.from(tbl.querySelectorAll("tr")).map(tr =>
+            Array.from(tr.querySelectorAll("th, td")).map(td => `"${String(td.innerText || "").replace(/"/g, '""')}"`).join(",")
+          ).join("\n");
+          try {
+            await navigator.clipboard.writeText(rows);
+            btn.textContent = "Copied!";
+            setTimeout(() => { btn.textContent = "Copy CSV"; }, 1600);
+          } catch (e) {}
+        });
+        const scrollWrap = document.createElement("div");
+        scrollWrap.className = "alora-table-scroll";
+        tbl.parentNode.insertBefore(card, tbl);
+        scrollWrap.appendChild(tbl);
+        card.appendChild(bar);
+        card.appendChild(scrollWrap);
+      });
+
+      // 2. Transform [!NOTE], [!TIP], [!WARNING], [!IMPORTANT] blockquotes into Callout Cards
+      container.querySelectorAll("blockquote").forEach(bq => {
+        if (bq.dataset.calloutChecked) return;
+        bq.dataset.calloutChecked = "true";
+        const raw = bq.innerHTML || "";
+        const m = raw.match(/^\s*(?:<p>)?\s*\[!(NOTE|TIP|WARNING|IMPORTANT)\]\s*(?:<br\s*\/?>|\n)?([\s\S]*)/i);
+        if (!m) return;
+        const kind = m[1].toLowerCase();
+        const bodyHtml = m[2].replace(/^<\/p>/i, "");
+        const card = document.createElement("div");
+        card.className = `alora-callout ${kind}`;
+        card.innerHTML = `<div class="alora-callout-head">${escapeHtml(kind)}</div><div>${bodyHtml}</div>`;
+        bq.parentNode.replaceChild(card, bq);
+      });
+    }
+
+    function enhanceCodeBlocks(container, applySyntax = true) {
       if (!container) return;
       container.querySelectorAll("pre").forEach(pre => {
         if (pre.dataset.enhanced) return;
@@ -5984,23 +6473,57 @@
         const codeText = code ? code.innerText : pre.innerText;
         const langMatch = (code?.className || "").match(/language-([a-zA-Z0-9_-]+)/);
         const lang = langMatch ? langMatch[1] : "code";
+        const lineCount = Math.max(1, String(codeText || "").split("\n").length);
+        const canPreview = ["html", "htm", "svg"].includes(lang.toLowerCase());
+
+        if (applySyntax && code && !code.dataset.highlighted) {
+          code.innerHTML = highlightCodeOfflineHtml(codeText, lang);
+          code.dataset.highlighted = "true";
+        }
 
         const header = document.createElement("div");
         header.className = "code-top-bar";
         header.innerHTML = `
-          <span>${escapeHtml(lang)}</span>
-          <button type="button" class="code-copy-action">
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
-              <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
-            </svg>
-            <span>Copy code</span>
-          </button>
+          <span class="code-lang-pill">
+            <span>${escapeHtml(lang)}</span>
+            <span class="code-line-count">${lineCount} lines</span>
+          </span>
+          <div class="code-actions">
+            ${canPreview ? `<button type="button" class="code-copy-action code-preview-btn">Preview</button>` : ""}
+            <button type="button" class="code-copy-action code-wrap-btn">Wrap</button>
+            <button type="button" class="code-copy-action code-copy-main">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+              </svg>
+              <span>Copy code</span>
+            </button>
+          </div>
         `;
 
-        const copyBtn = header.querySelector(".code-copy-action");
-        copyBtn.addEventListener("click", async () => {
+        header.querySelector(".code-wrap-btn")?.addEventListener("click", (e) => {
+          if (!code) return;
+          const wrapped = code.classList.toggle("wrapped");
+          e.currentTarget.textContent = wrapped ? "No wrap" : "Wrap";
+        });
+
+        header.querySelector(".code-preview-btn")?.addEventListener("click", () => {
+          const bd = document.getElementById("codePreviewBackdrop");
+          const frame = document.getElementById("codePreviewFrame");
+          const title = document.getElementById("codePreviewTitle");
+          if (title) title.textContent = `${lang.toUpperCase()} Live Preview`;
+          if (frame) {
+            frame.srcdoc = lang.toLowerCase() === "svg"
+              ? `<!doctype html><html><body style="margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#111;">${codeText}</body></html>`
+              : codeText;
+          }
+          if (bd) bd.classList.add("open");
+        });
+
+        const copyBtn = header.querySelector(".code-copy-main");
+        copyBtn?.addEventListener("click", async () => {
           try {
             await navigator.clipboard.writeText(codeText);
+            triggerHaptic("light");
             const label = copyBtn.querySelector("span");
             if (label) {
               label.textContent = "Copied!";
@@ -6011,6 +6534,7 @@
 
         pre.insertBefore(header, pre.firstChild);
       });
+      enhanceRichLayouts(container);
     }
 
     // =========================================================================
@@ -6353,7 +6877,7 @@
       const { content, toolbar, row } = createAssistantRow(idx);
 
       if (msgObj.type === "image" && msgObj.imageUrl) {
-        renderGeneratedImageContent(content, msgObj.imageUrl, msgObj.model || "Alora Image");
+        renderGeneratedImageContent(content, msgObj.imageUrl, msgObj.model || "Alora Image", msgObj.caption || "");
       } else {
         content.innerHTML = formatAssistantContent(getAssistantActiveText(msgObj), false);
         enhanceCodeBlocks(content);
@@ -6361,16 +6885,69 @@
       wireAssistantToolbar(toolbar, row, msgObj, idx);
     }
 
-    function renderGeneratedImageContent(contentEl, imageUrl, modelName) {
+    function renderImageGenerationSkeleton(contentEl) {
+      if (!contentEl) return;
+      const label = currentLanguage === "bn" ? "ছবি তৈরি হচ্ছে..." : "Creating image...";
       contentEl.innerHTML = `
-        <div class="generated-image-card">
-          <img src="${escapeHtml(imageUrl)}" alt="Generated image" loading="lazy">
-          <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
-            <span style="font-size:0.78rem; color:var(--text-muted);">${escapeHtml(modelName || "Image Studio")}</span>
-            <a href="${escapeHtml(imageUrl)}" download="alora-image.png" target="_blank" rel="noopener noreferrer" class="btn-mono-secondary" style="text-decoration:none;">Download</a>
+        <div class="image-gen-skeleton" aria-label="${escapeHtml(label)}">
+          <div class="image-gen-shimmer-aura"></div>
+          <div class="image-gen-status-pill">
+            <span class="chatgpt-thinking-bubble" style="margin:0; width:9px; height:9px;"></span>
+            <span>${escapeHtml(label)}</span>
           </div>
         </div>
       `;
+    }
+
+    function renderGeneratedImageContent(contentEl, imageUrl, modelName, captionText = "") {
+      const captionHtml = captionText
+        ? `<div class="image-caption-prose" style="margin-bottom:10px;">${parseMarkdown(captionText)}</div>`
+        : "";
+      const loadingLabel = currentLanguage === "bn" ? "ছবি লোড হচ্ছে..." : "Rendering image...";
+      contentEl.innerHTML = `
+        ${captionHtml}
+        <div class="generated-image-card">
+          <div class="img-stage is-loading">
+            <div class="image-gen-shimmer-aura"></div>
+            <div class="img-stage-overlay">
+              <div class="image-gen-status-pill">${escapeHtml(loadingLabel)}</div>
+            </div>
+            <img src="${escapeHtml(imageUrl)}" alt="Generated image" loading="eager">
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+            <span style="font-size:0.78rem; color:var(--text-muted);">${escapeHtml(modelName || "Alora Image")}</span>
+            <button type="button" class="btn-mono-secondary img-download-btn">Download</button>
+          </div>
+        </div>
+      `;
+      const stage = contentEl.querySelector(".img-stage");
+      const img = contentEl.querySelector(".img-stage img");
+      if (img && stage) {
+        const markLoaded = () => {
+          img.classList.add("loaded");
+          stage.classList.remove("is-loading");
+        };
+        if (img.complete && img.naturalWidth > 0) markLoaded();
+        else {
+          img.addEventListener("load", markLoaded, { once: true });
+          img.addEventListener("error", () => {
+            stage.classList.remove("is-loading");
+          }, { once: true });
+        }
+      }
+      contentEl.querySelector(".img-download-btn")?.addEventListener("click", () => {
+        const bridge = getNativeAndroidBridge();
+        if (bridge && typeof bridge.downloadImage === "function" && /^https:\/\//i.test(imageUrl)) {
+          bridge.downloadImage(imageUrl, `Alora_${Date.now()}.png`);
+          return;
+        }
+        const a = document.createElement("a");
+        a.href = imageUrl;
+        a.download = `Alora_${Date.now()}.png`;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        a.click();
+      });
     }
 
     function renderUpgradeCard(contentEl, errMessage) {
@@ -6532,6 +7109,203 @@
     // =========================================================================
     // CHAT STREAMING, REGENERATION & IMAGE GENERATION ENGINE
     // =========================================================================
+    const OFFLINE_QUEUE_KEY = "alora_offline_queue";
+    const OFFLINE_PROFILE_KEY = "alora_pending_profile_name";
+    let isFlushingOfflineQueue = false;
+
+    function isAppOnline() {
+      try {
+        const b = getNativeAndroidBridge();
+        if (b && typeof b.isOnline === "function") return !!b.isOnline();
+      } catch (e) {}
+      return navigator.onLine !== false;
+    }
+
+    function updateOfflineIndicator() {
+      const online = isAppOnline();
+      const pill = document.getElementById("offlineSyncPill");
+      const txt = document.getElementById("offlineSyncText");
+      if (!pill) return;
+      pill.style.display = online ? "none" : "inline-flex";
+      if (txt && !online) {
+        const queuedCount = (() => {
+          try { return (JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || "[]") || []).length; } catch (e) { return 0; }
+        })();
+        txt.textContent = currentLanguage === "bn"
+          ? (queuedCount > 0 ? `অফলাইন • ${queuedCount}টি বার্তা অনলাইন হলেই সিঙ্ক হবে` : "অফলাইন মোড • সংযোগ এলেই অটো-সিঙ্ক হবে")
+          : (queuedCount > 0 ? `Offline • ${queuedCount} queued to sync automatically` : "Offline • Cached engine active — syncs when online");
+      }
+    }
+
+    function isNaturalImagePrompt(rawPrompt) {
+      const s = String(rawPrompt || "").trim();
+      if (!s || s.length > 260) return false;
+      if (/\b(code|html|css|js|javascript|python|react|sql|explain|meaning|what is|how does|কিভাবে|ব্যাখ্যা|কোড)\b/i.test(s)) return false;
+      const enMatch = /\b(generate|create|make|draw|paint|design|render)\b.*\b(an?\s+)?(image|picture|photo|illustration|artwork|logo|wallpaper|portrait|poster|icon|scene)\b/i.test(s);
+      const bnMatch = /(ছবি|ইমেজ|পিকচার|লোগো|চিত্র|দৃশ্য).*(বানা|তৈরি|আঁক|এঁকে|দাও|করে)|(বানাও|আঁকো|এঁকে দাও|তৈরি করো).*(ছবি|ইমেজ|পিকচার)/i.test(s);
+      return enMatch || bnMatch;
+    }
+
+    async function runImageGenerationTurn(text, aIdx, contentEl, toolbarEl, rowEl) {
+      const token = getAuthToken();
+      renderImageGenerationSkeleton(contentEl);
+      isGenerating = true;
+      updateSendButtonState();
+
+      try {
+        const res = await fetch(`${API_BASE}/chat/image`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+          body: JSON.stringify({
+            prompt: text,
+            chat_model: selectedModel,
+            language: currentLanguage,
+            include_caption: true,
+            enhance: true
+          })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.status === 401) {
+          if (rowEl) rowEl.remove();
+          messagesHistory.pop();
+          window.location.href = "/auth/login";
+          return null;
+        }
+        if (res.status === 403 || data.code === "PLAN_UPGRADE_REQUIRED") {
+          renderUpgradeCard(contentEl, data.error);
+          soundEngine.error();
+          return null;
+        }
+        if (!res.ok || !data.success || !data.url) {
+          throw new Error(localizeServerError(data.error, "busyDesc"));
+        }
+        const caption = String(data.caption || "").trim();
+        renderGeneratedImageContent(contentEl, data.url, data.model || "Alora Image", caption);
+        const assistantMsg = {
+          role: "assistant",
+          type: "image",
+          imageUrl: data.url,
+          caption,
+          model: data.model || selectedModel || "image-generation",
+          content: caption ? `${caption}\n\n![Generated Image](${data.url})` : `![Generated Image](${data.url})`
+        };
+        messagesHistory.push(assistantMsg);
+        persistSession();
+        wireAssistantToolbar(toolbarEl, rowEl, assistantMsg, messagesHistory.length - 1);
+        soundEngine.receive();
+        if (document.hidden && isNotifMasterEnabled() && isNotifResponseEnabled()) {
+          sendAppNotification("Alora", currentLanguage === "bn" ? "আপনার তৈরি করা ছবি প্রস্তুত!" : "Your generated image is ready.", false);
+        }
+        return assistantMsg;
+      } catch(err) {
+        renderModelBusyCard(contentEl, t("busyTitle"), localizeServerError(err.message, "busyDesc"));
+        soundEngine.error();
+        return null;
+      } finally {
+        isSending = false;
+        isGenerating = false;
+        const input = document.getElementById("messageInput");
+        if (input) { input.readOnly = false; input.focus(); }
+        updateSendButtonState();
+        scrollToBottom(false);
+      }
+    }
+
+    async function flushOfflineSyncQueue() {
+      if (isFlushingOfflineQueue || !isAppOnline()) return;
+      isFlushingOfflineQueue = true;
+      try {
+        const token = getAuthToken();
+        // 1. Sync pending profile name edit if stored offline
+        const pendingName = localStorage.getItem(OFFLINE_PROFILE_KEY);
+        if (pendingName && token) {
+          try {
+            const pRes = await fetch(`${API_BASE}/auth/me`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+              body: JSON.stringify({ name: pendingName })
+            });
+            if (pRes.ok) {
+              localStorage.removeItem(OFFLINE_PROFILE_KEY);
+              const pd = await pRes.json().catch(() => null);
+              if (pd?.user) localStorage.setItem(KEYS.USER, JSON.stringify(pd.user));
+              if (pd?.token) localStorage.setItem(KEYS.TOKEN, pd.token);
+              syncUserUI();
+            }
+          } catch (e) {}
+        }
+
+        // 2. Refresh live catalogs silently when reconnected
+        loadDynamicModels(true);
+        fetchPlanLimits();
+        fetchAppConfig();
+
+        // 3. Flush queued chat prompts sequentially
+        let queue = [];
+        try { queue = JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || "[]") || []; } catch (e) { queue = []; }
+        if (!Array.isArray(queue) || queue.length === 0) return;
+
+        const remaining = [];
+        let syncedAny = false;
+        for (const item of queue) {
+          if (!item || !item.text || !isAppOnline()) { remaining.push(item); continue; }
+          try {
+            const sessions = loadSessions();
+            const sess = sessions.find(s => s.id === item.sessionId);
+            if (!sess) continue;
+            const res = await fetch(`${API_BASE}/chat/completions`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                ...(token ? { "Authorization": `Bearer ${token}` } : {})
+              },
+              body: JSON.stringify({
+                model: item.model || selectedModel,
+                messages: [{ role: "user", content: item.text }],
+                stream: false,
+                thinking: false
+              })
+            });
+            if (!res.ok) { remaining.push(item); continue; }
+            const data = await res.json().catch(() => null);
+            const replyText = extractThoughts(data?.content || data?.choices?.[0]?.message?.content || "").cleanText.trim();
+            if (!replyText) { remaining.push(item); continue; }
+
+            // Replace pending placeholder turn inside stored session
+            const pIdx = (sess.messagesHistory || []).findIndex(m => m && m.offlineId === item.id);
+            const completedTurn = { role: "assistant", content: replyText, branches: [replyText], activeBranch: 0, model: item.model || selectedModel };
+            if (pIdx >= 0) sess.messagesHistory[pIdx] = completedTurn;
+            else sess.messagesHistory.push(completedTurn);
+            sess.updatedAt = Date.now();
+            localStorage.setItem(KEYS.SESSIONS, JSON.stringify(sessions));
+
+            if (currentSessionId === sess.id) {
+              messagesHistory = JSON.parse(JSON.stringify(sess.messagesHistory));
+              rebuildChatFeedFromHistory();
+              scrollToBottom(false);
+            }
+            syncedAny = true;
+          } catch (e) {
+            remaining.push(item);
+          }
+        }
+        localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(remaining));
+        if (syncedAny) {
+          showToast(currentLanguage === "bn" ? "ইন্টারনেট সংযুক্ত • পেন্ডিং চ্যাট সিঙ্ক সম্পন্ন" : "Back online • Queued chats synced");
+        }
+      } finally {
+        isFlushingOfflineQueue = false;
+        updateOfflineIndicator();
+      }
+    }
+
+    window.onNativeNetworkChanged = function(onlineFlag) {
+      updateOfflineIndicator();
+      if (onlineFlag) flushOfflineSyncQueue();
+    };
+    window.addEventListener("online", () => window.onNativeNetworkChanged(true));
+    window.addEventListener("offline", () => window.onNativeNetworkChanged(false));
+
     async function sendMessage() {
       if (isSending || isGenerating) {
         if (isGenerating) stopGeneration();
@@ -6558,17 +7332,56 @@
 
       const token = getAuthToken();
 
-      // Dedicated Image Generation path
-      if (isImageGenActive) {
+      // Offline-First Queue Handler: works seamlessly offline & auto-syncs when online
+      if (!isAppOnline()) {
         isImageGenActive = false;
         updateChipsUI();
-        if (!token) {
+        const userMsg = { role: "user", content: text, displayText: text };
+        messagesHistory.push(userMsg);
+        renderUserBubble(userMsg, messagesHistory.length - 1);
+        const offlineId = "off_" + Date.now();
+        const queuedNotice = currentLanguage === "bn"
+          ? "> [!NOTE]\n> **অফলাইন কিউতে সংরক্ষিত হয়েছে** — ইন্টারনেট চালু হওয়া মাত্রই উত্তরটি স্বয়ংক্রিয়ভাবে সিঙ্ক হবে।"
+          : "> [!NOTE]\n> **Queued Offline** — This prompt is saved locally and will automatically sync as soon as you're back online.";
+        const pendingAssist = {
+          role: "assistant",
+          offlineId,
+          content: queuedNotice,
+          branches: [queuedNotice],
+          activeBranch: 0,
+          model: selectedModel
+        };
+        messagesHistory.push(pendingAssist);
+        renderAssistantBubble(pendingAssist, messagesHistory.length - 1);
+        persistSession();
+        try {
+          const q = JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || "[]") || [];
+          q.push({ id: offlineId, sessionId: currentSessionId, model: selectedModel, text, createdAt: Date.now() });
+          localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(q.slice(-20)));
+        } catch (e) {}
+        updateOfflineIndicator();
+        scrollToBottom(true);
+        updateComposerPosition();
+        isSending = false;
+        if (input) { input.readOnly = false; input.focus(); }
+        updateSendButtonState();
+        showToast(currentLanguage === "bn" ? "অফলাইন • সংযোগ এলে উত্তর আসবে" : "Saved to offline sync queue");
+        return null;
+      }
+
+      // Dedicated + Universal Image Generation path (works on ANY active model + generates companion text)
+      const autoDetectedImg = !hasAttachments && !isWebSearchActive && Boolean(token) && isNaturalImagePrompt(text);
+      if (isImageGenActive || autoDetectedImg) {
+        const wasChipActive = isImageGenActive;
+        isImageGenActive = false;
+        updateChipsUI();
+        if (!token && wasChipActive) {
           isSending = false;
           if (input) input.readOnly = false;
           updateSendButtonState();
           showToast(currentLanguage === "bn" ? "ছবি তৈরি করতে অনুগ্রহ করে লগইন করুন" : "Please log in to generate images");
           window.location.href = "/auth/login";
-          return;
+          return null;
         }
         const userMsg = { role: "user", content: text, displayText: text };
         messagesHistory.push(userMsg);
@@ -6580,56 +7393,7 @@
 
         const aIdx = messagesHistory.length;
         const { content, toolbar, row } = createAssistantRow(aIdx);
-        isGenerating = true;
-        updateSendButtonState();
-
-        try {
-          const res = await fetch(`${API_BASE}/chat/image`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-            body: JSON.stringify({ prompt: text, enhance: true })
-          });
-          const data = await res.json().catch(() => ({}));
-          if (res.status === 401) {
-            if (row) row.remove();
-            messagesHistory.pop();
-            window.location.href = "/auth/login";
-            return;
-          }
-          if (res.status === 403 || data.code === "PLAN_UPGRADE_REQUIRED") {
-            renderUpgradeCard(content, data.error);
-            soundEngine.error();
-            return;
-          }
-          if (!res.ok || !data.success || !data.url) {
-            throw new Error(localizeServerError(data.error, "busyDesc"));
-          }
-          renderGeneratedImageContent(content, data.url, data.model || "Alora Image");
-          const assistantMsg = {
-            role: "assistant",
-            type: "image",
-            imageUrl: data.url,
-            model: data.model || "image-generation",
-            content: `![Generated Image](${data.url})`
-          };
-          messagesHistory.push(assistantMsg);
-          persistSession();
-          wireAssistantToolbar(toolbar, row, assistantMsg, messagesHistory.length - 1);
-          soundEngine.receive();
-          if (document.hidden && isNotifMasterEnabled() && isNotifResponseEnabled()) {
-            sendAppNotification("Alora", currentLanguage === "bn" ? "আপনার তৈরি করা ছবি প্রস্তুত!" : "Your generated image is ready.", false);
-          }
-        } catch(err) {
-          renderModelBusyCard(content, t("busyTitle"), localizeServerError(err.message, "busyDesc"));
-          soundEngine.error();
-        } finally {
-          isSending = false;
-          isGenerating = false;
-          if (input) { input.readOnly = false; input.focus(); }
-          updateSendButtonState();
-          scrollToBottom(false);
-        }
-        return;
+        return await runImageGenerationTurn(text, aIdx, content, toolbar, row);
       }
 
       // Guest message tracking (dynamic limit from Admin Plan settings)
@@ -6775,42 +7539,61 @@
           throw busyErr;
         }
 
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder("utf-8");
-        let buffer = "";
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n");
-          buffer = lines.pop();
-
-          for (const line of lines) {
-            const trimmed = line.trim();
-            if (!trimmed || trimmed.startsWith(":") || !trimmed.startsWith("data:")) continue;
-            const chunk = trimmed.slice(5).trim();
-            if (chunk === "[DONE]") break;
-
-            try {
-              const json = JSON.parse(chunk);
-              if (json.error) {
-                throw new Error(json.error);
-              }
-              const delta = json.choices?.[0]?.delta?.content
-                ?? json.choices?.[0]?.delta?.text
-                ?? json.choices?.[0]?.text
-                ?? "";
-
-              if (delta) {
-                streamBuffer += delta;
-              }
-
+        const respCt = (res.headers.get("content-type") || "").toLowerCase();
+        if (!respCt.includes("text/event-stream") || !res.body) {
+          const jData = await res.json().catch(() => null);
+          const jsonText = jData?.content || jData?.choices?.[0]?.message?.content || jData?.choices?.[0]?.text || "";
+          if (jsonText) {
+            streamBuffer = String(jsonText);
+          }
+        } else {
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder("utf-8");
+          let buffer = "";
+          let renderPending = false;
+          const scheduleStreamRender = () => {
+            if (renderPending) return;
+            renderPending = true;
+            requestAnimationFrame(() => {
+              renderPending = false;
+              if (!isGenerating) return;
               content.innerHTML = formatAssistantContent(streamBuffer, true);
+              enhanceCodeBlocks(content, false);
               scrollToBottom(false);
-            } catch(e) {
-              if (e && e.message && !e.message.includes("JSON")) throw e;
+            });
+          };
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split("\n");
+            buffer = lines.pop();
+
+            for (const line of lines) {
+              const trimmed = line.trim();
+              if (!trimmed || trimmed.startsWith(":") || !trimmed.startsWith("data:")) continue;
+              const chunk = trimmed.slice(5).trim();
+              if (chunk === "[DONE]") break;
+
+              try {
+                const json = JSON.parse(chunk);
+                if (json.error) {
+                  throw new Error(json.error);
+                }
+                const delta = json.choices?.[0]?.delta?.content
+                  ?? json.choices?.[0]?.delta?.text
+                  ?? json.choices?.[0]?.text
+                  ?? "";
+
+                if (delta) {
+                  streamBuffer += delta;
+                  scheduleStreamRender();
+                }
+              } catch(e) {
+                if (e && e.message && !e.message.includes("JSON")) throw e;
+              }
             }
           }
         }
@@ -6977,7 +7760,18 @@
       });
     }
 
+    let ttsChunksQueue = [];
+    let ttsChunkIndex = 0;
+    let ttsOnCompleteCallback = null;
+
     function stopReadAloud() {
+      ttsChunksQueue = [];
+      ttsChunkIndex = 0;
+      ttsOnCompleteCallback = null;
+      const bridge = getNativeAndroidBridge();
+      if (bridge && typeof bridge.stopSpeech === "function") {
+        try { bridge.stopSpeech(); } catch (e) {}
+      }
       if ("speechSynthesis" in window) {
         try { window.speechSynthesis.cancel(); } catch(e) {}
       }
@@ -6989,17 +7783,66 @@
       }
     }
 
-    function toggleReadAloud(rawText, btnEl) {
-      if (isSpeaking && activeAudioButton === btnEl) {
+    function playNextTtsChunk() {
+      if (!isSpeaking || ttsChunkIndex >= ttsChunksQueue.length) {
+        const doneCb = ttsOnCompleteCallback;
+        stopReadAloud();
+        if (typeof doneCb === "function") doneCb();
+        return;
+      }
+      const piece = ttsChunksQueue[ttsChunkIndex++];
+      const hasBengali = /[\u0980-\u09FF]/.test(piece);
+      const langCode = hasBengali ? "bn" : "en";
+      const bridge = getNativeAndroidBridge();
+      if (bridge && typeof bridge.speakText === "function") {
+        try {
+          if (bridge.speakText(piece, langCode)) {
+            return;
+          }
+        } catch (e) {}
+      }
+      if ("speechSynthesis" in window) {
+        const voices = window.speechSynthesis.getVoices() || [];
+        const savedVoiceName = localStorage.getItem(KEYS.SPEECH_VOICE) || "";
+        const chosenVoice = voices.find(v => v.name === savedVoiceName)
+          || voices.find(v => v.lang && v.lang.toLowerCase().startsWith(hasBengali ? "bn" : "en"));
+        const u = new SpeechSynthesisUtterance(piece);
+        if (chosenVoice) u.voice = chosenVoice;
+        u.lang = hasBengali ? "bn-BD" : "en-US";
+        u.onend = playNextTtsChunk;
+        u.onerror = () => stopReadAloud();
+        window.speechSynthesis.speak(u);
+      } else {
+        stopReadAloud();
+      }
+    }
+
+    window.onNativeTtsDone = function() {
+      if (isSpeaking) playNextTtsChunk();
+    };
+
+    function toggleReadAloud(rawText, btnEl, onFinished = null) {
+      if (isSpeaking && activeAudioButton === btnEl && btnEl) {
         stopReadAloud();
         return;
       }
       stopReadAloud();
-      const clean = String(rawText || "").replace(/```[\s\S]*?```/g, " ").replace(/[*_#>`~]/g, " ").replace(/\s+/g, " ").trim();
-      if (!clean) return;
+      const clean = String(rawText || "")
+        .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
+        .replace(/```[\s\S]*?```/g, " code block ")
+        .replace(/[*_#>`~$]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+      if (!clean) {
+        if (typeof onFinished === "function") onFinished();
+        return;
+      }
 
-      if (!("speechSynthesis" in window)) {
-        showToast("Voice playback unavailable in this browser");
+      const bridge = getNativeAndroidBridge();
+      const hasNativeTts = Boolean(bridge && typeof bridge.speakText === "function");
+      if (!hasNativeTts && !("speechSynthesis" in window)) {
+        showToast(currentLanguage === "bn" ? "এই ডিভাইসে ভয়েস প্লেব্যাক পাওয়া যায়নি" : "Voice playback unavailable in this browser");
+        if (typeof onFinished === "function") onFinished();
         return;
       }
 
@@ -7015,32 +7858,16 @@
       }
 
       isSpeaking = true;
-      activeAudioButton = btnEl;
+      activeAudioButton = btnEl || null;
+      ttsChunksQueue = chunks;
+      ttsChunkIndex = 0;
+      ttsOnCompleteCallback = typeof onFinished === "function" ? onFinished : null;
+
       if (btnEl) {
         btnEl.classList.add("active");
         btnEl.innerHTML = `<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>`;
       }
-
-      const voices = window.speechSynthesis.getVoices() || [];
-      const savedVoiceName = localStorage.getItem(KEYS.SPEECH_VOICE) || "";
-      const hasBengali = /[\u0980-\u09FF]/.test(clean);
-      const chosenVoice = voices.find(v => v.name === savedVoiceName)
-        || voices.find(v => v.lang && v.lang.toLowerCase().startsWith(hasBengali ? "bn" : "en"));
-
-      let i = 0;
-      const speakNext = () => {
-        if (!isSpeaking || i >= chunks.length) {
-          stopReadAloud();
-          return;
-        }
-        const u = new SpeechSynthesisUtterance(chunks[i++]);
-        if (chosenVoice) u.voice = chosenVoice;
-        u.lang = hasBengali ? "bn-BD" : "en-US";
-        u.onend = speakNext;
-        u.onerror = () => stopReadAloud();
-        window.speechSynthesis.speak(u);
-      };
-      speakNext();
+      playNextTtsChunk();
     }
 
     function updateChipsUI() {
@@ -7097,6 +7924,18 @@
 
     window.handleAppBackButton = function() {
       try {
+        const vmBd = document.getElementById("voiceModeBackdrop");
+        if (vmBd && vmBd.classList.contains("open")) {
+          if (typeof window.closeVoiceMode === "function") window.closeVoiceMode();
+          else { vmBd.classList.remove("open"); vmBd.setAttribute("aria-hidden", "true"); }
+          return true;
+        }
+        const cpBd = document.getElementById("codePreviewBackdrop");
+        if (cpBd && cpBd.classList.contains("open")) {
+          if (typeof window.closeCodePreviewModal === "function") window.closeCodePreviewModal();
+          else { cpBd.classList.remove("open"); cpBd.setAttribute("aria-hidden", "true"); }
+          return true;
+        }
         const claimBd = document.getElementById("claimOfferBackdrop");
         if (claimBd && claimBd.classList.contains("open")) { closeClaimOfferModal(); return true; }
         const settingsBd = document.getElementById("settingsDialogBackdrop");
@@ -7207,11 +8046,19 @@
       }
 
       window.onNativeSpeechStart = () => {
+        if (window.__voiceModeHooks && window.__voiceModeHooks.active) {
+          window.__voiceModeHooks.onStart();
+          return;
+        }
         speechBaseText = (document.getElementById("messageInput")?.value || "").trim();
         setMicState(true, true);
         resetSpeechPlaceholder(true);
       };
       window.onNativeSpeechPartial = (txt) => {
+        if (window.__voiceModeHooks && window.__voiceModeHooks.active) {
+          window.__voiceModeHooks.onPartial(txt);
+          return;
+        }
         const clean = (txt || "").trim();
         if (!clean) return;
         const inp = document.getElementById("messageInput");
@@ -7222,6 +8069,10 @@
         }
       };
       window.onNativeSpeechResult = (txt) => {
+        if (window.__voiceModeHooks && window.__voiceModeHooks.active) {
+          window.__voiceModeHooks.onResult(txt);
+          return;
+        }
         const clean = (txt || "").trim();
         const inp = document.getElementById("messageInput");
         if (clean && inp) {
@@ -7233,10 +8084,18 @@
         resetSpeechPlaceholder(false);
       };
       window.onNativeSpeechEnd = () => {
+        if (window.__voiceModeHooks && window.__voiceModeHooks.active) {
+          window.__voiceModeHooks.onEnd();
+          return;
+        }
         setMicState(false);
         resetSpeechPlaceholder(false);
       };
       window.onNativeSpeechError = (msg) => {
+        if (window.__voiceModeHooks && window.__voiceModeHooks.active) {
+          window.__voiceModeHooks.onError(msg);
+          return;
+        }
         setMicState(false);
         resetSpeechPlaceholder(false);
         if (msg) showToast(String(msg));
@@ -7496,14 +8355,395 @@
       }
     }
 
+    function closeCodePreviewModal() {
+      const bd = document.getElementById("codePreviewBackdrop");
+      const frame = document.getElementById("codePreviewFrame");
+      if (bd) {
+        bd.classList.remove("open");
+        bd.setAttribute("aria-hidden", "true");
+      }
+      if (frame) frame.srcdoc = "";
+    }
+    window.closeCodePreviewModal = closeCodePreviewModal;
+
+    function initVoiceModeEngine() {
+      const btn = document.getElementById("voiceModeBtn");
+      const backdrop = document.getElementById("voiceModeBackdrop");
+      const orbEl = document.getElementById("voiceOrbEl");
+      const stateLabel = document.getElementById("voiceModeStateLabel");
+      const transcriptEl = document.getElementById("voiceModeTranscript");
+      const modelLabel = document.getElementById("voiceModeModelLabel");
+      const micToggleBtn = document.getElementById("voiceModeMicToggleBtn");
+      const closeBtn = document.getElementById("voiceModeCloseBtn");
+      if (!btn || !backdrop) return;
+
+      const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+      let active = false;
+      let muted = false;
+      let phase = "idle"; // idle | listening | thinking | speaking | paused
+      let webRec = null;
+      let usingNative = false;
+      let voiceAbort = null;
+      let silentRetryCount = 0;
+
+      function setOrbState(nextPhase, customLabel = "") {
+        phase = nextPhase;
+        if (orbEl) {
+          orbEl.classList.remove("listening", "thinking", "speaking");
+          if (nextPhase === "listening" || nextPhase === "thinking" || nextPhase === "speaking") {
+            orbEl.classList.add(nextPhase);
+          }
+        }
+        if (stateLabel) {
+          const isBn = currentLanguage === "bn";
+          const defaults = {
+            listening: isBn ? "শুনছি... কথা বলুন" : "Listening...",
+            thinking: isBn ? "চিন্তা করছি..." : "Thinking...",
+            speaking: isBn ? "বলছি..." : "Speaking...",
+            paused: isBn ? "বিরতি • কথা বলতে মাইক চাপুন" : "Paused • Tap mic to speak",
+            offline: isBn ? "অফলাইন মোড • সংযোগ নেই" : "Offline • Waiting for connection"
+          };
+          stateLabel.textContent = customLabel || defaults[nextPhase] || "Ready";
+        }
+        if (micToggleBtn) {
+          micToggleBtn.style.opacity = muted ? "0.55" : "1";
+          micToggleBtn.style.background = (nextPhase === "listening" && !muted)
+            ? "rgba(239, 68, 68, 0.25)"
+            : "rgba(255,255,255,0.12)";
+        }
+      }
+
+      function stopRecognitionOnly() {
+        const bridge = getNativeAndroidBridge();
+        if (usingNative && bridge && typeof bridge.stopNativeVoice === "function") {
+          try { bridge.stopNativeVoice(); } catch (e) {}
+        }
+        usingNative = false;
+        if (webRec) {
+          try { webRec.abort(); } catch (e) { try { webRec.stop(); } catch (e2) {} }
+          webRec = null;
+        }
+      }
+
+      function closeVoiceMode() {
+        if (!active && !backdrop.classList.contains("open")) return;
+        active = false;
+        muted = false;
+        if (window.__voiceModeHooks) window.__voiceModeHooks.active = false;
+        if (voiceAbort) {
+          try { voiceAbort.abort(); } catch (e) {}
+          voiceAbort = null;
+        }
+        stopReadAloud();
+        stopRecognitionOnly();
+        backdrop.classList.remove("open");
+        backdrop.setAttribute("aria-hidden", "true");
+        setOrbState("idle");
+      }
+      window.closeVoiceMode = closeVoiceMode;
+
+      async function handleSpokenQuery(rawText) {
+        const cleanPrompt = String(rawText || "").trim();
+        if (!active || !cleanPrompt) return;
+        silentRetryCount = 0;
+
+        if (transcriptEl) {
+          const youLbl = currentLanguage === "bn" ? "আপনি" : "You";
+          transcriptEl.textContent = `${youLbl}: "${cleanPrompt}"`;
+        }
+
+        if (!isAppOnline()) {
+          const msg = currentLanguage === "bn"
+            ? "অফলাইনে রিয়েল-টাইম ভয়েস উত্তর দেওয়া যাচ্ছে না। চ্যাটে পাঠালে অনলাইন হওয়ার সাথে সাথেই সিঙ্ক হবে।"
+            : "Real-time Voice Mode requires an internet connection.";
+          if (transcriptEl) transcriptEl.textContent = msg;
+          muted = true;
+          setOrbState("offline");
+          return;
+        }
+
+        setOrbState("thinking");
+        stopRecognitionOnly();
+        if (voiceAbort) { try { voiceAbort.abort(); } catch (e) {} }
+        voiceAbort = new AbortController();
+
+        try {
+          const userMsg = { role: "user", content: cleanPrompt, displayText: cleanPrompt };
+          messagesHistory.push(userMsg);
+          renderUserBubble(userMsg, messagesHistory.length - 1);
+          updateComposerPosition();
+
+          const token = getAuthToken();
+          const headers = { "Content-Type": "application/json" };
+          if (token) headers["Authorization"] = `Bearer ${token}`;
+          const customInst = buildCombinedCustomInstructions();
+
+          const res = await fetch(`${API_BASE}/chat/completions`, {
+            method: "POST",
+            headers,
+            body: JSON.stringify({
+              model: selectedModel,
+              messages: serializeMessagesForApi(messagesHistory),
+              stream: true,
+              thinking: false,
+              custom_instructions: customInst || undefined
+            }),
+            signal: voiceAbort.signal
+          });
+
+          if (!res.ok) {
+            const errJson = await res.json().catch(() => ({}));
+            throw new Error(localizeServerError(errJson.error, "busyDesc"));
+          }
+
+          let rawReply = "";
+          const respCt = (res.headers.get("content-type") || "").toLowerCase();
+          if (!respCt.includes("text/event-stream") || !res.body) {
+            const jData = await res.json().catch(() => null);
+            rawReply = jData?.content || jData?.choices?.[0]?.message?.content || jData?.choices?.[0]?.text || "";
+          } else {
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder();
+            let sseBuf = "";
+            while (true) {
+              const { value, done } = await reader.read();
+              if (done) break;
+              sseBuf += decoder.decode(value, { stream: true });
+              const lines = sseBuf.split("\n");
+              sseBuf = lines.pop() || "";
+              for (const rawLine of lines) {
+                const line = rawLine.trim();
+                if (!line.startsWith("data:")) continue;
+                const payload = line.slice(5).trim();
+                if (payload === "[DONE]") break;
+                try {
+                  const p = JSON.parse(payload);
+                  if (p.delta) rawReply += p.delta;
+                  else if (p.choices?.[0]?.delta?.content) rawReply += p.choices[0].delta.content;
+                  else if (p.error) throw new Error(localizeServerError(p.error, "busyDesc"));
+                  if (transcriptEl && rawReply) {
+                    const livePreview = extractThoughts(rawReply).cleanText.trim();
+                    if (livePreview) transcriptEl.textContent = livePreview.slice(-260);
+                  }
+                } catch (parseErr) {
+                  if (parseErr && parseErr.message && !/JSON/i.test(parseErr.message)) throw parseErr;
+                }
+              }
+            }
+          }
+
+          const finalReply = extractThoughts(rawReply).cleanText.trim();
+          if (!finalReply) throw new Error(localizeServerError("", "busyDesc"));
+          if (!active) return;
+
+          const assistantMsg = { role: "assistant", content: finalReply, branches: [finalReply], activeBranch: 0, model: selectedModel };
+          messagesHistory.push(assistantMsg);
+          persistSession();
+          renderAssistantBubble(assistantMsg, messagesHistory.length - 1);
+          scrollToBottom(false);
+
+          if (transcriptEl) transcriptEl.textContent = finalReply.slice(0, 320);
+          setOrbState("speaking");
+
+          const startedSpeech = toggleReadAloud(finalReply, null, () => {
+            if (active && !muted) {
+              setTimeout(() => startVoiceModeListening(), 320);
+            } else if (active) {
+              setOrbState("paused");
+            }
+          });
+          if (!startedSpeech && active) {
+            muted = true;
+            setOrbState("paused");
+          }
+        } catch (err) {
+          if (err && err.name === "AbortError") return;
+          if (!active) return;
+          const errText = err?.message || (currentLanguage === "bn" ? "উত্তর আনা যায়নি।" : "Could not get response.");
+          if (transcriptEl) transcriptEl.textContent = errText;
+          muted = true;
+          setOrbState("paused", errText.slice(0, 48));
+        } finally {
+          voiceAbort = null;
+        }
+      }
+
+      function startVoiceModeListening() {
+        if (!active || muted) {
+          if (active) setOrbState("paused");
+          return;
+        }
+        if (!isAppOnline()) {
+          muted = true;
+          setOrbState("offline");
+          return;
+        }
+        stopReadAloud();
+        stopRecognitionOnly();
+        setOrbState("listening");
+
+        const lang = currentLanguage === "bn" ? "bn-BD" : "en-US";
+        const bridge = getNativeAndroidBridge();
+        if (bridge && typeof bridge.startNativeVoice === "function") {
+          usingNative = true;
+          try {
+            bridge.startNativeVoice(lang);
+            return;
+          } catch (e) {
+            usingNative = false;
+          }
+        }
+
+        if (!Speech) {
+          showToast(currentLanguage === "bn" ? "এই ডিভাইসে ভয়েস ইনপুট সমর্থিত নয়।" : "Voice input is not supported on this device.");
+          closeVoiceMode();
+          return;
+        }
+
+        try {
+          webRec = new Speech();
+          webRec.lang = lang;
+          webRec.continuous = false;
+          webRec.interimResults = true;
+          let heardText = "";
+          webRec.onresult = (ev) => {
+            let tStr = "";
+            for (let i = 0; i < (ev?.results?.length || 0); i++) {
+              tStr += ev.results[i][0]?.transcript || "";
+            }
+            heardText = tStr.trim();
+            if (heardText && transcriptEl) transcriptEl.textContent = `"${heardText}"`;
+          };
+          webRec.onerror = (ev) => {
+            const code = ev?.error || "";
+            if (!active) return;
+            if (code === "not-allowed" || code === "service-not-allowed") {
+              showToast(currentLanguage === "bn" ? "মাইক্রোফোনের অনুমতি প্রয়োজন।" : "Microphone permission required.");
+              muted = true;
+              setOrbState("paused");
+            }
+          };
+          webRec.onend = () => {
+            webRec = null;
+            if (!active) return;
+            if (heardText) {
+              handleSpokenQuery(heardText);
+            } else if (!muted) {
+              silentRetryCount += 1;
+              if (silentRetryCount >= 2) {
+                muted = true;
+                setOrbState("paused");
+              } else {
+                setTimeout(() => startVoiceModeListening(), 350);
+              }
+            } else {
+              setOrbState("paused");
+            }
+          };
+          webRec.start();
+        } catch (e) {
+          muted = true;
+          setOrbState("paused");
+        }
+      }
+
+      window.__voiceModeHooks = {
+        active: false,
+        onStart() {
+          if (active) setOrbState("listening");
+        },
+        onPartial(txt) {
+          const clean = String(txt || "").trim();
+          if (active && clean && transcriptEl) transcriptEl.textContent = `"${clean}"`;
+        },
+        onResult(txt) {
+          usingNative = false;
+          if (!active) return;
+          const clean = String(txt || "").trim();
+          if (clean) {
+            handleSpokenQuery(clean);
+          } else if (!muted) {
+            silentRetryCount += 1;
+            if (silentRetryCount >= 2) {
+              muted = true;
+              setOrbState("paused");
+            } else {
+              setTimeout(() => startVoiceModeListening(), 350);
+            }
+          }
+        },
+        onEnd() {
+          usingNative = false;
+          if (active && phase === "listening" && !muted) {
+            setOrbState("paused");
+          }
+        },
+        onError(msg) {
+          usingNative = false;
+          if (!active) return;
+          muted = true;
+          setOrbState("paused");
+          if (msg) showToast(String(msg));
+        }
+      };
+
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (isGenerating || isSending) stopGeneration();
+        stopReadAloud();
+        active = true;
+        muted = false;
+        silentRetryCount = 0;
+        window.__voiceModeHooks.active = true;
+        if (modelLabel) {
+          modelLabel.textContent = document.getElementById("headerModelLabel")?.textContent || selectedModel || "Alora";
+        }
+        if (transcriptEl) {
+          transcriptEl.textContent = currentLanguage === "bn"
+            ? "স্বাভাবিক কণ্ঠে কথা বলুন — উত্তর নিজেই শোনাবে।"
+            : "Speak naturally — Alora listens and replies aloud.";
+        }
+        backdrop.classList.add("open");
+        backdrop.setAttribute("aria-hidden", "false");
+        startVoiceModeListening();
+      });
+
+      micToggleBtn?.addEventListener("click", () => {
+        if (!active) return;
+        if (phase === "speaking") {
+          stopReadAloud();
+          muted = false;
+          startVoiceModeListening();
+          return;
+        }
+        if (phase === "thinking" && voiceAbort) {
+          try { voiceAbort.abort(); } catch (e) {}
+          voiceAbort = null;
+        }
+        muted = !muted;
+        if (muted) {
+          stopRecognitionOnly();
+          setOrbState("paused");
+        } else {
+          silentRetryCount = 0;
+          startVoiceModeListening();
+        }
+      });
+
+      closeBtn?.addEventListener("click", closeVoiceMode);
+    }
+
     // =========================================================================
     // INITIALIZATION & EVENT WIRING
     // =========================================================================
     document.addEventListener("DOMContentLoaded", () => {
-      const savedTheme = localStorage.getItem(KEYS.THEME) || "dark";
+      const savedTheme = localStorage.getItem(KEYS.THEME) || "system";
       setTheme(savedTheme);
       applyLiveI18n();
       initVoice();
+      initVoiceModeEngine();
+      updateOfflineIndicator();
       updateComposerPosition();
       loadDynamicModels(true);
       fetchPlanLimits();
@@ -7513,6 +8753,19 @@
       syncAdsUI();
       refreshUserFromServer();
       applyRouteFromLocation(true);
+      if (isAppOnline()) {
+        setTimeout(() => { flushOfflineSyncQueue(); }, 300);
+      }
+
+      document.getElementById("codePreviewCloseBtn")?.addEventListener("click", closeCodePreviewModal);
+      document.getElementById("codePreviewBackdrop")?.addEventListener("click", (e) => {
+        if (e.target === e.currentTarget) closeCodePreviewModal();
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key !== "Escape") return;
+        if (document.getElementById("voiceModeBackdrop")?.classList.contains("open")) closeVoiceMode();
+        else if (document.getElementById("codePreviewBackdrop")?.classList.contains("open")) closeCodePreviewModal();
+      });
 
       // Auto-open trial offer modal when returning from login with ?claim=trial
       if (new URLSearchParams(window.location.search).get("claim") === "trial") {
@@ -7892,6 +9145,23 @@
         const inp = document.getElementById("settingsNameInput");
         const newName = inp ? inp.value.trim() : "";
         if (!token || !newName) return;
+
+        const saveOfflineProfileName = () => {
+          localStorage.setItem(OFFLINE_PROFILE_KEY, newName);
+          try {
+            const cachedU = JSON.parse(localStorage.getItem(KEYS.USER) || "{}") || {};
+            cachedU.name = newName;
+            localStorage.setItem(KEYS.USER, JSON.stringify(cachedU));
+          } catch (e) {}
+          syncUserUI();
+          showToast(currentLanguage === "bn" ? "অফলাইনে সংরক্ষিত হয়েছে • অনলাইন হলেই সিঙ্ক হবে" : "Saved offline • Will sync when online");
+        };
+
+        if (!isAppOnline()) {
+          saveOfflineProfileName();
+          return;
+        }
+
         const btn = document.getElementById("settingsSaveNameBtn");
         btn.disabled = true;
         try {
@@ -7902,6 +9172,7 @@
           });
           const data = await res.json();
           if (res.ok && data.success) {
+            localStorage.removeItem(OFFLINE_PROFILE_KEY);
             if (data.token) localStorage.setItem(KEYS.TOKEN, data.token);
             if (data.user) localStorage.setItem(KEYS.USER, JSON.stringify(data.user));
             syncUserUI();
@@ -7910,7 +9181,7 @@
             showToast(data.error || "Update failed");
           }
         } catch(e) {
-          showToast("Connection error");
+          saveOfflineProfileName();
         } finally {
           btn.disabled = false;
         }

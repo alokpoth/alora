@@ -20,6 +20,48 @@ const DEFAULT_OPENROUTER_KEY = process.env.OPENROUTER_API_KEY || '';
 const DEFAULT_BAI_KEY = process.env.BAI_API_KEY || '';
 const DEFAULT_VYCE_KEY = process.env.VYCE_API_KEY || '';
 
+// Auto-detected upstream streaming capability cache ("provider::url::model" -> boolean)
+const modelStreamingCapability = new Map();
+
+function extractCompletionTextFromJson(json) {
+  if (!json || typeof json !== 'object') return { text: '', reasoning: '' };
+  const choice = Array.isArray(json.choices) ? json.choices[0] : null;
+  if (choice) {
+    const msg = choice.message || {};
+    const content = typeof msg.content === 'string'
+      ? msg.content
+      : (Array.isArray(msg.content) ? msg.content.map(c => (c && c.text) || '').join('') : '');
+    const reasoning = msg.reasoning_content || msg.reasoning || '';
+    const fallback = choice.text || '';
+    if (content || fallback || reasoning) {
+      return { text: String(content || fallback || ''), reasoning: String(reasoning || '') };
+    }
+  }
+  const candParts = json.candidates?.[0]?.content?.parts;
+  if (Array.isArray(candParts)) {
+    const gText = candParts.map(p => (p && p.text) || '').join('');
+    if (gText) return { text: gText, reasoning: '' };
+  }
+  if (Array.isArray(json.content)) {
+    const aText = json.content.map(c => (c && c.text) || '').join('');
+    if (aText) return { text: aText, reasoning: '' };
+  }
+  const direct = json.output_text || json.response || json.answer || json.result || json.text
+    || (typeof json.content === 'string' ? json.content : '')
+    || (json.message && typeof json.message.content === 'string' ? json.message.content : '');
+  return { text: String(direct || ''), reasoning: '' };
+}
+
+function isStreamingUnsupportedError(status, errBodyText = '') {
+  if (status === 400 || status === 404 || status === 422 || status === 501) {
+    if (/stream|sse|event[- ]stream|unsupported|invalid.*param|alt=sse|not\s+support/i.test(errBodyText)) {
+      return true;
+    }
+    if (status === 400 || status === 404 || status === 501) return true;
+  }
+  return false;
+}
+
 const resolveModelTarget = async (targetModelId, customUrl, customKey, targetModelConfig) => {
   if (customUrl && typeof customUrl === 'object' && !targetModelConfig) {
     targetModelConfig = customUrl;
@@ -256,7 +298,13 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
 - Only provide details about who you are, what your name is, or who created you if the user SPECIFICALLY and DIRECTLY asks about you (e.g. "তুমি কে?", "তোমার নাম কি?", "তোমাকে কে বানিয়েছে?", "কে তোমার প্রতিষ্ঠাতা?", "তোমার মালিক কে?", "তোমার পরিচয় কি?", "Who are you?", "What is your name?", "Who made you?", "Who created you?", "Tell me about yourself"):
   - When (and ONLY when) asked in Bengali: state that your name is "${safeDisplayName}", an AI assistant developed by Alora (Alora AI), a product of Alokpoth (আলোকপথ), founded by Zihan Fakir (জিহান ফকির).
   - When (and ONLY when) asked in English: state that your name is "${safeDisplayName}", an AI assistant developed by Alora, a product of Alokpoth, founded by Zihan Fakir.
-- You have NO other name. Your name is ONLY "${safeDisplayName}".`;
+- You have NO other name. Your name is ONLY "${safeDisplayName}".
+
+6. STRUCTURED LAYOUT FORMATTING (FOR RICH UI CARDS):
+- Code blocks: Always wrap source code inside properly labeled Markdown code fences (\`\`\`python, \`\`\`javascript, \`\`\`html, \`\`\`css, \`\`\`bash, \`\`\`sql, etc.) with complete, runnable code.
+- Tables: Whenever comparing items, benchmarks, specs, or schedules, format them as clean Markdown tables (| Col | Col |).
+- Math equations: Format display formulas using \`$$ ... $$\` on their own lines and inline math using \`$ ... $\` cleanly.
+- Callouts: Highlight important tips, warnings, or notes with Markdown callout quotes (\`> [!NOTE]\`, \`> [!TIP]\`, \`> [!WARNING]\`, \`> [!IMPORTANT]\`).`;
 
     const basePrompt = globalSystemPrompt ? globalSystemPrompt : defaultIdentity;
     const mandatorySecurityFooter = buildCoreSecurityAndIdentityDirective(safeDisplayName, {
@@ -286,8 +334,8 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
     };
     res.on('close', onClientClose);
 
-    // Helper to attempt completion fetch with timeout (handles both OpenAI format & Google Gemini SSE format)
-    const tryFetchTarget = async (pType, url, key, modName, timeoutMs = 12000) => {
+    // Helper to attempt completion fetch with timeout (handles both OpenAI & Gemini SSE or non-streaming JSON)
+    const tryFetchTarget = async (pType, url, key, modName, timeoutMs = 12000, useStream = true, includeExtraParams = true) => {
       const fetchController = new AbortController();
       const timeoutId = setTimeout(() => fetchController.abort(), timeoutMs);
 
@@ -296,6 +344,13 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
 
       try {
         if (pType === 'gemini') {
+          let effectiveGeminiUrl = String(url || '');
+          if (!useStream) {
+            effectiveGeminiUrl = effectiveGeminiUrl
+              .replace(':streamGenerateContent', ':generateContent')
+              .replace(/([?&])alt=sse&?/g, '$1')
+              .replace(/[?&]$/, '');
+          }
           const geminiContents = [];
           let systemInstructionText = modelIdentityDirective;
           for (const m of safeMessages) {
@@ -338,9 +393,7 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
               topP: 0.90,
               topK: 64,
               maxOutputTokens: 8192,
-              frequencyPenalty: 0.6,
-              presencePenalty: 0.4,
-              thinkingConfig: { thinkingBudget: 0 }
+              ...(includeExtraParams ? { frequencyPenalty: 0.6, presencePenalty: 0.4, thinkingConfig: { thinkingBudget: 0 } } : {})
             },
             safetySettings: [
               { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
@@ -350,7 +403,7 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
             ]
           };
 
-          const r = await fetch(url, {
+          const r = await fetch(effectiveGeminiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(geminiBody),
@@ -377,12 +430,10 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
           const p = {
             model: modName,
             messages: safeMessagesWithIdentity,
-            stream: true,
+            stream: Boolean(useStream),
             temperature: 0.65,
             top_p: 0.90,
-            frequency_penalty: 0.6,
-            presence_penalty: 0.4,
-            reasoning_effort: 'none'
+            ...(includeExtraParams ? { frequency_penalty: 0.6, presence_penalty: 0.4, reasoning_effort: 'none' } : {})
           };
 
           const lowerMod = modName.toLowerCase();
@@ -410,8 +461,41 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
       }
     };
 
+    const clientWantsStream = req.body.stream !== false;
+    const executeTargetWithAutoStream = async (pType, url, key, modName, timeoutMs, cfg) => {
+      const capKey = `${pType}::${String(url || '').split('?')[0]}::${modName}`;
+      const modeCfg = cfg?.streaming_mode || 'auto';
+      let wantStream = clientWantsStream;
+      if (modeCfg === 'non_stream' || cfg?.supports_streaming === false) {
+        wantStream = false;
+      } else if (modeCfg === 'auto' && modelStreamingCapability.get(capKey) === false) {
+        wantStream = false;
+      }
+
+      let r = await tryFetchTarget(pType, url, key, modName, timeoutMs, wantStream, true);
+      if (r && !r.ok && wantStream && modeCfg !== 'stream') {
+        const errBody = await r.text().catch(() => '');
+        if (isStreamingUnsupportedError(r.status, errBody)) {
+          console.warn(`[Auto-Stream Fallback] ${modName} does not support SSE/params (status ${r.status}); retrying with stream=false.`);
+          modelStreamingCapability.set(capKey, false);
+          r = await tryFetchTarget(pType, url, key, modName, timeoutMs, false, false);
+          return { resp: r, capKey, attemptedStream: false, retryTarget: { pType, url, key, modName } };
+        }
+        return { resp: { ok: false, status: r.status }, capKey, attemptedStream: wantStream, retryTarget: { pType, url, key, modName } };
+      }
+      if (r && !r.ok && r.status === 400) {
+        // Retry once without optional OpenAI/Gemini params on strict gateways
+        r = await tryFetchTarget(pType, url, key, modName, timeoutMs, wantStream, false);
+      }
+      return { resp: r, capKey, attemptedStream: wantStream, retryTarget: { pType, url, key, modName } };
+    };
+
     // Primary model attempt
-    let response = await tryFetchTarget(providerType, targetUrl, targetKey, actualModel, 60000);
+    let attemptResult = await executeTargetWithAutoStream(providerType, targetUrl, targetKey, actualModel, 60000, aiModelConfig);
+    let response = attemptResult.resp;
+    let activeCapKey = attemptResult.capKey;
+    let activeRetryTarget = attemptResult.retryTarget;
+    let attemptedStream = attemptResult.attemptedStream;
     let effectiveModel = cleanModel || safeDisplayName;
     let isGeminiStream = (providerType === 'gemini');
 
@@ -455,10 +539,13 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
         console.warn(`[Chat Primary Failed] Model ${cleanModel} (status: ${response ? response.status : 'timeout'}), trying internal Fallback API 2 (${fb1Model || actualModel})...`);
         const fb1 = await resolveTierTarget(fb1Model, fb1Url, fb1Key);
         if (fb1) {
-          const fb1Resp = await tryFetchTarget(fb1.providerType, fb1.targetUrl, fb1.targetKey, fb1.actualModel, 20000);
-          if (fb1Resp && fb1Resp.ok) {
+          const fb1Res = await executeTargetWithAutoStream(fb1.providerType, fb1.targetUrl, fb1.targetKey, fb1.actualModel, 20000, aiModelConfig);
+          if (fb1Res.resp && fb1Res.resp.ok) {
             console.log(`[Chat Internal API 2 Success] Model ${cleanModel} cleanly recovered using internal API 2 (${fb1.actualModel})`);
-            response = fb1Resp;
+            response = fb1Res.resp;
+            activeCapKey = fb1Res.capKey;
+            activeRetryTarget = fb1Res.retryTarget;
+            attemptedStream = fb1Res.attemptedStream;
             effectiveModel = cleanModel;
             isGeminiStream = (fb1.providerType === 'gemini');
           }
@@ -476,10 +563,13 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
         console.warn(`[Chat Fallback 1 Failed] Model ${cleanModel}, trying internal Fallback API 3 (${fb2Model || actualModel})...`);
         const fb2 = await resolveTierTarget(fb2Model, fb2Url, fb2Key);
         if (fb2) {
-          const fb2Resp = await tryFetchTarget(fb2.providerType, fb2.targetUrl, fb2.targetKey, fb2.actualModel, 20000);
-          if (fb2Resp && fb2Resp.ok) {
+          const fb2Res = await executeTargetWithAutoStream(fb2.providerType, fb2.targetUrl, fb2.targetKey, fb2.actualModel, 20000, aiModelConfig);
+          if (fb2Res.resp && fb2Res.resp.ok) {
             console.log(`[Chat Internal API 3 Success] Model ${cleanModel} cleanly recovered using internal API 3 (${fb2.actualModel})`);
-            response = fb2Resp;
+            response = fb2Res.resp;
+            activeCapKey = fb2Res.capKey;
+            activeRetryTarget = fb2Res.retryTarget;
+            attemptedStream = fb2Res.attemptedStream;
             effectiveModel = cleanModel;
             isGeminiStream = (fb2.providerType === 'gemini');
           }
@@ -499,9 +589,12 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
 
       for (const fb of envFallbacks) {
         if (res.writableEnded || res.destroyed) break;
-        const fbResp = await tryFetchTarget(fb.type, fb.url, fb.key, fb.model, 10000);
-        if (fbResp && fbResp.ok) {
-          response = fbResp;
+        const fbRes = await executeTargetWithAutoStream(fb.type, fb.url, fb.key, fb.model, 10000, null);
+        if (fbRes.resp && fbRes.resp.ok) {
+          response = fbRes.resp;
+          activeCapKey = fbRes.capKey;
+          activeRetryTarget = fbRes.retryTarget;
+          attemptedStream = fbRes.attemptedStream;
           effectiveModel = fb.id;
           isGeminiStream = false;
           break;
@@ -538,7 +631,115 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
       });
     }
 
-    // Model is verified healthy and responding: Now establish SSE streaming
+    const recordCompletionUsage = () => {
+      const userId = user ? String(user._id || user.id) : req.guestId;
+      if (!userId) return;
+      if (getIsMongoConnected()) {
+        UsageLog.create({
+          user_id: userId,
+          model_id: effectiveModel || cleanModel || safeDisplayName,
+          timestamp: new Date()
+        }).catch(err => console.error('[UsageLog Write Error]:', err.message));
+        incrementUserUsage(userId, req.currentPlan ? req.currentPlan.window_hours : 3).catch(() => {});
+      } else {
+        memoryStore.usageLogs.push({
+          _id: 'log_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+          user_id: userId,
+          model_id: effectiveModel || model || safeDisplayName,
+          timestamp: new Date()
+        });
+        if (memoryStore.usageLogs.length > 5000) {
+          memoryStore.usageLogs = memoryStore.usageLogs.slice(-5000);
+        }
+        debouncedSave();
+        incrementUserUsage(userId, req.currentPlan ? req.currentPlan.window_hours : 3).catch(e => {
+          console.error('[Increment User Usage Error]:', e.message);
+        });
+      }
+    };
+
+    const sanitizeCompletedText = (rawText) => {
+      const stripped = String(rawText || '').replace(/<think>[\s\S]*?(?:<\/think>|$)/gi, '');
+      return sanitizeModelIdentityText(stripped, safeDisplayName, {
+        isReasoning: false,
+        extraBlockedPatterns
+      }).trim();
+    };
+
+    const emitNonStreamedReply = (rawFullText) => {
+      const cleanFull = sanitizeCompletedText(rawFullText);
+      if (cleanFull) recordCompletionUsage();
+      if (!clientWantsStream && !res.headersSent) {
+        if (!cleanFull) {
+          return res.status(503).json({
+            success: false,
+            code: 'MODEL_BUSY',
+            model: safeDisplayName,
+            error: `মডেলটি বর্তমানে ব্যস্ত আছে (${safeDisplayName})।`
+          });
+        }
+        return res.json({ success: true, model: safeDisplayName, content: cleanFull, streamed: false });
+      }
+      if (!res.headersSent) {
+        res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+        res.setHeader('Cache-Control', 'no-cache, no-transform');
+        res.setHeader('Connection', 'keep-alive');
+        res.setHeader('X-Accel-Buffering', 'no');
+        if (res.flushHeaders) res.flushHeaders();
+        res.write(': keepalive\n\n');
+      }
+      if (cleanFull && !res.writableEnded) {
+        for (let i = 0; i < cleanFull.length; i += 48) {
+          res.write(`data: ${JSON.stringify({ model: safeDisplayName, non_stream: true, choices: [{ delta: { content: cleanFull.slice(i, i + 48) } }] })}\n\n`);
+        }
+        if (typeof res.flush === 'function') res.flush();
+      } else if (!cleanFull && !res.writableEnded) {
+        res.write(`data: ${JSON.stringify({ error: `মডেলটি বর্তমানে ব্যস্ত আছে (${safeDisplayName})।` })}\n\n`);
+      }
+      if (!res.writableEnded) {
+        res.write('data: [DONE]\n\n');
+        res.end();
+      }
+      return undefined;
+    };
+
+    const respContentType = String(response.headers?.get('content-type') || '').toLowerCase();
+    // Auto-handle models/providers that return complete JSON (either via non-streaming fallback or ignoring stream=true)
+    if (!respContentType.includes('text/event-stream') || !clientWantsStream) {
+      const rawBodyText = await response.text().catch(() => '');
+      let fullExtracted = '';
+      const trimmedBody = rawBodyText.trim();
+      if (trimmedBody.startsWith('{') || trimmedBody.startsWith('[')) {
+        try {
+          const parsed = JSON.parse(trimmedBody);
+          fullExtracted = extractCompletionTextFromJson(parsed).text;
+          if (attemptedStream && activeCapKey && (!aiModelConfig?.streaming_mode || aiModelConfig.streaming_mode === 'auto')) {
+            modelStreamingCapability.set(activeCapKey, false);
+          }
+        } catch (e) {}
+      } else if (trimmedBody.includes('data:')) {
+        const parts = [];
+        for (const line of trimmedBody.split('\n')) {
+          const lt = line.trim();
+          if (!lt.startsWith('data:')) continue;
+          const payload = lt.slice(5).trim();
+          if (!payload || payload === '[DONE]') continue;
+          try {
+            const j = JSON.parse(payload);
+            const tok = isGeminiStream
+              ? (j?.candidates?.[0]?.content?.parts || []).map(p => p?.text || '').join('')
+              : (j?.choices?.[0]?.delta?.content ?? j?.choices?.[0]?.message?.content ?? j?.choices?.[0]?.text ?? '');
+            if (tok) parts.push(tok);
+          } catch (e) {}
+        }
+        fullExtracted = parts.join('');
+      } else {
+        fullExtracted = trimmedBody;
+      }
+      return emitNonStreamedReply(fullExtracted);
+    }
+
+    // Model supports real SSE streaming: Establish SSE pipeline
     res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
     res.setHeader('Cache-Control', 'no-cache, no-transform');
     res.setHeader('Connection', 'keep-alive');
@@ -855,29 +1056,26 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
 
           // Record usage log only after stream successfully delivers tokens
           if (hasContentTokens) {
-            const userId = user ? String(user._id || user.id) : req.guestId;
-            if (userId) {
-              if (getIsMongoConnected()) {
-                UsageLog.create({
-                  user_id: userId,
-                  model_id: effectiveModel || cleanModel || safeDisplayName,
-                  timestamp: new Date()
-                }).catch(err => console.error('[UsageLog Write Error]:', err.message));
-                incrementUserUsage(userId, req.currentPlan ? req.currentPlan.window_hours : 3).catch(() => {});
-              } else {
-                memoryStore.usageLogs.push({
-                  _id: 'log_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
-                  user_id: userId,
-                  model_id: effectiveModel || model || safeDisplayName,
-                  timestamp: new Date()
-                });
-                if (memoryStore.usageLogs.length > 5000) {
-                  memoryStore.usageLogs = memoryStore.usageLogs.slice(-5000);
-                }
-                debouncedSave();
-                incrementUserUsage(userId, req.currentPlan ? req.currentPlan.window_hours : 3).catch(e => {
-                  console.error('[Increment User Usage Error]:', e.message);
-                });
+            recordCompletionUsage();
+          } else if (attemptedStream && activeRetryTarget && !res.writableEnded) {
+            // Stream ended with zero visible tokens -> auto-learn non-streaming and retry once with stream=false
+            if (activeCapKey) modelStreamingCapability.set(activeCapKey, false);
+            const nonStrResp = await tryFetchTarget(
+              activeRetryTarget.pType,
+              activeRetryTarget.url,
+              activeRetryTarget.key,
+              activeRetryTarget.modName,
+              25000,
+              false,
+              false
+            );
+            if (nonStrResp && nonStrResp.ok) {
+              const fbJson = await nonStrResp.json().catch(() => null);
+              const fbText = sanitizeCompletedText(extractCompletionTextFromJson(fbJson).text);
+              if (fbText && !res.writableEnded) {
+                res.write(`data: ${JSON.stringify({ model: safeDisplayName, non_stream: true, choices: [{ delta: { content: fbText } }] })}\n\n`);
+                if (typeof res.flush === 'function') res.flush();
+                recordCompletionUsage();
               }
             }
           }
@@ -1035,9 +1233,100 @@ async function executeImageGeneration(prompt, forcedSettings = null) {
   return buildPollinationsUrl(cleanPrompt, 'flux', imageSize, true);
 }
 
+// Helper to generate companion conversational text using any active selected chat model alongside the image
+async function generateImageCompanionText(originalPrompt, chatModelId, userLang = 'en') {
+  const isBn = userLang === 'bn' || /[\u0980-\u09FF]/.test(String(originalPrompt || ''));
+  const cleanUserPrompt = String(originalPrompt || '').trim().slice(0, 260);
+  let safeModelName = 'Alora AI';
+
+  try {
+    let cfg = null;
+    const targetId = String(chatModelId || '').trim();
+    if (targetId) {
+      if (getIsMongoConnected()) {
+        cfg = await AiModel.findOne({ $or: [{ model_id: targetId }, { id: targetId }] }).lean().catch(() => null);
+      }
+      if (!cfg) cfg = await getModelConfig(targetId).catch(() => null);
+    }
+    if (!cfg) {
+      const allModels = await getPersistedModels().catch(() => []);
+      cfg = (allModels || []).find(m => m && m.is_active !== false) || null;
+    }
+    if (cfg) {
+      safeModelName = getSafeModelDisplayName(cfg.name || cfg.model_id || cfg.id);
+      const tModel = cfg.api_model_1 || cfg.model_id || cfg.id;
+      const resolved = await resolveModelTarget(tModel, cfg.base_url || null, cfg.api_key || null, cfg);
+      if (resolved && resolved.targetUrl) {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 6500);
+        try {
+          const langLabel = isBn ? 'Bengali (বাংলা)' : 'English';
+          const sys = `You are "${safeModelName}" on Alora AI. The user just requested an image to be generated, and the image is being displayed right below your text. Write 1-2 short, warm, helpful sentences in ${langLabel} describing what was created. Never say you cannot generate images and never mention upstream APIs.`;
+          const usr = `User image request: "${cleanUserPrompt}"`;
+
+          if (resolved.providerType === 'gemini') {
+            const gUrl = resolved.targetUrl
+              .replace(':streamGenerateContent', ':generateContent')
+              .replace(/([?&])alt=sse&?/g, '$1')
+              .replace(/[?&]$/, '');
+            const gr = await fetch(gUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                systemInstruction: { parts: [{ text: sys }] },
+                contents: [{ role: 'user', parts: [{ text: usr }] }],
+                generationConfig: { temperature: 0.7, maxOutputTokens: 160 }
+              }),
+              signal: controller.signal
+            });
+            clearTimeout(timer);
+            if (gr.ok) {
+              const gd = await gr.json().catch(() => null);
+              const txt = extractCompletionTextFromJson(gd).text;
+              if (txt && txt.trim()) {
+                return { caption: sanitizeModelIdentityText(txt.trim(), safeModelName), modelName: safeModelName };
+              }
+            }
+          } else {
+            const h = { 'Content-Type': 'application/json' };
+            if (resolved.targetKey) h['Authorization'] = `Bearer ${resolved.targetKey}`;
+            const or = await fetch(resolved.targetUrl, {
+              method: 'POST',
+              headers: h,
+              body: JSON.stringify({
+                model: resolved.actualModel,
+                messages: [{ role: 'system', content: sys }, { role: 'user', content: usr }],
+                stream: false,
+                temperature: 0.7,
+                max_tokens: 160
+              }),
+              signal: controller.signal
+            });
+            clearTimeout(timer);
+            if (or.ok) {
+              const od = await or.json().catch(() => null);
+              const txt = extractCompletionTextFromJson(od).text;
+              if (txt && txt.trim()) {
+                return { caption: sanitizeModelIdentityText(txt.trim(), safeModelName), modelName: safeModelName };
+              }
+            }
+          }
+        } catch (err) {
+          clearTimeout(timer);
+        }
+      }
+    }
+  } catch (e) {}
+
+  const fallbackCaption = isBn
+    ? `আপনার নির্দেশনা অনুযায়ী "${cleanUserPrompt}"-এর ছবিটি তৈরি করা হয়েছে:`
+    : `Here is the generated image for "${cleanUserPrompt}":`;
+  return { caption: fallbackCaption, modelName: safeModelName };
+}
+
 const generateImage = async (req, res) => {
   try {
-    const { prompt, size, style, model, enhance } = req.body;
+    const { prompt, size, style, model, chat_model, enhance, language, include_caption } = req.body;
     if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
       return res.status(400).json({ success: false, error: 'অনুগ্রহ করে একটি সঠিক প্রম্পট প্রদান করুন।' });
     }
@@ -1060,7 +1349,7 @@ const generateImage = async (req, res) => {
         if (geminiKey) {
           const enhModel = (geminiModelCfg && geminiModelCfg.model_id && !geminiModelCfg.model_id.includes('/')) ? geminiModelCfg.model_id : 'gemini-2.0-flash';
           const enhController = new AbortController();
-          const enhTimeout = setTimeout(() => enhController.abort(), 8000);
+          const enhTimeout = setTimeout(() => enhController.abort(), 7000);
           try {
             const enhanceRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(enhModel)}:generateContent?key=${geminiKey}`, {
               method: 'POST',
@@ -1080,12 +1369,9 @@ const generateImage = async (req, res) => {
             }
           } catch (e) {
             clearTimeout(enhTimeout);
-            console.warn("[Image Enhancer Timeout/Skip]:", e.message);
           }
         }
-      } catch (err) {
-        console.warn("[Image Enhancer Error]:", err.message);
-      }
+      } catch (err) {}
     }
 
     if (style && typeof style === 'string' && style.trim()) {
@@ -1097,7 +1383,13 @@ const generateImage = async (req, res) => {
     if (model && typeof model === 'string') forcedSettings.image_model = model.trim();
     if (enhance !== undefined) forcedSettings.image_enhance = !!enhance;
 
-    const imgResult = await executeImageGeneration(finalPrompt, Object.keys(forcedSettings).length ? forcedSettings : null);
+    const wantCaption = include_caption !== false;
+    const [imgResult, companion] = await Promise.all([
+      executeImageGeneration(finalPrompt, Object.keys(forcedSettings).length ? forcedSettings : null),
+      wantCaption
+        ? generateImageCompanionText(prompt, chat_model || model, language)
+        : Promise.resolve({ caption: '', modelName: 'Alora Image' })
+    ]);
 
     // Record usage log for image generation
     const userId = req.user ? String(req.user._id || req.user.id) : (req.guestId ? String(req.guestId) : null);
@@ -1124,7 +1416,12 @@ const generateImage = async (req, res) => {
       incrementUserImageUsage(userId, req.currentPlan ? req.currentPlan.window_hours : 3).catch(() => {});
     }
 
-    return res.json({ success: true, url: imgResult.url, model: 'Alora Image' });
+    return res.json({
+      success: true,
+      url: imgResult.url,
+      caption: companion.caption || '',
+      model: companion.modelName || 'Alora Image'
+    });
   } catch (error) {
     console.error('[Image Gen Error]:', error.message);
     const errMsg = String(error.message || '');

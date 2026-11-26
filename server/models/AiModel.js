@@ -12,6 +12,7 @@ const AiModelSchema = new mongoose.Schema({
   efficient: { type: Boolean, default: false },
   is_active: { type: Boolean, default: true },
   context_window: { type: Number, default: 8192 },
+  streaming_mode: { type: String, enum: ['auto', 'stream', 'non_stream'], default: 'auto' },
   order: { type: Number, default: 0 },
   // Tier 1: Primary API
   api_model_1: { type: String, default: '' },

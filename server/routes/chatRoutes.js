@@ -48,7 +48,8 @@ router.get('/models', async (req, res) => {
         premium: !!m.premium,
         efficient: !!m.efficient,
         order: m.order,
-        context_window: m.context_window || 8192
+        context_window: m.context_window || 8192,
+        streaming_mode: m.streaming_mode || 'auto'
       };
     };
 

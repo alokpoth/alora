@@ -1123,6 +1123,7 @@ const updateModel = async (req, res) => {
     try { modelId = decodeURIComponent(modelId); } catch {}
     const {
       premium, efficient, name, description, provider, type, is_active, context_window, order,
+      streaming_mode,
       base_url, api_key, clear_api_key, api_model_1,
       fallback_url_1, fallback_key_1, fallback_model_1, api_model_2, clear_fallback_key_1,
       fallback_url_2, fallback_key_2, fallback_model_2, api_model_3, clear_fallback_key_2
@@ -1133,6 +1134,9 @@ const updateModel = async (req, res) => {
     const cleanIsActive = is_active !== undefined ? (is_active === true || is_active === 'true' || is_active === 1 || is_active === '1') : undefined;
     const cleanContext = (context_window !== undefined && !isNaN(Number(context_window)) && Number(context_window) > 0) ? Number(context_window) : undefined;
     const cleanOrder = (order !== undefined && !isNaN(Number(order))) ? Number(order) : undefined;
+    const cleanStreamingMode = ['auto', 'stream', 'non_stream'].includes(String(streaming_mode || '').trim())
+      ? String(streaming_mode).trim()
+      : undefined;
     const cleanProvider = (typeof provider === 'string' && provider.trim()) ? provider.trim().slice(0, 50) : undefined;
     const cleanType = (typeof type === 'string' && type.trim()) ? type.trim().slice(0, 50) : undefined;
     const cleanDesc = description !== undefined ? String(description || '').trim().slice(0, 300) : undefined;
@@ -1177,6 +1181,7 @@ const updateModel = async (req, res) => {
         if (cleanOrder !== undefined) mongoModel.order = cleanOrder;
         if (cleanProvider !== undefined) mongoModel.provider = cleanProvider;
         if (cleanType !== undefined) mongoModel.type = cleanType;
+        if (cleanStreamingMode !== undefined) mongoModel.streaming_mode = cleanStreamingMode;
         if (name !== undefined) mongoModel.name = (typeof name === 'string' && name.trim()) ? name.trim().slice(0, 100) : (modelId || 'Alo AI');
         if (cleanDesc !== undefined) mongoModel.description = cleanDesc;
         if (cleanBaseUrl !== undefined) mongoModel.base_url = cleanBaseUrl;
@@ -1224,6 +1229,7 @@ const updateModel = async (req, res) => {
           context_window: cleanContext || 8192,
           provider: cleanProvider || 'Alora',
           type: cleanType || 'custom',
+          streaming_mode: cleanStreamingMode || 'auto',
           order: cleanOrder !== undefined ? cleanOrder : (count + 1)
         });
       }
@@ -1267,6 +1273,7 @@ const updateModel = async (req, res) => {
         context_window: cleanContext || 8192,
         provider: cleanProvider || 'Alora',
         type: cleanType || 'custom',
+        streaming_mode: cleanStreamingMode || 'auto',
         order: cleanOrder !== undefined ? cleanOrder : (models.length + 1)
       };
       models.push(model);
@@ -1284,6 +1291,7 @@ const updateModel = async (req, res) => {
       if (cleanOrder !== undefined) model.order = cleanOrder;
       if (cleanProvider !== undefined) model.provider = cleanProvider;
       if (cleanType !== undefined) model.type = cleanType;
+      if (cleanStreamingMode !== undefined) model.streaming_mode = cleanStreamingMode;
 
       if (cleanFbUrl1 !== undefined) model.fallback_url_1 = cleanFbUrl1;
       if (cleanFbModel1 !== undefined) {
@@ -1330,8 +1338,11 @@ const addModel = async (req, res) => {
       base_url, api_key, api_model_1,
       fallback_url_1, fallback_key_1, fallback_model_1, api_model_2,
       fallback_url_2, fallback_key_2, fallback_model_2, api_model_3,
-      premium, efficient, provider, type
+      premium, efficient, provider, type, streaming_mode
     } = req.body;
+    const cleanStreamingMode = ['auto', 'stream', 'non_stream'].includes(String(streaming_mode || '').trim())
+      ? String(streaming_mode).trim()
+      : 'auto';
     if (!model_id || !name || typeof model_id !== 'string' || typeof name !== 'string') {
       return res.status(400).json({ success: false, error: 'মডেল আইডি এবং নাম আবশ্যক' });
     }
@@ -1395,6 +1406,7 @@ const addModel = async (req, res) => {
           efficient: Boolean(efficient),
           provider: provider || 'Alora',
           type: type || 'custom',
+          streaming_mode: cleanStreamingMode,
           order: newOrder
         });
       }
@@ -1420,6 +1432,7 @@ const addModel = async (req, res) => {
       efficient: Boolean(efficient),
       provider: provider || 'Alora',
       type: type || 'custom',
+      streaming_mode: cleanStreamingMode,
       order: newOrder
     };
     models.push(newModel);

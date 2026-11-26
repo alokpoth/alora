@@ -263,6 +263,14 @@ const checkRateLimit = async (req, res, next) => {
         resetTimeMinutes = imgDetails.resetInMinutes;
       }
 
+      if (plan.image_limit <= 0) {
+        return res.status(403).json({
+          success: false,
+          code: 'PLAN_UPGRADE_REQUIRED',
+          error: `আপনার বর্তমান ${plan.displayName || plan.name} প্ল্যানে ইমেজ জেনারেশন চালু নেই। ছবি তৈরি করতে উচ্চতর প্ল্যানে আপগ্রেড করুন।`
+        });
+      }
+
       if (imageCount >= plan.image_limit) {
         res.setHeader('Retry-After', Math.max(1, Math.ceil(resetTimeMinutes * 60)));
         return res.status(429).json({

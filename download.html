@@ -22,10 +22,10 @@
   
   <style>
     :root {
-      --bg-base: #212121;
-      --bg-card: #171717;
-      --bg-card-hover: #2f2f2f;
-      --border-card: rgba(255, 255, 255, 0.08);
+      --bg-base: #000000;
+      --bg-card: #111113;
+      --bg-card-hover: #1c1c1f;
+      --border-card: rgba(255, 255, 255, 0.12);
       --border-divider: rgba(255, 255, 255, 0.06);
       --text-main: #ececec;
       --text-sub: #a1a1aa;
@@ -39,16 +39,6 @@
     }
 
     [data-theme="dark"] {
-      --bg-base: #212121;
-      --bg-card: #171717;
-      --bg-card-hover: #2f2f2f;
-      --border-card: rgba(255, 255, 255, 0.08);
-      --border-divider: rgba(255, 255, 255, 0.06);
-      --text-main: #ececec;
-      --text-sub: #a1a1aa;
-    }
-
-    [data-theme="oled"] {
       --bg-base: #000000;
       --bg-card: #111113;
       --bg-card-hover: #1c1c1f;
@@ -57,18 +47,7 @@
       --text-main: #ececec;
       --text-sub: #a1a1aa;
     }
-
-    [data-theme="sapphire"] {
-      --bg-base: #070d19;
-      --bg-card: #0f1c32;
-      --bg-card-hover: #152744;
-      --border-card: rgba(56, 189, 248, 0.15);
-      --border-divider: rgba(56, 189, 248, 0.08);
-      --text-main: #f8fafc;
-      --text-sub: #94a3b8;
-    }
-
-    [data-theme="eyecare"] {
+[data-theme="eyecare"] {
       --bg-base: #f5eedc;
       --bg-card: #eadeca;
       --bg-card-hover: #dfcfb8;
@@ -987,8 +966,10 @@
 <script>
   (function() {
       try {
-        var raw = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "dark";
-        var valid = ["dark", "oled", "sapphire", "light", "eyecare"];
+        var raw = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "system";
+        if (raw === "oled") raw = "dark";
+        else if (raw === "sapphire") raw = "system";
+        var valid = ["dark", "light", "eyecare"];
         var mode = raw;
         if (raw === "system") {
           mode = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? "dark" : "light";
@@ -1041,7 +1022,7 @@
         Enjoy ultra-fast responses, 120Hz smooth scrolling, voice intelligence, and AMOLED true dark mode on your favorite device.
       </p>
       <div class="hero-tags">
-        <span class="meta-tag highlight">v1.4.0.0 Stable</span>
+        <span class="meta-tag highlight">v1.5.0.0 Stable</span>
         <span class="meta-tag">APK Size: 3.5 MB</span>
         <span class="meta-tag">Android 7.0+</span>
         <span class="meta-tag">iOS PWA</span>
@@ -1323,7 +1304,7 @@
           <img src="/logo_icon_black.png" alt="Alora" class="alokpath-theme-logo-light" style="height: 24px; width: auto; object-fit: contain;">
         </div>
       </div>
-      <span>Alora v1.4.0.0 (Build 20) • An Alokpath Product • Developed by Zihan Fakir</span>
+      <span>Alora v1.5.0.0 (Build 21) • An Alokpath Product • Developed by Zihan Fakir</span>
       <span><a href="/">Home</a> • <a href="/account">Settings</a> • <a href="/help">Help Center</a></span>
     </footer>
 

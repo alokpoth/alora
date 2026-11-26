@@ -39,36 +39,12 @@
     }
 
     [data-theme="dark"] {
-      --bg-base: #212121;
-      --bg-card: #141416;
-      --bg-card-elevated: #1a1a1e;
-      --bg-card-hover: #242428;
-      --border-card: rgba(255, 255, 255, 0.08);
-      --border-strong: rgba(255, 255, 255, 0.18);
-    }
-
-    [data-theme="oled"] {
       --bg-base: #000000;
       --bg-card: #0a0a0c;
       --bg-card-elevated: #121215;
       --bg-card-hover: #1c1c20;
       --border-card: rgba(255, 255, 255, 0.1);
       --border-strong: rgba(255, 255, 255, 0.2);
-    }
-
-    [data-theme="sapphire"] {
-      --bg-base: #050811;
-      --bg-card: #0c1426;
-      --bg-card-elevated: #101c34;
-      --bg-card-hover: #162748;
-      --border-card: rgba(56, 189, 248, 0.14);
-      --border-strong: rgba(56, 189, 248, 0.28);
-      --border-divider: rgba(56, 189, 248, 0.08);
-      --text-main: #f8fafc;
-      --text-sub: #94a3b8;
-      --accent-blue: #ececec;
-      --accent-ink: #0d0d0d;
-      --accent-blue-hover: #ffffff;
     }
 
     [data-theme="light"] {
@@ -601,8 +577,10 @@
   <script>
     (function() {
       try {
-        var raw = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "dark";
-        var valid = ["dark", "oled", "sapphire", "light", "eyecare"];
+        var raw = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "system";
+        if (raw === "oled") raw = "dark";
+        else if (raw === "sapphire") raw = "system";
+        var valid = ["dark", "light", "eyecare"];
         var mode = raw;
         if (raw === "system") {
           mode = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? "dark" : "light";

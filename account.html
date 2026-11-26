@@ -25,10 +25,10 @@
     }
 
     :root {
-      --bg-base: #212121;
-      --bg-card: #171717;
-      --bg-card-hover: #2f2f2f;
-      --border-card: rgba(255, 255, 255, 0.08);
+      --bg-base: #000000;
+      --bg-card: #111113;
+      --bg-card-hover: #1c1c1f;
+      --border-card: rgba(255, 255, 255, 0.12);
       --border-divider: rgba(255, 255, 255, 0.06);
       --text-main: #ececec;
       --text-sub: #b4b4b4;
@@ -41,16 +41,6 @@
     }
 
     [data-theme="dark"] {
-      --bg-base: #212121;
-      --bg-card: #171717;
-      --bg-card-hover: #2f2f2f;
-      --border-card: rgba(255, 255, 255, 0.08);
-      --border-divider: rgba(255, 255, 255, 0.06);
-      --text-main: #ececec;
-      --text-sub: #b4b4b4;
-    }
-
-    [data-theme="oled"] {
       --bg-base: #000000;
       --bg-card: #111113;
       --bg-card-hover: #1c1c1f;
@@ -58,16 +48,6 @@
       --border-divider: rgba(255, 255, 255, 0.06);
       --text-main: #ececec;
       --text-sub: #b4b4b4;
-    }
-
-    [data-theme="sapphire"] {
-      --bg-base: #070d19;
-      --bg-card: #0f1c32;
-      --bg-card-hover: #152744;
-      --border-card: rgba(56, 189, 248, 0.15);
-      --border-divider: rgba(56, 189, 248, 0.08);
-      --text-main: #f8fafc;
-      --text-sub: #94a3b8;
     }
 
     [data-theme="eyecare"] {
@@ -696,8 +676,10 @@
 <script>
   (function() {
       try {
-        var raw = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "dark";
-        var valid = ["dark", "oled", "sapphire", "light", "eyecare"];
+        var raw = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "system";
+        if (raw === "oled") raw = "dark";
+        else if (raw === "sapphire") raw = "system";
+        var valid = ["dark", "light", "eyecare"];
         var mode = raw;
         if (raw === "system") {
           mode = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? "dark" : "light";
@@ -1476,7 +1458,9 @@
     });
 
     // Theme Switch
-    const savedTheme = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "system";
+    let savedTheme = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "system";
+    if (savedTheme === "oled") savedTheme = "dark";
+    else if (savedTheme === "sapphire") savedTheme = "system";
     function applyEffectiveTheme(t) {
       if (t === "system") {
         const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -1489,9 +1473,7 @@
 
     const THEME_NAMES = {
       system: "System (Auto)",
-      dark: "Dark",
-      oled: "OLED Black",
-      sapphire: "Sapphire",
+      dark: "Dark (OLED)",
       eyecare: "Eye Care",
       light: "Light"
     };

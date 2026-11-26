@@ -13,6 +13,7 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
 import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
 import android.webkit.JavascriptInterface
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
@@ -36,6 +37,19 @@ class WebAppInterface(private val activity: MainActivity) : TextToSpeech.OnInitL
         if (status == TextToSpeech.SUCCESS) {
             isTtsInitialized = true
             try {
+                tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+                    override fun onStart(utteranceId: String?) {}
+                    override fun onDone(utteranceId: String?) {
+                        activity.notifyTtsPlaybackDone()
+                    }
+                    @Deprecated("Deprecated in Java")
+                    override fun onError(utteranceId: String?) {
+                        activity.notifyTtsPlaybackDone()
+                    }
+                    override fun onError(utteranceId: String?, errorCode: Int) {
+                        activity.notifyTtsPlaybackDone()
+                    }
+                })
                 val bnLocale = Locale("bn", "BD")
                 val result = tts?.setLanguage(bnLocale)
                 if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
@@ -51,18 +65,25 @@ class WebAppInterface(private val activity: MainActivity) : TextToSpeech.OnInitL
         val engine = tts ?: return false
         if (!isTtsInitialized) return false
         return try {
-            val targetLocale = if (lang?.equals("en", ignoreCase = true) == true) {
-                Locale.US
-            } else {
-                Locale("bn", "BD")
+            val hasBengaliScript = Regex("[\\u0980-\\u09FF]").containsMatchIn(text)
+            val targetLocale = when {
+                hasBengaliScript -> Locale("bn", "BD")
+                lang?.equals("en", ignoreCase = true) == true -> Locale.US
+                !hasBengaliScript -> Locale.US
+                else -> Locale("bn", "BD")
             }
             var langResult = engine.setLanguage(targetLocale)
             if (langResult == TextToSpeech.LANG_MISSING_DATA || langResult == TextToSpeech.LANG_NOT_SUPPORTED) {
-                // Try Indian Bengali fallback
-                langResult = engine.setLanguage(Locale("bn", "IN"))
+                if (targetLocale.language == "bn") {
+                    langResult = engine.setLanguage(Locale("bn", "IN"))
+                }
                 if (langResult == TextToSpeech.LANG_MISSING_DATA || langResult == TextToSpeech.LANG_NOT_SUPPORTED) {
-                    // Native TTS lacks Bengali voice data on this device. Return false to trigger web audio fallback.
-                    return false
+                    // Try English fallback only if non-Bengali or still return false so web speech handles Bengali cleanly
+                    if (hasBengaliScript) return false
+                    langResult = engine.setLanguage(Locale.US)
+                    if (langResult == TextToSpeech.LANG_MISSING_DATA || langResult == TextToSpeech.LANG_NOT_SUPPORTED) {
+                        return false
+                    }
                 }
             }
             val speakResult = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -329,6 +350,9 @@ class WebAppInterface(private val activity: MainActivity) : TextToSpeech.OnInitL
 
     @JavascriptInterface
     fun isNativeApp(): Boolean = true
+
+    @JavascriptInterface
+    fun isOnline(): Boolean = activity.isNetworkAvailablePublic()
 
     @JavascriptInterface
     fun getAppVersion(): String = BuildConfig.VERSION_NAME

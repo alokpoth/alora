@@ -21,8 +21,8 @@ android {
         minSdk = 24
         targetSdk = 35
         // 4-part base-10 rollover versioning: 1.3.0.1 .. 1.3.0.9 -> 1.3.1.0
-        versionCode = 20
-        versionName = "1.4.0.0"
+        versionCode = 21
+        versionName = "1.5.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -135,7 +135,8 @@ val syncWebAssets = tasks.register<Sync>("syncWebAssets") {
             "alokpath_*.png",
             "alokpath_*.svg",
             "logo/**",
-            "avatars/**"
+            "avatars/**",
+            "vendor/**"
         )
     }
     into(layout.projectDirectory.dir("src/main/assets/www"))

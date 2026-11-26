@@ -12,6 +12,7 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import android.view.WindowManager
 import android.net.ConnectivityManager
+import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
@@ -80,6 +81,7 @@ class MainActivity : AppCompatActivity() {
     private var cameraPhotoUri: Uri? = null
     private var pendingPermissionRequest: PermissionRequest? = null
     private var webAppInterface: WebAppInterface? = null
+    private var networkCallback: ConnectivityManager.NetworkCallback? = null
 
     private var lastBackPressTime = 0L
 
@@ -331,7 +333,8 @@ class MainActivity : AppCompatActivity() {
         )
         enableHighRefreshRate()
         setContentView(R.layout.activity_main)
-        applySystemBarsTheme(false, "#212121")
+        val isSysDark = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+        applySystemBarsTheme(!isSysDark, if (isSysDark) "#000000" else "#FFFFFF")
 
         initViews()
         setupEdgeToEdgeInsets()
@@ -531,9 +534,9 @@ class MainActivity : AppCompatActivity() {
         runOnUiThread {
             try {
                 val parsed = try {
-                    Color.parseColor(bgHex ?: if (isLight) "#FFFFFF" else "#212121")
+                    Color.parseColor(bgHex ?: if (isLight) "#FFFFFF" else "#000000")
                 } catch (_: Exception) {
-                    if (isLight) Color.WHITE else Color.parseColor("#212121")
+                    if (isLight) Color.WHITE else Color.BLACK
                 }
                 findViewById<View>(R.id.mainRoot)?.setBackgroundColor(parsed)
                 if (::webView.isInitialized) {
@@ -581,7 +584,8 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("SetJavaScriptEnabled")
     private fun setupWebView() {
         webView.setLayerType(View.LAYER_TYPE_HARDWARE, null)
-        webView.setBackgroundColor(Color.parseColor("#212121"))
+        val initDark = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+        webView.setBackgroundColor(if (initDark) Color.BLACK else Color.WHITE)
         webView.settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true
@@ -615,6 +619,15 @@ class MainActivity : AppCompatActivity() {
             overScrollMode = View.OVER_SCROLL_NEVER
             isVerticalScrollBarEnabled = false
             isHorizontalScrollBarEnabled = false
+            isHapticFeedbackEnabled = true
+            setOnLongClickListener {
+                val res = hitTestResult
+                val t = res.type
+                // Suppress browser link/image preview menus so UI feels 100% native
+                t == WebView.HitTestResult.SRC_ANCHOR_TYPE ||
+                    t == WebView.HitTestResult.IMAGE_TYPE ||
+                    t == WebView.HitTestResult.SRC_IMAGE_ANCHOR_TYPE
+            }
         }
 
         val wai = WebAppInterface(this)
@@ -688,6 +701,27 @@ class MainActivity : AppCompatActivity() {
                     this@MainActivity.filePathCallback = null
                     false
                 }
+            }
+
+            override fun onJsAlert(view: WebView?, url: String?, message: String?, result: JsResult?): Boolean {
+                androidx.appcompat.app.AlertDialog.Builder(this@MainActivity)
+                    .setTitle("Alora")
+                    .setMessage(message ?: "")
+                    .setPositiveButton(android.R.string.ok) { _, _ -> result?.confirm() }
+                    .setOnCancelListener { result?.cancel() }
+                    .show()
+                return true
+            }
+
+            override fun onJsConfirm(view: WebView?, url: String?, message: String?, result: JsResult?): Boolean {
+                androidx.appcompat.app.AlertDialog.Builder(this@MainActivity)
+                    .setTitle("Alora")
+                    .setMessage(message ?: "")
+                    .setPositiveButton(android.R.string.ok) { _, _ -> result?.confirm() }
+                    .setNegativeButton(android.R.string.cancel) { _, _ -> result?.cancel() }
+                    .setOnCancelListener { result?.cancel() }
+                    .show()
+                return true
             }
 
             override fun onConsoleMessage(consoleMessage: ConsoleMessage): Boolean {
@@ -1172,16 +1206,67 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    fun notifyTtsPlaybackDone() {
+        mainHandler.post {
+            if (::webView.isInitialized) {
+                webView.evaluateJavascript("if (typeof window.onNativeTtsDone === 'function') window.onNativeTtsDone();", null)
+            }
+        }
+    }
+
+    fun isNetworkAvailablePublic(): Boolean = isNetworkAvailable()
+
+    private fun registerNetworkMonitor() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N || networkCallback != null) return
+        try {
+            val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return
+            val cb = object : ConnectivityManager.NetworkCallback() {
+                override fun onAvailable(network: Network) {
+                    mainHandler.post {
+                        if (::webView.isInitialized) {
+                            webView.settings.cacheMode = WebSettings.LOAD_DEFAULT
+                            webView.evaluateJavascript("if (typeof window.onNativeNetworkChanged === 'function') window.onNativeNetworkChanged(true);", null)
+                        }
+                    }
+                }
+                override fun onLost(network: Network) {
+                    mainHandler.postDelayed({
+                        val stillOnline = isNetworkAvailable()
+                        if (::webView.isInitialized) {
+                            webView.settings.cacheMode = if (stillOnline) WebSettings.LOAD_DEFAULT else WebSettings.LOAD_CACHE_ELSE_NETWORK
+                            webView.evaluateJavascript("if (typeof window.onNativeNetworkChanged === 'function') window.onNativeNetworkChanged($stillOnline);", null)
+                        }
+                    }, 350)
+                }
+            }
+            cm.registerDefaultNetworkCallback(cb)
+            networkCallback = cb
+        } catch (_: Exception) {}
+    }
+
+    private fun unregisterNetworkMonitor() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) return
+        val cb = networkCallback ?: return
+        networkCallback = null
+        try {
+            val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+            cm?.unregisterNetworkCallback(cb)
+        } catch (_: Exception) {}
+    }
+
     override fun onResume() {
         super.onResume()
         webView.onResume()
+        registerNetworkMonitor()
         if (::webView.isInitialized) {
-            webView.evaluateJavascript("if (typeof window.onNativeNotificationPermissionChanged === 'function') window.onNativeNotificationPermissionChanged();", null)
+            val online = isNetworkAvailable()
+            webView.evaluateJavascript("if (typeof window.onNativeNotificationPermissionChanged === 'function') window.onNativeNotificationPermissionChanged(); if (typeof window.onNativeNetworkChanged === 'function') window.onNativeNetworkChanged($online);", null)
         }
     }
 
     override fun onPause() {
         super.onPause()
+        unregisterNetworkMonitor()
         webView.onPause()
     }
 
