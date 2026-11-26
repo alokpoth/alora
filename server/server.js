@@ -248,7 +248,12 @@ app.get('/api/plans', async (req, res) => {
 const ROOT_DIR = path.join(__dirname, '..');
 app.use('/avatars', express.static(path.join(ROOT_DIR, 'avatars'), { maxAge: '7d' }));
 app.use('/logo', express.static(path.join(ROOT_DIR, 'logo'), { maxAge: '7d' }));
-app.use('/.well-known', express.static(path.join(ROOT_DIR, '.well-known'), { maxAge: '1h' }));
+app.use('/.well-known', express.static(path.join(ROOT_DIR, '.well-known'), { dotfiles: 'allow', maxAge: '1h' }));
+app.get('/.well-known/assetlinks.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  return res.sendFile(path.join(ROOT_DIR, '.well-known', 'assetlinks.json'));
+});
 
 function sendHtmlPage(res, fileName, extraHeaders = {}) {
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');

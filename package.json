@@ -1,6 +1,6 @@
 {
   "name": "alora-ai",
-  "version": "1.3.0.3",
+  "version": "1.3.0.4",
   "description": "Alora AI - Multi-model AI Chat Application",
   "main": "server/server.js",
   "scripts": {

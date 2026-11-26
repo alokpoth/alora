@@ -58,7 +58,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- Support opening alora.zdots.net & alora.zihan.xyz in app -->
+            <!-- App Links per host so one unverified domain does not block others -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -66,12 +66,32 @@
                 <data
                     android:scheme="https"
                     android:host="alora.zdots.net" />
+            </intent-filter>
+
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
                 <data
                     android:scheme="https"
                     android:host="alora.zihan.xyz" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
                 <data
                     android:scheme="https"
                     android:host="ai.zihan.xyz" />
+                <data
+                    android:scheme="https"
+                    android:host="alora-backend-emw3.onrender.com"
+                    android:pathPrefix="/auth" />
+                <data
+                    android:scheme="https"
+                    android:host="alora-backend-emw3.onrender.com"
+                    android:pathPrefix="/login" />
             </intent-filter>
         </activity>
 

@@ -17,6 +17,8 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.os.Handler
+import android.os.Looper
 import android.speech.RecognizerIntent
 import android.util.Base64
 import android.util.Log
@@ -47,8 +49,18 @@ class MainActivity : AppCompatActivity() {
     companion object {
         private const val TAG = "AloAI"
         const val NOTIFICATION_CHANNEL_ID = "alora_general"
-        const val APP_URL = "https://alora.zdots.net/"
-        const val AUTH_URL = "https://alora.zdots.net/login.html"
+        const val PRIMARY_ORIGIN = "https://alora.zdots.net"
+        const val SECONDARY_ORIGIN = "https://alora.zihan.xyz"
+        const val RENDER_ORIGIN = "https://alora-backend-emw3.onrender.com"
+        const val APP_URL = "$PRIMARY_ORIGIN/"
+        const val AUTH_URL = "$PRIMARY_ORIGIN/login.html"
+        private val DOMAIN_FAILOVER_CHAIN = listOf(
+            PRIMARY_ORIGIN,
+            SECONDARY_ORIGIN,
+            RENDER_ORIGIN
+        )
+        private const val EDGE_LOAD_TIMEOUT_MS = 7000L
+        private const val RENDER_LOAD_TIMEOUT_MS = 55000L
         private const val BACK_PRESS_INTERVAL = 2000L
     }
 
@@ -56,6 +68,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var swipeRefresh: SwipeRefreshLayout
     private lateinit var offlineView: View
     private var hasLoadedPageSuccessfully = false
+    private var activeBaseOrigin: String = PRIMARY_ORIGIN
+    private var currentLoadHadMainFrameError = false
+    private val attemptedOriginsInLoad = mutableSetOf<Int>()
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private var pendingLoadTimeoutRunnable: Runnable? = null
 
     private var filePathCallback: ValueCallback<Array<Uri>>? = null
     private var cameraPhotoUri: Uri? = null
@@ -245,7 +262,14 @@ class MainActivity : AppCompatActivity() {
         } else {
             WebSettings.LOAD_CACHE_ELSE_NETWORK
         }
-        val initialUrl = extractTrustedDeepLink(intent) ?: APP_URL
+        val deepLink = extractTrustedDeepLink(intent)
+        val initialUrl = if (!deepLink.isNullOrBlank()) {
+            hostIndexForUrl(deepLink).takeIf { it >= 0 }?.let { activeBaseOrigin = DOMAIN_FAILOVER_CHAIN[it] }
+            deepLink
+        } else {
+            "$activeBaseOrigin/"
+        }
+        attemptedOriginsInLoad.clear()
         webView.loadUrl(initialUrl)
     }
 
@@ -254,8 +278,85 @@ class MainActivity : AppCompatActivity() {
         setIntent(intent)
         val deepLink = extractTrustedDeepLink(intent)
         if (!deepLink.isNullOrBlank()) {
+            attemptedOriginsInLoad.clear()
+            hostIndexForUrl(deepLink).takeIf { it >= 0 }?.let { activeBaseOrigin = DOMAIN_FAILOVER_CHAIN[it] }
             webView.loadUrl(deepLink)
         }
+    }
+
+    private fun hostIndexForUrl(url: String?): Int {
+        if (url.isNullOrBlank()) return -1
+        val host = try {
+            Uri.parse(url).host?.lowercase(Locale.US)
+        } catch (_: Exception) {
+            null
+        } ?: return -1
+        return when {
+            host == "alora.zdots.net" || host.endsWith(".alora.zdots.net") -> 0
+            host == "alora.zihan.xyz" || host.endsWith(".alora.zihan.xyz") ||
+                host == "ai.zihan.xyz" || host.endsWith(".ai.zihan.xyz") -> 1
+            host == "alora-backend-emw3.onrender.com" -> 2
+            else -> -1
+        }
+    }
+
+    private fun buildFailoverUrl(sourceUrl: String?, nextOrigin: String): String {
+        if (sourceUrl.isNullOrBlank() || hostIndexForUrl(sourceUrl) < 0) {
+            return "$nextOrigin/"
+        }
+        return try {
+            val parsed = Uri.parse(sourceUrl)
+            val path = parsed.encodedPath?.takeIf { it.isNotEmpty() } ?: "/"
+            val query = parsed.encodedQuery?.let { "?$it" } ?: ""
+            val frag = parsed.encodedFragment?.let { "#$it" } ?: ""
+            "$nextOrigin$path$query$frag"
+        } catch (_: Exception) {
+            "$nextOrigin/"
+        }
+    }
+
+    private fun cancelPendingLoadTimeout() {
+        pendingLoadTimeoutRunnable?.let { mainHandler.removeCallbacks(it) }
+        pendingLoadTimeoutRunnable = null
+    }
+
+    private fun scheduleLoadTimeout(targetUrl: String?) {
+        cancelPendingLoadTimeout()
+        val idx = hostIndexForUrl(targetUrl)
+        if (idx < 0 || idx >= DOMAIN_FAILOVER_CHAIN.lastIndex) return
+        if (!isNetworkAvailable()) return
+        val timeoutMs = if (idx == DOMAIN_FAILOVER_CHAIN.lastIndex) RENDER_LOAD_TIMEOUT_MS else EDGE_LOAD_TIMEOUT_MS
+        val runnable = Runnable {
+            if (isFinishing || isDestroyed) return@Runnable
+            val progress = try { webView.progress } catch (_: Exception) { 0 }
+            if (progress < 35) {
+                Log.w(TAG, "Load timeout on origin[$idx] ($targetUrl), falling back to next domain...")
+                tryFailoverToNextOrigin(targetUrl)
+            }
+        }
+        pendingLoadTimeoutRunnable = runnable
+        mainHandler.postDelayed(runnable, timeoutMs)
+    }
+
+    private fun tryFailoverToNextOrigin(failedUrl: String?): Boolean {
+        val failedIdx = hostIndexForUrl(failedUrl).takeIf { it >= 0 } ?: hostIndexForUrl(activeBaseOrigin)
+        if (failedIdx >= 0) {
+            attemptedOriginsInLoad.add(failedIdx)
+        }
+        if (!isNetworkAvailable()) {
+            return false
+        }
+        val nextIdx = DOMAIN_FAILOVER_CHAIN.indices.firstOrNull { !attemptedOriginsInLoad.contains(it) }
+            ?: return false
+        val nextOrigin = DOMAIN_FAILOVER_CHAIN[nextIdx]
+        attemptedOriginsInLoad.add(nextIdx)
+        activeBaseOrigin = nextOrigin
+        val nextUrl = buildFailoverUrl(failedUrl, nextOrigin)
+        Log.w(TAG, "Failing over from origin[$failedIdx] to origin[$nextIdx]: $nextUrl")
+        cancelPendingLoadTimeout()
+        webView.stopLoading()
+        webView.loadUrl(nextUrl)
+        return true
     }
 
     private fun isTrustedHost(host: String?): Boolean {
@@ -263,7 +364,8 @@ class MainActivity : AppCompatActivity() {
         val h = host.lowercase(Locale.US)
         return h == "alora.zdots.net" || h.endsWith(".alora.zdots.net") ||
                h == "alora.zihan.xyz" || h.endsWith(".alora.zihan.xyz") ||
-               h == "ai.zihan.xyz" || h.endsWith(".ai.zihan.xyz")
+               h == "ai.zihan.xyz" || h.endsWith(".ai.zihan.xyz") ||
+               h == "alora-backend-emw3.onrender.com"
     }
 
     private fun extractTrustedDeepLink(intent: Intent?): String? {
@@ -485,6 +587,14 @@ class MainActivity : AppCompatActivity() {
 
             override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
                 super.onPageStarted(view, url, favicon)
+                if (url != null && url != "about:blank" && !url.startsWith("data:") && !url.startsWith("chrome-error:")) {
+                    currentLoadHadMainFrameError = false
+                    val startedIdx = hostIndexForUrl(url)
+                    if (startedIdx >= 0) {
+                        attemptedOriginsInLoad.add(startedIdx)
+                    }
+                    scheduleLoadTimeout(url)
+                }
                 val hideAppBannerJs = """
                     (function(){
                         window.isAndroidApp = true;
@@ -502,9 +612,22 @@ class MainActivity : AppCompatActivity() {
                 view.evaluateJavascript(hideAppBannerJs, null)
             }
 
+            override fun onPageCommitVisible(view: WebView, url: String?) {
+                super.onPageCommitVisible(view, url)
+                cancelPendingLoadTimeout()
+            }
+
             override fun onPageFinished(view: WebView, url: String?) {
                 super.onPageFinished(view, url)
                 swipeRefresh.isRefreshing = false
+                if (currentLoadHadMainFrameError || url.isNullOrBlank() || url == "about:blank" || url.startsWith("data:") || url.startsWith("chrome-error:")) {
+                    return
+                }
+                val finishedIdx = hostIndexForUrl(url)
+                if (finishedIdx >= 0 && finishedIdx != hostIndexForUrl(activeBaseOrigin)) {
+                    return
+                }
+                cancelPendingLoadTimeout()
 
                 val cleanupJs = """
                     (function(){
@@ -579,21 +702,55 @@ class MainActivity : AppCompatActivity() {
                 """.trimIndent()
                 view.evaluateJavascript(syncBackJs, null)
 
-                if (url != null && url != "about:blank" && !url.startsWith("data:")) {
-                    hasLoadedPageSuccessfully = true
-                    showOfflineView(false)
+                hostIndexForUrl(url).takeIf { it >= 0 }?.let { idx ->
+                    activeBaseOrigin = DOMAIN_FAILOVER_CHAIN[idx]
                 }
+                attemptedOriginsInLoad.clear()
+                hasLoadedPageSuccessfully = true
+                showOfflineView(false)
             }
 
             override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
                 super.onReceivedError(view, request, error)
-                if (request.isForMainFrame) {
-                    Log.e(TAG, "Page load error: ${error.description}")
-                    if (!hasLoadedPageSuccessfully) {
-                        showOfflineView(true)
-                    } else {
-                        Toast.makeText(this@MainActivity, getString(R.string.error_offline_title), Toast.LENGTH_SHORT).show()
-                    }
+                if (!request.isForMainFrame) return
+                val failingUrl = request.url?.toString()
+                if (hostIndexForUrl(failingUrl) != hostIndexForUrl(activeBaseOrigin)) {
+                    return
+                }
+                Log.e(TAG, "Page load error on $failingUrl: ${error.description}")
+                currentLoadHadMainFrameError = true
+                cancelPendingLoadTimeout()
+                if (tryFailoverToNextOrigin(failingUrl)) {
+                    return
+                }
+                attemptedOriginsInLoad.clear()
+                if (!hasLoadedPageSuccessfully) {
+                    showOfflineView(true)
+                } else {
+                    Toast.makeText(this@MainActivity, getString(R.string.error_offline_title), Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onReceivedHttpError(view: WebView, request: WebResourceRequest, errorResponse: WebResourceResponse) {
+                super.onReceivedHttpError(view, request, errorResponse)
+                if (!request.isForMainFrame) return
+                val failingUrl = request.url?.toString()
+                if (hostIndexForUrl(failingUrl) != hostIndexForUrl(activeBaseOrigin)) {
+                    return
+                }
+                val status = errorResponse.statusCode
+                if (status < 500 && !(status == 404 && !hasLoadedPageSuccessfully)) {
+                    return
+                }
+                Log.e(TAG, "HTTP $status on $failingUrl, failing over if available")
+                currentLoadHadMainFrameError = true
+                cancelPendingLoadTimeout()
+                if (tryFailoverToNextOrigin(failingUrl)) {
+                    return
+                }
+                attemptedOriginsInLoad.clear()
+                if (!hasLoadedPageSuccessfully) {
+                    showOfflineView(true)
                 }
             }
         }
@@ -657,13 +814,15 @@ class MainActivity : AppCompatActivity() {
 
     private fun retryLoading() {
         showOfflineView(false)
+        attemptedOriginsInLoad.clear()
+        activeBaseOrigin = PRIMARY_ORIGIN
         webView.settings.cacheMode = if (isNetworkAvailable()) {
             WebSettings.LOAD_DEFAULT
         } else {
             WebSettings.LOAD_CACHE_ELSE_NETWORK
         }
         val current = webView.url
-        val targetUrl = if (!current.isNullOrBlank() && current != "about:blank" && !current.startsWith("data:")) current else APP_URL
+        val targetUrl = buildFailoverUrl(current, PRIMARY_ORIGIN)
         webView.loadUrl(targetUrl)
     }
 
@@ -819,8 +978,9 @@ class MainActivity : AppCompatActivity() {
             CookieManager.getInstance().removeAllCookies(null)
             CookieManager.getInstance().flush()
 
+            attemptedOriginsInLoad.clear()
             webView.post {
-                webView.loadUrl(APP_URL)
+                webView.loadUrl("$activeBaseOrigin/")
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error logging out", e)
@@ -828,6 +988,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        cancelPendingLoadTimeout()
         webAppInterface?.destroy()
         webView.destroy()
         super.onDestroy()
