@@ -102,20 +102,147 @@ function buildVoiceSystemInstruction(language, customPrompt = '') {
   return customPrompt && String(customPrompt).trim() ? `${base}\n${String(customPrompt).trim()}` : base;
 }
 
+const geminiKeyCursorMap = new Map();
+const geminiLiveModelsCache = new Map(); // keyHash -> { ts, models }
+const GEMINI_DISCOVERY_TTL_MS = 10 * 60 * 1000;
+
+const GOOGLE_AI_STUDIO_LIVE_ALIASES = {
+  'gemini 3.8 live': ['gemini-3.8-live', 'gemini-3.8-flash-live', 'gemini-3-flash-live', 'gemini-2.5-flash-native-audio-preview-12-2025'],
+  'gemini 3.8 live extended thinking': ['gemini-3.8-live-extended-thinking', 'gemini-3.8-live-thinking', 'gemini-3.8-live', 'gemini-2.5-flash-native-audio-preview-12-2025'],
+  'gemini 3.5 transcribe live': ['gemini-3.5-transcribe-live', 'gemini-2.5-flash-native-audio-preview-12-2025'],
+  'gemini 3.5 live translate': ['gemini-3.5-live-translate', 'gemini-2.5-flash-native-audio-preview-12-2025'],
+  'gemini 3 flash live': ['gemini-3-flash-live', 'gemini-3.0-flash-live', 'gemini-3.1-flash-live-preview', 'gemini-2.5-flash-native-audio-preview-12-2025'],
+  'gemini 2.5 flash native audio dialog': ['gemini-2.5-flash-native-audio-dialog', 'gemini-2.5-flash-preview-native-audio-dialog', 'gemini-2.5-flash-native-audio-preview-12-2025'],
+  'lyria realtime': ['lyria-realtime-exp', 'lyria-realtime']
+};
+
+function splitApiKeys(raw) {
+  if (!raw || typeof raw !== 'string') return [];
+  return raw
+    .split(/[\n,;]+/)
+    .map(k => k.trim())
+    .filter(k => k && !k.startsWith('sk-placeholder'));
+}
+
+function pickRotatedKeys(keysList, bucket = 'default') {
+  if (!Array.isArray(keysList) || keysList.length === 0) return [];
+  if (keysList.length === 1) return keysList;
+  const idx = (geminiKeyCursorMap.get(bucket) || 0) % keysList.length;
+  geminiKeyCursorMap.set(bucket, (idx + 1) % keysList.length);
+  return [...keysList.slice(idx), ...keysList.slice(0, idx)];
+}
+
+async function resolveGeminiVoiceKeyList(settings, modelCfg, explicitKey = '') {
+  const collected = [
+    ...splitApiKeys(explicitKey),
+    ...splitApiKeys(modelCfg && modelCfg.api_key),
+    ...splitApiKeys(settings && settings.voice_live_api_key),
+    ...splitApiKeys(process.env.GEMINI_API_KEYS),
+    ...splitApiKeys(process.env.GEMINI_API_KEY)
+  ];
+  if (collected.length === 0) {
+    const stored = await getApiKeyFromSupabase('__gemini_key__');
+    collected.push(...splitApiKeys(stored));
+  }
+  if (collected.length === 0) {
+    const models = await getPersistedModels();
+    (models || []).forEach(m => {
+      if (m && m.api_key && /gemini/i.test(String(m.type || '') + String(m.model_id || '') + String(m.base_url || ''))) {
+        collected.push(...splitApiKeys(m.api_key));
+      }
+    });
+  }
+  const unique = Array.from(new Set(collected));
+  return pickRotatedKeys(unique, (modelCfg && (modelCfg.model_id || modelCfg.id)) || 'global_gemini_voice');
+}
+
 async function resolveGeminiVoiceKey(settings, modelCfg) {
-  if (modelCfg && modelCfg.api_key && !String(modelCfg.api_key).startsWith('sk-placeholder')) {
-    return String(modelCfg.api_key).trim();
+  const list = await resolveGeminiVoiceKeyList(settings, modelCfg);
+  return list[0] || '';
+}
+
+async function discoverGeminiLiveModels(apiKey, forceRefresh = false) {
+  const keys = splitApiKeys(apiKey);
+  const key = keys[0] || '';
+  if (!key) return [];
+  const keyHash = crypto.createHash('sha256').update(key).digest('hex').slice(0, 16);
+  const now = Date.now();
+  const cached = geminiLiveModelsCache.get(keyHash);
+  if (!forceRefresh && cached && (now - cached.ts) < GEMINI_DISCOVERY_TTL_MS) {
+    return cached.models;
   }
-  if (settings && settings.voice_live_api_key) {
-    return String(settings.voice_live_api_key).trim();
+  try {
+    const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?pageSize=100&key=${encodeURIComponent(key)}`, {
+      method: 'GET',
+      signal: AbortSignal.timeout(8000)
+    });
+    if (!resp.ok) return cached ? cached.models : [];
+    const data = await resp.json();
+    const rawModels = Array.isArray(data && data.models) ? data.models : [];
+    const liveModels = rawModels
+      .filter(m => {
+        if (!m || !m.name) return false;
+        const methods = Array.isArray(m.supportedGenerationMethods) ? m.supportedGenerationMethods : [];
+        const combined = `${m.name} ${m.displayName || ''}`.toLowerCase();
+        return methods.includes('bidiGenerateContent') || /\blive\b|native-audio|realtime/i.test(combined);
+      })
+      .map(m => {
+        const cleanId = String(m.name).replace(/^models\//, '');
+        return {
+          model_id: cleanId,
+          display_name: String(m.displayName || cleanId).trim(),
+          description: String(m.description || '').trim().slice(0, 200),
+          methods: Array.isArray(m.supportedGenerationMethods) ? m.supportedGenerationMethods : []
+        };
+      });
+    geminiLiveModelsCache.set(keyHash, { ts: now, models: liveModels });
+    return liveModels;
+  } catch {
+    return cached ? cached.models : [];
   }
-  const envKey = process.env.GEMINI_API_KEY || (process.env.GEMINI_API_KEYS ? process.env.GEMINI_API_KEYS.split(',')[0].trim() : '');
-  if (envKey) return envKey;
-  const stored = await getApiKeyFromSupabase('__gemini_key__');
-  if (stored) return stored;
-  const models = await getPersistedModels();
-  const gMod = (models || []).find(m => m && m.api_key && /gemini/i.test(String(m.type || '') + String(m.model_id || '') + String(m.base_url || '')));
-  return gMod ? String(gMod.api_key).trim() : '';
+}
+
+async function resolveGeminiLiveModelCandidates(rawModelInput, apiKey) {
+  const raw = String(rawModelInput || '').replace(/^models\//i, '').trim();
+  const normLower = raw.toLowerCase().replace(/\s+/g, ' ');
+  const slug = normLower.replace(/[^a-z0-9._-]+/g, '-').replace(/^-+|-+$/g, '');
+  const candidates = [];
+  const addCand = (id) => {
+    const clean = String(id || '').replace(/^models\//i, '').trim();
+    if (clean && !/\s/.test(clean) && !candidates.includes(clean)) {
+      candidates.push(clean);
+    }
+  };
+
+  const discovered = await discoverGeminiLiveModels(apiKey);
+  if (discovered.length > 0 && raw) {
+    const exactMatch = discovered.find(d =>
+      d.model_id.toLowerCase() === normLower ||
+      d.display_name.toLowerCase() === normLower ||
+      d.display_name.toLowerCase().replace(/[^a-z0-9._-]+/g, '-') === slug
+    );
+    if (exactMatch) addCand(exactMatch.model_id);
+    const fuzzyMatch = discovered.find(d =>
+      d.display_name.toLowerCase().includes(normLower) ||
+      normLower.includes(d.display_name.toLowerCase()) ||
+      (slug && d.model_id.toLowerCase().includes(slug))
+    );
+    if (fuzzyMatch) addCand(fuzzyMatch.model_id);
+  }
+
+  if (raw && !/\s/.test(raw)) addCand(raw);
+  if (GOOGLE_AI_STUDIO_LIVE_ALIASES[normLower]) {
+    GOOGLE_AI_STUDIO_LIVE_ALIASES[normLower].forEach(addCand);
+  }
+  if (slug) addCand(slug);
+
+  discovered
+    .filter(d => Array.isArray(d.methods) && d.methods.includes('bidiGenerateContent'))
+    .forEach(d => addCand(d.model_id));
+
+  addCand('gemini-2.5-flash-native-audio-preview-12-2025');
+  addCand('gemini-2.0-flash-live-001');
+  return candidates;
 }
 
 async function runGeminiLiveWebSocketTurn({ apiKey, modelName, audioBase64, mimeType, textPrompt, voicePreset, systemInstruction, history = [] }) {
@@ -704,89 +831,145 @@ async function executeVoiceTurn(payload = {}, forcedSettings = null, planObj = n
 
   const sysInstruction = buildVoiceSystemInstruction(language, settings.voice_system_prompt);
 
-  // Determine effective provider & model (honoring per-plan voice_model override & explicit voice models)
-  let provider = ['gemini_live', 'custom_api', 'chat_models'].includes(settings.voice_provider)
-    ? settings.voice_provider
-    : 'gemini_live';
-  let chosenModelId = String(voice_model || chat_model || '').trim();
-  const planOverride = planObj && typeof planObj.voice_model === 'string' ? planObj.voice_model.trim() : '';
+  async function runGeminiLiveSlot({ rawModelName, explicitKey, modelCfgForKeys, labelName }) {
+    const keys = await resolveGeminiVoiceKeyList(settings, modelCfgForKeys, explicitKey);
+    if (!keys.length) return null;
 
-  if (!forcedSettings && planOverride) {
-    if (planOverride === '__gemini_live__') {
-      provider = 'gemini_live';
-    } else if (planOverride === '__custom_voice__') {
-      provider = 'custom_api';
-    } else if (planOverride === '__chat_models__') {
-      provider = 'chat_models';
-    } else {
-      chosenModelId = planOverride;
-    }
-  }
-
-  let explicitModelCfg = null;
-  if (chosenModelId) {
-    explicitModelCfg = await getModelConfig(chosenModelId);
-    if (explicitModelCfg && !canPlanAccessModel(explicitModelCfg, planName, planObj)) {
-      explicitModelCfg = null;
-    }
-    if (explicitModelCfg && explicitModelCfg.category === 'voice') {
-      if (explicitModelCfg.type === 'gemini' || /gemini/i.test(String(explicitModelCfg.api_model_1 || explicitModelCfg.model_id || ''))) {
-        provider = 'gemini_live';
-      } else if (explicitModelCfg.base_url) {
-        provider = 'custom_api';
-      } else {
-        provider = 'chat_models';
-      }
-    }
-  }
-
-  if (provider === 'gemini_live') {
-    const gKey = await resolveGeminiVoiceKey(settings, explicitModelCfg);
-    const liveMod = (explicitModelCfg && explicitModelCfg.category === 'voice' && (explicitModelCfg.api_model_1 || explicitModelCfg.model_id))
-      ? (explicitModelCfg.api_model_1 || explicitModelCfg.model_id)
-      : (settings.voice_live_model || 'gemini-2.5-flash-native-audio-preview-12-2025');
-
-    if (gKey) {
-      try {
-        const wsResult = await runGeminiLiveWebSocketTurn({
-          apiKey: gKey,
-          modelName: liveMod,
-          audioBase64: cleanAudio,
-          mimeType: mime_type,
-          textPrompt: cleanText,
-          voicePreset: voice_preset,
-          systemInstruction: sysInstruction,
-          history: messages
-        });
-        if (wsResult && (wsResult.reply || wsResult.audio_base64)) {
-          return { ...wsResult, model: explicitModelCfg?.name || 'Alora Live Voice' };
-        }
-      } catch (wsErr) {
-        // Seamless fallback to Gemini multimodal REST generateContent
+    let lastErr = null;
+    for (const gKey of keys.slice(0, 3)) {
+      const modCandidates = await resolveGeminiLiveModelCandidates(rawModelName, gKey);
+      for (const modCand of modCandidates.slice(0, 3)) {
         try {
-          const restRes = await runGeminiMultimodalRestTurn({
+          const wsResult = await runGeminiLiveWebSocketTurn({
             apiKey: gKey,
-            modelName: liveMod,
+            modelName: modCand,
             audioBase64: cleanAudio,
             mimeType: mime_type,
             textPrompt: cleanText,
+            voicePreset: voice_preset,
             systemInstruction: sysInstruction,
             history: messages
           });
-          return { ...restRes, model: explicitModelCfg?.name || 'Alora Live Voice' };
-        } catch (restErr) {
-          if (!cleanText && !forcedSettings) {
-            throw new Error('Gemini Live বর্তমানে সাড়া দিচ্ছে না। কিছুক্ষণ পর আবার চেষ্টা করুন।');
+          if (wsResult && (wsResult.reply || wsResult.audio_base64)) {
+            return { ...wsResult, model: labelName || 'Alora Live Voice' };
           }
-          if (forcedSettings) throw restErr;
+        } catch (wsErr) {
+          lastErr = wsErr;
         }
       }
-    } else if (forcedSettings) {
-      throw new Error('Gemini Live API Key কনফিগার করা হয়নি।');
+      try {
+        const restRes = await runGeminiMultimodalRestTurn({
+          apiKey: gKey,
+          modelName: modCandidates[0] || rawModelName,
+          audioBase64: cleanAudio,
+          mimeType: mime_type,
+          textPrompt: cleanText,
+          systemInstruction: sysInstruction,
+          history: messages
+        });
+        if (restRes && (restRes.reply || restRes.audio_base64)) {
+          return { ...restRes, model: labelName || 'Alora Live Voice' };
+        }
+      } catch (restErr) {
+        lastErr = restErr;
+      }
     }
-    // Fallback to chat_models if Gemini key isn't configured yet
+    if (lastErr) throw lastErr;
+    return null;
+  }
+
+  async function runVoiceModelConfigTurn(vModelCfg) {
+    const labelName = vModelCfg.name || vModelCfg.model_id || 'Alora Live Voice';
+    const slots = [
+      {
+        mod: vModelCfg.api_model_1 || vModelCfg.model_id || vModelCfg.id || '',
+        url: vModelCfg.base_url || '',
+        key: vModelCfg.api_key || ''
+      },
+      {
+        mod: vModelCfg.api_model_2 || vModelCfg.fallback_model_1 || '',
+        url: vModelCfg.fallback_url_1 || vModelCfg.base_url || '',
+        key: vModelCfg.fallback_key_1 || vModelCfg.api_key || ''
+      },
+      {
+        mod: vModelCfg.api_model_3 || vModelCfg.fallback_model_2 || '',
+        url: vModelCfg.fallback_url_2 || vModelCfg.base_url || '',
+        key: vModelCfg.fallback_key_2 || vModelCfg.api_key || ''
+      }
+    ].filter(s => s.mod || s.url);
+
+    let lastSlotErr = null;
+    for (const slot of slots) {
+      const slotUrl = String(slot.url || '').trim();
+      const isGeminiSlot = !slotUrl || /generativelanguage\.googleapis\.com/i.test(slotUrl) || vModelCfg.type === 'gemini' || /gemini|lyria/i.test(String(slot.mod || ''));
+      try {
+        if (isGeminiSlot) {
+          const out = await runGeminiLiveSlot({
+            rawModelName: slot.mod || settings.voice_live_model || 'gemini-2.5-flash-native-audio-preview-12-2025',
+            explicitKey: slot.key,
+            modelCfgForKeys: vModelCfg,
+            labelName
+          });
+          if (out) return out;
+        } else {
+          const customRes = await runCustomVoiceApiTurn({
+            apiUrl: slotUrl,
+            apiKey: slot.key || settings.voice_live_api_key,
+            modelName: slot.mod,
+            audioBase64: cleanAudio,
+            mimeType: mime_type,
+            textPrompt: cleanText,
+            voicePreset: voice_preset,
+            systemInstruction: sysInstruction,
+            sttUrl: settings.voice_stt_url,
+            language,
+            history: messages
+          });
+          if (customRes) return { ...customRes, model: labelName };
+        }
+      } catch (e) {
+        lastSlotErr = e;
+      }
+    }
+    if (lastSlotErr) throw lastSlotErr;
+    return null;
+  }
+
+  // Admin Live Test mode (forcedSettings passed directly from Admin Panel test button)
+  if (forcedSettings) {
+    const testProv = ['gemini_live', 'custom_api', 'chat_models'].includes(settings.voice_provider)
+      ? settings.voice_provider
+      : 'gemini_live';
+    if (testProv === 'gemini_live') {
+      const keys = await resolveGeminiVoiceKeyList(settings, null);
+      if (!keys.length) throw new Error('Gemini Live API Key কনফিগার করা হয়নি।');
+      const out = await runGeminiLiveSlot({
+        rawModelName: settings.voice_live_model || 'gemini-2.5-flash-native-audio-preview-12-2025',
+        explicitKey: keys.join(','),
+        modelCfgForKeys: null,
+        labelName: settings.voice_live_model || 'Gemini Live'
+      });
+      if (out) return out;
+      throw new Error('Gemini Live টেস্ট উত্তর পাওয়া যায়নি।');
+    }
+    if (testProv === 'custom_api') {
+      const resCustom = await runCustomVoiceApiTurn({
+        apiUrl: settings.voice_live_url,
+        apiKey: settings.voice_live_api_key,
+        modelName: settings.voice_live_model,
+        audioBase64: cleanAudio,
+        mimeType: mime_type,
+        textPrompt: cleanText,
+        voicePreset: voice_preset,
+        systemInstruction: sysInstruction,
+        sttUrl: settings.voice_stt_url,
+        language,
+        history: messages
+      });
+      return { ...resCustom, model: settings.voice_live_model || 'Custom Voice' };
+    }
     return await runChatModelVoiceTurn({
-      targetModelId: chosenModelId,
+      targetModelId: chat_model,
       audioBase64: cleanAudio,
       mimeType: mime_type,
       textPrompt: cleanText,
@@ -797,31 +980,138 @@ async function executeVoiceTurn(payload = {}, forcedSettings = null, planObj = n
     });
   }
 
-  if (provider === 'custom_api') {
-    const customUrl = (explicitModelCfg && explicitModelCfg.base_url) ? explicitModelCfg.base_url : settings.voice_live_url;
-    const customKey = (explicitModelCfg && explicitModelCfg.api_key) ? explicitModelCfg.api_key : settings.voice_live_api_key;
-    const customMod = (explicitModelCfg && (explicitModelCfg.api_model_1 || explicitModelCfg.model_id))
-      ? (explicitModelCfg.api_model_1 || explicitModelCfg.model_id)
-      : settings.voice_live_model;
-    const resCustom = await runCustomVoiceApiTurn({
-      apiUrl: customUrl,
-      apiKey: customKey,
-      modelName: customMod,
+  // Determine per-plan voice_mode ('chat_as_live' | 'live_models' | 'both') & accessible models
+  const planOverride = planObj && typeof planObj.voice_model === 'string' ? planObj.voice_model.trim() : '';
+  let planVoiceMode = (planName === 'Admin')
+    ? 'both'
+    : (planObj && ['chat_as_live', 'live_models', 'both'].includes(planObj.voice_mode) ? planObj.voice_mode : 'chat_as_live');
+
+  if (planOverride === '__chat_models__') planVoiceMode = 'chat_as_live';
+  else if (planOverride === '__gemini_live__' || planOverride === '__custom_voice__') planVoiceMode = 'live_models';
+
+  const requestedVoiceModelId = String(voice_model || '').trim();
+  const requestedChatModelId = String(chat_model || '').trim();
+
+  // Mode 1: Plan configured so Chat Models themselves work like Live Voice ('chat_as_live')
+  if (planVoiceMode === 'chat_as_live') {
+    const targetChatId = (planOverride && !planOverride.startsWith('__'))
+      ? planOverride
+      : (requestedVoiceModelId || requestedChatModelId);
+    return await runChatModelVoiceTurn({
+      targetModelId: targetChatId,
       audioBase64: cleanAudio,
       mimeType: mime_type,
       textPrompt: cleanText,
-      voicePreset: voice_preset,
       systemInstruction: sysInstruction,
       sttUrl: settings.voice_stt_url,
       language,
       history: messages
     });
-    return { ...resCustom, model: explicitModelCfg?.name || 'Alora Voice' };
   }
 
-  // Default / 'chat_models': use regular chat models with bilingual response/translation
+  // Check if user in 'both' mode explicitly picked a Chat model inside Voice Mode
+  if (planVoiceMode === 'both' && requestedVoiceModelId) {
+    const reqCfg = await getModelConfig(requestedVoiceModelId);
+    if (reqCfg && (reqCfg.category || 'chat') === 'chat' && canPlanAccessModel(reqCfg, planName, planObj)) {
+      return await runChatModelVoiceTurn({
+        targetModelId: requestedVoiceModelId,
+        audioBase64: cleanAudio,
+        mimeType: mime_type,
+        textPrompt: cleanText,
+        systemInstruction: sysInstruction,
+        sttUrl: settings.voice_stt_url,
+        language,
+        history: messages
+      });
+    }
+  }
+
+  // Mode 2 / 'both' with Live Models: Build ordered chain of accessible category='voice' models (just like Chat models!)
+  let allModels = [];
+  if (getIsMongoConnected()) {
+    allModels = await AiModel.find({ is_active: { $ne: false } }).sort({ order: 1, createdAt: 1 }).lean().catch(() => []);
+  }
+  if (!allModels || allModels.length === 0) {
+    allModels = (await getPersistedModels()) || [];
+  }
+
+  const accessibleVoiceModels = [];
+  for (const rawM of allModels) {
+    if (!rawM || rawM.is_active === false) continue;
+    if (rawM.category !== 'voice') continue;
+    if (!canPlanAccessModel(rawM, planName, planObj)) continue;
+    const hydrated = await getModelConfig(rawM.model_id || rawM.id);
+    if (hydrated) accessibleVoiceModels.push(hydrated);
+  }
+
+  const orderedLiveQueue = [];
+  const pushUniqueModel = (cfg) => {
+    if (!cfg) return;
+    const cid = String(cfg.model_id || cfg.id || '');
+    if (cid && !orderedLiveQueue.some(x => String(x.model_id || x.id || '') === cid)) {
+      orderedLiveQueue.push(cfg);
+    }
+  };
+
+  if (requestedVoiceModelId) {
+    const picked = accessibleVoiceModels.find(m => (m.model_id || m.id) === requestedVoiceModelId);
+    if (picked) pushUniqueModel(picked);
+  }
+  if (planOverride && !planOverride.startsWith('__')) {
+    const planDefMod = accessibleVoiceModels.find(m => (m.model_id || m.id) === planOverride);
+    if (planDefMod) pushUniqueModel(planDefMod);
+  }
+  accessibleVoiceModels.forEach(pushUniqueModel);
+
+  // Try each configured Live Voice model (and its 3 internal fallback slots) in order
+  for (const liveCfg of orderedLiveQueue) {
+    try {
+      const liveOut = await runVoiceModelConfigTurn(liveCfg);
+      if (liveOut && (liveOut.reply || liveOut.audio_base64 || liveOut.empty_audio)) {
+        return liveOut;
+      }
+    } catch {}
+  }
+
+  // If no dedicated 'voice' models matched or succeeded, try global Live Voice provider setting
+  let globalProvider = ['gemini_live', 'custom_api', 'chat_models'].includes(settings.voice_provider)
+    ? settings.voice_provider
+    : 'gemini_live';
+  if (planOverride === '__custom_voice__') globalProvider = 'custom_api';
+  else if (planOverride === '__gemini_live__') globalProvider = 'gemini_live';
+
+  if (globalProvider === 'gemini_live') {
+    try {
+      const globalOut = await runGeminiLiveSlot({
+        rawModelName: settings.voice_live_model || 'gemini-2.5-flash-native-audio-preview-12-2025',
+        explicitKey: '',
+        modelCfgForKeys: null,
+        labelName: 'Alora Live Voice'
+      });
+      if (globalOut) return globalOut;
+    } catch {}
+  } else if (globalProvider === 'custom_api' && settings.voice_live_url) {
+    try {
+      const resCustom = await runCustomVoiceApiTurn({
+        apiUrl: settings.voice_live_url,
+        apiKey: settings.voice_live_api_key,
+        modelName: settings.voice_live_model,
+        audioBase64: cleanAudio,
+        mimeType: mime_type,
+        textPrompt: cleanText,
+        voicePreset: voice_preset,
+        systemInstruction: sysInstruction,
+        sttUrl: settings.voice_stt_url,
+        language,
+        history: messages
+      });
+      if (resCustom) return { ...resCustom, model: 'Alora Voice' };
+    } catch {}
+  }
+
+  // Seamless ultimate fallback to Chat-as-Live so Voice Mode never fails
   return await runChatModelVoiceTurn({
-    targetModelId: chosenModelId,
+    targetModelId: requestedChatModelId,
     audioBase64: cleanAudio,
     mimeType: mime_type,
     textPrompt: cleanText,
@@ -1034,7 +1324,9 @@ function attachVoiceLiveWebSocket(httpServer) {
 
       const voicePreset = parsedUrl.searchParams.get('voice') || 'auto';
       const lang = parsedUrl.searchParams.get('lang') || 'auto';
-      const liveMod = String(settings.voice_live_model || 'gemini-2.5-flash-native-audio-preview-12-2025').replace(/^models\//, '');
+      const reqModParam = parsedUrl.searchParams.get('model') || settings.voice_live_model || 'gemini-2.5-flash-native-audio-preview-12-2025';
+      const wsModCandidates = await resolveGeminiLiveModelCandidates(reqModParam, gKey);
+      const liveMod = wsModCandidates[0] || 'gemini-2.5-flash-native-audio-preview-12-2025';
       const upstream = new WebSocket(`wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${encodeURIComponent(gKey)}`);
 
       const sendClientJson = (obj) => {
@@ -1178,5 +1470,7 @@ module.exports = {
   executeVoiceTurn,
   handleLiveVoiceTurn,
   attachVoiceLiveWebSocket,
-  wrapPcm16ToWavBase64
+  wrapPcm16ToWavBase64,
+  discoverGeminiLiveModels,
+  resolveGeminiVoiceKey
 };

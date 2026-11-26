@@ -1412,7 +1412,7 @@
       } catch (e) {}
 
       if (!token) {
-        return { loggedIn: false, isAdmin: false, plan: 'Free' };
+        return { loggedIn: false, isAdmin: false, plan: 'Free', expiresAt: null, daysLeft: null, hoursLeft: null, isLifetime: false };
       }
 
       const adminEmails = ['zihanfakir@gmail.com', 'x@zihan.uk'];
@@ -1423,14 +1423,14 @@
         )
       );
       if (isAdmin) {
-        return { loggedIn: true, isAdmin: true, plan: 'Max' };
+        return { loggedIn: true, isAdmin: true, plan: 'Max', expiresAt: null, daysLeft: null, hoursLeft: null, isLifetime: true };
       }
 
       let expiryStr = null;
       try {
-        expiryStr = localStorage.getItem('alokpoth_plan_expiry') ||
+        expiryStr = (userObj && userObj.subscription && userObj.subscription.expires_at) ||
+                    localStorage.getItem('alokpoth_plan_expiry') ||
                     localStorage.getItem('alokpoth_plan_expires_at') ||
-                    (userObj && userObj.subscription && userObj.subscription.expires_at) ||
                     null;
       } catch (e) {}
 
@@ -1460,7 +1460,43 @@
       if (!PLAN_HIERARCHY[resolved]) {
         resolved = 'Free';
       }
-      return { loggedIn: true, isAdmin: false, plan: resolved };
+      let daysLeft = null;
+      let hoursLeft = null;
+      let validExpiresAt = null;
+      if (resolved !== 'Free' && resolved !== 'Guest' && expiryStr) {
+        const expMs = new Date(expiryStr).getTime();
+        if (!isNaN(expMs) && expMs > Date.now()) {
+          const remMs = expMs - Date.now();
+          daysLeft = Math.max(1, Math.ceil(remMs / (24 * 60 * 60 * 1000)));
+          hoursLeft = Math.max(1, Math.ceil(remMs / (60 * 60 * 1000)));
+          validExpiresAt = expiryStr;
+        }
+      }
+      return {
+        loggedIn: true,
+        isAdmin: false,
+        plan: resolved,
+        expiresAt: validExpiresAt,
+        daysLeft,
+        hoursLeft,
+        isLifetime: Boolean(resolved !== 'Free' && resolved !== 'Guest' && !validExpiresAt)
+      };
+    }
+
+    function formatPlanValidityLabel(auth, lang) {
+      if (!auth || !auth.loggedIn) return '';
+      const isBn = lang === 'bn';
+      if (auth.isAdmin) return isBn ? 'সীমাহীন' : 'Unlimited';
+      if (!auth.expiresAt) return '';
+      const expMs = new Date(auth.expiresAt).getTime();
+      if (isNaN(expMs) || expMs <= Date.now()) return '';
+      const remMs = expMs - Date.now();
+      if (remMs < 24 * 60 * 60 * 1000) {
+        const hrs = Math.max(1, Math.ceil(remMs / (60 * 60 * 1000)));
+        return isBn ? (toBnDigits(hrs) + ' ঘণ্টা বাকি') : (hrs + 'h left');
+      }
+      const days = Math.max(1, Math.ceil(remMs / (24 * 60 * 60 * 1000)));
+      return isBn ? (toBnDigits(days) + ' দিন বাকি') : (days + 'd left');
     }
 
     let isRedeeming = false;
@@ -1537,13 +1573,14 @@
 
       // Header Plan Chip
       const headerPlanChip = document.getElementById('headerPlanChip');
+      const validityLabel = formatPlanValidityLabel(auth, currentLang);
       if (auth.loggedIn) {
         let isPaidVerified = false;
         try {
           const uRaw = JSON.parse(localStorage.getItem('alokpoth_user') || 'null');
           isPaidVerified = Boolean(uRaw && uRaw.subscription && uRaw.subscription.payment_source === 'direct_payment');
         } catch (e) {}
-        headerPlanChip.textContent = (auth.isAdmin ? d.adminBadge : auth.plan) + (isPaidVerified ? ' ✓' : '');
+        headerPlanChip.textContent = (auth.isAdmin ? d.adminBadge : auth.plan) + (isPaidVerified ? ' ✓' : '') + (validityLabel && !auth.isAdmin ? ' · ' + validityLabel : '');
         headerPlanChip.style.display = 'inline-flex';
       } else {
         headerPlanChip.style.display = 'none';
@@ -1571,7 +1608,10 @@
           else if (tierName === 'Plus') badgesHtml += '<span class="mono-badge inverted">' + escapeHtml(d.popularBadge) + '</span>';
           else if (tierName === 'Max') badgesHtml += '<span class="mono-badge">' + escapeHtml(d.frontierBadge) + '</span>';
           if (auth.isAdmin && tierName === 'Max') badgesHtml += '<span class="mono-badge inverted">' + escapeHtml(d.adminBadge) + '</span>';
-          else if (isCurrent) badgesHtml += '<span class="mono-badge">' + escapeHtml(d.currentBadge) + '</span>';
+          else if (isCurrent) {
+            const badgeExtra = (validityLabel && !auth.isAdmin) ? (' · ' + validityLabel) : '';
+            badgesHtml += '<span class="mono-badge">' + escapeHtml(d.currentBadge + badgeExtra) + '</span>';
+          }
 
           const card = document.createElement('article');
           card.className = 'plan-card' + (isFeatured ? ' featured' : '') + (isCurrent ? ' current-active' : '');
@@ -1675,10 +1715,15 @@
     // Hydrate dynamic limits from GET /api/plans, rates from /api/payments/config & models from /api/chat/models
     async function syncPlansFromServer() {
       try {
+        let token = null;
+        try { token = localStorage.getItem('alokpoth_token'); } catch (e) {}
         const [plansRes, payRes, modelsRes] = await Promise.all([
           fetch(API_BASE + '/plans?_t=' + Date.now(), { cache: 'no-store' }),
           fetch(API_BASE + '/payments/config?_t=' + Date.now(), { cache: 'no-store' }).catch(() => null),
-          fetch(API_BASE + '/chat/models?_t=' + Date.now(), { cache: 'no-store' }).catch(() => null)
+          fetch(API_BASE + '/chat/models?_t=' + Date.now(), {
+            cache: 'no-store',
+            headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+          }).catch(() => null)
         ]);
         if (payRes && payRes.ok) {
           const pData = await payRes.json().catch(() => null);
@@ -1705,11 +1750,14 @@
             if (p && planLimits[p.name]) {
               const lim = Number(p.message_limit);
               const imgLim = Number(p.image_limit);
+              const voiceLim = Number(p.voice_limit);
               const hrs = Number(p.window_hours);
               const priceUsd = Number(p.price_usd);
               const price = Number(p.price_bdt);
               if (!isNaN(lim) && (p.name === 'Guest' ? lim >= 0 : lim > 0)) planLimits[p.name].message_limit = lim;
               if (!isNaN(imgLim) && imgLim >= 0) planLimits[p.name].image_limit = imgLim;
+              if (!isNaN(voiceLim) && voiceLim >= 0) planLimits[p.name].voice_limit = voiceLim;
+              if (typeof p.voice_mode === 'string' && p.voice_mode.trim()) planLimits[p.name].voice_mode = p.voice_mode.trim();
               if (!isNaN(hrs) && hrs > 0) planLimits[p.name].window_hours = hrs;
               if (!isNaN(priceUsd) && priceUsd >= 0) planLimits[p.name].price_usd = priceUsd;
               if (!isNaN(price) && price >= 0) planLimits[p.name].price_bdt = price;
@@ -2031,6 +2079,32 @@
     syncPlansFromServer();
     syncUserStatusFromServer();
     syncTrialBanner();
+
+    function refreshPlansPageLive() {
+      syncPlansFromServer();
+      syncUserStatusFromServer();
+      syncTrialBanner();
+    }
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        const aloraPlansChannel = new BroadcastChannel('alora_sync_channel');
+        aloraPlansChannel.onmessage = (ev) => {
+          if (ev && ev.data) {
+            refreshPlansPageLive();
+          }
+        };
+      }
+    } catch (e) {}
+    window.addEventListener('focus', refreshPlansPageLive);
+    window.addEventListener('storage', (e) => {
+      if (e && (!e.key || e.key.indexOf('alokpoth_') === 0 || e.key.indexOf('alora_') === 0)) {
+        renderAll();
+        refreshPlansPageLive();
+      }
+    });
+    setInterval(() => {
+      if (document.visibilityState === 'visible') refreshPlansPageLive();
+    }, 60000);
   </script>
 </body>
 </html>

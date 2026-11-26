@@ -10,7 +10,7 @@ const { invalidateModelKeyCache, invalidateUsersCache, invalidateUserUsageCache,
 const { invalidateCachedUser, invalidateCachedPlans, invalidateCachedModels } = require('../config/dbCache');
 const { sendServerError, redactSecrets } = require('../utils/safeError');
 const { PLAN_ORDER, USER_PLANS, PAID_PLANS, DEFAULT_PLANS_MAP, ensureAllCanonicalPlans } = require('../utils/planDefaults');
-const { encryptSecret, decryptSecret, hasConfiguredSecret, isPublicHttpUrl, deriveDefaultAllowedPlans } = require('../utils/secretVault');
+const { encryptSecret, decryptSecret, hasConfiguredSecret, isPublicHttpUrl, deriveDefaultAllowedPlans, deriveLegacyFlagsFromAllowedPlans } = require('../utils/secretVault');
 
 const SUPER_ADMIN_EMAILS = ['zihanfakir@gmail.com', 'x@zihan.uk'];
 const isSuperAdminEmail = (email) => !!email && SUPER_ADMIN_EMAILS.includes(String(email).toLowerCase().trim());
@@ -594,7 +594,7 @@ const updatePlanLimits = async (req, res) => {
     if (!planName || !PLAN_ORDER.includes(planName)) {
       return res.status(400).json({ success: false, error: `সঠিক প্ল্যানের নাম দিন (${PLAN_ORDER.join(', ')})` });
     }
-    const { message_limit, window_hours, image_limit, voice_limit, voice_model, image_model, price_usd, price_bdt, tagline, displayName, allowed_models, is_active } = req.body;
+    const { message_limit, window_hours, image_limit, voice_limit, voice_mode, voice_model, image_model, price_usd, price_bdt, tagline, displayName, allowed_models, is_active } = req.body;
     const minMsgLimit = planName === 'Guest' ? 0 : 1;
 
     let validLimit = undefined;
@@ -627,6 +627,9 @@ const updatePlanLimits = async (req, res) => {
       validVoiceLimit = n;
     }
 
+    const validVoiceMode = voice_mode !== undefined && ['chat_as_live', 'live_models', 'both'].includes(String(voice_mode || '').trim())
+      ? String(voice_mode).trim()
+      : undefined;
     const validVoiceModel = voice_model !== undefined ? String(voice_model || '').trim().slice(0, 100) : undefined;
     const validImageModel = image_model !== undefined ? String(image_model || '').trim().slice(0, 100) : undefined;
 
@@ -669,6 +672,7 @@ const updatePlanLimits = async (req, res) => {
       if (validWindow !== undefined) target.window_hours = validWindow;
       if (validImageLimit !== undefined) target.image_limit = validImageLimit;
       if (validVoiceLimit !== undefined) target.voice_limit = validVoiceLimit;
+      if (validVoiceMode !== undefined) target.voice_mode = validVoiceMode;
       if (validVoiceModel !== undefined) target.voice_model = validVoiceModel;
       if (validImageModel !== undefined) target.image_model = validImageModel;
       if (validPriceUsd !== undefined) target.price_usd = validPriceUsd;
@@ -703,6 +707,7 @@ const updatePlanLimits = async (req, res) => {
             window_hours: plan.window_hours,
             image_limit: plan.image_limit,
             voice_limit: plan.voice_limit,
+            voice_mode: plan.voice_mode || 'chat_as_live',
             voice_model: plan.voice_model || '',
             image_model: plan.image_model || '',
             price_usd: plan.price_usd,
@@ -1150,12 +1155,17 @@ const updateModel = async (req, res) => {
       fallback_url_2, fallback_key_2, fallback_model_2, api_model_3, clear_fallback_key_2
     } = req.body;
 
-    const effPremium = premium !== undefined ? (premium === true || premium === 'true' || premium === 1 || premium === '1') : undefined;
-    const effEfficient = efficient !== undefined ? (efficient === true || efficient === 'true' || efficient === 1 || efficient === '1') : undefined;
     const cleanCategory = ['chat', 'voice', 'image'].includes(String(category || '').trim()) ? String(category).trim() : undefined;
     const cleanAllowedPlans = Array.isArray(allowed_plans)
       ? allowed_plans.map(p => String(p || '').trim()).filter(p => PLAN_ORDER.includes(p))
       : undefined;
+    const derivedFlags = cleanAllowedPlans ? deriveLegacyFlagsFromAllowedPlans(cleanAllowedPlans) : null;
+    const effPremium = derivedFlags
+      ? derivedFlags.premium
+      : (premium !== undefined ? (premium === true || premium === 'true' || premium === 1 || premium === '1') : undefined);
+    const effEfficient = derivedFlags
+      ? derivedFlags.efficient
+      : (efficient !== undefined ? (efficient === true || efficient === 'true' || efficient === 1 || efficient === '1') : undefined);
     const cleanIsActive = is_active !== undefined ? (is_active === true || is_active === 'true' || is_active === 1 || is_active === '1') : undefined;
     const cleanContext = (context_window !== undefined && !isNaN(Number(context_window)) && Number(context_window) > 0) ? Number(context_window) : undefined;
     const cleanOrder = (order !== undefined && !isNaN(Number(order))) ? Number(order) : undefined;
@@ -1380,6 +1390,9 @@ const addModel = async (req, res) => {
     const cleanAllowedPlans = Array.isArray(allowed_plans)
       ? allowed_plans.map(p => String(p || '').trim()).filter(p => PLAN_ORDER.includes(p))
       : [];
+    const addDerivedFlags = deriveLegacyFlagsFromAllowedPlans(cleanAllowedPlans);
+    const addPremium = addDerivedFlags ? addDerivedFlags.premium : Boolean(premium);
+    const addEfficient = addDerivedFlags ? addDerivedFlags.efficient : Boolean(efficient);
     if (!model_id || !name || typeof model_id !== 'string' || typeof name !== 'string') {
       return res.status(400).json({ success: false, error: 'মডেল আইডি এবং নাম আবশ্যক' });
     }
@@ -1439,8 +1452,8 @@ const addModel = async (req, res) => {
           fallback_key_2: cleanFbKey2 ? encryptSecret(cleanFbKey2) : '',
           fallback_model_2: cleanFbModel2,
           api_model_3: cleanFbModel2,
-          premium: Boolean(premium),
-          efficient: Boolean(efficient),
+          premium: addPremium,
+          efficient: addEfficient,
           category: cleanCategory,
           allowed_plans: cleanAllowedPlans,
           provider: provider || 'Alora',
@@ -1467,8 +1480,8 @@ const addModel = async (req, res) => {
       fallback_key_2: cleanFbKey2,
       fallback_model_2: cleanFbModel2,
       api_model_3: cleanFbModel2,
-      premium: Boolean(premium),
-      efficient: Boolean(efficient),
+      premium: addPremium,
+      efficient: addEfficient,
       category: cleanCategory,
       allowed_plans: cleanAllowedPlans,
       provider: provider || 'Alora',
@@ -2291,12 +2304,39 @@ const rejectPaymentOrder = async (req, res) => {
   }
 };
 
+const discoverGeminiLiveModelsAdmin = async (req, res) => {
+  try {
+    const { api_key } = req.body || {};
+    const { getSystemSettings } = require('../../utils/getModelConfig');
+    const { discoverGeminiLiveModels, resolveGeminiVoiceKey } = require('../controllers/voiceController');
+    const settings = await getSystemSettings();
+    const resolvedKey = (typeof api_key === 'string' && api_key.trim())
+      ? api_key.trim()
+      : await resolveGeminiVoiceKey(settings, null);
+    if (!resolvedKey) {
+      return res.status(400).json({
+        success: false,
+        error: 'Google AI Studio API Key প্রদান করুন অথবা ভয়েস সেটিংসে সেভ করুন।'
+      });
+    }
+    const liveModels = await discoverGeminiLiveModels(resolvedKey, true);
+    return res.json({
+      success: true,
+      count: liveModels.length,
+      models: liveModels
+    });
+  } catch (error) {
+    return sendServerError(res, error, 'Google AI Studio Live মডেল লোড করতে সমস্যা হয়েছে।', '[Admin Discover Live Models Error]:');
+  }
+};
+
 module.exports = { 
   getModels, 
   updateModel, 
   addModel,
   deleteModel,
   reorderModels,
+  discoverGeminiLiveModelsAdmin,
   getAdminStats,
   getUsers,
   deleteUser,

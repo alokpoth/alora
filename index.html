@@ -809,6 +809,7 @@
       min-width: 0;
       display: flex;
       gap: 14px;
+      overflow-anchor: auto;
     }
 
     .chatgpt-row.user {
@@ -1288,8 +1289,7 @@
     .code-preview-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.88);
-      backdrop-filter: blur(16px);
+      background: radial-gradient(circle at 50% 42%, #07131e 0%, #020408 65%, #000000 100%);
       z-index: 950;
       display: none;
       flex-direction: column;
@@ -1297,13 +1297,14 @@
       justify-content: space-between;
       padding: calc(env(safe-area-inset-top, 0px) + 20px) 20px calc(env(safe-area-inset-bottom, 0px) + 28px);
       color: #ffffff;
+      contain: layout style;
     }
     [data-theme="light"] .voice-mode-backdrop {
-      background: rgba(255, 255, 255, 0.94);
+      background: radial-gradient(circle at 50% 42%, #f0f9ff 0%, #f8fafc 60%, #ffffff 100%);
       color: #0d0d0d;
     }
     [data-theme="eyecare"] .voice-mode-backdrop {
-      background: rgba(245, 238, 220, 0.95);
+      background: radial-gradient(circle at 50% 42%, #faf3e1 0%, #f5eedc 65%, #efe5cb 100%);
       color: #3d2f21;
     }
     .voice-mode-backdrop.open,
@@ -1329,16 +1330,17 @@
       align-items: center;
       justify-content: center;
       user-select: none;
+      contain: layout paint style;
     }
     .voice-dot-aura {
       position: absolute;
-      width: 174px;
-      height: 174px;
+      width: 196px;
+      height: 196px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(125, 211, 252, 0.32) 0%, rgba(56, 189, 248, 0.09) 55%, transparent 74%);
-      transform: scale(calc(1 + var(--vlevel, 0) * 0.56));
-      opacity: calc(0.45 + var(--vlevel, 0) * 0.52);
-      transition: transform 0.08s linear, opacity 0.12s ease;
+      background: radial-gradient(circle, rgba(125, 211, 252, 0.34) 0%, rgba(56, 189, 248, 0.14) 44%, rgba(14, 165, 233, 0.03) 66%, transparent 74%);
+      transform: translate3d(0, 0, 0) scale(1);
+      opacity: 0.48;
+      will-change: transform, opacity;
       pointer-events: none;
     }
     .voice-orb {
@@ -1347,103 +1349,113 @@
       height: 152px;
       border-radius: 50%;
       overflow: hidden;
-      background: radial-gradient(circle at 50% 42%, #0c4a6e 0%, #0369a1 38%, #075985 72%, #082f49 100%);
-      box-shadow: 0 0 38px rgba(56, 189, 248, 0.25), inset 0 0 22px rgba(255, 255, 255, 0.22);
-      transform: scale(calc(1 + var(--vlevel, 0) * 0.34)) rotate(var(--vtilt, 0deg));
-      transition: transform 0.07s linear, border-radius 0.32s ease, box-shadow 0.25s ease;
-      will-change: transform, border-radius;
+      background: radial-gradient(circle at 50% 42%, #0c4a6e 0%, #0369a1 40%, #075985 74%, #082f49 100%);
+      box-shadow: 0 0 28px rgba(56, 189, 248, 0.24), inset 0 0 18px rgba(255, 255, 255, 0.2);
+      transform: translate3d(0, 0, 0) scale(1);
+      will-change: transform, opacity;
+      contain: strict;
+      backface-visibility: hidden;
     }
     [data-theme="light"] .voice-orb {
       background: radial-gradient(circle at 50% 42%, #0284c7 0%, #0ea5e9 46%, #0369a1 85%, #0c4a6e 100%);
-      box-shadow: 0 12px 38px rgba(14, 165, 233, 0.28), inset 0 0 22px rgba(255, 255, 255, 0.34);
+      box-shadow: 0 10px 28px rgba(14, 165, 233, 0.25), inset 0 0 18px rgba(255, 255, 255, 0.3);
     }
     [data-theme="eyecare"] .voice-orb {
       background: radial-gradient(circle at 50% 42%, #b45309 0%, #d97706 48%, #92400e 86%, #78350f 100%);
-      box-shadow: 0 12px 36px rgba(180, 83, 9, 0.24), inset 0 0 20px rgba(254, 243, 199, 0.3);
+      box-shadow: 0 10px 26px rgba(180, 83, 9, 0.22), inset 0 0 16px rgba(254, 243, 199, 0.28);
     }
+    /* Pure compositor-only cloud layers (pre-feathered radial gradients, zero filter:blur repaints) */
     .voice-mist-layer,
     .voice-mist-core {
       position: absolute;
-      inset: -32%;
+      inset: -24%;
       border-radius: 50%;
       pointer-events: none;
-      filter: blur(18px);
-      mix-blend-mode: screen;
+      will-change: transform, opacity;
+      backface-visibility: hidden;
     }
     .voice-mist-layer.m1 {
       background:
-        radial-gradient(circle at 30% 35%, rgba(255, 255, 255, 0.92) 0%, rgba(224, 242, 254, 0.55) 28%, transparent 56%),
-        radial-gradient(circle at 72% 68%, rgba(125, 211, 252, 0.85) 0%, rgba(56, 189, 248, 0.25) 36%, transparent 62%);
-      animation: voiceMistDriftA 7.5s ease-in-out infinite alternate;
+        radial-gradient(circle at 32% 36%, rgba(255, 255, 255, 0.72) 0%, rgba(224, 242, 254, 0.34) 26%, rgba(125, 211, 252, 0.08) 46%, transparent 62%),
+        radial-gradient(circle at 70% 68%, rgba(125, 211, 252, 0.65) 0%, rgba(56, 189, 248, 0.22) 32%, transparent 58%);
     }
     .voice-mist-layer.m2 {
       background:
-        radial-gradient(circle at 68% 30%, rgba(240, 249, 255, 0.88) 0%, rgba(186, 230, 253, 0.45) 30%, transparent 58%),
-        radial-gradient(circle at 32% 72%, rgba(56, 189, 248, 0.72) 0%, transparent 55%);
-      animation: voiceMistDriftB 9s ease-in-out infinite alternate;
+        radial-gradient(circle at 66% 32%, rgba(240, 249, 255, 0.68) 0%, rgba(186, 230, 253, 0.30) 28%, transparent 56%),
+        radial-gradient(circle at 34% 72%, rgba(56, 189, 248, 0.56) 0%, rgba(14, 165, 233, 0.14) 36%, transparent 60%);
     }
     .voice-mist-core {
-      inset: 14%;
-      background: radial-gradient(circle at 48% 45%, rgba(255, 255, 255, 0.95) 0%, rgba(224, 242, 254, 0.45) 45%, transparent 72%);
-      filter: blur(12px);
-      opacity: calc(0.68 + var(--vlevel, 0) * 0.32);
-      transform: scale(calc(0.92 + var(--vlevel, 0) * 0.28));
-      transition: transform 0.08s linear, opacity 0.1s ease;
+      inset: 8%;
+      background: radial-gradient(circle at 48% 45%, rgba(255, 255, 255, 0.86) 0%, rgba(224, 242, 254, 0.38) 38%, rgba(186, 230, 253, 0.08) 58%, transparent 72%);
+      opacity: 0.72;
     }
     [data-theme="eyecare"] .voice-mist-layer.m1,
     [data-theme="eyecare"] .voice-mist-layer.m2,
     [data-theme="eyecare"] .voice-mist-core {
-      background: radial-gradient(circle at 45% 42%, rgba(255, 251, 235, 0.92) 0%, rgba(253, 230, 138, 0.48) 42%, transparent 70%);
-    }
-    .voice-orb.listening {
-      animation: voiceDotMorphSlow 3.6s ease-in-out infinite alternate;
-    }
-    .voice-orb.thinking .voice-mist-layer.m1 {
-      animation-duration: 2.1s;
-    }
-    .voice-orb.thinking .voice-mist-layer.m2 {
-      animation-duration: 2.6s;
-    }
-    .voice-orb.thinking {
-      animation: voiceDotThink 1.3s ease-in-out infinite alternate;
-    }
-    .voice-orb.speaking .voice-mist-layer.m1 {
-      animation-duration: 1.7s;
-    }
-    .voice-orb.speaking .voice-mist-layer.m2 {
-      animation-duration: 2.0s;
+      background: radial-gradient(circle at 45% 42%, rgba(255, 251, 235, 0.82) 0%, rgba(253, 230, 138, 0.38) 40%, rgba(245, 158, 11, 0.08) 58%, transparent 70%);
     }
     .voice-orb.speaking {
-      animation: voiceDotSpeakShape 0.9s ease-in-out infinite alternate;
-      box-shadow: 0 0 48px rgba(125, 211, 252, 0.42), inset 0 0 26px rgba(255, 255, 255, 0.34);
+      box-shadow: 0 0 36px rgba(125, 211, 252, 0.36), inset 0 0 20px rgba(255, 255, 255, 0.28);
     }
     .voice-orb.muted {
-      opacity: 0.48;
-      filter: grayscale(0.45);
+      opacity: 0.44;
     }
-    @keyframes voiceMistDriftA {
-      0% { transform: translate(-10%, -8%) rotate(0deg) scale(1); }
-      50% { transform: translate(10%, 6%) rotate(110deg) scale(1.12); }
-      100% { transform: translate(-4%, 12%) rotate(220deg) scale(0.96); }
+    .voice-model-picker-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
     }
-    @keyframes voiceMistDriftB {
-      0% { transform: translate(8%, 10%) rotate(0deg) scale(1.06); }
-      50% { transform: translate(-12%, -6%) rotate(-120deg) scale(0.95); }
-      100% { transform: translate(6%, -10%) rotate(-240deg) scale(1.14); }
+    .voice-model-dropdown {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      min-width: 245px;
+      max-width: min(320px, 86vw);
+      max-height: 290px;
+      overflow-y: auto;
+      background: #14171c;
+      color: #f8fafc;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 14px;
+      padding: 6px;
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.48);
+      display: none;
+      flex-direction: column;
+      gap: 2px;
+      z-index: 980;
     }
-    @keyframes voiceDotMorphSlow {
-      0% { border-radius: 50% 50% 49% 51% / 51% 49% 51% 49%; }
-      50% { border-radius: 47% 53% 52% 48% / 49% 52% 48% 51%; }
-      100% { border-radius: 52% 48% 48% 52% / 52% 47% 53% 48%; }
+    [data-theme="light"] .voice-model-dropdown {
+      background: #ffffff;
+      color: #0d0d0d;
+      border-color: rgba(0, 0, 0, 0.12);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.14);
     }
-    @keyframes voiceDotThink {
-      0% { border-radius: 50%; opacity: 0.84; }
-      100% { border-radius: 46% 54% 48% 52% / 52% 48% 54% 46%; opacity: 1; }
+    [data-theme="eyecare"] .voice-model-dropdown {
+      background: #fbf4e2;
+      color: #3d2f21;
+      border-color: rgba(120, 90, 50, 0.22);
     }
-    @keyframes voiceDotSpeakShape {
-      0% { border-radius: 48% 52% 50% 50% / 52% 48% 51% 49%; }
-      50% { border-radius: 53% 47% 46% 54% / 47% 53% 52% 48%; }
-      100% { border-radius: 46% 54% 53% 47% / 54% 46% 48% 52%; }
+    .voice-model-dropdown.open {
+      display: flex;
+    }
+    .voice-model-opt {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      text-align: left;
+      width: 100%;
+      cursor: pointer;
+    }
+    .voice-model-opt:hover {
+      background: rgba(125, 211, 252, 0.12);
+    }
+    .voice-model-opt.selected {
+      background: rgba(56, 189, 248, 0.18);
+      font-weight: 600;
     }
     .voice-mode-pill-btn {
       display: inline-flex;
@@ -3941,10 +3953,13 @@
         <!-- Mobile-only grouped native Settings Home (only real features + Notifications + Ads controls) -->
         <div class="mobile-settings-home" id="mobileSettingsHome">
           <div class="mset-group" data-mset-group>
-            <button type="button" class="mset-row" id="msetAccountRow" data-mset-tab="account" data-search="account profile name user plan email">
+            <button type="button" class="mset-row" id="msetAccountRow" data-mset-tab="account" data-search="account profile name user plan email days expiry">
               <span class="mset-row-left">
                 <span class="chatgpt-user-avatar" id="msetAvatarCircle" style="width:26px; height:26px; font-size:0.74rem;">G</span>
-                <span class="mset-row-copy"><span class="mset-row-title" data-i18n="msetAccountLabel">Account</span></span>
+                <span class="mset-row-copy">
+                  <span class="mset-row-title" data-i18n="msetAccountLabel">Account</span>
+                  <span class="mset-row-sub" id="msetAccountPlanSub">Free Plan</span>
+                </span>
               </span>
               <span class="mset-row-right">
                 <span id="msetAccountName">Guest</span>
@@ -4124,8 +4139,12 @@
             <div>
               <div class="setting-label-title" data-i18n="currentPlanTitle">Current Plan</div>
               <div class="setting-label-sub" id="settingsCurrentPlanLabel">Free Plan</div>
+              <div style="font-size:0.76rem; color:var(--text-muted); margin-top:3px;" id="settingsPlanValidityLabel"></div>
             </div>
-            <button type="button" class="header-pill-btn signup" id="settingsUpgradeBtn" data-i18n="upgradePlan">Upgrade Plan</button>
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+              <a href="/account" id="settingsAccountPortalLink" class="theme-opt-chip" style="display:none; text-decoration:none; font-size:0.8rem;" data-i18n="managePlanBtn">Plan Details</a>
+              <button type="button" class="header-pill-btn signup" id="settingsUpgradeBtn" data-i18n="upgradePlan">Upgrade Plan</button>
+            </div>
           </div>
 
           <div class="settings-quota-box" id="settingsQuotaBox">
@@ -4276,6 +4295,14 @@
               <div class="setting-label-sub" data-i18n="speechVoiceSub">Every voice automatically speaks Bengali, English, and other languages naturally</div>
             </div>
             <div class="alora-voice-grid" id="aloraVoiceGrid"></div>
+          </div>
+
+          <div class="setting-row setting-row-stacked" id="settingsLiveModelsRow">
+            <div>
+              <div class="setting-label-title" data-i18n="liveVoiceModelsTitle">Live Voice Models</div>
+              <div class="setting-label-sub" id="settingsLiveVoiceModeSub">Choose which Live Voice or Chat model speaks inside Voice Mode</div>
+            </div>
+            <div class="alora-voice-grid" id="settingsLiveModelsGrid"></div>
           </div>
 
           <div class="setting-row">
@@ -4460,12 +4487,18 @@
   <!-- Toast Notification Box -->
   <div class="toast-box" id="toastBox"></div>
 
-  <!-- In-App Live Voice Mode Engine Overlay (ChatGPT Living Cloud-Mist Dot) -->
+  <!-- In-App Live Voice Mode Engine Overlay (GPU-Composited Living Cloud-Mist Dot) -->
   <div class="voice-mode-backdrop" id="voiceModeBackdrop" aria-hidden="true">
-    <div style="width:100%; max-width:560px; display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;">
+    <div style="width:100%; max-width:560px; display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; position:relative; z-index:2;">
       <div style="display:flex; align-items:center; gap:8px;">
         <span style="font-size:0.9rem; font-weight:600;" id="voiceModeTitle">Alora Voice</span>
-        <span style="font-size:0.75rem; opacity:0.65;" id="voiceModeModelLabel"></span>
+        <div class="voice-model-picker-wrap" id="voiceModelPickerWrap">
+          <button type="button" class="voice-mode-pill-btn" id="voiceModeModelBtn" title="Switch Live Voice model">
+            <span id="voiceModeModelLabel">Auto</span>
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="voice-model-dropdown" id="voiceModeModelMenu" role="menu"></div>
+        </div>
       </div>
       <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
         <span class="voice-mode-pill-btn" id="voiceModeQuotaChip" style="cursor:default; opacity:0.88; font-size:0.73rem;"></span>
@@ -4476,10 +4509,10 @@
     <div class="voice-orb-stage">
       <div class="voice-dot-shell">
         <div class="voice-dot-aura" id="voiceDotAura"></div>
-        <div class="voice-orb" id="voiceOrbEl" style="--vlevel:0;--vtilt:0deg;">
-          <span class="voice-mist-layer m1"></span>
-          <span class="voice-mist-layer m2"></span>
-          <span class="voice-mist-core"></span>
+        <div class="voice-orb" id="voiceOrbEl">
+          <span class="voice-mist-layer m1" id="voiceMist1"></span>
+          <span class="voice-mist-layer m2" id="voiceMist2"></span>
+          <span class="voice-mist-core" id="voiceMistCore"></span>
         </div>
       </div>
       <div style="display:flex; flex-direction:column; gap:8px;">
@@ -4529,6 +4562,7 @@
       LANG: "alokpoth_lang",
       SOUND: "alokpoth_sound_enabled",
       SELECTED_MODEL: "alokpoth_selected_model",
+      SELECTED_VOICE_MODEL: "alokpoth_selected_voice_model",
       CUSTOM_ABOUT: "alora_custom_about",
       CUSTOM_PREF: "alora_custom_pref",
       CUSTOM_INST: "alokpoth_custom_instructions",
@@ -4637,6 +4671,7 @@
         soundEnable: "Enable Audio",
         customizeBtn: "Customize",
         currentPlanTitle: "Current Plan",
+        managePlanBtn: "Plan Details",
         usageQuotaTitle: "Usage Quota",
         resetsPeriodically: "Resets periodically",
         accountStatusTitle: "Account Status",
@@ -4673,6 +4708,7 @@
         voiceInputLangSub: "Choose primary listening language for Voice Mode & Mic (Auto detects UI)",
         speechVoiceTitle: "Alora Bilingual Voices (BN + EN + Multi)",
         speechVoiceSub: "Every voice automatically speaks Bengali, English, and other languages naturally",
+        liveVoiceModelsTitle: "Live Voice Models",
         speechDefaultOption: "Use Curated Alora Voice (Recommended)",
         speechPreviewTitle: "Test Selected Voice",
         speechPreviewSub: "Preview how the active voice speaks Bengali and English",
@@ -4839,6 +4875,7 @@
         soundEnable: "শব্দ চালু করুন",
         customizeBtn: "কাস্টমাইজ",
         currentPlanTitle: "বর্তমান প্ল্যান",
+        managePlanBtn: "প্ল্যানের মেয়াদ ও বিবরণ",
         usageQuotaTitle: "ব্যবহারের সীমা",
         resetsPeriodically: "নির্দিষ্ট সময় পর রিসেট হয়",
         accountStatusTitle: "অ্যাকাউন্টের অবস্থা",
@@ -4875,6 +4912,7 @@
         voiceInputLangSub: "মাইক ও ভয়েস মোডের প্রধান শোনার ভাষা বেছে নিন (অটো দিলে বাংলা/ইংরেজি বুঝবে)",
         speechVoiceTitle: "Alora দ্বিভাষিক ভয়েস (বাংলা + ইংরেজি + অন্যান্য)",
         speechVoiceSub: "প্রতিটি ভয়েসই বাংলা, ইংরেজি ও অন্যান্য ভাষায় স্বাভাবিক উচ্চারণে কথা বলে",
+        liveVoiceModelsTitle: "লাইভ ভয়েস মডেলসমূহ",
         speechDefaultOption: "Alora কিউরেটেড ভয়েস ব্যবহার করুন (প্রস্তাবিত)",
         speechPreviewTitle: "নির্বাচিত ভয়েস পরীক্ষা করুন",
         speechPreviewSub: "বর্তমান ভয়েসটি বাংলা ও ইংরেজিতে কেমন শোনায় তা পরীক্ষা করুন",
@@ -4951,9 +4989,12 @@
     let currentLanguage = localStorage.getItem(KEYS.LANG) || "en";
     let isSoundMuted = localStorage.getItem(KEYS.SOUND) === "false";
     let selectedModel = localStorage.getItem(KEYS.SELECTED_MODEL) || "";
+    let selectedVoiceModel = localStorage.getItem(KEYS.SELECTED_VOICE_MODEL) || "";
     let pendingRouteModel = null;
     let cachedDynamicModels = [];
+    let cachedPlanMeta = { name: "Guest", is_admin: false, voice_mode: "chat_as_live", voice_model: "", image_model: "", expires_at: null, days_remaining: null, hours_remaining: null };
     let lastModelFetchTime = 0;
+    let lastUserSyncTime = 0;
 
     let messagesHistory = [];
     let currentSessionId = null;
@@ -5656,6 +5697,77 @@
       if (msetUpgradeIcon) msetUpgradeIcon.innerHTML = iconSvg;
     }
 
+    function getSubscriptionExpiryInfo(user, isAdmin, planName) {
+      if (isAdmin) {
+        return {
+          isLifetime: true,
+          isExpired: false,
+          daysLeft: null,
+          hoursLeft: null,
+          shortLabel: currentLanguage === "bn" ? "আজীবন অ্যাডমিন" : "Lifetime",
+          fullLabel: currentLanguage === "bn" ? "মেয়াদ: আজীবন অ্যাডমিন অ্যাক্সেস" : "Validity: Lifetime Admin Access"
+        };
+      }
+      if (!planName || planName === "Free" || planName === "Guest") {
+        return {
+          isLifetime: true,
+          isExpired: false,
+          daysLeft: null,
+          hoursLeft: null,
+          shortLabel: "",
+          fullLabel: currentLanguage === "bn" ? "মেয়াদ: আজীবন (মেয়াদহীন)" : "Validity: Lifetime / No Expiry"
+        };
+      }
+      const sub = user && user.subscription ? user.subscription : {};
+      const expStr = sub.expires_at || localStorage.getItem("alokpoth_plan_expiry") || localStorage.getItem("alokpoth_plan_expires_at") || (cachedPlanMeta && cachedPlanMeta.expires_at);
+      if (!expStr) {
+        return {
+          isLifetime: true,
+          isExpired: false,
+          daysLeft: null,
+          hoursLeft: null,
+          shortLabel: "",
+          fullLabel: currentLanguage === "bn" ? "মেয়াদ: সক্রিয় সাবস্ক্রিপশন" : "Validity: Active Subscription"
+        };
+      }
+      const expDate = new Date(expStr);
+      if (isNaN(expDate.getTime())) {
+        return { isLifetime: false, isExpired: false, daysLeft: null, hoursLeft: null, shortLabel: "", fullLabel: "" };
+      }
+      const diffMs = expDate.getTime() - Date.now();
+      if (diffMs <= 0) {
+        return {
+          isLifetime: false,
+          isExpired: true,
+          daysLeft: 0,
+          hoursLeft: 0,
+          shortLabel: currentLanguage === "bn" ? "মেয়াদোত্তীর্ণ" : "Expired",
+          fullLabel: currentLanguage === "bn" ? "মেয়াদ শেষ হয়েছে (Free প্ল্যানে ফিরে গেছে)" : "Expired (reverted to Free plan)"
+        };
+      }
+      const daysLeft = Math.max(1, Math.ceil(diffMs / 86400000));
+      const hoursLeft = Math.max(1, Math.ceil(diffMs / 3600000));
+      const localeDate = expDate.toLocaleDateString(currentLanguage === "bn" ? "bn-BD" : "en-US", { year: "numeric", month: "short", day: "numeric" });
+      if (diffMs < 86400000) {
+        return {
+          isLifetime: false,
+          isExpired: false,
+          daysLeft: 0,
+          hoursLeft,
+          shortLabel: currentLanguage === "bn" ? `${hoursLeft} ঘণ্টা বাকি` : `${hoursLeft}h left`,
+          fullLabel: currentLanguage === "bn" ? `বাকি ${hoursLeft} ঘণ্টা (শেষ: ${localeDate})` : `${hoursLeft} hours left (Expires ${localeDate})`
+        };
+      }
+      return {
+        isLifetime: false,
+        isExpired: false,
+        daysLeft,
+        hoursLeft,
+        shortLabel: currentLanguage === "bn" ? `${daysLeft} দিন বাকি` : `${daysLeft}d left`,
+        fullLabel: currentLanguage === "bn" ? `বাকি ${daysLeft} দিন (শেষ: ${localeDate})` : `${daysLeft} days left (Expires ${localeDate})`
+      };
+    }
+
     function syncUserUI() {
       const token = getAuthToken();
       let user = null;
@@ -5674,6 +5786,7 @@
       const popoverAccountLink = document.getElementById("popoverAccountLink");
       const popoverProfileLink = document.getElementById("popoverProfileLink");
       const settingsPlan = document.getElementById("settingsCurrentPlanLabel");
+      const settingsValidity = document.getElementById("settingsPlanValidityLabel");
       const settingsEmail = document.getElementById("settingsEmailLabel");
       const settingsAuthBtn = document.getElementById("settingsAuthActionBtn");
       const settingsAccountPortalLink = document.getElementById("settingsAccountPortalLink");
@@ -5682,6 +5795,7 @@
       const settingsNameInput = document.getElementById("settingsNameInput");
       const msetAvatar = document.getElementById("msetAvatarCircle");
       const msetName = document.getElementById("msetAccountName");
+      const msetAccountPlanSub = document.getElementById("msetAccountPlanSub");
       const msetAuthRow = document.getElementById("msetAuthActionRow");
       const msetAuthText = document.getElementById("msetAuthActionText");
 
@@ -5689,16 +5803,24 @@
         document.body.classList.remove("is-guest");
         const displayName = user.name || t("memberUser");
         const isAdmin = user.role === "admin";
-        const plan = isAdmin ? "Max" : ((user.subscription && user.subscription.plan_name) || localStorage.getItem(KEYS.PLAN) || "Free");
+        let plan = isAdmin ? "Max" : ((user.subscription && user.subscription.plan_name) || localStorage.getItem(KEYS.PLAN) || "Free");
+        const expiryInfo = getSubscriptionExpiryInfo(user, isAdmin, plan);
+        if (expiryInfo.isExpired && !isAdmin) plan = "Free";
         const isDirectPaid = Boolean(!isAdmin && user.subscription && user.subscription.payment_source === "direct_payment" && plan !== "Free");
         const paidMarkHtml = isDirectPaid ? ` <span title="Verified Paid" aria-label="Verified Paid" style="color:#22c55e;font-weight:700;">✓</span>` : "";
+        const shortExpSuffix = expiryInfo.shortLabel && !isAdmin ? ` · ${expiryInfo.shortLabel}` : "";
 
         if (userName) userName.textContent = displayName;
         if (popName) popName.textContent = displayName;
         if (msetName) msetName.textContent = displayName;
+        if (msetAccountPlanSub) {
+          msetAccountPlanSub.textContent = isAdmin
+            ? (currentLanguage === "bn" ? "অ্যাডমিন · আনলিমিটেড" : "Admin · Unlimited")
+            : `${plan} ${t("planSuffix")}${shortExpSuffix}`;
+        }
         if (userPlanSub) {
           if (isAdmin) userPlanSub.textContent = "Admin";
-          else userPlanSub.innerHTML = escapeHtml(plan) + paidMarkHtml;
+          else userPlanSub.innerHTML = escapeHtml(plan) + paidMarkHtml + (shortExpSuffix ? `<span style="opacity:0.75;">${escapeHtml(shortExpSuffix)}</span>` : "");
         }
         const avUrl = normalizeAvatarUrl(user.avatar || localStorage.getItem("alokpoth_user_avatar"));
         const setAv = (el) => {
@@ -5715,12 +5837,17 @@
         if (popoverAuthText) popoverAuthText.textContent = t("logOut");
         if (msetAuthText) msetAuthText.textContent = t("logOut");
         if (msetAuthRow) msetAuthRow.classList.add("mset-row-danger");
-        if (popoverEmail) popoverEmail.textContent = isAdmin ? "Admin" : `${plan}${isDirectPaid ? " ✓ Paid" : ""} · ${user.email || ""}`.replace(/\s·\s$/, "");
+        if (popoverEmail) popoverEmail.textContent = isAdmin ? "Admin" : `${plan}${isDirectPaid ? " ✓ Paid" : ""}${shortExpSuffix} · ${user.email || ""}`.replace(/\s·\s$/, "");
         if (popoverAccountLink) popoverAccountLink.href = "/account";
         if (popoverProfileLink) popoverProfileLink.style.display = "flex";
         if (settingsPlan) {
           if (isAdmin) settingsPlan.textContent = t("adminUnlimited");
           else settingsPlan.innerHTML = escapeHtml(`${plan} ${t("planSuffix")}`) + (isDirectPaid ? ` <span style="color:#22c55e;font-weight:700;">✓ Paid</span>` : "");
+        }
+        if (settingsValidity) {
+          settingsValidity.textContent = expiryInfo.fullLabel || "";
+          settingsValidity.style.display = expiryInfo.fullLabel ? "block" : "none";
+          settingsValidity.style.color = expiryInfo.isExpired ? "var(--danger)" : (expiryInfo.daysLeft !== null && !expiryInfo.isLifetime ? "#4ade80" : "var(--text-muted)");
         }
         if (settingsEmail) settingsEmail.textContent = user.email || t("activeUser");
         if (settingsAuthBtn) settingsAuthBtn.textContent = t("logOut");
@@ -5735,6 +5862,7 @@
         if (userName) userName.textContent = t("guestUser");
         if (popName) popName.textContent = t("guestUser");
         if (msetName) msetName.textContent = t("guestUser");
+        if (msetAccountPlanSub) msetAccountPlanSub.textContent = t("guestTrialPlan");
         if (userPlanSub) userPlanSub.textContent = "Free";
         if (userAvatar) userAvatar.textContent = "G";
         if (popAvatar) popAvatar.textContent = "G";
@@ -5754,6 +5882,11 @@
         if (popoverAccountLink) popoverAccountLink.href = "/auth/login";
         if (popoverProfileLink) popoverProfileLink.style.display = "none";
         if (settingsPlan) settingsPlan.textContent = gTrialText;
+        if (settingsValidity) {
+          settingsValidity.textContent = currentLanguage === "bn" ? "লগইন করলে আপনার সাবস্ক্রিপশন ও মেয়াদ দেখতে পাবেন" : "Log in to track your plan and validity days";
+          settingsValidity.style.display = "block";
+          settingsValidity.style.color = "var(--text-muted)";
+        }
         if (settingsEmail) settingsEmail.textContent = t("guestStatus");
         if (settingsAuthBtn) settingsAuthBtn.textContent = t("logIn");
         if (settingsAccountPortalLink) settingsAccountPortalLink.style.display = "none";
@@ -5839,6 +5972,7 @@
               limit: (p.message_limit !== undefined && !isNaN(Number(p.message_limit))) ? Number(p.message_limit) : (prev.limit ?? 50),
               image_limit: (p.image_limit !== undefined && !isNaN(Number(p.image_limit))) ? Number(p.image_limit) : (prev.image_limit ?? 0),
               voice_limit: (p.voice_limit !== undefined && !isNaN(Number(p.voice_limit))) ? Number(p.voice_limit) : (prev.voice_limit ?? 0),
+              voice_mode: p.voice_mode || prev.voice_mode || (["Plus", "Pro"].includes(pName) ? "live_models" : (pName === "Max" ? "both" : "chat_as_live")),
               hours: (Number(p.window_hours) > 0) ? Number(p.window_hours) : (prev.hours ?? 3),
               price_bdt: (p.price_bdt !== undefined && !isNaN(Number(p.price_bdt))) ? Number(p.price_bdt) : (prev.price_bdt ?? 0),
               is_active: p.is_active !== false
@@ -5847,6 +5981,7 @@
               message_limit: cachedPlanLimits[pName].limit,
               image_limit: cachedPlanLimits[pName].image_limit,
               voice_limit: cachedPlanLimits[pName].voice_limit,
+              voice_mode: cachedPlanLimits[pName].voice_mode,
               window_hours: cachedPlanLimits[pName].hours,
               price_usd: p.price_usd,
               price_bdt: cachedPlanLimits[pName].price_bdt
@@ -5854,19 +5989,23 @@
           });
           try { localStorage.setItem("alora_cached_plans", JSON.stringify(cacheObj)); } catch (e) {}
           syncUserUI();
+          if (typeof renderLiveVoiceModelPickers === "function") renderLiveVoiceModelPickers();
         }
       } catch(e) {}
     }
 
-    async function refreshUserFromServer() {
+    async function refreshUserFromServer(forceReloadModels = false) {
+      lastUserSyncTime = Date.now();
       const token = getAuthToken();
       if (!token) {
         syncUserUI();
         return;
       }
       try {
+        const prevPlan = localStorage.getItem(KEYS.PLAN) || "Free";
         const res = await fetch(`${API_BASE}/auth/me?_t=${Date.now()}`, {
-          headers: { "Authorization": `Bearer ${token}` }
+          headers: { "Authorization": `Bearer ${token}` },
+          cache: "no-store"
         });
         if (res.status === 401) {
           handleLogout(true);
@@ -5874,15 +6013,31 @@
         }
         const data = await res.json();
         if (res.ok && data.success && data.user) {
+          if (data.token) localStorage.setItem(KEYS.TOKEN, data.token);
           const merged = {
             ...data.user,
             rateLimit: data.rateLimit || data.user.rateLimit || data.usage || data.user.usage
           };
           localStorage.setItem(KEYS.USER, JSON.stringify(merged));
-          const pName = (merged.subscription && merged.subscription.plan_name) || merged.plan || "Free";
+          const pName = merged.role === "admin" ? "Max" : ((merged.subscription && merged.subscription.plan_name) || merged.plan || "Free");
           localStorage.setItem(KEYS.PLAN, pName);
+          localStorage.setItem("alokpoth_user_plan", pName);
+          localStorage.setItem("alokpoth_plan", pName);
+          if (merged.subscription && merged.subscription.expires_at) {
+            localStorage.setItem("alokpoth_plan_expiry", String(merged.subscription.expires_at));
+            localStorage.setItem("alokpoth_plan_expires_at", String(merged.subscription.expires_at));
+          } else {
+            localStorage.removeItem("alokpoth_plan_expiry");
+            localStorage.removeItem("alokpoth_plan_expires_at");
+          }
+          if (data.usage) {
+            try { localStorage.setItem("alokpoth_window_usage", JSON.stringify(data.usage)); } catch {}
+          }
           if (merged.avatar) localStorage.setItem("alokpoth_user_avatar", merged.avatar);
           syncUserUI();
+          if (forceReloadModels || pName !== prevPlan) {
+            loadDynamicModels(true);
+          }
         }
       } catch(e) {}
     }
@@ -7972,16 +8127,25 @@
           const decoder = new TextDecoder("utf-8");
           let buffer = "";
           let renderPending = false;
+          let lastStreamPaintTs = 0;
+          const paintStreamFrame = () => {
+            renderPending = false;
+            if (!isGenerating) return;
+            lastStreamPaintTs = performance.now();
+            content.innerHTML = formatAssistantContent(streamBuffer, true);
+            if (streamBuffer.includes("```")) enhanceCodeBlocks(content, false);
+            scrollToBottom(false);
+          };
           const scheduleStreamRender = () => {
             if (renderPending) return;
-            renderPending = true;
-            requestAnimationFrame(() => {
-              renderPending = false;
-              if (!isGenerating) return;
-              content.innerHTML = formatAssistantContent(streamBuffer, true);
-              enhanceCodeBlocks(content, false);
-              scrollToBottom(false);
-            });
+            const elapsed = performance.now() - lastStreamPaintTs;
+            if (elapsed >= 44) {
+              renderPending = true;
+              requestAnimationFrame(paintStreamFrame);
+            } else {
+              renderPending = true;
+              setTimeout(() => requestAnimationFrame(paintStreamFrame), 44 - elapsed);
+            }
           };
 
           while (true) {
@@ -8872,9 +9036,22 @@
         return;
       }
       try {
-        const res = await fetch(`${API_BASE}/chat/models?_t=${now}`);
+        const token = getAuthToken();
+        const headers = {};
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+        const res = await fetch(`${API_BASE}/chat/models?_t=${now}`, { headers, cache: "no-store" });
         const data = await res.json();
         if (data && data.success && Array.isArray(data.models)) {
+          if (data.current_plan && typeof data.current_plan === "object") {
+            cachedPlanMeta = { ...cachedPlanMeta, ...data.current_plan };
+            if (token && data.current_plan.name && data.current_plan.name !== "Guest") {
+              localStorage.setItem(KEYS.PLAN, data.current_plan.name);
+              localStorage.setItem("alokpoth_user_plan", data.current_plan.name);
+              if (data.current_plan.expires_at) {
+                localStorage.setItem("alokpoth_plan_expiry", String(data.current_plan.expires_at));
+              }
+            }
+          }
           cachedDynamicModels = data.models.filter(Boolean).map(m => ({
             ...m,
             name: normalizeModelTitle(m.name || m.id || m.model_id)
@@ -8882,10 +9059,219 @@
           try { localStorage.setItem("alokpoth_cached_models", JSON.stringify(cachedDynamicModels)); } catch (e) {}
           lastModelFetchTime = now;
           renderDynamicModels(cachedDynamicModels);
+          renderLiveVoiceModelPickers();
           applyPendingRouteModel();
         }
       } catch(e) {
-        if (cachedDynamicModels.length > 0) renderDynamicModels(cachedDynamicModels);
+        if (cachedDynamicModels.length > 0) {
+          renderDynamicModels(cachedDynamicModels);
+          renderLiveVoiceModelPickers();
+        }
+      }
+    }
+
+    function getModelPlanBadgeInfo(m) {
+      let badgeText = "Free";
+      let badgeStyle = "background:rgba(255,255,255,0.1); color:var(--text-main); font-size:0.7rem; padding:2px 8px; border-radius:9999px;";
+      let defaultDesc = "Great for everyday tasks and fast answers";
+
+      const plansArr = Array.isArray(m.allowed_plans) ? m.allowed_plans : [];
+      if (plansArr.length > 0 && !plansArr.includes("*")) {
+        if (plansArr.includes("Free") || plansArr.includes("Guest")) {
+          badgeText = "Free";
+        } else if (plansArr.includes("Go")) {
+          badgeText = "Go+";
+          badgeStyle = "background:#2b2b2b; color:#ffffff; font-size:0.7rem; padding:2px 8px; border-radius:9999px;";
+        } else if (plansArr.includes("Plus")) {
+          badgeText = "Plus+";
+          badgeStyle = "background:#333333; color:#ffffff; font-size:0.7rem; padding:2px 8px; border-radius:9999px;";
+          defaultDesc = "Our smartest model & deeper reasoning";
+        } else if (plansArr.includes("Pro")) {
+          badgeText = "Pro+";
+          badgeStyle = "background:#383838; color:#ffffff; font-size:0.7rem; padding:2px 8px; border-radius:9999px;";
+          defaultDesc = "Priority reasoning & analytical workflows";
+        } else {
+          badgeText = "Max";
+          badgeStyle = "background:#404040; color:#ffffff; font-size:0.7rem; padding:2px 8px; border-radius:9999px;";
+          defaultDesc = "Frontier intelligence & complex analytical workflows";
+        }
+      } else if (m.efficient) {
+        badgeText = "Max";
+        badgeStyle = "background:#404040; color:#ffffff; font-size:0.7rem; padding:2px 8px; border-radius:9999px;";
+        defaultDesc = "Frontier intelligence & complex analytical workflows";
+      } else if (m.premium) {
+        badgeText = "Plus+";
+        badgeStyle = "background:#333333; color:#ffffff; font-size:0.7rem; padding:2px 8px; border-radius:9999px;";
+        defaultDesc = "Our smartest model & deeper reasoning";
+      }
+      return { badgeText, badgeStyle, defaultDesc };
+    }
+
+    function getActiveUserPlanContext() {
+      const hasToken = Boolean(getAuthToken());
+      let u = null;
+      try { u = JSON.parse(localStorage.getItem(KEYS.USER) || "null"); } catch {}
+      const isAdmin = Boolean(hasToken && u && (u.role === "admin" || cachedPlanMeta?.is_admin));
+      const planName = isAdmin
+        ? "Max"
+        : (hasToken ? ((u?.subscription?.plan_name) || (cachedPlanMeta?.name !== "Guest" ? cachedPlanMeta?.name : "") || localStorage.getItem(KEYS.PLAN) || "Free") : "Guest");
+      const pLimitObj = cachedPlanLimits[planName] || cachedPlanLimits.Free || {};
+      const voiceMode = isAdmin
+        ? "both"
+        : (cachedPlanMeta?.voice_mode && cachedPlanMeta.name === planName
+          ? cachedPlanMeta.voice_mode
+          : (pLimitObj.voice_mode || (["Plus", "Pro"].includes(planName) ? "live_models" : (planName === "Max" ? "both" : "chat_as_live"))));
+      return { hasToken, isAdmin, planName, voiceMode };
+    }
+
+    function isClientModelAccessible(m, ctx) {
+      if (!m) return true;
+      if (ctx.isAdmin) return true;
+      if (m.accessible === false) return false;
+      const plansArr = Array.isArray(m.allowed_plans) ? m.allowed_plans : [];
+      if (plansArr.length > 0 && !plansArr.includes("*")) {
+        return plansArr.some(p => String(p || "").toLowerCase() === String(ctx.planName || "").toLowerCase());
+      }
+      return m.accessible !== false;
+    }
+
+    function getLiveVoiceCandidateModels() {
+      const ctx = getActiveUserPlanContext();
+      const models = Array.isArray(cachedDynamicModels) ? cachedDynamicModels : [];
+      const voiceList = models.filter(m => m.category === "voice");
+      const chatList = models.filter(m => (m.category || "chat") === "chat");
+
+      let combined = [];
+      if (ctx.voiceMode === "chat_as_live") {
+        combined = chatList;
+      } else if (ctx.voiceMode === "both") {
+        combined = [...voiceList, ...chatList];
+      } else {
+        // 'live_models': show dedicated Live Voice models first, or fallback to Chat if none added yet
+        combined = voiceList.length > 0 ? voiceList : chatList;
+      }
+      return { ctx, models: combined, hasDedicatedVoice: voiceList.length > 0 };
+    }
+
+    function renderLiveVoiceModelPickers() {
+      const { ctx, models } = getLiveVoiceCandidateModels();
+      const vLabelEl = document.getElementById("voiceModeModelLabel");
+      const vMenuEl = document.getElementById("voiceModeModelMenu");
+      const settingsGrid = document.getElementById("settingsLiveModelsGrid");
+      const settingsModeSub = document.getElementById("settingsLiveVoiceModeSub");
+
+      let activeVoiceModelObj = models.find(m => (m.id === selectedVoiceModel || m.model_id === selectedVoiceModel) && isClientModelAccessible(m, ctx));
+      if (!activeVoiceModelObj) {
+        activeVoiceModelObj = models.find(m => m.category === "voice" && isClientModelAccessible(m, ctx))
+          || models.find(m => isClientModelAccessible(m, ctx))
+          || models[0]
+          || null;
+        if (activeVoiceModelObj) {
+          selectedVoiceModel = activeVoiceModelObj.id || activeVoiceModelObj.model_id;
+          localStorage.setItem(KEYS.SELECTED_VOICE_MODEL, selectedVoiceModel);
+        }
+      }
+
+      if (vLabelEl) {
+        const displayLbl = activeVoiceModelObj ? (activeVoiceModelObj.name || activeVoiceModelObj.id) : (document.getElementById("headerModelLabel")?.textContent || "Alora Voice");
+        vLabelEl.textContent = displayLbl;
+      }
+
+      if (settingsModeSub) {
+        const isBn = currentLanguage === "bn";
+        const modeDescMap = {
+          chat_as_live: isBn
+            ? `আপনার (${ctx.planName}) প্ল্যানে চ্যাট মডেলগুলোই বাংলা ও ইংরেজি লাইভ ভয়েস হিসেবে কাজ করে`
+            : `On your ${ctx.planName} plan, Chat models power Live Voice directly in Bengali & English`,
+          live_models: isBn
+            ? `আপনার (${ctx.planName}) প্ল্যানে ডেডিকেটেড Live API ভয়েস মডেলসমূহ সক্রিয়`
+            : `Dedicated Gemini Live & Audio models are active on your ${ctx.planName} plan`,
+          both: isBn
+            ? `আপনার (${ctx.planName}) প্ল্যানে Live API মডেল ও চ্যাট মডেল—দুটোই লাইভ ভয়েসে ব্যবহার করতে পারবেন`
+            : `Use both dedicated Live API models and Chat models inside Voice Mode`
+        };
+        settingsModeSub.textContent = modeDescMap[ctx.voiceMode] || modeDescMap.chat_as_live;
+      }
+
+      const selectVoiceModel = (m, isLocked, badgeLabel) => {
+        if (isLocked) {
+          vMenuEl?.classList.remove("open");
+          const mName = m.name || m.id || "Model";
+          showToast(currentLanguage === "bn" ? `'${mName}' ব্যবহারের জন্য ${badgeLabel.replace("🔒 ", "")} প্ল্যান প্রয়োজন` : `Upgrade to ${badgeLabel.replace("🔒 ", "")} to unlock ${mName}`);
+          openUpgradeDialog();
+          return;
+        }
+        selectedVoiceModel = m.id || m.model_id;
+        localStorage.setItem(KEYS.SELECTED_VOICE_MODEL, selectedVoiceModel);
+        vMenuEl?.classList.remove("open");
+        renderLiveVoiceModelPickers();
+        showToast(`${m.name || selectedVoiceModel} ready for Voice`);
+      };
+
+      if (vMenuEl) {
+        vMenuEl.innerHTML = "";
+        if (!models.length) {
+          const empty = document.createElement("div");
+          empty.style.cssText = "padding:10px; font-size:0.78rem; opacity:0.72;";
+          empty.textContent = currentLanguage === "bn" ? "কোনো ভয়েস মডেল পাওয়া যায়নি" : "No voice models configured";
+          vMenuEl.appendChild(empty);
+        } else {
+          models.forEach(m => {
+            const mId = m.id || m.model_id;
+            const mName = m.name || mId;
+            const isSel = activeVoiceModelObj && (activeVoiceModelObj.id === mId || activeVoiceModelObj.model_id === mId);
+            const isLocked = !isClientModelAccessible(m, ctx);
+            const { badgeText } = getModelPlanBadgeInfo(m);
+            const finalBadge = isLocked ? `🔒 ${badgeText}` : (m.category === "voice" ? `Live · ${badgeText}` : badgeText);
+
+            const opt = document.createElement("button");
+            opt.type = "button";
+            opt.className = `voice-model-opt ${isSel ? "selected" : ""}`;
+            if (isLocked) opt.style.opacity = "0.68";
+            opt.innerHTML = `
+              <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(mName)}</span>
+              <span style="font-size:0.68rem; opacity:0.8; flex-shrink:0;">${escapeHtml(finalBadge)}</span>
+            `;
+            opt.addEventListener("click", (ev) => {
+              ev.stopPropagation();
+              selectVoiceModel(m, isLocked, finalBadge);
+            });
+            vMenuEl.appendChild(opt);
+          });
+        }
+      }
+
+      if (settingsGrid) {
+        settingsGrid.innerHTML = "";
+        if (!models.length) {
+          const note = document.createElement("div");
+          note.style.cssText = "font-size:0.8rem; color:var(--text-muted); padding:4px 0;";
+          note.textContent = currentLanguage === "bn" ? "ডিফল্ট Alora ভয়েস সক্রিয় আছে" : "Default Alora Voice Engine active";
+          settingsGrid.appendChild(note);
+        } else {
+          models.forEach(m => {
+            const mId = m.id || m.model_id;
+            const mName = m.name || mId;
+            const isSel = activeVoiceModelObj && (activeVoiceModelObj.id === mId || activeVoiceModelObj.model_id === mId);
+            const isLocked = !isClientModelAccessible(m, ctx);
+            const { badgeText } = getModelPlanBadgeInfo(m);
+            const finalBadge = isLocked ? `🔒 ${badgeText}` : badgeText;
+
+            const card = document.createElement("button");
+            card.type = "button";
+            card.className = `alora-voice-card ${isSel ? "active" : ""}`;
+            if (isLocked) card.style.opacity = "0.68";
+            card.innerHTML = `
+              <div class="alora-voice-card-meta">
+                <span class="alora-voice-card-title">${escapeHtml(mName)}</span>
+                <span class="alora-voice-card-sub">${escapeHtml(m.category === "voice" ? "Live API Model" : "Chat-as-Live Model")} · ${escapeHtml(finalBadge)}</span>
+              </div>
+              <span style="font-size:0.75rem; font-weight:600; color:var(--text-main);">${isSel ? "✓" : ""}</span>
+            `;
+            card.addEventListener("click", () => selectVoiceModel(m, isLocked, finalBadge));
+            settingsGrid.appendChild(card);
+          });
+        }
       }
     }
 
@@ -8902,12 +9288,13 @@
         return;
       }
 
+      const ctx = getActiveUserPlanContext();
       const chatOnlyList = models.filter(m => (m.category || "chat") === "chat");
       const displayModels = chatOnlyList.length > 0 ? chatOnlyList : models;
 
-      let matched = displayModels.find(m => (m.id === selectedModel || m.model_id === selectedModel) && m.accessible !== false);
+      let matched = displayModels.find(m => (m.id === selectedModel || m.model_id === selectedModel) && isClientModelAccessible(m, ctx));
       if (!matched) {
-        matched = displayModels.find(m => m.accessible !== false) || displayModels[0];
+        matched = displayModels.find(m => isClientModelAccessible(m, ctx)) || displayModels[0];
         selectedModel = matched.id || matched.model_id;
         localStorage.setItem(KEYS.SELECTED_MODEL, selectedModel);
       }
@@ -8916,41 +9303,9 @@
         const mId = m.id || m.model_id;
         const name = (typeof m.name === "string" && m.name.trim()) ? m.name.trim() : mId;
         const isSelected = matched && (matched.id === mId || matched.model_id === mId);
-        const isLocked = m.accessible === false;
+        const isLocked = !isClientModelAccessible(m, ctx);
 
-        let badgeText = "Free";
-        let badgeStyle = "background:rgba(255,255,255,0.1); color:var(--text-main); font-size:0.7rem; padding:2px 8px; border-radius:9999px;";
-        let defaultDesc = "Great for everyday tasks and fast answers";
-
-        const plansArr = Array.isArray(m.allowed_plans) ? m.allowed_plans : [];
-        if (plansArr.length > 0 && !plansArr.includes("*")) {
-          if (plansArr.includes("Free") || plansArr.includes("Guest")) {
-            badgeText = "Free";
-          } else if (plansArr.includes("Go")) {
-            badgeText = "Go+";
-            badgeStyle = "background:#2b2b2b; color:#ffffff; font-size:0.7rem; padding:2px 8px; border-radius:9999px;";
-          } else if (plansArr.includes("Plus")) {
-            badgeText = "Plus+";
-            badgeStyle = "background:#333333; color:#ffffff; font-size:0.7rem; padding:2px 8px; border-radius:9999px;";
-            defaultDesc = "Our smartest model & deeper reasoning";
-          } else if (plansArr.includes("Pro")) {
-            badgeText = "Pro+";
-            badgeStyle = "background:#383838; color:#ffffff; font-size:0.7rem; padding:2px 8px; border-radius:9999px;";
-            defaultDesc = "Priority reasoning & analytical workflows";
-          } else {
-            badgeText = "Max";
-            badgeStyle = "background:#404040; color:#ffffff; font-size:0.7rem; padding:2px 8px; border-radius:9999px;";
-            defaultDesc = "Frontier intelligence & complex analytical workflows";
-          }
-        } else if (m.efficient) {
-          badgeText = "Max";
-          badgeStyle = "background:#404040; color:#ffffff; font-size:0.7rem; padding:2px 8px; border-radius:9999px;";
-          defaultDesc = "Frontier intelligence & complex analytical workflows";
-        } else if (m.premium) {
-          badgeText = "Plus+";
-          badgeStyle = "background:#333333; color:#ffffff; font-size:0.7rem; padding:2px 8px; border-radius:9999px;";
-          defaultDesc = "Our smartest model & deeper reasoning";
-        }
+        let { badgeText, badgeStyle, defaultDesc } = getModelPlanBadgeInfo(m);
         if (isLocked) badgeText = `🔒 ${badgeText}`;
 
         const desc = m.description || defaultDesc;
@@ -8998,6 +9353,7 @@
       });
 
       updateHeaderActionsVisibility();
+      renderLiveVoiceModelPickers();
     }
 
     function loadCustomSettingsInputs() {
@@ -9099,8 +9455,13 @@
       const backdrop = document.getElementById("voiceModeBackdrop");
       const orbEl = document.getElementById("voiceOrbEl");
       const auraEl = document.getElementById("voiceDotAura");
+      const mist1El = document.getElementById("voiceMist1");
+      const mist2El = document.getElementById("voiceMist2");
+      const mistCoreEl = document.getElementById("voiceMistCore");
       const stateLabel = document.getElementById("voiceModeStateLabel");
       const transcriptEl = document.getElementById("voiceModeTranscript");
+      const modelBtn = document.getElementById("voiceModeModelBtn");
+      const modelMenu = document.getElementById("voiceModeModelMenu");
       const modelLabel = document.getElementById("voiceModeModelLabel");
       const micToggleBtn = document.getElementById("voiceModeMicToggleBtn");
       const micBtnText = document.getElementById("voiceModeMicBtnText");
@@ -9182,30 +9543,42 @@
           animRaf = null;
         }
         smoothLevel = 0;
-        if (orbEl) {
-          orbEl.style.setProperty("--vlevel", "0");
-          orbEl.style.setProperty("--vtilt", "0deg");
+        if (orbEl) orbEl.style.transform = "translate3d(0, 0, 0) scale3d(1, 1, 1)";
+        if (auraEl) {
+          auraEl.style.transform = "translate3d(0, 0, 0) scale(1)";
+          auraEl.style.opacity = "0.45";
         }
-        if (auraEl) auraEl.style.setProperty("--vlevel", "0");
+        if (mist1El) mist1El.style.transform = "translate3d(0, 0, 0) rotate(0deg) scale(1)";
+        if (mist2El) mist2El.style.transform = "translate3d(0, 0, 0) rotate(0deg) scale(1)";
+        if (mistCoreEl) {
+          mistCoreEl.style.transform = "translate3d(0, 0, 0) scale(1)";
+          mistCoreEl.style.opacity = "0.72";
+        }
       }
 
       function startDotAnimator() {
         if (animRaf) return;
+        let lastFrameTs = 0;
         const tick = (t) => {
           if (!active) { stopDotAnimator(); return; }
+          if (t - lastFrameTs < 14) {
+            animRaf = requestAnimationFrame(tick);
+            return;
+          }
+          lastFrameTs = t;
           let target = 0;
           if (phase === "speaking" && !muted) {
-            target = 0.16 + 0.56 * Math.abs(Math.sin(t * 0.009) * Math.cos(t * 0.014));
+            target = 0.16 + 0.56 * Math.abs(Math.sin(t * 0.0085) * Math.cos(t * 0.013));
           } else if (phase === "listening" && !muted) {
             let micAmp = 0;
             if (analyserNode && analyserData) {
               analyserNode.getByteTimeDomainData(analyserData);
               let sumSq = 0;
-              for (let i = 0; i < analyserData.length; i++) {
+              for (let i = 0; i < analyserData.length; i += 2) {
                 const v = (analyserData[i] - 128) / 128;
                 sumSq += v * v;
               }
-              micAmp = Math.min(1, Math.sqrt(sumSq / analyserData.length) * 4.2);
+              micAmp = Math.min(1, Math.sqrt(sumSq / (analyserData.length * 0.5)) * 4.2);
             } else if (Date.now() - lastNativeRmsTs < 320) {
               micAmp = nativeRmsLevel;
             }
@@ -9213,13 +9586,38 @@
           } else if (phase === "thinking") {
             target = 0.12 + 0.08 * Math.sin(t * 0.0055);
           }
+
           smoothLevel += (target - smoothLevel) * 0.24;
-          const tiltDeg = (Math.sin(t * 0.0042) * (1.2 + smoothLevel * 7.2)).toFixed(2);
+          const speedMul = phase === "thinking" ? 0.0024 : (phase === "speaking" ? 0.0031 : 0.0012);
+          const baseScale = 1 + smoothLevel * 0.34;
+          const asymX = 1 + Math.sin(t * 0.0042) * (0.016 + smoothLevel * 0.045);
+          const asymY = 1 + Math.cos(t * 0.0037) * (0.016 + smoothLevel * 0.045);
+          const tiltDeg = Math.sin(t * 0.004) * (1.2 + smoothLevel * 6.5);
+
           if (orbEl) {
-            orbEl.style.setProperty("--vlevel", smoothLevel.toFixed(3));
-            orbEl.style.setProperty("--vtilt", `${tiltDeg}deg`);
+            orbEl.style.transform = `translate3d(0, 0, 0) scale3d(${(baseScale * asymX).toFixed(3)}, ${(baseScale * asymY).toFixed(3)}, 1) rotate(${tiltDeg.toFixed(2)}deg)`;
           }
-          if (auraEl) auraEl.style.setProperty("--vlevel", smoothLevel.toFixed(3));
+          if (auraEl) {
+            auraEl.style.transform = `translate3d(0, 0, 0) scale(${(1 + smoothLevel * 0.52).toFixed(3)})`;
+            auraEl.style.opacity = (0.42 + smoothLevel * 0.5).toFixed(3);
+          }
+          if (mist1El) {
+            const x1 = Math.sin(t * speedMul) * 10;
+            const y1 = Math.cos(t * speedMul * 0.8) * 9;
+            const r1 = (t * (phase === "thinking" ? 0.06 : 0.025)) % 360;
+            mist1El.style.transform = `translate3d(${x1.toFixed(1)}%, ${y1.toFixed(1)}%, 0) rotate(${r1.toFixed(1)}deg) scale(${(1 + smoothLevel * 0.16).toFixed(3)})`;
+          }
+          if (mist2El) {
+            const x2 = Math.cos(t * speedMul * 1.1) * 11;
+            const y2 = Math.sin(t * speedMul * 0.7) * 9;
+            const r2 = -((t * (phase === "thinking" ? 0.048 : 0.02)) % 360);
+            mist2El.style.transform = `translate3d(${x2.toFixed(1)}%, ${y2.toFixed(1)}%, 0) rotate(${r2.toFixed(1)}deg) scale(${(1.06 + smoothLevel * 0.12).toFixed(3)})`;
+          }
+          if (mistCoreEl) {
+            const coreScale = 0.92 + smoothLevel * 0.28;
+            mistCoreEl.style.transform = `translate3d(0, 0, 0) scale(${coreScale.toFixed(3)})`;
+            mistCoreEl.style.opacity = (0.68 + smoothLevel * 0.3).toFixed(3);
+          }
           animRaf = requestAnimationFrame(tick);
         };
         animRaf = requestAnimationFrame(tick);
@@ -9438,6 +9836,7 @@
               voice_preset: preset.id || "auto",
               language: langSetting,
               chat_model: selectedModel,
+              voice_model: selectedVoiceModel || undefined,
               messages: serializeMessagesForApi(messagesHistory.slice(-6))
             }),
             signal: voiceAbort.signal
@@ -9447,6 +9846,17 @@
           if (!active) return;
 
           if (!res.ok || data.success === false) {
+            if (res.status === 404) {
+              // Live Voice endpoint not deployed yet on backend: pause gracefully instead of looping errors
+              muted = true;
+              setOrbState("paused", currentLanguage === "bn" ? "ভয়েস সার্ভার আপডেট হচ্ছে..." : "Voice server updating...");
+              if (transcriptEl) {
+                transcriptEl.textContent = currentLanguage === "bn"
+                  ? "ব্যাকএন্ড সার্ভারে /api/chat/voice-live এখনো আপডেট হয়নি। অনুগ্রহ করে Render সার্ভিসটি ডিপ্লয় করুন।"
+                  : "Live Voice endpoint is not active on the backend yet. Please deploy the latest Render backend.";
+              }
+              return;
+            }
             if (res.status === 401 || res.status === 403 || res.status === 429 || data.code === "VOICE_LIMIT_REACHED" || data.code === "MESSAGE_LIMIT_REACHED" || data.code === "PLAN_UPGRADE_REQUIRED") {
               if (!token) {
                 try {
@@ -9834,6 +10244,17 @@
         }
       };
 
+      modelBtn?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        renderLiveVoiceModelPickers();
+        modelMenu?.classList.toggle("open");
+      });
+      document.addEventListener("click", (e) => {
+        if (modelMenu && modelMenu.classList.contains("open") && !e.target.closest("#voiceModelPickerWrap")) {
+          modelMenu.classList.remove("open");
+        }
+      });
+
       presetChip?.addEventListener("click", () => {
         const cur = getActiveVoicePreset();
         const idx = ALORA_VOICE_PRESETS.findIndex(v => v.id === cur.id);
@@ -9877,8 +10298,9 @@
         muted = false;
         window.__voiceModeHooks.active = true;
         renderAloraVoiceCards();
+        renderLiveVoiceModelPickers();
         applyGlobalQuotaLockUI();
-        if (modelLabel) {
+        if (modelLabel && !modelLabel.textContent.trim()) {
           modelLabel.textContent = document.getElementById("headerModelLabel")?.textContent || selectedModel || "Alora";
         }
         if (transcriptEl) {
@@ -10282,10 +10704,49 @@
           ? (currentLanguage === "bn" ? "টেস্ট নোটিফিকেশন পাঠানো হয়েছে" : "Test notification sent")
           : (currentLanguage === "bn" ? "নোটিফিকেশন পাঠানো যায়নি" : "Could not dispatch notification"));
       });
-      window.addEventListener("focus", () => syncNotificationUI());
-      document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible") syncNotificationUI();
+      const triggerLiveSyncIfStale = (force = false) => {
+        if (!isAppOnline()) return;
+        const now = Date.now();
+        if (!force && (now - lastUserSyncTime) < 12000) return;
+        refreshUserFromServer(force);
+        fetchPlanLimits();
+        if (force) loadDynamicModels(true);
+      };
+
+      window.addEventListener("focus", () => {
+        syncNotificationUI();
+        triggerLiveSyncIfStale(false);
       });
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+          syncNotificationUI();
+          triggerLiveSyncIfStale(false);
+        }
+      });
+      window.addEventListener("storage", (ev) => {
+        if (!ev || !ev.key) return;
+        if (ev.key === "alora_sync_ping") {
+          triggerLiveSyncIfStale(true);
+        } else if (ev.key === KEYS.PLAN || ev.key === KEYS.USER || ev.key === "alokpoth_plan_expiry") {
+          syncUserUI();
+          renderDynamicModels(cachedDynamicModels);
+        }
+      });
+      try {
+        if (typeof BroadcastChannel === "function") {
+          const syncBc = new BroadcastChannel("alora_sync_channel");
+          syncBc.onmessage = (ev) => {
+            if (ev && ev.data && ev.data.type === "alora_sync") {
+              triggerLiveSyncIfStale(true);
+            }
+          };
+        }
+      } catch (e) {}
+      setInterval(() => {
+        if (document.visibilityState === "visible" && getAuthToken()) {
+          triggerLiveSyncIfStale(false);
+        }
+      }, 45000);
 
       document.getElementById("adsPersonalizedToggle")?.addEventListener("change", (e) => {
         localStorage.setItem(KEYS.ADS_PERSONALIZED, e.target.checked ? "true" : "false");
@@ -10595,10 +11056,16 @@
 
       const chatScrollArea = document.getElementById("chatScrollArea");
       if (chatScrollArea) {
+        let scrollCheckPending = false;
         chatScrollArea.addEventListener("scroll", () => {
-          const dist = chatScrollArea.scrollHeight - chatScrollArea.scrollTop - chatScrollArea.clientHeight;
-          isUserScrolledUp = dist > 60;
-          updateScrollButtonVisibility();
+          if (scrollCheckPending) return;
+          scrollCheckPending = true;
+          requestAnimationFrame(() => {
+            scrollCheckPending = false;
+            const dist = chatScrollArea.scrollHeight - chatScrollArea.scrollTop - chatScrollArea.clientHeight;
+            isUserScrolledUp = dist > 60;
+            updateScrollButtonVisibility();
+          });
         }, { passive: true });
       }
       document.getElementById("scrollToBottomBtn")?.addEventListener("click", () => {

@@ -31,9 +31,28 @@ router.get('/models', optionalProtect, async (req, res) => {
     const adminEmails = ['zihanfakir@gmail.com', 'x@zihan.uk'];
     const user = req.user;
     const isAdmin = Boolean(user && (user.role === 'admin' || (user.email && adminEmails.includes(String(user.email).toLowerCase().trim()))));
-    const currentPlanName = isAdmin
-      ? 'Admin'
-      : (user ? ((user.subscription && user.subscription.plan_name) || 'Free') : 'Guest');
+    let resolvedUserPlan = 'Guest';
+    let expiresAtIso = null;
+    let daysRemaining = null;
+    let hoursRemaining = null;
+    if (isAdmin) {
+      resolvedUserPlan = 'Admin';
+    } else if (user) {
+      resolvedUserPlan = (user.subscription && user.subscription.plan_name) || 'Free';
+      if (user.subscription && user.subscription.expires_at && resolvedUserPlan !== 'Free') {
+        const expMs = new Date(user.subscription.expires_at).getTime();
+        if (!isNaN(expMs)) {
+          if (Date.now() >= expMs) {
+            resolvedUserPlan = 'Free';
+          } else {
+            expiresAtIso = new Date(expMs).toISOString();
+            daysRemaining = Math.max(0, Math.ceil((expMs - Date.now()) / 86400000));
+            hoursRemaining = Math.max(0, Math.ceil((expMs - Date.now()) / 3600000));
+          }
+        }
+      }
+    }
+    const currentPlanName = resolvedUserPlan;
 
     let currentPlanObj = DEFAULT_PLANS_MAP[currentPlanName] || DEFAULT_PLANS_MAP.Free;
     if (!isAdmin) {
@@ -96,7 +115,20 @@ router.get('/models', optionalProtect, async (req, res) => {
       result = sorted.map(sanitizeModel);
     }
 
-    res.json({ success: true, models: result });
+    res.json({
+      success: true,
+      current_plan: {
+        name: isAdmin ? 'Max' : currentPlanName,
+        is_admin: isAdmin,
+        voice_mode: isAdmin ? 'both' : (currentPlanObj.voice_mode || 'chat_as_live'),
+        voice_model: currentPlanObj.voice_model || '',
+        image_model: currentPlanObj.image_model || '',
+        expires_at: expiresAtIso,
+        days_remaining: daysRemaining,
+        hours_remaining: hoursRemaining
+      },
+      models: result
+    });
   } catch (err) {
     res.status(500).json({ success: false, error: 'মডেল তালিকা লোড করতে সমস্যা হয়েছে।' });
   }

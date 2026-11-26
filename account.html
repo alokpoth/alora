@@ -1587,12 +1587,23 @@
         }
         const data = await res.json();
         if (res.ok && data.success && data.user) {
-          const freshUser = data.user;
+          const freshUser = {
+            ...data.user,
+            rateLimit: data.rateLimit || data.user.rateLimit || data.usage || data.user.usage
+          };
+          if (data.token) localStorage.setItem("alokpoth_token", data.token);
           localStorage.setItem("alokpoth_user", JSON.stringify(freshUser));
-          const pName = (freshUser.subscription && freshUser.subscription.plan_name) || freshUser.plan || "Free";
+          const pName = freshUser.role === "admin" ? "Max" : ((freshUser.subscription && freshUser.subscription.plan_name) || freshUser.plan || "Free");
           localStorage.setItem("alokpoth_current_plan", pName);
           localStorage.setItem("alokpoth_user_plan", pName);
           localStorage.setItem("alokpoth_plan", pName);
+          if (freshUser.subscription && freshUser.subscription.expires_at) {
+            localStorage.setItem("alokpoth_plan_expiry", String(freshUser.subscription.expires_at));
+            localStorage.setItem("alokpoth_plan_expires_at", String(freshUser.subscription.expires_at));
+          } else {
+            localStorage.removeItem("alokpoth_plan_expiry");
+            localStorage.removeItem("alokpoth_plan_expires_at");
+          }
           if (data.usage) {
             try {
               localStorage.setItem("alokpoth_window_usage", JSON.stringify(data.usage));
@@ -1647,17 +1658,22 @@
 
         let currentPlan = isAdmin ? "Max" : ((user.subscription && user.subscription.plan_name) || user.plan || localStorage.getItem("alokpoth_current_plan") || "Free");
 
-        const expiryStr = !isAdmin ? (localStorage.getItem("alokpoth_plan_expiry") || (user.subscription && user.subscription.expires_at)) : null;
+        const expiryStr = !isAdmin && currentPlan !== "Free"
+          ? ((user.subscription && user.subscription.expires_at) || localStorage.getItem("alokpoth_plan_expiry") || localStorage.getItem("alokpoth_plan_expires_at"))
+          : null;
         let isExpired = false;
         let daysLeft = 0;
+        let hoursLeft = 0;
         if (expiryStr) {
           const expDate = new Date(expiryStr);
           if (!isNaN(expDate.getTime())) {
-            if (Date.now() >= expDate.getTime()) {
+            const diffMs = expDate.getTime() - Date.now();
+            if (diffMs <= 0) {
               isExpired = true;
               currentPlan = "Free";
             } else {
-              daysLeft = Math.max(0, Math.ceil((expDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
+              daysLeft = Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+              hoursLeft = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60)));
             }
           }
         }
@@ -1692,9 +1708,14 @@
             expiryEl.textContent = isEn ? "Validity: Lifetime / No Expiry" : "মেয়াদ: আজীবন / মেয়াদহীন";
           } else {
             const expDate = new Date(expiryStr);
-            expiryEl.textContent = isEn 
-              ? `Expires: ${expDate.toLocaleDateString('en-US')} (${daysLeft} days left)`
-              : `মেয়াদ: ${expDate.toLocaleDateString('bn-BD')} (বাকি ${formatDigits(daysLeft)} দিন)`;
+            const underDay = (expDate.getTime() - Date.now()) < 86400000;
+            expiryEl.textContent = underDay
+              ? (isEn
+                ? `Expires: ${expDate.toLocaleDateString('en-US')} (${hoursLeft} hours left)`
+                : `মেয়াদ: ${expDate.toLocaleDateString('bn-BD')} (বাকি ${formatDigits(hoursLeft)} ঘণ্টা)`)
+              : (isEn
+                ? `Expires: ${expDate.toLocaleDateString('en-US')} (${daysLeft} days left)`
+                : `মেয়াদ: ${expDate.toLocaleDateString('bn-BD')} (বাকি ${formatDigits(daysLeft)} দিন)`);
           }
         }
 

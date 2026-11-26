@@ -1452,36 +1452,56 @@
 
       <!-- Add New Model Form -->
       <form id="addModelForm" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); padding: 18px; border-radius: 14px; display: flex; flex-direction: column; gap: 14px;">
-        <h4 style="color: var(--accent); font-size: 1rem;">+ নতুন AI মডেল যোগ করুন</h4>
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <h4 style="color: var(--accent); font-size: 1rem; margin:0;">+ নতুন AI মডেল যোগ করুন (Chat / Live Voice / Image)</h4>
+          <button type="button" class="btn" onclick="scanGeminiLiveModels(this)" style="padding:5px 12px; font-size:0.78rem; background:rgba(139,92,246,0.16); border:1px solid rgba(139,92,246,0.38); color:#ddd6fe;">
+            ⚡ Google AI Studio থেকে Live মডেল স্ক্যান করুন
+          </button>
+        </div>
+
+        <!-- Google AI Studio Live API Quick Presets (1-Click Fill) -->
+        <div style="background: rgba(139,92,246,0.07); border: 1px solid rgba(139,92,246,0.24); border-radius: 10px; padding: 10px 12px; display:flex; flex-direction:column; gap:8px;">
+          <div style="font-size:0.78rem; color:#ddd6fe; font-weight:600;">
+            🎙️ Google AI Studio Live API প্রিসেট (১-ক্লিকে ফর্ম পূরণ করুন — চ্যাট মডেলের মতোই যতগুলো খুশি Live মডেল যোগ করতে পারবেন):
+          </div>
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <button type="button" class="plan-quick-chip" onclick="fillLiveModelPreset('Gemini 3.8 Live', 'ALO Live 3.8')">+ Gemini 3.8 Live</button>
+            <button type="button" class="plan-quick-chip" onclick="fillLiveModelPreset('Gemini 3.8 Live Extended Thinking', 'ALO Live 3.8 Thinking')">+ Gemini 3.8 Live Thinking</button>
+            <button type="button" class="plan-quick-chip" onclick="fillLiveModelPreset('Gemini 3 Flash Live', 'ALO 3 Flash Live')">+ Gemini 3 Flash Live</button>
+            <button type="button" class="plan-quick-chip" onclick="fillLiveModelPreset('Gemini 2.5 Flash Native Audio Dialog', 'ALO 2.5 Native Audio')">+ Gemini 2.5 Native Audio</button>
+            <button type="button" class="plan-quick-chip" onclick="fillLiveModelPreset('Gemini 3.5 Live Translate', 'ALO 3.5 Live Translate')">+ Gemini 3.5 Live Translate</button>
+            <button type="button" class="plan-quick-chip" onclick="fillLiveModelPreset('Gemini 3.5 Transcribe Live', 'ALO 3.5 Transcribe Live')">+ Gemini 3.5 Transcribe Live</button>
+          </div>
+          <div id="discoveredLiveModelsBox" style="display:none; padding-top:6px; border-top:1px solid rgba(255,255,255,0.08);"></div>
+        </div>
         
         <!-- Basic Info -->
         <div class="form-row">
           <div class="form-group" style="flex: 1; min-width: 180px;">
             <label>মডেল আইডি (Model ID) *</label>
-            <input type="text" id="newModelId" required placeholder="e.g. gpt-4o-mini">
+            <input type="text" id="newModelId" required placeholder="e.g. Gemini 3.8 Live / gpt-4o-mini">
           </div>
           <div class="form-group" style="flex: 1; min-width: 180px;">
             <label>প্রদর্শিত নাম (Display Name) *</label>
-            <input type="text" id="newModelName" required placeholder="e.g. Alora GPT-4o Mini">
+            <input type="text" id="newModelName" required placeholder="e.g. ALO Live 3.8 / ALO 3 Mini">
           </div>
-          <div class="form-group" style="display: flex; flex-direction: row; gap: 16px; align-items: center; padding-top: 20px;">
-            <label style="font-size: 0.85rem; display: flex; align-items: center; gap: 6px; cursor: pointer;">
-              <input type="checkbox" id="newModelPrem"> <span class="tag tag-pro">PRO</span> ব্যাজ
-            </label>
-            <label style="font-size: 0.85rem; display: flex; align-items: center; gap: 6px; cursor: pointer;">
-              <input type="checkbox" id="newModelEff"> <span class="tag tag-max">MAX</span> ব্যাজ
-            </label>
-          </div>
-          <div class="form-group" style="min-width: 150px;">
+          <div class="form-group" style="min-width: 165px;">
             <label>মডেল ক্যাটাগরি (Type)</label>
             <select id="newModelCategory" style="padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text-primary); font-size: 0.85rem;">
               <option value="chat">Chat Model (চ্যাট)</option>
-              <option value="voice">Voice Model (ভয়েস)</option>
+              <option value="voice">Live Voice Model (লাইভ ভয়েস)</option>
               <option value="image">Image Model (ইমেজ)</option>
             </select>
           </div>
-          <div class="form-group" style="flex: 1.5; min-width: 260px;">
-            <label>কোন কোন প্ল্যানে চলবে (Allowed Plans)</label>
+          <div class="form-group" style="flex: 1.6; min-width: 280px;">
+            <label style="display:flex; justify-content:space-between; align-items:center; gap:6px; flex-wrap:wrap;">
+              <span>কোন কোন প্ল্যানে চলবে (Allowed Plans)</span>
+              <span style="display:inline-flex; gap:4px;">
+                <button type="button" onclick="setNewModelPlanPreset(['Guest','Free','Go','Plus','Pro','Max'])" style="font-size:0.68rem;padding:1px 6px;border-radius:4px;border:1px solid var(--border);background:var(--surface);color:var(--text-sub);cursor:pointer;">All</button>
+                <button type="button" onclick="setNewModelPlanPreset(['Plus','Pro','Max'])" style="font-size:0.68rem;padding:1px 6px;border-radius:4px;border:1px solid var(--border);background:var(--surface);color:var(--text-sub);cursor:pointer;">Plus+</button>
+                <button type="button" onclick="setNewModelPlanPreset(['Max'])" style="font-size:0.68rem;padding:1px 6px;border-radius:4px;border:1px solid var(--border);background:var(--surface);color:var(--text-sub);cursor:pointer;">Max</button>
+              </span>
+            </label>
             <div id="newModelPlansWrap" style="display:flex; gap:8px; flex-wrap:wrap; padding-top:6px;">
               <label style="font-size:0.78rem;display:inline-flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="new-model-plan-cb" value="Guest" checked> Guest</label>
               <label style="font-size:0.78rem;display:inline-flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="new-model-plan-cb" value="Free" checked> Free</label>
@@ -1780,7 +1800,16 @@
 
           <div class="form-group" style="flex: 1.1; min-width: 220px;">
             <label>লাইভ ভয়েস মডেল আইডি (Live Voice Model ID)</label>
-            <input type="text" id="settingVoiceModel" placeholder="gemini-2.5-flash-native-audio-preview-12-2025">
+            <input type="text" id="settingVoiceModel" list="geminiLiveModelSuggestions" placeholder="gemini-2.5-flash-native-audio-preview-12-2025">
+            <datalist id="geminiLiveModelSuggestions">
+              <option value="gemini-2.5-flash-native-audio-preview-12-2025"></option>
+              <option value="Gemini 3.8 Live"></option>
+              <option value="Gemini 3.8 Live Extended Thinking"></option>
+              <option value="Gemini 3 Flash Live"></option>
+              <option value="Gemini 3.5 Live Translate"></option>
+              <option value="Gemini 3.5 Transcribe Live"></option>
+              <option value="Gemini 2.5 Flash Native Audio Dialog"></option>
+            </datalist>
           </div>
 
           <div class="form-group" style="flex: 1.2; min-width: 240px;">
@@ -2612,8 +2641,9 @@
         const api_key = tr.querySelector(".model-input-key")?.value.trim() || "";
         const fallback_model_1 = tr.querySelector(".model-input-fb1")?.value || "";
         const fallback_model_2 = tr.querySelector(".model-input-fb2")?.value || "";
-        const premium = tr.querySelector(".model-input-prem")?.checked || false;
-        const efficient = tr.querySelector(".model-input-eff")?.checked || false;
+        const category = tr.querySelector(".model-input-cat")?.value || "chat";
+        const allowed_plans = Array.from(tr.querySelectorAll(".model-plan-cb:checked")).map(cb => cb.value);
+        const { premium, efficient } = deriveLegacyModelFlags(allowed_plans);
 
         const original = currentModelsList.find(m => (m.id === mId || m.model_id === mId)) || {};
         list.push({
@@ -2625,6 +2655,8 @@
           api_key: api_key || original.api_key || "",
           fallback_model_1,
           fallback_model_2,
+          category,
+          allowed_plans,
           premium,
           efficient,
           order: idx + 1
@@ -2881,15 +2913,14 @@
             </div>
           </td>
           <td data-label="ক্যাটাগরি ও প্ল্যান">
-            <div style="display:flex; flex-direction:column; gap:6px; min-width:175px;">
-              <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
-                <select class="model-input-cat" style="padding:3px 6px; font-size:0.74rem; border-radius:6px; background:var(--surface); color:var(--text-primary); border:1px solid var(--border);">
-                  <option value="chat" ${(m.category || 'chat') === 'chat' ? 'selected' : ''}>Chat</option>
-                  <option value="voice" ${m.category === 'voice' ? 'selected' : ''}>Voice</option>
-                  <option value="image" ${m.category === 'image' ? 'selected' : ''}>Image</option>
+            <div style="display:flex; flex-direction:column; gap:6px; min-width:185px;">
+              <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center; justify-content:space-between;">
+                <select class="model-input-cat" style="padding:3px 7px; font-size:0.74rem; border-radius:6px; background:var(--surface); color:var(--text-primary); border:1px solid var(--border);">
+                  <option value="chat" ${(m.category || 'chat') === 'chat' ? 'selected' : ''}>Chat (চ্যাট)</option>
+                  <option value="voice" ${m.category === 'voice' ? 'selected' : ''}>Live Voice (লাইভ ভয়েস)</option>
+                  <option value="image" ${m.category === 'image' ? 'selected' : ''}>Image (ইমেজ)</option>
                 </select>
-                <label style="font-size: 0.74rem; cursor: pointer; display: inline-flex; align-items: center; gap: 3px;"><input type="checkbox" class="model-input-prem" ${m.premium ? 'checked' : ''}> <span class="tag tag-pro" style="padding: 1px 5px; font-size: 0.62rem;">PRO</span></label>
-                <label style="font-size: 0.74rem; cursor: pointer; display: inline-flex; align-items: center; gap: 3px;"><input type="checkbox" class="model-input-eff" ${m.efficient ? 'checked' : ''}> <span class="tag tag-max" style="padding: 1px 5px; font-size: 0.62rem;">MAX</span></label>
+                <span class="model-live-tier-preview" style="font-size:0.66rem; padding:1px 7px; border-radius:999px; background:rgba(255,255,255,0.08); color:var(--text-primary); font-weight:600;"></span>
               </div>
               <div style="display:flex; gap:5px; flex-wrap:wrap;">
                 ${['Guest', 'Free', 'Go', 'Plus', 'Pro', 'Max'].map(pn => {
@@ -2911,10 +2942,18 @@
         `;
         const saveBtn = tr.querySelector(".model-save-btn");
         const delBtn = tr.querySelector(".model-del-btn");
-        const premCb = tr.querySelector(".model-input-prem");
-        const effCb = tr.querySelector(".model-input-eff");
+        const tierPreview = tr.querySelector(".model-live-tier-preview");
+        const planCbs = tr.querySelectorAll(".model-plan-cb");
         const keyInput = tr.querySelector(".model-input-key");
         const eyeBtn = tr.querySelector(".model-key-eye-btn");
+
+        const refreshRowBadgePreview = () => {
+          if (!tierPreview) return;
+          const selPlans = Array.from(planCbs).filter(c => c.checked).map(c => c.value);
+          tierPreview.textContent = computeBadgeLabelFromPlans(selPlans);
+        };
+        planCbs.forEach(cb => cb.addEventListener("change", refreshRowBadgePreview));
+        refreshRowBadgePreview();
 
         if (keyInput && eyeBtn) {
           keyInput.addEventListener("input", () => {
@@ -2927,11 +2966,6 @@
               eyeBtn.style.display = "none";
             }
           });
-        }
-
-        if (premCb && effCb) {
-          premCb.addEventListener("change", () => { if (premCb.checked) effCb.checked = false; });
-          effCb.addEventListener("change", () => { if (effCb.checked) premCb.checked = false; });
         }
 
         if (saveBtn) saveBtn.addEventListener("click", () => saveModelConfig(mId, saveBtn));
@@ -3101,6 +3135,136 @@
       }
     }
 
+    function computeBadgeLabelFromPlans(plansArr) {
+      const arr = Array.isArray(plansArr) ? plansArr : [];
+      if (!arr.length) return "Locked";
+      if (arr.includes("*") || arr.includes("Free") || arr.includes("Guest")) return "Free";
+      if (arr.length === 1) return arr[0];
+      if (arr.includes("Go")) return "Go+";
+      if (arr.includes("Plus")) return "Plus+";
+      if (arr.includes("Pro")) return "Pro+";
+      return "Max";
+    }
+
+    function deriveLegacyModelFlags(plansArr) {
+      const arr = Array.isArray(plansArr) ? plansArr : [];
+      if (arr.length === 1 && arr[0] === "Max") return { premium: false, efficient: true };
+      if (arr.length > 0 && !arr.includes("Free") && !arr.includes("Guest") && !arr.includes("*")) {
+        return { premium: true, efficient: false };
+      }
+      return { premium: false, efficient: false };
+    }
+
+    function broadcastAdminSync(reason = "sync") {
+      try {
+        localStorage.setItem("alora_sync_ping", JSON.stringify({ reason, ts: Date.now() }));
+      } catch (e) {}
+      try {
+        if (typeof BroadcastChannel === "function") {
+          const bc = new BroadcastChannel("alora_sync_channel");
+          bc.postMessage({ type: "alora_sync", reason, ts: Date.now() });
+          bc.close();
+        }
+      } catch (e) {}
+    }
+
+    function setNewModelPlanPreset(plans) {
+      const set = new Set(plans || []);
+      document.querySelectorAll(".new-model-plan-cb").forEach(cb => {
+        cb.checked = set.has(cb.value);
+      });
+    }
+
+    function fillLiveModelPreset(modelId, displayName) {
+      const idEl = document.getElementById("newModelId");
+      const nameEl = document.getElementById("newModelName");
+      const catEl = document.getElementById("newModelCategory");
+      const api1El = document.getElementById("newModelApiModel1");
+      const urlEl = document.getElementById("newModelUrl");
+      const keyEl = document.getElementById("newModelKey");
+      if (idEl) idEl.value = modelId;
+      if (nameEl) nameEl.value = displayName;
+      if (catEl) catEl.value = "voice";
+      if (api1El) api1El.value = modelId;
+      if (urlEl) urlEl.value = "";
+      setNewModelPlanPreset(["Plus", "Pro", "Max"]);
+      showToast(`'${displayName}' Live ভয়েস ফর্মে বসানো হয়েছে — Google AI Studio API Key দিয়ে '+ মডেল যোগ করুন' চাপুন`, "info");
+      if (keyEl) keyEl.focus();
+    }
+
+    async function scanGeminiLiveModels(btn) {
+      const box = document.getElementById("discoveredLiveModelsBox");
+      const keyFromForm = document.getElementById("newModelKey")?.value.trim() || document.getElementById("settingVoiceKey")?.value.trim() || "";
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = "স্ক্যান হচ্ছে...";
+      }
+      try {
+        const res = await authFetch(`${API_BASE}/zihan/models/discover-gemini-live`, {
+          method: "POST",
+          body: JSON.stringify({ api_key: keyFromForm || undefined })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.success) {
+          showToast(data.error || "API Key দিয়ে আবার চেষ্টা করুন", "error");
+          return;
+        }
+        const list = Array.isArray(data.models) ? data.models : [];
+        if (!box) return;
+        box.style.display = "block";
+        if (!list.length) {
+          box.innerHTML = `<div style="font-size:0.78rem; color:var(--text-muted);">কোনো Live API মডেল পাওয়া যায়নি।</div>`;
+          return;
+        }
+        box.innerHTML = `<div style="font-size:0.76rem; color:#a7f3d0; margin-bottom:6px;">✓ Google AI Studio থেকে ${list.length}টি Live মডেল পাওয়া গেছে — ক্লিক করে সরাসরি যোগ করুন:</div>` +
+          `<div style="display:flex; gap:6px; flex-wrap:wrap;">` +
+          list.map(m => `<button type="button" class="plan-quick-chip" onclick="quickAddDiscoveredLiveModel('${escapeHtml(m.model_id)}', '${escapeHtml(m.display_name || m.model_id)}')">+ ${escapeHtml(m.display_name || m.model_id)} <span style="opacity:0.65;font-size:0.68rem;">(${escapeHtml(m.model_id)})</span></button>`).join("") +
+          `</div>`;
+      } catch (err) {
+        showToast("সার্ভারে সংযোগ করা যায়নি", "error");
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = "⚡ Google AI Studio থেকে Live মডেল স্ক্যান করুন";
+        }
+      }
+    }
+
+    async function quickAddDiscoveredLiveModel(modelId, displayName) {
+      const keyFromForm = document.getElementById("newModelKey")?.value.trim() || document.getElementById("settingVoiceKey")?.value.trim() || "";
+      const allowed_plans = Array.from(document.querySelectorAll(".new-model-plan-cb:checked")).map(cb => cb.value);
+      const effPlans = allowed_plans.length ? allowed_plans : ["Plus", "Pro", "Max"];
+      const flags = deriveLegacyModelFlags(effPlans);
+      try {
+        const res = await authFetch(`${API_BASE}/zihan/models`, {
+          method: "POST",
+          body: JSON.stringify({
+            model_id: modelId,
+            name: displayName,
+            category: "voice",
+            type: "gemini",
+            allowed_plans: effPlans,
+            premium: flags.premium,
+            efficient: flags.efficient,
+            api_model_1: modelId,
+            base_url: "",
+            api_key: keyFromForm
+          })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.success) {
+          showToast(`'${displayName}' Live মডেল সফলভাবে যুক্ত হয়েছে!`, "success");
+          broadcastAdminSync("models_updated");
+          loadModels();
+        } else {
+          fillLiveModelPreset(modelId, displayName);
+          if (data.error) showToast(data.error, "info");
+        }
+      } catch {
+        fillLiveModelPreset(modelId, displayName);
+      }
+    }
+
     async function saveModelConfig(modelId, btn) {
       const tbody = document.getElementById("modelTableBody");
       let tr = btn ? btn.closest("tr") : null;
@@ -3118,10 +3282,13 @@
       const urlInput = tr.querySelector(".model-input-url");
       if (urlInput && base_url) urlInput.value = base_url;
       const api_key = tr.querySelector(".model-input-key")?.value.trim() || "";
-      const premium = tr.querySelector(".model-input-prem")?.checked || false;
-      const efficient = tr.querySelector(".model-input-eff")?.checked || false;
       const category = tr.querySelector(".model-input-cat")?.value || "chat";
       const allowed_plans = Array.from(tr.querySelectorAll(".model-plan-cb:checked")).map(cb => cb.value);
+      if (allowed_plans.length === 0) {
+        showToast("অন্তত ১টি প্ল্যান সিলেক্ট করুন (যেমন Max বা Plus+)", "error");
+        return;
+      }
+      const { premium, efficient } = deriveLegacyModelFlags(allowed_plans);
 
       const currentMod = currentModelsList.find(m => (m.id === modelId || m.model_id === modelId)) || {};
       const payload = {
@@ -3158,7 +3325,8 @@
         });
         const data = await res.json();
         if (data.success) {
-          showToast(`'${name || modelId}' সফলভাবে সেভ হয়েছে! Key নিরাপত্তার জন্য লুকানো।`, "success");
+          showToast(`'${name || modelId}' সফলভাবে সেভ হয়েছে! প্ল্যান ব্যাজ সাথে সাথে সিঙ্ক হয়েছে।`, "success");
+          broadcastAdminSync("models_updated");
           const keyEl = tr.querySelector(".model-input-key");
           const eyeEl = tr.querySelector(".model-key-eye-btn");
           const target = currentModelsList.find(m => (m.id === modelId || m.model_id === modelId));
@@ -3230,10 +3398,13 @@
       const submitBtn = e.target.querySelector("button[type='submit']");
       const model_id = document.getElementById("newModelId").value.trim();
       const name = document.getElementById("newModelName").value.trim();
-      const premium = document.getElementById("newModelPrem").checked;
-      const efficient = document.getElementById("newModelEff").checked;
       const category = document.getElementById("newModelCategory")?.value || "chat";
       const allowed_plans = Array.from(document.querySelectorAll(".new-model-plan-cb:checked")).map(cb => cb.value);
+      if (allowed_plans.length === 0) {
+        showToast("অন্তত ১টি প্ল্যান সিলেক্ট করুন", "error");
+        return;
+      }
+      const { premium, efficient } = deriveLegacyModelFlags(allowed_plans);
 
       // API 1
       const api_model_1 = document.getElementById("newModelApiModel1")?.value.trim() || model_id;
@@ -3292,6 +3463,7 @@
         const data = await res.json();
         if (data.success) {
           showToast("নতুন মডেল ও ৩টি API সফলভাবে যোগ করা হয়েছে!", "success");
+          broadcastAdminSync("models_updated");
           document.getElementById("addModelForm").reset();
           loadModels();
         } else {
@@ -3317,16 +3489,7 @@
       });
     }
 
-    const newModelPrem = document.getElementById("newModelPrem");
-    const newModelEff = document.getElementById("newModelEff");
-    if (newModelPrem && newModelEff) {
-      newModelPrem.addEventListener("change", (e) => {
-        if (e.target && e.target.checked) newModelEff.checked = false;
-      });
-      newModelEff.addEventListener("change", (e) => {
-        if (e.target && e.target.checked) newModelPrem.checked = false;
-      });
-    }
+    // Legacy PRO/MAX checkboxes replaced by explicit 6-plan allowed_plans checkboxes above.
 
     let allLoadedUsers = [];
 
@@ -3355,7 +3518,13 @@
             : (paySrc === 'trial' ? ' <span class="tag" style="background:rgba(59,130,246,0.14);color:#93c5fd;border:1px solid rgba(59,130,246,0.3);font-size:0.66rem;">Trial</span>' : ''));
         const planBadge = `<span class="tag tag-${safePlanTag}">${escapeHtml(plan)}</span>${sourceBadge}`;
         const expDate = u.subscription?.expires_at ? new Date(u.subscription.expires_at) : null;
-        const exp = (expDate && !isNaN(expDate.getTime())) ? expDate.toLocaleDateString("bn-BD") : "সীমাহীন";
+        let exp = "সীমাহীন";
+        if (expDate && !isNaN(expDate.getTime()) && plan !== 'Free') {
+          const diffDays = Math.ceil((expDate.getTime() - Date.now()) / 86400000);
+          exp = diffDays > 0
+            ? `${expDate.toLocaleDateString("bn-BD")} <span style="color:#4ade80;font-size:0.75rem;">(${diffDays} দিন বাকি)</span>`
+            : `<span style="color:#f87171;">মেয়াদোত্তীর্ণ</span>`;
+        }
         
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -3497,6 +3666,7 @@
         const data = await res.json();
         if (data.success) {
           showToast("ইউজারের প্ল্যান আপডেট হয়েছে!", "success");
+          broadcastAdminSync("user_plan_updated");
           loadUsers();
           loadStats();
         } else {
@@ -3562,12 +3732,12 @@
     }
 
     const ADMIN_CANONICAL_PLANS = [
-      { name: 'Guest', displayName: 'গেস্ট (Guest)', message_limit: 2, image_limit: 0, voice_limit: 2, voice_model: '', image_model: '', window_hours: 24, price_usd: 0, price_bdt: 0, tagline: 'Try Alora instantly without logging in', allowed_models: ['openrouter/free'], is_active: true },
-      { name: 'Free', displayName: 'ফ্রি প্ল্যান (Free)', message_limit: 50, image_limit: 0, voice_limit: 10, voice_model: '', image_model: '', window_hours: 3, price_usd: 0, price_bdt: 0, tagline: 'Intelligence for everyday tasks and quick answers', allowed_models: ['openrouter/free'], is_active: true },
-      { name: 'Go', displayName: 'গো প্ল্যান (Go)', message_limit: 100, image_limit: 0, voice_limit: 30, voice_model: '', image_model: '', window_hours: 3, price_usd: 5, price_bdt: 650, tagline: 'More room to write, learn, and create', allowed_models: ['openrouter/free'], is_active: true },
-      { name: 'Plus', displayName: 'প্লাস প্ল্যান (Plus)', message_limit: 500, image_limit: 0, voice_limit: 100, voice_model: '', image_model: '', window_hours: 3, price_usd: 20, price_bdt: 2600, tagline: 'Personalized AI with advanced reasoning models', allowed_models: ['*'], is_active: true },
-      { name: 'Pro', displayName: 'প্রো প্ল্যান (Pro)', message_limit: 3000, image_limit: 0, voice_limit: 300, voice_model: '', image_model: '', window_hours: 1, price_usd: 60, price_bdt: 7800, tagline: 'Higher speed and expanded limits for heavy work', allowed_models: ['*'], is_active: true },
-      { name: 'Max', displayName: 'ম্যাক্স প্ল্যান (Max)', message_limit: 7000, image_limit: 0, voice_limit: 1000, voice_model: '', image_model: '', window_hours: 1, price_usd: 120, price_bdt: 15600, tagline: 'Full frontier intelligence with our highest usage limits', allowed_models: ['*'], is_active: true }
+      { name: 'Guest', displayName: 'গেস্ট (Guest)', message_limit: 2, image_limit: 0, voice_limit: 2, voice_mode: 'chat_as_live', voice_model: '', image_model: '', window_hours: 24, price_usd: 0, price_bdt: 0, tagline: 'Try Alora instantly without logging in', allowed_models: ['openrouter/free'], is_active: true },
+      { name: 'Free', displayName: 'ফ্রি প্ল্যান (Free)', message_limit: 50, image_limit: 0, voice_limit: 10, voice_mode: 'chat_as_live', voice_model: '', image_model: '', window_hours: 3, price_usd: 0, price_bdt: 0, tagline: 'Intelligence for everyday tasks and quick answers', allowed_models: ['openrouter/free'], is_active: true },
+      { name: 'Go', displayName: 'গো প্ল্যান (Go)', message_limit: 100, image_limit: 0, voice_limit: 30, voice_mode: 'chat_as_live', voice_model: '', image_model: '', window_hours: 3, price_usd: 5, price_bdt: 650, tagline: 'More room to write, learn, and create', allowed_models: ['openrouter/free'], is_active: true },
+      { name: 'Plus', displayName: 'প্লাস প্ল্যান (Plus)', message_limit: 500, image_limit: 0, voice_limit: 100, voice_mode: 'live_models', voice_model: '', image_model: '', window_hours: 3, price_usd: 20, price_bdt: 2600, tagline: 'Personalized AI with advanced reasoning models', allowed_models: ['*'], is_active: true },
+      { name: 'Pro', displayName: 'প্রো প্ল্যান (Pro)', message_limit: 3000, image_limit: 0, voice_limit: 300, voice_mode: 'live_models', voice_model: '', image_model: '', window_hours: 1, price_usd: 60, price_bdt: 7800, tagline: 'Higher speed and expanded limits for heavy work', allowed_models: ['*'], is_active: true },
+      { name: 'Max', displayName: 'ম্যাক্স প্ল্যান (Max)', message_limit: 7000, image_limit: 0, voice_limit: 1000, voice_mode: 'both', voice_model: '', image_model: '', window_hours: 1, price_usd: 120, price_bdt: 15600, tagline: 'Full frontier intelligence with our highest usage limits', allowed_models: ['*'], is_active: true }
     ];
 
     let renderedPlanNames = [];
@@ -3690,6 +3860,9 @@
         const msgLimitVal = (p.message_limit !== undefined && p.message_limit !== null && !isNaN(Number(p.message_limit))) ? Number(p.message_limit) : 10;
         const imageLimitVal = (p.image_limit !== undefined && p.image_limit !== null && !isNaN(Number(p.image_limit))) ? Number(p.image_limit) : 0;
         const voiceLimitVal = (p.voice_limit !== undefined && p.voice_limit !== null && !isNaN(Number(p.voice_limit))) ? Number(p.voice_limit) : 0;
+        const curVoiceMode = ['chat_as_live', 'live_models', 'both'].includes(p.voice_mode)
+          ? p.voice_mode
+          : (['Plus', 'Pro'].includes(p.name) ? 'live_models' : (p.name === 'Max' ? 'both' : 'chat_as_live'));
         const curVoiceMod = String(p.voice_model || '').trim();
         const curImgMod = String(p.image_model || '').trim();
         const priceUsdVal = (p.price_usd !== undefined && p.price_usd !== null && !isNaN(Number(p.price_usd))) ? Number(p.price_usd) : 0;
@@ -3697,14 +3870,20 @@
         const taglineVal = escapeHtml(p.tagline || '');
         const pendingBadge = p._missingOnBackend ? `<span class="tag" style="background:rgba(245,158,11,0.18);color:#fde68a;border:1px solid rgba(245,158,11,0.35);">সার্ভার আপডেট পেন্ডিং</span>` : '';
 
+        const voiceModeOptions = [
+          `<option value="chat_as_live" ${curVoiceMode === 'chat_as_live' ? 'selected' : ''}>Chat-as-Live (চ্যাট মডেলই লাইভ চলবে)</option>`,
+          `<option value="live_models" ${curVoiceMode === 'live_models' ? 'selected' : ''}>Live API Models (শুধু Live ভয়েস মডেল)</option>`,
+          `<option value="both" ${curVoiceMode === 'both' ? 'selected' : ''}>Both (Live ও Chat উভয়ই)</option>`
+        ].join('');
+
         const voiceModelOptions = [
-          `<option value="" ${curVoiceMod === '' ? 'selected' : ''}>গ্লোবাল ভয়েস ইঞ্জিন (ডিফল্ট)</option>`,
-          `<option value="__gemini_live__" ${curVoiceMod === '__gemini_live__' ? 'selected' : ''}>Gemini Live API (লাইভ ভয়েস)</option>`,
-          `<option value="__custom_voice__" ${curVoiceMod === '__custom_voice__' ? 'selected' : ''}>Custom Voice API</option>`,
-          `<option value="__chat_models__" ${curVoiceMod === '__chat_models__' ? 'selected' : ''}>Chat Models (ট্রান্সলেট ও TTS)</option>`
+          `<option value="" ${curVoiceMod === '' ? 'selected' : ''}>অটো (প্ল্যানের প্রথম Live/Chat মডেল)</option>`,
+          `<option value="__gemini_live__" ${curVoiceMod === '__gemini_live__' ? 'selected' : ''}>Gemini Live API (ফোর্স)</option>`,
+          `<option value="__custom_voice__" ${curVoiceMod === '__custom_voice__' ? 'selected' : ''}>Custom Voice API (ফোর্স)</option>`,
+          `<option value="__chat_models__" ${curVoiceMod === '__chat_models__' ? 'selected' : ''}>Chat Models (ফোর্স)</option>`
         ].concat((currentModelsList || []).map(m => {
           const mid = String(m.id || m.model_id || '').trim();
-          const mlabel = `${m.name || mid} (${m.category || 'chat'})`;
+          const mlabel = `${m.name || mid} (${m.category === 'voice' ? 'Live Voice' : (m.category || 'chat')})`;
           return `<option value="${escapeHtml(mid)}" ${curVoiceMod === mid ? 'selected' : ''}>${escapeHtml(mlabel)}</option>`;
         })).join('');
 
@@ -3747,9 +3926,13 @@
               <input type="number" min="0" id="img_limit_${safeId}" value="${imageLimitVal}">
             </div>
           </div>
+          <div class="form-group" style="margin:0;">
+            <label>লাইভ ভয়েস মোড (Voice Behaviour for this Plan)</label>
+            <select id="voice_mode_${safeId}" style="width:100%;padding:7px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text-primary);font-size:0.82rem;">${voiceModeOptions}</select>
+          </div>
           <div class="form-row" style="gap:10px; margin:0;">
             <div class="form-group" style="flex:1; min-width:130px;">
-              <label>ভয়েস মডেল (Voice Model)</label>
+              <label>ডিফল্ট ভয়েস মডেল</label>
               <select id="voice_model_${safeId}" style="width:100%;padding:7px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text-primary);font-size:0.8rem;">${voiceModelOptions}</select>
             </div>
             <div class="form-group" style="flex:1; min-width:130px;">
@@ -3800,6 +3983,7 @@
       const limitInput = document.getElementById(`limit_${safeId}`);
       const imgLimitInput = document.getElementById(`img_limit_${safeId}`);
       const voiceLimitInput = document.getElementById(`voice_limit_${safeId}`);
+      const voiceModeInput = document.getElementById(`voice_mode_${safeId}`);
       const voiceModelInput = document.getElementById(`voice_model_${safeId}`);
       const imageModelInput = document.getElementById(`image_model_${safeId}`);
       const windowInput = document.getElementById(`window_${safeId}`);
@@ -3813,6 +3997,7 @@
       const message_limit = limitInput ? parseInt(limitInput.value, 10) : NaN;
       const image_limit = imgLimitInput ? parseInt(imgLimitInput.value, 10) : NaN;
       const voice_limit = voiceLimitInput ? parseInt(voiceLimitInput.value, 10) : 0;
+      const voice_mode = voiceModeInput ? voiceModeInput.value.trim() : "chat_as_live";
       const voice_model = voiceModelInput ? voiceModelInput.value.trim() : "";
       const image_model = imageModelInput ? imageModelInput.value.trim() : "";
       const window_hours = windowInput ? parseInt(windowInput.value, 10) : NaN;
@@ -3842,7 +4027,7 @@
       if (isNaN(price_bdt) || price_bdt < 0) {
         return { error: `${planName}: সঠিক মাসিক মূল্য লিখুন` };
       }
-      return { payload: { displayName, message_limit, image_limit, voice_limit, voice_model, image_model, window_hours, price_usd, price_bdt, tagline, allowed_models, is_active } };
+      return { payload: { displayName, message_limit, image_limit, voice_limit, voice_mode, voice_model, image_model, window_hours, price_usd, price_bdt, tagline, allowed_models, is_active } };
     }
 
     async function savePlanLimits(planName, btn, silent = false) {
@@ -3866,6 +4051,7 @@
         if (res.ok && data.success) {
           if (!silent) {
             showToast(data.message || "প্ল্যান আপডেট হয়েছে", "success");
+            broadcastAdminSync("plans_updated");
             loadPlans();
           }
           return true;
@@ -3903,6 +4089,7 @@
       }
       if (failCount === 0) {
         showToast(`সবগুলো (${okCount}টি) প্ল্যান সফলভাবে আপডেট হয়েছে!`, "success");
+        broadcastAdminSync("plans_updated");
       } else {
         showToast(`${okCount}টি প্ল্যান আপডেট হয়েছে, ${failCount}টি ব্যর্থ (সার্ভার আপডেট পেন্ডিং থাকতে পারে)`, "error");
       }
@@ -4469,6 +4656,7 @@
           const data = await res.json();
           if (data.success) {
             showToast(voiceKeyVal ? "লাইভ ভয়েস ও API Key সংরক্ষিত হয়েছে (Key এখন লুকানো)" : "লাইভ ভয়েস সেটিংস সফলভাবে সংরক্ষিত হয়েছে", "success");
+            broadcastAdminSync("voice_settings_updated");
             loadSettings();
           } else {
             showToast(data.error || "ভয়েস সেটিংস সেভ করতে সমস্যা হয়েছে", "error");
@@ -4907,6 +5095,7 @@
         const data = await res.json();
         if (data.success) {
           showToast(data.message || "অর্ডার অনুমোদিত হয়েছে!", "success");
+          broadcastAdminSync("user_plan_updated");
           loadPaymentOrders();
           loadUsers();
           loadStats();

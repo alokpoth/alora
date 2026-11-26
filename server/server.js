@@ -117,6 +117,8 @@ connectDB().then(async () => {
                 api_key: m.api_key || '',
                 premium: !!m.premium,
                 efficient: !!m.efficient,
+                category: ['chat', 'voice', 'image'].includes(m.category) ? m.category : 'chat',
+                allowed_plans: Array.isArray(m.allowed_plans) ? m.allowed_plans : [],
                 order: m.order || 0,
                 api_model_1: m.api_model_1 || m.model_id || m.id || '',
                 fallback_url_1: m.fallback_url_1 || '',

@@ -547,6 +547,28 @@ const getMe = async (req, res) => {
 
     const finalId = user._id || user.id;
     const refreshedToken = generateToken(user);
+    const rawSub = (user.subscription && typeof user.subscription.toObject === 'function')
+      ? user.subscription.toObject()
+      : { ...(user.subscription || { plan_name: 'Free', is_active: true }) };
+    if (isVerifiedAdmin) {
+      rawSub.days_remaining = null;
+      rawSub.hours_remaining = null;
+      rawSub.is_lifetime = true;
+    } else if (rawSub.expires_at && rawSub.plan_name && rawSub.plan_name !== 'Free') {
+      const expMs = new Date(rawSub.expires_at).getTime();
+      if (!isNaN(expMs) && expMs > Date.now()) {
+        const diffMs = expMs - Date.now();
+        rawSub.days_remaining = Math.max(0, Math.ceil(diffMs / 86400000));
+        rawSub.hours_remaining = Math.max(0, Math.ceil(diffMs / 3600000));
+      } else {
+        rawSub.days_remaining = 0;
+        rawSub.hours_remaining = 0;
+      }
+    } else {
+      rawSub.days_remaining = null;
+      rawSub.hours_remaining = null;
+    }
+
     res.json({
       success: true,
       token: refreshedToken,
@@ -558,7 +580,7 @@ const getMe = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        subscription: user.subscription,
+        subscription: rawSub,
         avatar: user.avatar,
         rateLimit,
         usage

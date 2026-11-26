@@ -121,11 +121,32 @@ function canPlanAccessModel(model, planName, planObj = null) {
   return true;
 }
 
+function deriveLegacyFlagsFromAllowedPlans(allowedPlans) {
+  if (!Array.isArray(allowedPlans) || allowedPlans.length === 0) {
+    return null;
+  }
+  if (allowedPlans.includes('*')) {
+    return { premium: false, efficient: false };
+  }
+  const valid = allowedPlans
+    .map(p => String(p || '').trim())
+    .filter(p => PLAN_HIERARCHY_ACCESS[p] !== undefined);
+  if (valid.length === 0) return null;
+  if (valid.length === 1 && valid[0] === 'Max') {
+    return { premium: false, efficient: true };
+  }
+  if (!valid.includes('Free') && !valid.includes('Guest')) {
+    return { premium: true, efficient: false };
+  }
+  return { premium: false, efficient: false };
+}
+
 module.exports = {
   encryptSecret,
   decryptSecret,
   hasConfiguredSecret,
   isPublicHttpUrl,
   deriveDefaultAllowedPlans,
+  deriveLegacyFlagsFromAllowedPlans,
   canPlanAccessModel
 };

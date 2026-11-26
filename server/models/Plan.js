@@ -36,6 +36,13 @@ const PlanSchema = new mongoose.Schema({
         : 0;
     }
   },
+  voice_mode: {
+    type: String,
+    enum: ['chat_as_live', 'live_models', 'both'],
+    default: function() {
+      return (DEFAULT_PLANS_MAP[this.name] && DEFAULT_PLANS_MAP[this.name].voice_mode) || 'chat_as_live';
+    }
+  },
   voice_model: {
     type: String,
     default: function() {
