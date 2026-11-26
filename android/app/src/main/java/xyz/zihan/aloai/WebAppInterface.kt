@@ -61,31 +61,61 @@ class WebAppInterface(private val activity: MainActivity) : TextToSpeech.OnInitL
 
     @JavascriptInterface
     fun speakText(text: String?, lang: String?): Boolean {
+        return speakTextWithStyle(text, lang, 1.0f, 1.0f, "auto")
+    }
+
+    @JavascriptInterface
+    fun speakTextWithStyle(text: String?, lang: String?, pitch: Float, rate: Float, voiceGender: String?): Boolean {
         if (text.isNullOrBlank()) return false
         val engine = tts ?: return false
         if (!isTtsInitialized) return false
         return try {
             val hasBengaliScript = Regex("[\\u0980-\\u09FF]").containsMatchIn(text)
-            val targetLocale = when {
-                hasBengaliScript -> Locale("bn", "BD")
-                lang?.equals("en", ignoreCase = true) == true -> Locale.US
-                !hasBengaliScript -> Locale.US
-                else -> Locale("bn", "BD")
-            }
-            var langResult = engine.setLanguage(targetLocale)
-            if (langResult == TextToSpeech.LANG_MISSING_DATA || langResult == TextToSpeech.LANG_NOT_SUPPORTED) {
-                if (targetLocale.language == "bn") {
-                    langResult = engine.setLanguage(Locale("bn", "IN"))
+            val hasDevanagari = Regex("[\\u0900-\\u097F]").containsMatchIn(text)
+            val hasArabic = Regex("[\\u0600-\\u06FF]").containsMatchIn(text)
+            val cleanLang = lang?.trim()?.lowercase(Locale.US) ?: ""
+            val candidates = when {
+                hasBengaliScript || cleanLang.startsWith("bn") -> listOf(Locale("bn", "BD"), Locale("bn", "IN"), Locale("bn"))
+                hasDevanagari || cleanLang.startsWith("hi") -> listOf(Locale("hi", "IN"), Locale("hi"))
+                hasArabic || cleanLang.startsWith("ar") -> listOf(Locale("ar", "SA"), Locale("ar"))
+                cleanLang.contains("-") -> {
+                    val parts = cleanLang.split("-", limit = 2)
+                    listOf(Locale(parts[0], parts[1].uppercase(Locale.US)), Locale.US, Locale.ENGLISH)
                 }
-                if (langResult == TextToSpeech.LANG_MISSING_DATA || langResult == TextToSpeech.LANG_NOT_SUPPORTED) {
-                    // Try English fallback only if non-Bengali or still return false so web speech handles Bengali cleanly
-                    if (hasBengaliScript) return false
-                    langResult = engine.setLanguage(Locale.US)
-                    if (langResult == TextToSpeech.LANG_MISSING_DATA || langResult == TextToSpeech.LANG_NOT_SUPPORTED) {
-                        return false
+                else -> listOf(Locale.US, Locale.UK, Locale.ENGLISH)
+            }
+
+            var chosenLocale: Locale? = null
+            for (loc in candidates) {
+                val res = engine.setLanguage(loc)
+                if (res != TextToSpeech.LANG_MISSING_DATA && res != TextToSpeech.LANG_NOT_SUPPORTED) {
+                    chosenLocale = loc
+                    break
+                }
+            }
+            if (chosenLocale == null) return false
+
+            try {
+                engine.setPitch(pitch.coerceIn(0.65f, 1.45f))
+                engine.setSpeechRate(rate.coerceIn(0.7f, 1.4f))
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && !voiceGender.isNullOrBlank() && voiceGender != "auto") {
+                    val wantedLang = chosenLocale.language.lowercase(Locale.US)
+                    val matchingVoices = engine.voices?.filter {
+                        it.locale != null && it.locale.language.equals(wantedLang, ignoreCase = true)
+                    }.orEmpty()
+                    if (matchingVoices.isNotEmpty()) {
+                        val maleHints = listOf("male", "pradeep", "bashkar", "man", "guy", "david", "daniel", "-bdm", "-inm", "-usm")
+                        val femaleHints = listOf("female", "nabanita", "tanishaa", "woman", "aria", "samantha", "zira", "-bdf", "-inf", "-usf")
+                        val preferred = matchingVoices.firstOrNull { v ->
+                            val n = v.name.lowercase(Locale.US)
+                            if (voiceGender.equals("male", ignoreCase = true)) maleHints.any { n.contains(it) }
+                            else femaleHints.any { n.contains(it) }
+                        }
+                        if (preferred != null) engine.voice = preferred
                     }
                 }
-            }
+            } catch (_: Exception) {}
+
             val speakResult = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 engine.speak(text, TextToSpeech.QUEUE_FLUSH, null, "AloAiTts_${System.currentTimeMillis()}")
             } else {
@@ -346,6 +376,16 @@ class WebAppInterface(private val activity: MainActivity) : TextToSpeech.OnInitL
     @JavascriptInterface
     fun stopNativeVoice() {
         activity.stopNativeSpeechInput()
+    }
+
+    @JavascriptInterface
+    fun startCustomAudio(mode: String?) {
+        activity.startCustomAudioCapture(mode)
+    }
+
+    @JavascriptInterface
+    fun stopCustomAudio(deliver: Boolean) {
+        activity.stopCustomAudioCapture(deliver)
     }
 
     @JavascriptInterface

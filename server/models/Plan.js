@@ -23,19 +23,45 @@ const PlanSchema = new mongoose.Schema({
   image_limit: {
     type: Number,
     default: function() {
-      return (DEFAULT_PLANS_MAP[this.name] && DEFAULT_PLANS_MAP[this.name].image_limit) || 5;
+      return (DEFAULT_PLANS_MAP[this.name] && DEFAULT_PLANS_MAP[this.name].image_limit !== undefined)
+        ? DEFAULT_PLANS_MAP[this.name].image_limit
+        : 0;
+    }
+  },
+  voice_limit: {
+    type: Number,
+    default: function() {
+      return (DEFAULT_PLANS_MAP[this.name] && DEFAULT_PLANS_MAP[this.name].voice_limit !== undefined)
+        ? DEFAULT_PLANS_MAP[this.name].voice_limit
+        : 0;
+    }
+  },
+  voice_model: {
+    type: String,
+    default: function() {
+      return (DEFAULT_PLANS_MAP[this.name] && DEFAULT_PLANS_MAP[this.name].voice_model) || '';
+    }
+  },
+  image_model: {
+    type: String,
+    default: function() {
+      return (DEFAULT_PLANS_MAP[this.name] && DEFAULT_PLANS_MAP[this.name].image_model) || '';
     }
   },
   price_usd: {
     type: Number,
     default: function() {
-      return (DEFAULT_PLANS_MAP[this.name] && DEFAULT_PLANS_MAP[this.name].price_usd) || 0;
+      return (DEFAULT_PLANS_MAP[this.name] && DEFAULT_PLANS_MAP[this.name].price_usd !== undefined)
+        ? DEFAULT_PLANS_MAP[this.name].price_usd
+        : 0;
     }
   },
   price_bdt: {
     type: Number,
     default: function() {
-      return (DEFAULT_PLANS_MAP[this.name] && DEFAULT_PLANS_MAP[this.name].price_bdt) || 0;
+      return (DEFAULT_PLANS_MAP[this.name] && DEFAULT_PLANS_MAP[this.name].price_bdt !== undefined)
+        ? DEFAULT_PLANS_MAP[this.name].price_bdt
+        : 0;
     }
   },
   tagline: {

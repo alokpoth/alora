@@ -1075,10 +1075,11 @@
         limitsBoxSub: 'Exact rolling limits synced from server configuration',
         restoreBtn: 'Restore subscription / Redeem voucher',
         limitsApplyBtn: 'Limits apply',
-        quotaLine: function(lim, hrs, imgLim, highest) {
+        quotaLine: function(lim, hrs, imgLim, voiceLim, highest) {
           var unit = hrs === 1 ? '1 hour' : hrs + ' hours';
-          var imgPart = (imgLim > 0) ? (' & ' + imgLim + ' images') : '';
-          return lim + ' messages' + imgPart + ' per ' + unit + (highest ? ' (highest)' : '');
+          var voicePart = (voiceLim > 0) ? (' · ' + voiceLim + ' live voice') : '';
+          var imgPart = (imgLim > 0) ? (' · ' + imgLim + ' images') : '';
+          return lim + ' messages' + voicePart + imgPart + ' per ' + unit + (highest ? ' (highest)' : '');
         },
         quotaAdmin: 'Unlimited messages (Admin access)',
         tierMeta: {
@@ -1151,9 +1152,10 @@
         limitsBoxSub: 'অ্যাডমিন প্যানেল থেকে সরাসরি সিঙ্ককৃত সকল সীমা',
         restoreBtn: 'সাবস্ক্রিপশন পুনরুদ্ধার / ভাউচার রিডিম',
         limitsApplyBtn: 'লিমিট সমূহ প্রযোজ্য',
-        quotaLine: function(lim, hrs, imgLim, highest) {
-          var imgPart = (imgLim > 0) ? (' ও ' + toBnDigits(imgLim) + 'টি ছবি') : '';
-          return 'প্রতি ' + toBnDigits(hrs) + ' ঘণ্টায় ' + toBnDigits(lim) + 'টি বার্তা' + imgPart + (highest ? ' (সর্বোচ্চ)' : '');
+        quotaLine: function(lim, hrs, imgLim, voiceLim, highest) {
+          var voicePart = (voiceLim > 0) ? (' · ' + toBnDigits(voiceLim) + 'টি লাইভ ভয়েস') : '';
+          var imgPart = (imgLim > 0) ? (' · ' + toBnDigits(imgLim) + 'টি ছবি') : '';
+          return 'প্রতি ' + toBnDigits(hrs) + ' ঘণ্টায় ' + toBnDigits(lim) + 'টি বার্তা' + voicePart + imgPart + (highest ? ' (সর্বোচ্চ)' : '');
         },
         quotaAdmin: 'সীমাহীন বার্তা (অ্যাডমিন অ্যাক্সেস)',
         tierMeta: {
@@ -1206,12 +1208,12 @@
     })();
 
     const planLimits = {
-      Guest: { message_limit: 2, image_limit: 0, window_hours: 24, price_usd: 0, price_bdt: 0, tagline: '' },
-      Free:  { message_limit: 50, image_limit: 0, window_hours: 3, price_usd: 0, price_bdt: 0, tagline: '' },
-      Go:    { message_limit: 100, image_limit: 0, window_hours: 3, price_usd: 5, price_bdt: 650, tagline: '' },
-      Plus:  { message_limit: 500, image_limit: 0, window_hours: 3, price_usd: 20, price_bdt: 2600, tagline: '' },
-      Pro:   { message_limit: 3000, image_limit: 0, window_hours: 1, price_usd: 60, price_bdt: 7800, tagline: '' },
-      Max:   { message_limit: 7000, image_limit: 0, window_hours: 1, price_usd: 120, price_bdt: 15600, tagline: '' }
+      Guest: { message_limit: 2, image_limit: 0, voice_limit: 2, window_hours: 24, price_usd: 0, price_bdt: 0, tagline: '' },
+      Free:  { message_limit: 50, image_limit: 0, voice_limit: 10, window_hours: 3, price_usd: 0, price_bdt: 0, tagline: '' },
+      Go:    { message_limit: 100, image_limit: 0, voice_limit: 30, window_hours: 3, price_usd: 5, price_bdt: 650, tagline: '' },
+      Plus:  { message_limit: 500, image_limit: 0, voice_limit: 100, window_hours: 3, price_usd: 20, price_bdt: 2600, tagline: '' },
+      Pro:   { message_limit: 3000, image_limit: 0, voice_limit: 300, window_hours: 1, price_usd: 60, price_bdt: 7800, tagline: '' },
+      Max:   { message_limit: 7000, image_limit: 0, voice_limit: 1000, window_hours: 1, price_usd: 120, price_bdt: 15600, tagline: '' }
     };
 
     let billingRates = { usd_to_bdt_rate: 130, usd_to_usdt_rate: 1 };
@@ -1251,6 +1253,9 @@
     function getDynamicModelFeatureLine(tierName) {
       const tierRank = PLAN_HIERARCHY[tierName] || 1;
       const accessible = syncedModels.filter(m => {
+        if (Array.isArray(m.allowed_plans) && m.allowed_plans.length > 0) {
+          return m.allowed_plans.includes('*') || m.allowed_plans.includes(tierName);
+        }
         const minRank = PLAN_HIERARCHY[m.min_tier || 'Free'] || 1;
         return minRank <= tierRank;
       });
@@ -1559,7 +1564,7 @@
           const taglineText = (currentLang === 'en' && limObj.tagline) ? limObj.tagline : meta.tagline;
           const quotaText = (tierName === 'Max' && auth.isAdmin)
             ? d.quotaAdmin
-            : d.quotaLine(limObj.message_limit, limObj.window_hours, limObj.image_limit, tierName === 'Max');
+            : d.quotaLine(limObj.message_limit, limObj.window_hours, limObj.image_limit, Number(limObj.voice_limit ?? 0), tierName === 'Max');
 
           let badgesHtml = '';
           if (isTrialTier) badgesHtml += '<span class="mono-badge inverted">' + escapeHtml(d.trialBadge) + '</span>';
@@ -1640,6 +1645,10 @@
               ? `${toBnDigits(limObj.message_limit)} মেসেজ / ${toBnDigits(limObj.window_hours)} ঘণ্টা`
               : `${limObj.message_limit} messages / ${limObj.window_hours}h`);
 
+          const voiceVal = Number(limObj.voice_limit) > 0
+            ? (currentLang === 'bn' ? `${toBnDigits(limObj.voice_limit)} লাইভ ভয়েস` : `${limObj.voice_limit} live voice`)
+            : (currentLang === 'bn' ? 'ভয়েস নেই' : 'No voice');
+
           const imgVal = Number(limObj.image_limit) > 0
             ? (currentLang === 'bn' ? `${toBnDigits(limObj.image_limit)} ছবি` : `${limObj.image_limit} images`)
             : (currentLang === 'bn' ? 'ছবি নেই' : 'No images');
@@ -1649,7 +1658,7 @@
               <span>${escapeHtml(meta.title)}</span>
               ${isGuest && meta.sub ? `<span style="font-size:0.74rem; color:var(--text-muted); font-weight:400;">(${escapeHtml(meta.sub)})</span>` : ''}
             </span>
-            <span class="limits-tier-vals">${escapeHtml(msgVal)} · ${escapeHtml(imgVal)}</span>
+            <span class="limits-tier-vals">${escapeHtml(msgVal)} · ${escapeHtml(voiceVal)} · ${escapeHtml(imgVal)}</span>
           `;
           limitsList.appendChild(row);
         });

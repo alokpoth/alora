@@ -71,6 +71,10 @@ app.use((req, res, next) => {
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('Permissions-Policy', 'camera=(self), microphone=(self), geolocation=()');
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: blob: https: http:; connect-src 'self' https: wss: ws: http://localhost:* http://127.0.0.1:*; media-src 'self' data: blob: https:; font-src 'self' data: https:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'"
+  );
   next();
 });
 app.use(express.json({ limit: '5mb' }));
@@ -382,9 +386,34 @@ process.on('uncaughtException', (err) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+const httpServer = app.listen(PORT, () => {
   console.log(`=================================================`);
   console.log(`[Alora AI Server] Running on http://localhost:${PORT}`);
   console.log(`[Secret Admin Panel] Open http://localhost:${PORT}/zihan`);
   console.log(`=================================================`);
 });
+
+const { attachVoiceLiveWebSocket } = require('./controllers/voiceController');
+attachVoiceLiveWebSocket(httpServer);
+
+let isShuttingDown = false;
+const gracefulShutdown = (signal) => {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+  console.log(`[Alora AI Server] Received ${signal}, shutting down gracefully...`);
+  const { flushOnExit } = require('./config/memoryStore');
+  if (typeof flushOnExit === 'function') flushOnExit();
+  const forceTimer = setTimeout(() => process.exit(0), 5000);
+  if (typeof forceTimer.unref === 'function') forceTimer.unref();
+  httpServer.close(async () => {
+    try {
+      const mongoose = require('mongoose');
+      if (mongoose.connection && mongoose.connection.readyState !== 0) {
+        await mongoose.connection.close(false);
+      }
+    } catch {}
+    process.exit(0);
+  });
+};
+process.once('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.once('SIGINT', () => gracefulShutdown('SIGINT'));

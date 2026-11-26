@@ -26,6 +26,7 @@ const {
   updateSettings,
   testWebSearchSetting,
   testImageGenSetting,
+  testVoiceLiveSetting,
   getPromoCodes,
   createPromoCode,
   deletePromoCode,
@@ -45,6 +46,7 @@ router.get('/settings', getSettings);
 router.put('/settings', updateSettings);
 router.post('/settings/test-search', testWebSearchSetting);
 router.post('/settings/test-image', testImageGenSetting);
+router.post('/settings/test-voice', testVoiceLiveSetting);
 
 router.get('/promo-codes', getPromoCodes);
 router.post('/promo-codes', createPromoCode);

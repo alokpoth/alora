@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
-  <meta name="theme-color" content="#212121">
+  <meta name="theme-color" content="#000000">
   <title>Custom Instructions &amp; Personality — Alora</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3">
@@ -16,7 +16,6 @@
   
   <style>
     :root {
-      --bg-base: #000000;
       --bg-base: #000000;
       --bg-card: #111114;
       --bg-card-hover: #1a1a20;
@@ -419,11 +418,6 @@
         document.documentElement.setAttribute("data-theme-mode", raw);
         document.documentElement.setAttribute("data-theme", mode);
       } catch(e) {}
-      if (window.location.pathname.endsWith('.html')) {
-        var clean = window.location.pathname.replace(/\.html$/, '');
-        if (clean === '/index') clean = '/';
-        window.history.replaceState(null, '', clean + window.location.search + window.location.hash);
-      }
     })();
   </script>
 </head>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
-  <meta name="theme-color" content="#212121">
+  <meta name="theme-color" content="#000000">
   <title>Edit Profile — Alora</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3">
@@ -19,7 +19,7 @@
       --bg-base: #000000;
       --bg-card: #121214;
       --bg-card-elevated: #18181b;
-      --bg-card-hover: #2f2f2f;
+      --bg-card-hover: #1c1c20;
       --border-card: rgba(255, 255, 255, 0.08);
       --border-strong: rgba(255, 255, 255, 0.16);
       --border-divider: rgba(255, 255, 255, 0.06);
@@ -838,12 +838,27 @@
       setTimeout(() => { el.style.display = "none"; }, 3200);
     }
 
+    function sanitizeSafeAvatarSrc(raw) {
+      if (!raw || typeof raw !== "string") return "";
+      const s = raw.trim();
+      if (!s || s === "default" || /["'<>\\\r\n\0]/.test(s)) return "";
+      if (s.startsWith("/avatars/") || s.startsWith("avatars/") || /^avatar_\d+\.svg$/.test(s)) return s;
+      if (/^data:image\/(png|jpeg|jpg|webp|gif);base64,[A-Za-z0-9+/=]+$/i.test(s)) return s;
+      if (s.startsWith("https://") || s.startsWith("http://")) return s;
+      return "";
+    }
+
     function updateAvatarDisplay(avatarPath, name) {
       const avatarEl = document.getElementById("avatarLetter");
       if (!avatarEl) return;
       const initial = (name || "U").trim().charAt(0).toUpperCase() || "U";
-      if (avatarPath && avatarPath !== "default") {
-        avatarEl.innerHTML = `<img src="${avatarPath}" alt="Avatar">`;
+      const safeSrc = sanitizeSafeAvatarSrc(avatarPath);
+      if (safeSrc) {
+        avatarEl.innerHTML = "";
+        const img = document.createElement("img");
+        img.src = safeSrc;
+        img.alt = "Avatar";
+        avatarEl.appendChild(img);
         avatarEl.style.background = "none";
       } else {
         avatarEl.innerHTML = '';
@@ -857,17 +872,22 @@
       if (!grid) return;
       grid.innerHTML = "";
 
+      const safeCustomSrc = sanitizeSafeAvatarSrc(selectedAvatar);
       // If user has a custom uploaded avatar (data:image/ or external) not in preset list, add it as first custom tile
-      if (selectedAvatar && selectedAvatar !== "default" && !MINIMAL_AVATARS.some(a => a.path === selectedAvatar)) {
+      if (safeCustomSrc && !MINIMAL_AVATARS.some(a => a.path === selectedAvatar)) {
         const customBtn = document.createElement("button");
         customBtn.type = "button";
         customBtn.className = "avatar-option selected";
-        customBtn.dataset.avatar = selectedAvatar;
+        customBtn.dataset.avatar = safeCustomSrc;
         customBtn.title = "Custom Photo";
-        customBtn.innerHTML = `<img src="${selectedAvatar}" alt="Custom Avatar">
-          <span class="avatar-option-badge">
-            <svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-          </span>`;
+        const cImg = document.createElement("img");
+        cImg.src = safeCustomSrc;
+        cImg.alt = "Custom Avatar";
+        customBtn.appendChild(cImg);
+        const badgeSpan = document.createElement("span");
+        badgeSpan.className = "avatar-option-badge";
+        badgeSpan.innerHTML = `<svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+        customBtn.appendChild(badgeSpan);
         customBtn.addEventListener("click", () => {
           document.querySelectorAll(".avatar-option").forEach(b => b.classList.remove("selected"));
           customBtn.classList.add("selected");

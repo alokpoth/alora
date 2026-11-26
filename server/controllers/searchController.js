@@ -199,8 +199,9 @@ async function executeSearch(query, forcedSettings = null) {
     }
   }
 
-  // 4. Custom Search Endpoint
-  if (provider === 'custom' && customUrl) {
+  // 4. Custom Search Endpoint (with SSRF protocol & private-IP guard)
+  const { isPublicHttpUrl } = require('../utils/secretVault');
+  if (provider === 'custom' && customUrl && isPublicHttpUrl(customUrl)) {
     try {
       const headers = { 'Content-Type': 'application/json' };
       if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;

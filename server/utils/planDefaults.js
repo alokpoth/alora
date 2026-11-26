@@ -10,6 +10,9 @@ const DEFAULT_PLANS_MAP = {
     message_limit: 2,
     window_hours: 24,
     image_limit: 0,
+    voice_limit: 2,
+    voice_model: '',
+    image_model: '',
     price_usd: 0,
     price_bdt: 0,
     tagline: 'Try Alora instantly without logging in',
@@ -22,6 +25,9 @@ const DEFAULT_PLANS_MAP = {
     message_limit: 50,
     window_hours: 3,
     image_limit: 0,
+    voice_limit: 10,
+    voice_model: '',
+    image_model: '',
     price_usd: 0,
     price_bdt: 0,
     tagline: 'Intelligence for everyday tasks and quick answers',
@@ -34,6 +40,9 @@ const DEFAULT_PLANS_MAP = {
     message_limit: 100,
     window_hours: 3,
     image_limit: 0,
+    voice_limit: 30,
+    voice_model: '',
+    image_model: '',
     price_usd: 5,
     price_bdt: 650,
     tagline: 'More room to write, learn, and create',
@@ -46,6 +55,9 @@ const DEFAULT_PLANS_MAP = {
     message_limit: 500,
     window_hours: 3,
     image_limit: 0,
+    voice_limit: 100,
+    voice_model: '',
+    image_model: '',
     price_usd: 20,
     price_bdt: 2600,
     tagline: 'Personalized AI with advanced reasoning models',
@@ -58,6 +70,9 @@ const DEFAULT_PLANS_MAP = {
     message_limit: 3000,
     window_hours: 1,
     image_limit: 0,
+    voice_limit: 300,
+    voice_model: '',
+    image_model: '',
     price_usd: 60,
     price_bdt: 7800,
     tagline: 'Higher speed and expanded limits for heavy work',
@@ -70,6 +85,9 @@ const DEFAULT_PLANS_MAP = {
     message_limit: 7000,
     window_hours: 1,
     image_limit: 0,
+    voice_limit: 1000,
+    voice_model: '',
+    image_model: '',
     price_usd: 120,
     price_bdt: 15600,
     tagline: 'Full frontier intelligence with our highest usage limits',
@@ -97,6 +115,11 @@ function normalizePlanDoc(rawPlan) {
     ? rawImg
     : def.image_limit;
 
+  const rawVoice = Number(plain.voice_limit);
+  const validVoice = (plain.voice_limit !== undefined && plain.voice_limit !== null && !isNaN(rawVoice) && rawVoice >= 0)
+    ? rawVoice
+    : def.voice_limit;
+
   const rawPrice = Number(plain.price_bdt);
   const validPrice = (plain.price_bdt !== undefined && plain.price_bdt !== null && !isNaN(rawPrice) && rawPrice >= 0)
     ? rawPrice
@@ -114,6 +137,9 @@ function normalizePlanDoc(rawPlan) {
     message_limit: validMsg,
     window_hours: validWin,
     image_limit: validImg,
+    voice_limit: validVoice,
+    voice_model: typeof plain.voice_model === 'string' ? plain.voice_model.trim() : (def.voice_model || ''),
+    image_model: typeof plain.image_model === 'string' ? plain.image_model.trim() : (def.image_model || ''),
     price_usd: validPriceUsd,
     price_bdt: validPrice,
     tagline: (typeof plain.tagline === 'string' && plain.tagline.trim()) ? plain.tagline.trim() : def.tagline,

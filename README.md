@@ -6,20 +6,21 @@
 
 Alora এখন অ্যান্ড্রয়েডে সরাসরি হাই-পারফরম্যান্স নেটিভ অ্যাপ আকারে ব্যবহার করা যাবে!
 
-- 📥 **সরাসরি ডাউনলোড:** [**Alora.apk (Direct Download v1.2.1)**](https://alora.zihan.xyz/Alora.apk)
-- 🌐 **ডাউনলোড পেজ:** [**alora.zihan.xyz/download**](https://alora.zihan.xyz/download)
-- ⚡ **ফিচারসমূহ (v1.2.1):** ইনস্ট্যান্ট লগইন/সাইনআপ এনফোর্সমেন্ট, ডিপ থিঙ্কিং অন/অফ টগল, সুপারফাস্ট 120Hz স্ক্রলিং ও টাচ রেসপন্স, পিউর AMOLED ডার্ক মোড, অফলাইন চ্যাট ক্যাশিং এবং আল্ট্রা-স্মুথ নেটিভ ইন্টারফেস।
+- 📥 **সরাসরি ডাউনলোড:** [**Alora.apk (Direct Download v1.0.0.23)**](https://alora.zdots.net/Alora.apk)
+- 🌐 **ডাউনলোড পেজ:** [**alora.zdots.net/download**](https://alora.zdots.net/download)
+- ⚡ **ফিচারসমূহ (v1.0.0.23):** ইন-অ্যাপ লাইভ ভয়েস ইঞ্জিন (Gemini Live ও দ্বিভাষিক ভয়েস), ডেডিকেটেড ভয়েস ও ইমেজ কোটা, সুপারফাস্ট 120Hz স্ক্রলিং, পিউর AMOLED ডার্ক মোড, অফলাইন চ্যাট সিঙ্ক এবং নেটিভ অ্যান্ড্রয়েড ইন্টারফেস।
 
 ## Features
 
-- 🔐 **সম্পূর্ণ সুরক্ষিত** — কোনো API Key ফ্রন্টএন্ডে নেই
+- 🔐 **সম্পূর্ণ সুরক্ষিত** — কোনো API Key বা OAuth Secret ফ্রন্টএন্ডে নেই; AES-256-GCM এনক্রিপশন
+- 🎙️ **Live Voice Engine** — Gemini Live API, Custom API ও Chat Models ভিত্তিক দ্বিভাষিক (বাংলা/ইংরেজি) ভয়েস
 - 🌐 **Web Search** — লাইভ সার্চ সাপোর্ট
-- 🖼️ **Image Generation** — AI দিয়ে ছবি তৈরি
+- 🖼️ **Image Generation** — যেকোনো মডেল থেকে AI ছবি তৈরি
 - 📄 **File Upload** — PDF, TXT, CSV, JS, Python ইত্যাদি
-- 🎨 **৪টি Theme** — Dark, Light, OLED, Eye Care
+- 🎨 **থিম সিস্টেম** — System, Light, Dark (OLED), Eye Care
 - 📱 **Responsive** — সব ডিভাইসে কাজ করে
-- 🔑 **Authentication** — JWT লগইন/রেজিস্ট্রেশন
-- 👑 **Admin Panel** — সব কিছু ম্যানেজ করুন
+- 🔑 **Authentication** — Google, Discord ও JWT লগইন/রেজিস্ট্রেশন
+- 👑 **Admin Panel** — প্ল্যানভিত্তিক মডেল, মেসেজ, ভয়েস ও ইমেজ লিমিট ম্যানেজমেন্ট
 - 💳 **Plan System** — Free / Pro / Max সহ Rate Limiting
 - 🛡️ **Rate Limiting** — IP-ভিত্তিক হাই-ট্রাফিক ও অপব্যবহার রোধ সুরক্ষা
 

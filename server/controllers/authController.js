@@ -1,5 +1,4 @@
 const crypto = require('crypto');
-const fetch = require('node-fetch');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
@@ -409,19 +408,22 @@ const getMe = async (req, res) => {
       const windowStart = new Date(Date.now() - planWindow * 60 * 60 * 1000);
       let messageCount = 0;
       let imageCount = 0;
+      let voiceCount = 0;
       let resetTimeMinutes = Math.round(planWindow * 60);
       let resetAt = null;
       let windowStartTs = windowStart.getTime();
       
       if (getIsMongoConnected()) {
         const userQuery = isStrictObjectId(userId) ? { $in: [userId, new mongoose.Types.ObjectId(userId)] } : userId;
-        const [cnt, imgCnt, oldestLog] = await Promise.all([
-          UsageLog.countDocuments({ user_id: userQuery, model_id: { $ne: 'image-generation' }, timestamp: { $gte: windowStart } }),
+        const [cnt, imgCnt, voiceCnt, oldestLog] = await Promise.all([
+          UsageLog.countDocuments({ user_id: userQuery, model_id: { $nin: ['image-generation', 'voice-live'] }, timestamp: { $gte: windowStart } }),
           UsageLog.countDocuments({ user_id: userQuery, model_id: 'image-generation', timestamp: { $gte: windowStart } }),
-          UsageLog.findOne({ user_id: userQuery, model_id: { $ne: 'image-generation' }, timestamp: { $gte: windowStart } }).sort({ timestamp: 1 }).select('timestamp').lean()
+          UsageLog.countDocuments({ user_id: userQuery, model_id: 'voice-live', timestamp: { $gte: windowStart } }),
+          UsageLog.findOne({ user_id: userQuery, model_id: { $nin: ['image-generation', 'voice-live'] }, timestamp: { $gte: windowStart } }).sort({ timestamp: 1 }).select('timestamp').lean()
         ]);
         messageCount = cnt;
         imageCount = imgCnt;
+        voiceCount = voiceCnt;
         if (oldestLog) {
           const resetMs = new Date(oldestLog.timestamp).getTime() + planWindow * 60 * 60 * 1000;
           resetTimeMinutes = Math.max(1, Math.ceil((resetMs - Date.now()) / (60 * 1000)));
@@ -431,15 +433,18 @@ const getMe = async (req, res) => {
           resetAt = new Date(Date.now() + planWindow * 60 * 60 * 1000).toISOString();
         }
       } else {
-        const { getUserUsageDetails, getUserImageUsageDetails } = require('../../utils/getModelConfig');
-        const [usageDetails, imgDetails] = await Promise.all([
+        const { getUserUsageDetails, getUserImageUsageDetails, getUserVoiceUsageDetails } = require('../../utils/getModelConfig');
+        const [usageDetails, imgDetails, voiceDetails] = await Promise.all([
           getUserUsageDetails(userId, planWindow),
-          getUserImageUsageDetails(userId, planWindow)
+          getUserImageUsageDetails(userId, planWindow),
+          getUserVoiceUsageDetails(userId, planWindow)
         ]);
-        const memCount = (memoryStore.usageLogs || []).filter(l => String(l.user_id) === userId && l.model_id !== 'image-generation' && new Date(l.timestamp) >= windowStart).length;
+        const memCount = (memoryStore.usageLogs || []).filter(l => String(l.user_id) === userId && l.model_id !== 'image-generation' && l.model_id !== 'voice-live' && new Date(l.timestamp) >= windowStart).length;
         const memImgCount = (memoryStore.usageLogs || []).filter(l => String(l.user_id) === userId && l.model_id === 'image-generation' && new Date(l.timestamp) >= windowStart).length;
+        const memVoiceCount = (memoryStore.usageLogs || []).filter(l => String(l.user_id) === userId && l.model_id === 'voice-live' && new Date(l.timestamp) >= windowStart).length;
         messageCount = Math.max(usageDetails.count, memCount);
         imageCount = Math.max(imgDetails.count, memImgCount);
+        voiceCount = Math.max(voiceDetails.count, memVoiceCount);
         resetTimeMinutes = usageDetails.resetInMinutes;
         if (usageDetails.resetAt) {
           resetAt = usageDetails.resetAt;
@@ -451,7 +456,10 @@ const getMe = async (req, res) => {
 
       const planImageLimit = (plan.image_limit !== undefined && plan.image_limit !== null && !isNaN(Number(plan.image_limit)))
         ? Number(plan.image_limit)
-        : 5;
+        : 0;
+      const planVoiceLimit = (plan.voice_limit !== undefined && plan.voice_limit !== null && !isNaN(Number(plan.voice_limit)))
+        ? Number(plan.voice_limit)
+        : 0;
       
       rateLimit = {
         used: messageCount,
@@ -461,6 +469,11 @@ const getMe = async (req, res) => {
         imageLimit: planImageLimit,
         image_limit: planImageLimit,
         imageRemaining: Math.max(0, planImageLimit - imageCount),
+        voiceUsed: voiceCount,
+        voice_used: voiceCount,
+        voiceLimit: planVoiceLimit,
+        voice_limit: planVoiceLimit,
+        voiceRemaining: Math.max(0, planVoiceLimit - voiceCount),
         remaining: Math.max(0, planLimit - messageCount),
         resetInMinutes: Math.max(1, resetTimeMinutes || 1),
         windowHours: planWindow,
@@ -476,6 +489,11 @@ const getMe = async (req, res) => {
         imageLimit: planImageLimit,
         image_limit: planImageLimit,
         imageRemaining: Math.max(0, planImageLimit - imageCount),
+        voiceUsed: voiceCount,
+        voice_used: voiceCount,
+        voiceLimit: planVoiceLimit,
+        voice_limit: planVoiceLimit,
+        voiceRemaining: Math.max(0, planVoiceLimit - voiceCount),
         remaining: Math.max(0, planLimit - messageCount),
         resetInMinutes: Math.max(1, resetTimeMinutes || 1),
         windowHours: planWindow,
@@ -493,6 +511,11 @@ const getMe = async (req, res) => {
         imageLimit: 999999,
         image_limit: 999999,
         imageRemaining: 999999,
+        voiceUsed: 0,
+        voice_used: 0,
+        voiceLimit: 999999,
+        voice_limit: 999999,
+        voiceRemaining: 999999,
         remaining: 999999,
         resetInMinutes: 0,
         windowHours: 1,
@@ -509,6 +532,11 @@ const getMe = async (req, res) => {
         imageLimit: 999999,
         image_limit: 999999,
         imageRemaining: 999999,
+        voiceUsed: 0,
+        voice_used: 0,
+        voiceLimit: 999999,
+        voice_limit: 999999,
+        voiceRemaining: 999999,
         remaining: 999999,
         resetInMinutes: 0,
         windowHours: 1,
@@ -550,6 +578,9 @@ const updateProfile = async (req, res) => {
     if (email !== undefined && typeof email !== 'string') return res.status(400).json({ success: false, error: 'অবৈধ ইমেইল ঠিকানা' });
     if (avatar && avatar.length > 50000) return res.status(400).json({ success: false, error: 'ছবির সাইজ অতিরিক্ত বড় (সর্বোচ্চ 50KB)' });
     const isAvatarPreset = avatar && (avatar.startsWith('avatars/') || avatar.startsWith('/avatars/') || /^avatar_\d+\.svg$/.test(avatar));
+    if (avatar && /["'<>\\\r\n\0]/.test(avatar)) {
+      return res.status(400).json({ success: false, error: 'অকার্যকর ছবির ফরম্যাট' });
+    }
     if (avatar && avatar !== 'default' && !isAvatarPreset && !avatar.startsWith('data:image/') && !avatar.startsWith('http://') && !avatar.startsWith('https://')) {
       return res.status(400).json({ success: false, error: 'অকার্যকর ছবির ফরম্যাট' });
     }
@@ -920,7 +951,7 @@ const sendNativeOAuthBridge = (res, appUrl, webFallbackUrl, isError = false) => 
   <title>Alora Sign-In</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    body{background:#212121;color:#ececec;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center}
+    body{background:#000000;color:#ececec;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center}
     .card{max-width:340px;width:100%;display:flex;flex-direction:column;align-items:center;gap:14px}
     .title{font-size:1.25rem;font-weight:600;letter-spacing:-0.02em}
     .sub{font-size:0.9rem;color:#b4b4b4;line-height:1.5}

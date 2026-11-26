@@ -1,4 +1,4 @@
-const fetch = require('node-fetch');
+const { Readable } = require('stream');
 const mongoose = require('mongoose');
 const UsageLog = require('../models/UsageLog');
 const { getIsMongoConnected } = require('../config/db');
@@ -608,6 +608,10 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
 
     // Surface clean MODEL_BUSY / not-found response so UI renders the Model Busy card & Retry button without leaking internal provider/model names
     if (!aiModelConfig) {
+      if (user) {
+        const { invalidateUserUsageCache } = require('../../utils/getModelConfig');
+        invalidateUserUsageCache(String(user._id || user.id));
+      }
       const publicModLabel = getSafeModelDisplayName(cleanModel);
       return res.status(404).json({
         success: false,
@@ -617,6 +621,10 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
       });
     }
     if (!response || !response.ok) {
+      if (user) {
+        const { invalidateUserUsageCache } = require('../../utils/getModelConfig');
+        invalidateUserUsageCache(String(user._id || user.id));
+      }
       const status = response ? response.status : 504;
       const modelDisplayName = safeDisplayName || 'Alora AI';
       let userSafeError = `মডেলটি বর্তমানে ব্যস্ত আছে (${modelDisplayName})। অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন অথবা অন্য মডেল নির্বাচন করুন।`;
@@ -640,7 +648,9 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
           model_id: effectiveModel || cleanModel || safeDisplayName,
           timestamp: new Date()
         }).catch(err => console.error('[UsageLog Write Error]:', err.message));
-        incrementUserUsage(userId, req.currentPlan ? req.currentPlan.window_hours : 3).catch(() => {});
+        if (!req._quotaCacheReserved) {
+          incrementUserUsage(userId, req.currentPlan ? req.currentPlan.window_hours : 3).catch(() => {});
+        }
       } else {
         memoryStore.usageLogs.push({
           _id: 'log_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
@@ -652,9 +662,11 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
           memoryStore.usageLogs = memoryStore.usageLogs.slice(-5000);
         }
         debouncedSave();
-        incrementUserUsage(userId, req.currentPlan ? req.currentPlan.window_hours : 3).catch(e => {
-          console.error('[Increment User Usage Error]:', e.message);
-        });
+        if (!req._quotaCacheReserved) {
+          incrementUserUsage(userId, req.currentPlan ? req.currentPlan.window_hours : 3).catch(e => {
+            console.error('[Increment User Usage Error]:', e.message);
+          });
+        }
       }
     };
 
@@ -760,12 +772,19 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
     let hasContentTokens = false;
     let streamIdleTimeout = null;
 
+    const bodyStream = (response && response.body)
+      ? (typeof response.body.on === 'function' ? response.body : Readable.fromWeb(response.body))
+      : null;
+    if (!bodyStream) {
+      return res.status(502).json({ success: false, code: 'MODEL_BUSY', error: 'মডেল থেকে উত্তর পাওয়া যায়নি।' });
+    }
+
     const resetStreamIdleWatchdog = () => {
       if (streamIdleTimeout) clearTimeout(streamIdleTimeout);
       streamIdleTimeout = setTimeout(() => {
         console.warn('[Stream Watchdog]: Inactivity timeout reached (300s), terminating stream.');
-        if (response && response.body && typeof response.body.destroy === 'function') {
-          try { response.body.destroy(); } catch {}
+        if (typeof bodyStream.destroy === 'function') {
+          try { bodyStream.destroy(); } catch {}
         }
         if (!res.writableEnded) {
           res.write(`data: ${JSON.stringify({ error: 'স্ট্রিম সময়সীমা অতিক্রম করেছে।' })}\n\n`);
@@ -781,8 +800,8 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
     return new Promise((resolve) => {
       let isResolved = false;
       const onClientClose = () => {
-        if (response && response.body && typeof response.body.destroy === 'function') {
-          try { response.body.destroy(); } catch {}
+        if (typeof bodyStream.destroy === 'function') {
+          try { bodyStream.destroy(); } catch {}
         }
         safeResolve();
       };
@@ -992,7 +1011,7 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
         return false;
       };
 
-      response.body.on('data', (chunk) => {
+      bodyStream.on('data', (chunk) => {
         hasStreamedData = true;
         resetStreamIdleWatchdog();
 
@@ -1007,7 +1026,7 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
                 console.warn('[Stream Watchdog] Repetition loop detected in stream, closing safely.');
                 flushSanitizedTails();
                 try {
-                  if (typeof response.body?.destroy === 'function') response.body.destroy();
+                  if (typeof bodyStream.destroy === 'function') bodyStream.destroy();
                 } catch (e) {}
                 if (!res.writableEnded) {
                   res.write('data: [DONE]\n\n');
@@ -1027,7 +1046,7 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
                 console.warn('[Stream Watchdog] Repetition loop detected from upstream model, truncating and closing stream safely.');
                 flushSanitizedTails();
                 try {
-                  if (typeof response.body?.destroy === 'function') response.body.destroy();
+                  if (typeof bodyStream.destroy === 'function') bodyStream.destroy();
                 } catch (e) {}
                 if (!res.writableEnded) {
                   res.write('data: [DONE]\n\n');
@@ -1043,7 +1062,7 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
         }
       });
 
-      response.body.on('end', async () => {
+      bodyStream.on('end', async () => {
         try {
           if (isGeminiStream && geminiLineBuffer && geminiLineBuffer.trim()) {
             processGeminiLine(geminiLineBuffer);
@@ -1090,7 +1109,7 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
         }
       });
 
-      response.body.on('error', (err) => {
+      bodyStream.on('error', (err) => {
         console.error('[Stream Error]:', err.message);
         if (!res.writableEnded) {
           res.write(`data: ${JSON.stringify({ error: 'স্ট্রিম সংযোগে সমস্যা হয়েছে।' })}\n\n`);
@@ -1380,7 +1399,11 @@ const generateImage = async (req, res) => {
 
     const forcedSettings = {};
     if (size && typeof size === 'string') forcedSettings.image_size = size.trim();
-    if (model && typeof model === 'string') forcedSettings.image_model = model.trim();
+    const planImgModel = (req.currentPlan && typeof req.currentPlan.image_model === 'string' && req.currentPlan.image_model.trim())
+      ? req.currentPlan.image_model.trim()
+      : '';
+    if (model && typeof model === 'string' && model.trim()) forcedSettings.image_model = model.trim();
+    else if (planImgModel) forcedSettings.image_model = planImgModel;
     if (enhance !== undefined) forcedSettings.image_enhance = !!enhance;
 
     const wantCaption = include_caption !== false;
@@ -1412,8 +1435,10 @@ const generateImage = async (req, res) => {
         }
         debouncedSave();
       }
-      const { incrementUserImageUsage } = require('../../utils/getModelConfig');
-      incrementUserImageUsage(userId, req.currentPlan ? req.currentPlan.window_hours : 3).catch(() => {});
+      if (!req._quotaCacheReserved) {
+        const { incrementUserImageUsage } = require('../../utils/getModelConfig');
+        incrementUserImageUsage(userId, req.currentPlan ? req.currentPlan.window_hours : 3).catch(() => {});
+      }
     }
 
     return res.json({
@@ -1423,6 +1448,10 @@ const generateImage = async (req, res) => {
       model: companion.modelName || 'Alora Image'
     });
   } catch (error) {
+    if (req.user) {
+      const { invalidateUserUsageCache } = require('../../utils/getModelConfig');
+      invalidateUserUsageCache(String(req.user._id || req.user.id));
+    }
     console.error('[Image Gen Error]:', error.message);
     const errMsg = String(error.message || '');
     const statusCode = errMsg.includes('কনফিগার করা হয়নি') ? 503 : (errMsg.includes('অতিরিক্ত সময়') ? 504 : 500);

@@ -74,6 +74,10 @@ app.use((req, res, next) => {
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('Permissions-Policy', 'camera=(self), microphone=(self), geolocation=()');
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: blob: https: http:; connect-src 'self' https: wss: ws: http://localhost:* http://127.0.0.1:*; media-src 'self' data: blob: https:; font-src 'self' data: https:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'"
+  );
   next();
 });
 

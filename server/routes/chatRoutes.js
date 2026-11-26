@@ -1,27 +1,53 @@
 const express = require('express');
 const router = express.Router();
 const { streamChatCompletions, generateImage } = require('../controllers/chatController');
+const { handleLiveVoiceTurn } = require('../controllers/voiceController');
 const { protect, optionalProtect } = require('../middleware/authMiddleware');
 const { checkRateLimit } = require('../middleware/rateLimitMiddleware');
+const { deriveDefaultAllowedPlans, canPlanAccessModel } = require('../utils/secretVault');
+const { DEFAULT_PLANS_MAP, normalizePlanDoc } = require('../utils/planDefaults');
+const Plan = require('../models/Plan');
 
 // Streaming completions supports authenticated users and up to 2 guest messages. Image generation requires authentication.
 // Note: Per user privacy requirements, chat sessions are stored 100% locally on the device (localStorage) and never on the database.
 router.post('/completions', optionalProtect, checkRateLimit, streamChatCompletions);
 router.post('/', optionalProtect, checkRateLimit, streamChatCompletions);
 router.post('/image', protect, checkRateLimit, generateImage);
+router.post('/voice-live', optionalProtect, checkRateLimit, handleLiveVoiceTurn);
 
 
 const AiModel = require('../models/AiModel');
 const { getIsMongoConnected } = require('../config/db');
 const { memoryStore } = require('../config/memoryStore');
-router.get('/models', async (req, res) => {
+router.get('/models', optionalProtect, async (req, res) => {
   try {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
 
-    const { getPersistedModels, getDeletedModelIds } = require('../../utils/getModelConfig');
+    const { getPersistedModels, getDeletedModelIds, getPersistedPlans } = require('../../utils/getModelConfig');
     const deletedSet = await getDeletedModelIds();
+
+    const adminEmails = ['zihanfakir@gmail.com', 'x@zihan.uk'];
+    const user = req.user;
+    const isAdmin = Boolean(user && (user.role === 'admin' || (user.email && adminEmails.includes(String(user.email).toLowerCase().trim()))));
+    const currentPlanName = isAdmin
+      ? 'Admin'
+      : (user ? ((user.subscription && user.subscription.plan_name) || 'Free') : 'Guest');
+
+    let currentPlanObj = DEFAULT_PLANS_MAP[currentPlanName] || DEFAULT_PLANS_MAP.Free;
+    if (!isAdmin) {
+      if (getIsMongoConnected()) {
+        try {
+          const pDoc = await Plan.findOne({ name: currentPlanName }).lean();
+          if (pDoc) currentPlanObj = normalizePlanDoc(pDoc);
+        } catch {}
+      } else {
+        const plans = await getPersistedPlans();
+        const pFound = (plans || []).find(p => p.name === currentPlanName);
+        if (pFound) currentPlanObj = normalizePlanDoc(pFound);
+      }
+    }
 
     const isNotDeleted = (m) => {
       if (!m) return false;
@@ -38,6 +64,7 @@ router.get('/models', async (req, res) => {
 
     const sanitizeModel = (m) => {
       const cleanName = (typeof m.name === 'string' && m.name.trim()) ? m.name.trim() : (m.id || m.model_id || 'Alo AI');
+      const allowedPlans = deriveDefaultAllowedPlans(m);
 
       return {
         id: m.id || m.model_id,
@@ -45,6 +72,9 @@ router.get('/models', async (req, res) => {
         description: m.description || '',
         provider: "Alora",
         type: m.type,
+        category: ['chat', 'voice', 'image'].includes(m.category) ? m.category : 'chat',
+        allowed_plans: allowedPlans,
+        accessible: canPlanAccessModel(m, currentPlanName, currentPlanObj),
         premium: !!m.premium,
         efficient: !!m.efficient,
         order: m.order,

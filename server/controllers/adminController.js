@@ -10,6 +10,7 @@ const { invalidateModelKeyCache, invalidateUsersCache, invalidateUserUsageCache,
 const { invalidateCachedUser, invalidateCachedPlans, invalidateCachedModels } = require('../config/dbCache');
 const { sendServerError, redactSecrets } = require('../utils/safeError');
 const { PLAN_ORDER, USER_PLANS, PAID_PLANS, DEFAULT_PLANS_MAP, ensureAllCanonicalPlans } = require('../utils/planDefaults');
+const { encryptSecret, decryptSecret, hasConfiguredSecret, isPublicHttpUrl, deriveDefaultAllowedPlans } = require('../utils/secretVault');
 
 const SUPER_ADMIN_EMAILS = ['zihanfakir@gmail.com', 'x@zihan.uk'];
 const isSuperAdminEmail = (email) => !!email && SUPER_ADMIN_EMAILS.includes(String(email).toLowerCase().trim());
@@ -19,25 +20,29 @@ const isStrictObjectId = (v) => Boolean(v && typeof v === 'string' && /^[0-9a-fA
 const redactModelSecretsForAdmin = (m) => {
   if (!m || typeof m !== 'object') return m;
   const copy = { ...m };
-  const hasPrimary = Boolean(copy.api_key && String(copy.api_key).trim());
-  const hasFb1 = Boolean(copy.fallback_key_1 && String(copy.fallback_key_1).trim());
-  const hasFb2 = Boolean(copy.fallback_key_2 && String(copy.fallback_key_2).trim());
+  const hasPrimary = hasConfiguredSecret(copy.api_key);
+  const hasFb1 = hasConfiguredSecret(copy.fallback_key_1);
+  const hasFb2 = hasConfiguredSecret(copy.fallback_key_2);
   delete copy.api_key;
   delete copy.fallback_key_1;
   delete copy.fallback_key_2;
   copy.has_api_key = hasPrimary;
   copy.has_fallback_key_1 = hasFb1;
   copy.has_fallback_key_2 = hasFb2;
+  copy.category = ['chat', 'voice', 'image'].includes(copy.category) ? copy.category : 'chat';
+  copy.allowed_plans = deriveDefaultAllowedPlans(copy);
   return copy;
 };
 
 const redactSettingsSecretsForAdmin = (s) => {
   if (!s || typeof s !== 'object') return s;
   const copy = { ...s };
-  copy.has_image_api_key = Boolean(copy.image_api_key && String(copy.image_api_key).trim());
-  copy.has_web_search_api_key = Boolean(copy.web_search_api_key && String(copy.web_search_api_key).trim());
+  copy.has_image_api_key = hasConfiguredSecret(copy.image_api_key);
+  copy.has_web_search_api_key = hasConfiguredSecret(copy.web_search_api_key);
+  copy.has_voice_live_api_key = hasConfiguredSecret(copy.voice_live_api_key);
   delete copy.image_api_key;
   delete copy.web_search_api_key;
+  delete copy.voice_live_api_key;
   return copy;
 };
 
@@ -589,7 +594,7 @@ const updatePlanLimits = async (req, res) => {
     if (!planName || !PLAN_ORDER.includes(planName)) {
       return res.status(400).json({ success: false, error: `সঠিক প্ল্যানের নাম দিন (${PLAN_ORDER.join(', ')})` });
     }
-    const { message_limit, window_hours, image_limit, price_usd, price_bdt, tagline, displayName, allowed_models, is_active } = req.body;
+    const { message_limit, window_hours, image_limit, voice_limit, voice_model, image_model, price_usd, price_bdt, tagline, displayName, allowed_models, is_active } = req.body;
     const minMsgLimit = planName === 'Guest' ? 0 : 1;
 
     let validLimit = undefined;
@@ -614,6 +619,16 @@ const updatePlanLimits = async (req, res) => {
       if (isNaN(n) || n < 0 || n > 100000) return res.status(400).json({ success: false, error: 'ছবি তৈরির সীমা ০ থেকে ১,০০,০০০ এর মধ্যে হতে হবে।' });
       validImageLimit = n;
     }
+
+    let validVoiceLimit = undefined;
+    if (voice_limit !== undefined) {
+      const n = parseInt(voice_limit, 10);
+      if (isNaN(n) || n < 0 || n > 100000) return res.status(400).json({ success: false, error: 'ভয়েস সীমা ০ থেকে ১,০০,০০০ এর মধ্যে হতে হবে।' });
+      validVoiceLimit = n;
+    }
+
+    const validVoiceModel = voice_model !== undefined ? String(voice_model || '').trim().slice(0, 100) : undefined;
+    const validImageModel = image_model !== undefined ? String(image_model || '').trim().slice(0, 100) : undefined;
 
     let validPriceUsd = undefined;
     if (price_usd !== undefined) {
@@ -653,6 +668,9 @@ const updatePlanLimits = async (req, res) => {
       if (validLimit !== undefined) target.message_limit = validLimit;
       if (validWindow !== undefined) target.window_hours = validWindow;
       if (validImageLimit !== undefined) target.image_limit = validImageLimit;
+      if (validVoiceLimit !== undefined) target.voice_limit = validVoiceLimit;
+      if (validVoiceModel !== undefined) target.voice_model = validVoiceModel;
+      if (validImageModel !== undefined) target.image_model = validImageModel;
       if (validPriceUsd !== undefined) target.price_usd = validPriceUsd;
       if (validPrice !== undefined) target.price_bdt = validPrice;
       if (validTagline !== undefined) target.tagline = validTagline;
@@ -684,6 +702,9 @@ const updatePlanLimits = async (req, res) => {
             message_limit: plan.message_limit,
             window_hours: plan.window_hours,
             image_limit: plan.image_limit,
+            voice_limit: plan.voice_limit,
+            voice_model: plan.voice_model || '',
+            image_model: plan.image_model || '',
             price_usd: plan.price_usd,
             price_bdt: plan.price_bdt,
             tagline: plan.tagline,
@@ -1122,7 +1143,7 @@ const updateModel = async (req, res) => {
     let { modelId } = req.params;
     try { modelId = decodeURIComponent(modelId); } catch {}
     const {
-      premium, efficient, name, description, provider, type, is_active, context_window, order,
+      premium, efficient, name, description, provider, type, category, allowed_plans, is_active, context_window, order,
       streaming_mode,
       base_url, api_key, clear_api_key, api_model_1,
       fallback_url_1, fallback_key_1, fallback_model_1, api_model_2, clear_fallback_key_1,
@@ -1131,6 +1152,10 @@ const updateModel = async (req, res) => {
 
     const effPremium = premium !== undefined ? (premium === true || premium === 'true' || premium === 1 || premium === '1') : undefined;
     const effEfficient = efficient !== undefined ? (efficient === true || efficient === 'true' || efficient === 1 || efficient === '1') : undefined;
+    const cleanCategory = ['chat', 'voice', 'image'].includes(String(category || '').trim()) ? String(category).trim() : undefined;
+    const cleanAllowedPlans = Array.isArray(allowed_plans)
+      ? allowed_plans.map(p => String(p || '').trim()).filter(p => PLAN_ORDER.includes(p))
+      : undefined;
     const cleanIsActive = is_active !== undefined ? (is_active === true || is_active === 'true' || is_active === 1 || is_active === '1') : undefined;
     const cleanContext = (context_window !== undefined && !isNaN(Number(context_window)) && Number(context_window) > 0) ? Number(context_window) : undefined;
     const cleanOrder = (order !== undefined && !isNaN(Number(order))) ? Number(order) : undefined;
@@ -1181,12 +1206,14 @@ const updateModel = async (req, res) => {
         if (cleanOrder !== undefined) mongoModel.order = cleanOrder;
         if (cleanProvider !== undefined) mongoModel.provider = cleanProvider;
         if (cleanType !== undefined) mongoModel.type = cleanType;
+        if (cleanCategory !== undefined) mongoModel.category = cleanCategory;
+        if (cleanAllowedPlans !== undefined) mongoModel.allowed_plans = cleanAllowedPlans;
         if (cleanStreamingMode !== undefined) mongoModel.streaming_mode = cleanStreamingMode;
         if (name !== undefined) mongoModel.name = (typeof name === 'string' && name.trim()) ? name.trim().slice(0, 100) : (modelId || 'Alo AI');
         if (cleanDesc !== undefined) mongoModel.description = cleanDesc;
         if (cleanBaseUrl !== undefined) mongoModel.base_url = cleanBaseUrl;
         if (cleanApiModel1 !== undefined) mongoModel.api_model_1 = cleanApiModel1;
-        if (hasValidKey) mongoModel.api_key = api_key.trim();
+        if (hasValidKey) mongoModel.api_key = encryptSecret(api_key.trim());
         else if (shouldClearKey) mongoModel.api_key = '';
 
         if (cleanFbUrl1 !== undefined) mongoModel.fallback_url_1 = cleanFbUrl1;
@@ -1194,7 +1221,7 @@ const updateModel = async (req, res) => {
           mongoModel.fallback_model_1 = cleanFbModel1;
           mongoModel.api_model_2 = cleanFbModel1;
         }
-        if (hasFbKey1) mongoModel.fallback_key_1 = fallback_key_1.trim();
+        if (hasFbKey1) mongoModel.fallback_key_1 = encryptSecret(fallback_key_1.trim());
         else if (shouldClearFbKey1) mongoModel.fallback_key_1 = '';
 
         if (cleanFbUrl2 !== undefined) mongoModel.fallback_url_2 = cleanFbUrl2;
@@ -1202,7 +1229,7 @@ const updateModel = async (req, res) => {
           mongoModel.fallback_model_2 = cleanFbModel2;
           mongoModel.api_model_3 = cleanFbModel2;
         }
-        if (hasFbKey2) mongoModel.fallback_key_2 = fallback_key_2.trim();
+        if (hasFbKey2) mongoModel.fallback_key_2 = encryptSecret(fallback_key_2.trim());
         else if (shouldClearFbKey2) mongoModel.fallback_key_2 = '';
 
         await mongoModel.save();
@@ -1213,18 +1240,20 @@ const updateModel = async (req, res) => {
           name: (typeof name === 'string' && name.trim()) ? name.trim().slice(0, 100) : (modelId || 'Alo AI'),
           description: cleanDesc || '',
           base_url: cleanBaseUrl || '',
-          api_key: hasValidKey ? api_key.trim() : '',
+          api_key: hasValidKey ? encryptSecret(api_key.trim()) : '',
           api_model_1: cleanApiModel1 || modelId,
           fallback_url_1: cleanFbUrl1 || '',
-          fallback_key_1: hasFbKey1 ? fallback_key_1.trim() : '',
+          fallback_key_1: hasFbKey1 ? encryptSecret(fallback_key_1.trim()) : '',
           fallback_model_1: cleanFbModel1 || '',
           api_model_2: cleanFbModel1 || '',
           fallback_url_2: cleanFbUrl2 || '',
-          fallback_key_2: hasFbKey2 ? fallback_key_2.trim() : '',
+          fallback_key_2: hasFbKey2 ? encryptSecret(fallback_key_2.trim()) : '',
           fallback_model_2: cleanFbModel2 || '',
           api_model_3: cleanFbModel2 || '',
           premium: Boolean(effPremium),
           efficient: Boolean(effEfficient),
+          category: cleanCategory || 'chat',
+          allowed_plans: cleanAllowedPlans || [],
           is_active: cleanIsActive !== undefined ? cleanIsActive : true,
           context_window: cleanContext || 8192,
           provider: cleanProvider || 'Alora',
@@ -1269,6 +1298,8 @@ const updateModel = async (req, res) => {
         api_model_3: cleanFbModel2 || '',
         premium: Boolean(effPremium),
         efficient: Boolean(effEfficient),
+        category: cleanCategory || 'chat',
+        allowed_plans: cleanAllowedPlans || [],
         is_active: cleanIsActive !== undefined ? cleanIsActive : true,
         context_window: cleanContext || 8192,
         provider: cleanProvider || 'Alora',
@@ -1286,6 +1317,8 @@ const updateModel = async (req, res) => {
       if (cleanApiModel1 !== undefined) model.api_model_1 = cleanApiModel1;
       if (effPremium !== undefined) model.premium = effPremium;
       if (effEfficient !== undefined) model.efficient = effEfficient;
+      if (cleanCategory !== undefined) model.category = cleanCategory;
+      if (cleanAllowedPlans !== undefined) model.allowed_plans = cleanAllowedPlans;
       if (cleanIsActive !== undefined) model.is_active = cleanIsActive;
       if (cleanContext !== undefined) model.context_window = cleanContext;
       if (cleanOrder !== undefined) model.order = cleanOrder;
@@ -1338,11 +1371,15 @@ const addModel = async (req, res) => {
       base_url, api_key, api_model_1,
       fallback_url_1, fallback_key_1, fallback_model_1, api_model_2,
       fallback_url_2, fallback_key_2, fallback_model_2, api_model_3,
-      premium, efficient, provider, type, streaming_mode
+      premium, efficient, provider, type, category, allowed_plans, streaming_mode
     } = req.body;
     const cleanStreamingMode = ['auto', 'stream', 'non_stream'].includes(String(streaming_mode || '').trim())
       ? String(streaming_mode).trim()
       : 'auto';
+    const cleanCategory = ['chat', 'voice', 'image'].includes(String(category || '').trim()) ? String(category).trim() : 'chat';
+    const cleanAllowedPlans = Array.isArray(allowed_plans)
+      ? allowed_plans.map(p => String(p || '').trim()).filter(p => PLAN_ORDER.includes(p))
+      : [];
     if (!model_id || !name || typeof model_id !== 'string' || typeof name !== 'string') {
       return res.status(400).json({ success: false, error: 'মডেল আইডি এবং নাম আবশ্যক' });
     }
@@ -1392,18 +1429,20 @@ const addModel = async (req, res) => {
           model_id: cleanModelId,
           name: cleanName,
           base_url: cleanBaseUrl,
-          api_key: api_key ? api_key.trim() : '',
+          api_key: api_key ? encryptSecret(api_key.trim()) : '',
           api_model_1: cleanApiModel1,
           fallback_url_1: cleanFbUrl1,
-          fallback_key_1: cleanFbKey1,
+          fallback_key_1: cleanFbKey1 ? encryptSecret(cleanFbKey1) : '',
           fallback_model_1: cleanFbModel1,
           api_model_2: cleanFbModel1,
           fallback_url_2: cleanFbUrl2,
-          fallback_key_2: cleanFbKey2,
+          fallback_key_2: cleanFbKey2 ? encryptSecret(cleanFbKey2) : '',
           fallback_model_2: cleanFbModel2,
           api_model_3: cleanFbModel2,
           premium: Boolean(premium),
           efficient: Boolean(efficient),
+          category: cleanCategory,
+          allowed_plans: cleanAllowedPlans,
           provider: provider || 'Alora',
           type: type || 'custom',
           streaming_mode: cleanStreamingMode,
@@ -1430,6 +1469,8 @@ const addModel = async (req, res) => {
       api_model_3: cleanFbModel2,
       premium: Boolean(premium),
       efficient: Boolean(efficient),
+      category: cleanCategory,
+      allowed_plans: cleanAllowedPlans,
       provider: provider || 'Alora',
       type: type || 'custom',
       streaming_mode: cleanStreamingMode,
@@ -1702,7 +1743,8 @@ const updateSettings = async (req, res) => {
     const toSave = {};
     const WRITE_ONLY_SECRETS = {
       image_api_key: 'clear_image_api_key',
-      web_search_api_key: 'clear_web_search_api_key'
+      web_search_api_key: 'clear_web_search_api_key',
+      voice_live_api_key: 'clear_voice_live_api_key'
     };
     const clearKeys = new Set(Object.values(WRITE_ONLY_SECRETS));
     const DISALLOWED_AUTH_SETTING_KEYS = new Set([
@@ -1716,6 +1758,11 @@ const updateSettings = async (req, res) => {
         const str = typeof v === 'string' ? v.trim() : '';
         if (str) toSave[k] = str;
         continue;
+      }
+      if ((k === 'web_search_custom_url' || k === 'voice_live_url' || k === 'voice_stt_url') && typeof v === 'string' && v.trim()) {
+        if (!isPublicHttpUrl(v.trim())) {
+          return res.status(400).json({ success: false, error: `অকার্যকর বা অনিরাপদ কাস্টম URL (${k})` });
+        }
       }
       toSave[k] = v;
     }
@@ -1770,6 +1817,37 @@ const testImageGenSetting = async (req, res) => {
       image_size: size
     };
     const result = await executeImageGeneration(cleanPrompt, forcedSettings);
+    return res.json({ success: true, ...result });
+  } catch (error) {
+    return res.status(500).json({ success: false, error: redactSecrets(error.message) });
+  }
+};
+
+const testVoiceLiveSetting = async (req, res) => {
+  try {
+    const { prompt, provider, model, api_url, api_key, stt_url, system_prompt, language } = req.body || {};
+    const cleanPrompt = String(prompt || 'হ্যালো আলোরা! তুমি কি বাংলা ও ইংরেজিতে লাইভ কথা বলতে পারো?').trim();
+    const { getSystemSettings } = require('../../utils/getModelConfig');
+    const saved = await getSystemSettings();
+    const effectiveKey = (typeof api_key === 'string' && api_key.trim()) ? api_key.trim() : (saved.voice_live_api_key || '');
+    if (api_url && String(api_url).trim() && !isPublicHttpUrl(String(api_url).trim())) {
+      return res.status(400).json({ success: false, error: 'অকার্যকর বা অনিরাপদ কাস্টম ভয়েস API URL' });
+    }
+    const { executeVoiceTurn } = require('./voiceController');
+    const forcedSettings = {
+      voice_provider: provider || saved.voice_provider || 'gemini_live',
+      voice_live_model: model || saved.voice_live_model || 'gemini-2.5-flash-native-audio-preview-12-2025',
+      voice_live_url: api_url !== undefined ? api_url : (saved.voice_live_url || ''),
+      voice_live_api_key: effectiveKey,
+      voice_stt_url: stt_url !== undefined ? stt_url : (saved.voice_stt_url || ''),
+      voice_system_prompt: system_prompt !== undefined ? system_prompt : (saved.voice_system_prompt || '')
+    };
+    const result = await executeVoiceTurn(
+      { text_prompt: cleanPrompt, language: language || 'auto', voice_preset: 'nova' },
+      forcedSettings,
+      { name: 'Admin', voice_limit: 999999 },
+      'Admin'
+    );
     return res.json({ success: true, ...result });
   } catch (error) {
     return res.status(500).json({ success: false, error: redactSecrets(error.message) });
@@ -2239,6 +2317,7 @@ module.exports = {
   updateSettings,
   testWebSearchSetting,
   testImageGenSetting,
+  testVoiceLiveSetting,
   getPromoCodes,
   createPromoCode,
   deletePromoCode,

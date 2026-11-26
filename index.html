@@ -1318,40 +1318,218 @@
       gap: 28px;
       flex: 1;
       width: 100%;
-      max-width: 440px;
+      max-width: 480px;
       text-align: center;
     }
-    .voice-orb {
-      width: 156px;
-      height: 156px;
+    .voice-dot-shell {
+      position: relative;
+      width: 224px;
+      height: 224px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+    }
+    .voice-dot-aura {
+      position: absolute;
+      width: 174px;
+      height: 174px;
       border-radius: 50%;
-      background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.95), rgba(161,161,170,0.45) 55%, rgba(39,39,42,0.85));
-      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      background: radial-gradient(circle, rgba(125, 211, 252, 0.32) 0%, rgba(56, 189, 248, 0.09) 55%, transparent 74%);
+      transform: scale(calc(1 + var(--vlevel, 0) * 0.56));
+      opacity: calc(0.45 + var(--vlevel, 0) * 0.52);
+      transition: transform 0.08s linear, opacity 0.12s ease;
+      pointer-events: none;
+    }
+    .voice-orb {
+      position: relative;
+      width: 152px;
+      height: 152px;
+      border-radius: 50%;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 42%, #0c4a6e 0%, #0369a1 38%, #075985 72%, #082f49 100%);
+      box-shadow: 0 0 38px rgba(56, 189, 248, 0.25), inset 0 0 22px rgba(255, 255, 255, 0.22);
+      transform: scale(calc(1 + var(--vlevel, 0) * 0.34)) rotate(var(--vtilt, 0deg));
+      transition: transform 0.07s linear, border-radius 0.32s ease, box-shadow 0.25s ease;
+      will-change: transform, border-radius;
     }
     [data-theme="light"] .voice-orb {
-      background: radial-gradient(circle at 35% 30%, #e4e4e7, #3f3f46 65%, #09090b);
+      background: radial-gradient(circle at 50% 42%, #0284c7 0%, #0ea5e9 46%, #0369a1 85%, #0c4a6e 100%);
+      box-shadow: 0 12px 38px rgba(14, 165, 233, 0.28), inset 0 0 22px rgba(255, 255, 255, 0.34);
+    }
+    [data-theme="eyecare"] .voice-orb {
+      background: radial-gradient(circle at 50% 42%, #b45309 0%, #d97706 48%, #92400e 86%, #78350f 100%);
+      box-shadow: 0 12px 36px rgba(180, 83, 9, 0.24), inset 0 0 20px rgba(254, 243, 199, 0.3);
+    }
+    .voice-mist-layer,
+    .voice-mist-core {
+      position: absolute;
+      inset: -32%;
+      border-radius: 50%;
+      pointer-events: none;
+      filter: blur(18px);
+      mix-blend-mode: screen;
+    }
+    .voice-mist-layer.m1 {
+      background:
+        radial-gradient(circle at 30% 35%, rgba(255, 255, 255, 0.92) 0%, rgba(224, 242, 254, 0.55) 28%, transparent 56%),
+        radial-gradient(circle at 72% 68%, rgba(125, 211, 252, 0.85) 0%, rgba(56, 189, 248, 0.25) 36%, transparent 62%);
+      animation: voiceMistDriftA 7.5s ease-in-out infinite alternate;
+    }
+    .voice-mist-layer.m2 {
+      background:
+        radial-gradient(circle at 68% 30%, rgba(240, 249, 255, 0.88) 0%, rgba(186, 230, 253, 0.45) 30%, transparent 58%),
+        radial-gradient(circle at 32% 72%, rgba(56, 189, 248, 0.72) 0%, transparent 55%);
+      animation: voiceMistDriftB 9s ease-in-out infinite alternate;
+    }
+    .voice-mist-core {
+      inset: 14%;
+      background: radial-gradient(circle at 48% 45%, rgba(255, 255, 255, 0.95) 0%, rgba(224, 242, 254, 0.45) 45%, transparent 72%);
+      filter: blur(12px);
+      opacity: calc(0.68 + var(--vlevel, 0) * 0.32);
+      transform: scale(calc(0.92 + var(--vlevel, 0) * 0.28));
+      transition: transform 0.08s linear, opacity 0.1s ease;
+    }
+    [data-theme="eyecare"] .voice-mist-layer.m1,
+    [data-theme="eyecare"] .voice-mist-layer.m2,
+    [data-theme="eyecare"] .voice-mist-core {
+      background: radial-gradient(circle at 45% 42%, rgba(255, 251, 235, 0.92) 0%, rgba(253, 230, 138, 0.48) 42%, transparent 70%);
     }
     .voice-orb.listening {
-      animation: voiceOrbPulse 1.3s ease-in-out infinite;
+      animation: voiceDotMorphSlow 3.6s ease-in-out infinite alternate;
+    }
+    .voice-orb.thinking .voice-mist-layer.m1 {
+      animation-duration: 2.1s;
+    }
+    .voice-orb.thinking .voice-mist-layer.m2 {
+      animation-duration: 2.6s;
     }
     .voice-orb.thinking {
-      animation: voiceOrbSpin 2s linear infinite;
+      animation: voiceDotThink 1.3s ease-in-out infinite alternate;
+    }
+    .voice-orb.speaking .voice-mist-layer.m1 {
+      animation-duration: 1.7s;
+    }
+    .voice-orb.speaking .voice-mist-layer.m2 {
+      animation-duration: 2.0s;
     }
     .voice-orb.speaking {
-      animation: voiceOrbSpeak 0.65s ease-in-out infinite alternate;
+      animation: voiceDotSpeakShape 0.9s ease-in-out infinite alternate;
+      box-shadow: 0 0 48px rgba(125, 211, 252, 0.42), inset 0 0 26px rgba(255, 255, 255, 0.34);
     }
-    @keyframes voiceOrbPulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.12); }
+    .voice-orb.muted {
+      opacity: 0.48;
+      filter: grayscale(0.45);
     }
-    @keyframes voiceOrbSpin {
-      0% { transform: rotate(0deg) scale(0.95); }
-      50% { transform: rotate(180deg) scale(1.04); }
-      100% { transform: rotate(360deg) scale(0.95); }
+    @keyframes voiceMistDriftA {
+      0% { transform: translate(-10%, -8%) rotate(0deg) scale(1); }
+      50% { transform: translate(10%, 6%) rotate(110deg) scale(1.12); }
+      100% { transform: translate(-4%, 12%) rotate(220deg) scale(0.96); }
     }
-    @keyframes voiceOrbSpeak {
-      0% { transform: scale(0.98); }
-      100% { transform: scale(1.16); }
+    @keyframes voiceMistDriftB {
+      0% { transform: translate(8%, 10%) rotate(0deg) scale(1.06); }
+      50% { transform: translate(-12%, -6%) rotate(-120deg) scale(0.95); }
+      100% { transform: translate(6%, -10%) rotate(-240deg) scale(1.14); }
+    }
+    @keyframes voiceDotMorphSlow {
+      0% { border-radius: 50% 50% 49% 51% / 51% 49% 51% 49%; }
+      50% { border-radius: 47% 53% 52% 48% / 49% 52% 48% 51%; }
+      100% { border-radius: 52% 48% 48% 52% / 52% 47% 53% 48%; }
+    }
+    @keyframes voiceDotThink {
+      0% { border-radius: 50%; opacity: 0.84; }
+      100% { border-radius: 46% 54% 48% 52% / 52% 48% 54% 46%; opacity: 1; }
+    }
+    @keyframes voiceDotSpeakShape {
+      0% { border-radius: 48% 52% 50% 50% / 52% 48% 51% 49%; }
+      50% { border-radius: 53% 47% 46% 54% / 47% 53% 52% 48%; }
+      100% { border-radius: 46% 54% 53% 47% / 54% 46% 48% 52%; }
+    }
+    .voice-mode-pill-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      height: 32px;
+      padding: 0 12px;
+      border-radius: 9999px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: rgba(255, 255, 255, 0.08);
+      color: inherit;
+      font-size: 0.78rem;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    [data-theme="light"] .voice-mode-pill-btn,
+    [data-theme="eyecare"] .voice-mode-pill-btn {
+      border-color: rgba(0, 0, 0, 0.14);
+      background: rgba(0, 0, 0, 0.06);
+    }
+    /* Curated Bilingual Voice Picker Cards */
+    .alora-voice-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 10px;
+      width: 100%;
+    }
+    .alora-voice-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: var(--composer-bg);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      text-align: left;
+      transition: border-color 0.16s ease, background 0.16s ease;
+    }
+    .alora-voice-card:hover {
+      border-color: var(--text-sub);
+    }
+    .alora-voice-card.active {
+      border-color: var(--text-main);
+      background: var(--card-bg);
+      box-shadow: inset 0 0 0 1px var(--text-main);
+    }
+    .alora-voice-card-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+    .alora-voice-card-title {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .alora-voice-card-sub {
+      font-size: 0.74rem;
+      color: var(--text-sub);
+      line-height: 1.35;
+    }
+    .alora-voice-badge {
+      font-size: 0.65rem;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 9999px;
+      background: rgba(128, 128, 128, 0.16);
+      color: var(--text-sub);
+    }
+    .alora-voice-play-mini {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--modal-bg);
+      color: var(--text-main);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
     }
     .code-preview-card {
       width: min(860px, 100%);
@@ -1771,28 +1949,28 @@
     }
 
     .chatgpt-settings-dialog {
-      width: 100%;
-      max-width: 680px;
-      height: 520px;
-      max-height: 85vh;
+      width: min(92vw, 940px);
+      max-width: 940px;
+      height: min(86vh, 720px);
+      max-height: 720px;
       background: var(--modal-bg);
       border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      box-shadow: none;
+      border-radius: 24px;
+      box-shadow: 0 24px 72px rgba(0, 0, 0, 0.45);
       display: flex;
       flex-direction: column;
       overflow: hidden;
     }
 
     .settings-dialog-header {
-      padding: 16px 20px;
+      padding: 18px 24px;
       border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
     .settings-dialog-title {
-      font-size: 1.15rem;
+      font-size: 1.2rem;
       font-weight: 600;
       color: var(--text-main);
     }
@@ -1804,21 +1982,22 @@
     }
 
     .settings-tabs-sidebar {
-      width: 190px;
+      width: 226px;
       border-right: 1px solid var(--border);
-      padding: 12px 8px;
+      padding: 14px 10px;
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 3px;
       background: var(--sidebar-bg);
+      overflow-y: auto;
     }
     .settings-tab-btn {
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 8px 12px;
-      border-radius: var(--radius-sm);
-      font-size: 0.88rem;
+      padding: 9px 14px;
+      border-radius: 12px;
+      font-size: 0.9rem;
       font-weight: 500;
       color: var(--text-sub);
       text-align: left;
@@ -1836,7 +2015,7 @@
 
     .settings-tab-content {
       flex: 1;
-      padding: 20px;
+      padding: 24px 28px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
@@ -3955,8 +4134,11 @@
               <span style="font-size:0.78rem; color:var(--text-sub);" id="settingsQuotaSummary">-- / --</span>
             </div>
             <div class="settings-quota-track"><div class="settings-quota-fill" id="settingsQuotaBar" style="width:100%;"></div></div>
-            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.76rem; color:var(--text-muted);">
-              <span id="settingsImgQuotaSummary">Images: -- / --</span>
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.76rem; color:var(--text-muted); flex-wrap:wrap; gap:6px;">
+              <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                <span id="settingsVoiceQuotaSummary">Voice: -- / --</span>
+                <span id="settingsImgQuotaSummary">Images: -- / --</span>
+              </div>
               <span id="settingsQuotaResetLabel" data-i18n="resetsPeriodically">Resets periodically</span>
             </div>
             <div style="display:flex; justify-content:flex-end; margin-top:2px;">
@@ -3970,7 +4152,6 @@
               <div class="setting-label-sub" id="settingsEmailLabel">Guest (Not logged in)</div>
             </div>
             <div style="display:flex; gap:8px; align-items:center;">
-              <a href="/account" class="theme-opt-chip" id="settingsAccountPortalLink" style="text-decoration:none; display:none;" data-i18n="manageProfileBtn">Manage Profile</a>
               <button type="button" class="header-pill-btn login" id="settingsAuthActionBtn">Log in</button>
             </div>
           </div>
@@ -3998,6 +4179,19 @@
 
         <!-- Personalization Tab -->
         <div class="settings-tab-content" id="tabCustomContent" style="display:none;">
+          <div class="setting-row setting-row-stacked">
+            <div>
+              <div class="setting-label-title" data-i18n="quickToneTitle">Quick Tone Presets</div>
+              <div class="setting-label-sub" data-i18n="quickToneSub">Apply a response style with one click</div>
+            </div>
+            <div class="theme-select-chips" id="inlineTonePresetChips">
+              <button type="button" class="theme-opt-chip" data-tone-preset="balanced">Balanced</button>
+              <button type="button" class="theme-opt-chip" data-tone-preset="coder">Pro Coder</button>
+              <button type="button" class="theme-opt-chip" data-tone-preset="teacher">বাংলা টিউটর</button>
+              <button type="button" class="theme-opt-chip" data-tone-preset="concise">Ultra Concise</button>
+            </div>
+          </div>
+
           <div class="setting-row" style="flex-direction:column; align-items:flex-start; gap:8px;">
             <div>
               <div class="setting-label-title" data-i18n="customAboutTitle">Custom Instructions — About you</div>
@@ -4026,8 +4220,7 @@
             <div id="savedMemoriesList" style="width:100%; display:flex; flex-direction:column; gap:6px; margin-top:4px;"></div>
           </div>
 
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <a href="/personalization" style="font-size:0.8rem; color:var(--text-sub); text-decoration:underline;" data-i18n="openPresetsBtn">Open Presets Page</a>
+          <div style="display:flex; justify-content:flex-end; align-items:center;">
             <button type="button" class="header-pill-btn signup" id="saveCustomInstructionsBtn" data-i18n="saveInstructionsBtn">Save Instructions</button>
           </div>
         </div>
@@ -4039,15 +4232,19 @@
               <div class="setting-label-title" data-i18n="securityGroundingTitle">Strict Factual Grounding</div>
               <div class="setting-label-sub" data-i18n="securityGroundingSub">Alora checks models cleanly without faking citations or capabilities</div>
             </div>
-            <span style="font-size:0.82rem; color:var(--text-main); background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:9999px;" data-i18n="enforcedBadge">Enforced</span>
+            <span style="font-size:0.82rem; color:var(--text-main); background:rgba(128,128,128,0.16); padding:4px 10px; border-radius:9999px;" data-i18n="enforcedBadge">Enforced</span>
           </div>
 
-          <div class="setting-row">
+          <div class="setting-row" style="flex-direction:column; align-items:flex-start; gap:10px;" id="inlineSecurityPasswordRow">
             <div>
-              <div class="setting-label-title" data-i18n="securityPassTitle">Password & Security</div>
-              <div class="setting-label-sub" data-i18n="securityPassSub">Update password or review active login session</div>
+              <div class="setting-label-title" data-i18n="securityPassTitle">Change Password</div>
+              <div class="setting-label-sub" data-i18n="securityPassSub">Update your Alora account password directly here</div>
             </div>
-            <a href="/security" class="theme-opt-chip" style="text-decoration:none;" data-i18n="openSecurityBtn">Open Security</a>
+            <div style="display:flex; flex-wrap:wrap; gap:8px; width:100%; max-width:520px;">
+              <input type="password" id="secCurrentPassInput" placeholder="Current password" style="flex:1; min-width:160px; background:var(--composer-bg); border:1px solid var(--border-subtle); color:var(--text-main); border-radius:9999px; padding:8px 14px; font-size:0.84rem; outline:none;">
+              <input type="password" id="secNewPassInput" placeholder="New password (min 6 chars)" style="flex:1; min-width:160px; background:var(--composer-bg); border:1px solid var(--border-subtle); color:var(--text-main); border-radius:9999px; padding:8px 14px; font-size:0.84rem; outline:none;">
+              <button type="button" class="header-pill-btn signup" id="secUpdatePassBtn" data-i18n="saveBtn">Save</button>
+            </div>
           </div>
 
           <div class="setting-row" id="settingsDeleteAccountRow" style="display:none;">
@@ -4059,25 +4256,48 @@
           </div>
         </div>
 
-        <!-- Speech Tab -->
+        <!-- Speech & Bilingual Voice Engine Tab -->
         <div class="settings-tab-content" id="tabSpeechContent" style="display:none;">
-          <div class="setting-row">
+          <div class="setting-row setting-row-stacked">
             <div>
-              <div class="setting-label-title" data-i18n="speechVoiceTitle">Read Aloud Voice</div>
-              <div class="setting-label-sub" data-i18n="speechVoiceSub">Select Web Speech voice for reading replies</div>
+              <div class="setting-label-title" data-i18n="voiceInputLangTitle">Voice Input Language</div>
+              <div class="setting-label-sub" data-i18n="voiceInputLangSub">Choose primary listening language for Voice Mode & Mic (Auto detects UI)</div>
             </div>
-            <select id="speechVoiceSelect" style="max-width:220px; background:var(--composer-bg); border:1px solid var(--border); color:var(--text-main); border-radius:9999px; padding:8px 14px; font-size:0.82rem; outline:none;">
-              <option value="" data-i18n="speechDefaultOption">System Default (Auto EN/BN)</option>
-            </select>
+            <div class="theme-select-chips" id="voiceInputLangChips">
+              <button type="button" class="theme-opt-chip" data-vlang="auto">Auto (BN / EN)</button>
+              <button type="button" class="theme-opt-chip" data-vlang="bn-BD">বাংলা (Bangladesh)</button>
+              <button type="button" class="theme-opt-chip" data-vlang="en-US">English (US)</button>
+            </div>
+          </div>
+
+          <div class="setting-row setting-row-stacked">
+            <div>
+              <div class="setting-label-title" data-i18n="speechVoiceTitle">Alora Bilingual Voices (BN + EN + Multi)</div>
+              <div class="setting-label-sub" data-i18n="speechVoiceSub">Every voice automatically speaks Bengali, English, and other languages naturally</div>
+            </div>
+            <div class="alora-voice-grid" id="aloraVoiceGrid"></div>
           </div>
 
           <div class="setting-row">
             <div>
-              <div class="setting-label-title" data-i18n="speechPreviewTitle">Preview Speech</div>
-              <div class="setting-label-sub" data-i18n="speechPreviewSub">Test currently selected voice</div>
+              <div class="setting-label-title" data-i18n="speechPreviewTitle">Test Selected Voice</div>
+              <div class="setting-label-sub" data-i18n="speechPreviewSub">Preview how the active voice speaks Bengali and English</div>
             </div>
-            <button type="button" class="theme-opt-chip" id="testSpeechVoiceBtn" data-i18n="speakSampleBtn">Speak Sample</button>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button type="button" class="theme-opt-chip" id="testSpeechBnBtn">বাংলা শুনুন</button>
+              <button type="button" class="theme-opt-chip" id="testSpeechVoiceBtn" data-i18n="speakSampleBtn">Speak English</button>
+            </div>
           </div>
+
+          <details style="width:100%; border:1px solid var(--border-subtle); border-radius:14px; padding:10px 14px; background:var(--composer-bg);">
+            <summary style="cursor:pointer; font-size:0.82rem; font-weight:600; color:var(--text-sub);" data-i18n="advancedVoiceSummary">Advanced: Custom System Voice Override (Optional)</summary>
+            <div style="margin-top:10px; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+              <span style="font-size:0.78rem; color:var(--text-muted);" data-i18n="advancedVoiceNote">Bengali and English voices are listed at top; Bengali text always uses a Bengali voice automatically.</span>
+              <select id="speechVoiceSelect" style="width:100%; background:var(--modal-bg); border:1px solid var(--border); color:var(--text-main); border-radius:12px; padding:8px 12px; font-size:0.82rem; outline:none;">
+                <option value="" data-i18n="speechDefaultOption">Use Curated Alora Voice (Recommended)</option>
+              </select>
+            </div>
+          </details>
         </div>
 
         <!-- Data Controls Tab -->
@@ -4240,26 +4460,41 @@
   <!-- Toast Notification Box -->
   <div class="toast-box" id="toastBox"></div>
 
-  <!-- In-App Live Voice Mode Engine Overlay -->
+  <!-- In-App Live Voice Mode Engine Overlay (ChatGPT Living Cloud-Mist Dot) -->
   <div class="voice-mode-backdrop" id="voiceModeBackdrop" aria-hidden="true">
-    <div style="width:100%; max-width:520px; display:flex; align-items:center; justify-content:space-between;">
-      <span style="font-size:0.9rem; font-weight:600;" id="voiceModeTitle">Alora Voice Engine</span>
-      <span style="font-size:0.78rem; opacity:0.7;" id="voiceModeModelLabel"></span>
+    <div style="width:100%; max-width:560px; display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-size:0.9rem; font-weight:600;" id="voiceModeTitle">Alora Voice</span>
+        <span style="font-size:0.75rem; opacity:0.65;" id="voiceModeModelLabel"></span>
+      </div>
+      <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+        <span class="voice-mode-pill-btn" id="voiceModeQuotaChip" style="cursor:default; opacity:0.88; font-size:0.73rem;"></span>
+        <button type="button" class="voice-mode-pill-btn" id="voiceModePresetChip" title="Switch voice persona"></button>
+        <button type="button" class="voice-mode-pill-btn" id="voiceModeLangChip" title="Switch spoken input language">Auto BN/EN</button>
+      </div>
     </div>
     <div class="voice-orb-stage">
-      <div class="voice-orb" id="voiceOrbEl"></div>
+      <div class="voice-dot-shell">
+        <div class="voice-dot-aura" id="voiceDotAura"></div>
+        <div class="voice-orb" id="voiceOrbEl" style="--vlevel:0;--vtilt:0deg;">
+          <span class="voice-mist-layer m1"></span>
+          <span class="voice-mist-layer m2"></span>
+          <span class="voice-mist-core"></span>
+        </div>
+      </div>
       <div style="display:flex; flex-direction:column; gap:8px;">
         <div style="font-size:1.05rem; font-weight:600;" id="voiceModeStateLabel">Listening...</div>
-        <div style="font-size:0.86rem; opacity:0.8; max-height:110px; overflow-y:auto;" id="voiceModeTranscript"></div>
+        <div style="font-size:0.86rem; opacity:0.82; max-height:110px; overflow-y:auto; line-height:1.5;" id="voiceModeTranscript"></div>
       </div>
     </div>
     <div style="display:flex; align-items:center; gap:16px;">
-      <button type="button" id="voiceModeMicToggleBtn" style="width:54px; height:54px; border-radius:50%; border:1px solid rgba(255,255,255,0.2); background:rgba(255,255,255,0.12); color:inherit; display:inline-flex; align-items:center; justify-content:center; cursor:pointer;" aria-label="Toggle microphone">
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+      <button type="button" id="voiceModeMicToggleBtn" style="height:54px; min-width:54px; padding:0 18px; border-radius:9999px; border:1px solid rgba(255,255,255,0.2); background:rgba(255,255,255,0.12); color:inherit; display:inline-flex; align-items:center; justify-content:center; gap:8px; font-size:0.86rem; font-weight:600; cursor:pointer;" aria-label="Toggle microphone">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/>
         </svg>
+        <span id="voiceModeMicBtnText">Mute</span>
       </button>
-      <button type="button" id="voiceModeCloseBtn" style="height:54px; padding:0 24px; border-radius:9999px; border:none; background:#ef4444; color:#ffffff; font-weight:600; font-size:0.92rem; cursor:pointer;">End Voice</button>
+      <button type="button" id="voiceModeCloseBtn" style="width:54px; height:54px; border-radius:50%; border:none; background:#ef4444; color:#ffffff; font-weight:700; font-size:1.15rem; display:inline-flex; align-items:center; justify-content:center; cursor:pointer;" aria-label="End Voice" title="End Voice">✕</button>
     </div>
   </div>
 
@@ -4423,23 +4658,27 @@
         memoriesSub: "Facts Alora remembers across conversations",
         newMemoryPlaceholder: "Add a fact to remember...",
         addBtn: "Add",
-        openPresetsBtn: "Open Presets Page",
+        quickToneTitle: "Quick Tone Presets",
+        quickToneSub: "Apply a response style with one click",
         saveInstructionsBtn: "Save Instructions",
         securityGroundingTitle: "Strict Factual Grounding",
         securityGroundingSub: "Alora checks models cleanly without faking citations or capabilities",
         enforcedBadge: "Enforced",
-        securityPassTitle: "Password & Security",
-        securityPassSub: "Update password or review active login session",
-        openSecurityBtn: "Open Security",
+        securityPassTitle: "Change Password",
+        securityPassSub: "Update your Alora account password directly here",
         deleteAccountTitle: "Delete Account",
         deleteAccountSub: "Permanently erase your account and credentials",
         deleteBtn: "Delete",
-        speechVoiceTitle: "Read Aloud Voice",
-        speechVoiceSub: "Select Web Speech voice for reading replies",
-        speechDefaultOption: "System Default (Auto EN/BN)",
-        speechPreviewTitle: "Preview Speech",
-        speechPreviewSub: "Test currently selected voice",
-        speakSampleBtn: "Speak Sample",
+        voiceInputLangTitle: "Voice Input Language",
+        voiceInputLangSub: "Choose primary listening language for Voice Mode & Mic (Auto detects UI)",
+        speechVoiceTitle: "Alora Bilingual Voices (BN + EN + Multi)",
+        speechVoiceSub: "Every voice automatically speaks Bengali, English, and other languages naturally",
+        speechDefaultOption: "Use Curated Alora Voice (Recommended)",
+        speechPreviewTitle: "Test Selected Voice",
+        speechPreviewSub: "Preview how the active voice speaks Bengali and English",
+        speakSampleBtn: "Speak English",
+        advancedVoiceSummary: "Advanced: Custom System Voice Override (Optional)",
+        advancedVoiceNote: "Bengali and English voices are listed at top; Bengali text always uses a Bengali voice automatically.",
         archivedChatsTitle: "Archived Chats",
         archivedChatsSub: "Restore or remove chats archived from the sidebar",
         exportDataTitle: "Export Chat Data",
@@ -4452,7 +4691,7 @@
         planSuffix: "Plan",
         adminUnlimited: "Admin (Unlimited)",
         activeUser: "Active User",
-        guestTrialPlan: "Guest Trial (10 messages)",
+        guestTrialPlan: "Guest Trial",
         guestStatus: "Guest (Not logged in)",
         remainingWord: "remaining",
         leftWord: "left",
@@ -4621,23 +4860,27 @@
         memoriesSub: "সব কথোপকথনে Alora যে তথ্যগুলো মনে রাখবে",
         newMemoryPlaceholder: "মনে রাখার মতো একটি তথ্য যোগ করুন...",
         addBtn: "যোগ করুন",
-        openPresetsBtn: "প্রিসেট পেজ খুলুন",
+        quickToneTitle: "দ্রুত টোন প্রিসেট",
+        quickToneSub: "এক ক্লিকেই উত্তরের ধরন পরিবর্তন করুন",
         saveInstructionsBtn: "নির্দেশনা সংরক্ষণ",
         securityGroundingTitle: "সঠিক তথ্য যাচাই",
         securityGroundingSub: "Alora ভুয়া তথ্য বা রেফারেন্স ছাড়া সঠিকভাবে মডেল যাচাই করে",
         enforcedBadge: "সক্রিয়",
-        securityPassTitle: "পাসওয়ার্ড ও নিরাপত্তা",
-        securityPassSub: "পাসওয়ার্ড পরিবর্তন বা সক্রিয় সেশন দেখুন",
-        openSecurityBtn: "নিরাপত্তা পেজ",
+        securityPassTitle: "পাসওয়ার্ড পরিবর্তন",
+        securityPassSub: "এখান থেকেই আপনার অ্যাকাউন্টের পাসওয়ার্ড আপডেট করুন",
         deleteAccountTitle: "অ্যাকাউন্ট মুছুন",
         deleteAccountSub: "আপনার অ্যাকাউন্ট ও সকল তথ্য স্থায়ীভাবে মুছে ফেলুন",
         deleteBtn: "মুছুন",
-        speechVoiceTitle: "উচ্চারণ ভয়েস",
-        speechVoiceSub: "উত্তর পড়ার জন্য পছন্দের ভয়েস নির্বাচন করুন",
-        speechDefaultOption: "সিস্টেম ডিফল্ট (অটো EN/BN)",
-        speechPreviewTitle: "ভয়েস পরীক্ষা",
-        speechPreviewSub: "নির্বাচিত ভয়েস শুনে দেখুন",
-        speakSampleBtn: "নমুনা শুনুন",
+        voiceInputLangTitle: "কথা শোনার ভাষা (Voice Input)",
+        voiceInputLangSub: "মাইক ও ভয়েস মোডের প্রধান শোনার ভাষা বেছে নিন (অটো দিলে বাংলা/ইংরেজি বুঝবে)",
+        speechVoiceTitle: "Alora দ্বিভাষিক ভয়েস (বাংলা + ইংরেজি + অন্যান্য)",
+        speechVoiceSub: "প্রতিটি ভয়েসই বাংলা, ইংরেজি ও অন্যান্য ভাষায় স্বাভাবিক উচ্চারণে কথা বলে",
+        speechDefaultOption: "Alora কিউরেটেড ভয়েস ব্যবহার করুন (প্রস্তাবিত)",
+        speechPreviewTitle: "নির্বাচিত ভয়েস পরীক্ষা করুন",
+        speechPreviewSub: "বর্তমান ভয়েসটি বাংলা ও ইংরেজিতে কেমন শোনায় তা পরীক্ষা করুন",
+        speakSampleBtn: "English শুনুন",
+        advancedVoiceSummary: "অ্যাডভান্সড: সিস্টেম OS ভয়েস ওভাররাইড (ঐচ্ছিক)",
+        advancedVoiceNote: "বাংলা ও ইংরেজি ভয়েস তালিকার শুরুতেই রাখা হয়েছে; বাংলা লেখা সবসময় স্বয়ংক্রিয়ভাবে বাংলা ভয়েসে পড়া হয়।",
         archivedChatsTitle: "আর্কাইভ করা চ্যাট",
         archivedChatsSub: "আর্কাইভ থেকে চ্যাট পুনরুদ্ধার বা স্থায়ীভাবে মুছুন",
         exportDataTitle: "চ্যাট ডাটা এক্সপোর্ট",
@@ -4650,7 +4893,7 @@
         planSuffix: "প্ল্যান",
         adminUnlimited: "অ্যাডমিন (আনলিমিটেড)",
         activeUser: "সক্রিয় সদস্য",
-        guestTrialPlan: "গেস্ট ট্রায়াল (১০টি বার্তা)",
+        guestTrialPlan: "গেস্ট ট্রায়াল",
         guestStatus: "গেস্ট (লগইন করা নেই)",
         remainingWord: "বাকি",
         leftWord: "বাকি",
@@ -4727,12 +4970,12 @@
     const PLAN_HIERARCHY = { Free: 1, Go: 2, Plus: 3, Pro: 4, Max: 5 };
 
     let cachedPlanLimits = {
-      Guest: { limit: 2, image_limit: 0, hours: 24, price_bdt: 0 },
-      Free:  { limit: 50, image_limit: 0, hours: 3, price_bdt: 0 },
-      Go:    { limit: 100, image_limit: 0, hours: 3, price_bdt: 650 },
-      Plus:  { limit: 500, image_limit: 0, hours: 3, price_bdt: 2600 },
-      Pro:   { limit: 3000, image_limit: 0, hours: 1, price_bdt: 7800 },
-      Max:   { limit: 7000, image_limit: 0, hours: 1, price_bdt: 15600 }
+      Guest: { limit: 2, image_limit: 0, voice_limit: 2, hours: 24, price_bdt: 0 },
+      Free:  { limit: 50, image_limit: 0, voice_limit: 10, hours: 3, price_bdt: 0 },
+      Go:    { limit: 100, image_limit: 0, voice_limit: 30, hours: 3, price_bdt: 650 },
+      Plus:  { limit: 500, image_limit: 0, voice_limit: 100, hours: 3, price_bdt: 2600 },
+      Pro:   { limit: 3000, image_limit: 0, voice_limit: 300, hours: 1, price_bdt: 7800 },
+      Max:   { limit: 7000, image_limit: 0, voice_limit: 1000, hours: 1, price_bdt: 15600 }
     };
 
     function normalizeModelTitle(name) {
@@ -4747,6 +4990,7 @@
             if (cachedPlans[k] && typeof cachedPlans[k] === "object") {
               if (Number(cachedPlans[k].message_limit) >= 0) cachedPlanLimits[k].limit = Number(cachedPlans[k].message_limit);
               if (Number(cachedPlans[k].image_limit) >= 0) cachedPlanLimits[k].image_limit = Number(cachedPlans[k].image_limit);
+              if (Number(cachedPlans[k].voice_limit) >= 0) cachedPlanLimits[k].voice_limit = Number(cachedPlans[k].voice_limit);
               if (Number(cachedPlans[k].window_hours) > 0) cachedPlanLimits[k].hours = Number(cachedPlans[k].window_hours);
               if (Number(cachedPlans[k].price_bdt) >= 0) cachedPlanLimits[k].price_bdt = Number(cachedPlans[k].price_bdt);
             }
@@ -4775,6 +5019,137 @@
     function getGuestImgLimit() {
       const g = cachedPlanLimits.Guest;
       return (g && g.image_limit !== undefined && !isNaN(Number(g.image_limit))) ? Number(g.image_limit) : 0;
+    }
+    function getGuestVoiceLimit() {
+      const g = cachedPlanLimits.Guest;
+      return (g && g.voice_limit !== undefined && !isNaN(Number(g.voice_limit))) ? Number(g.voice_limit) : 2;
+    }
+    function getGuestVoiceCount() {
+      try {
+        const raw = JSON.parse(localStorage.getItem("alora_guest_voice_usage") || "null");
+        if (!raw || typeof raw !== "object") return 0;
+        const winMs = getGuestHours() * 3600 * 1000;
+        if (Date.now() - Number(raw.start || 0) >= winMs) {
+          localStorage.removeItem("alora_guest_voice_usage");
+          return 0;
+        }
+        return Number(raw.count) || 0;
+      } catch { return 0; }
+    }
+    function incrementGuestVoiceCount() {
+      try {
+        const now = Date.now();
+        const winMs = getGuestHours() * 3600 * 1000;
+        let raw = JSON.parse(localStorage.getItem("alora_guest_voice_usage") || "null");
+        if (!raw || (now - Number(raw.start || 0)) >= winMs) {
+          raw = { count: 1, start: now };
+        } else {
+          raw.count = (Number(raw.count) || 0) + 1;
+        }
+        localStorage.setItem("alora_guest_voice_usage", JSON.stringify(raw));
+      } catch {}
+    }
+
+    function getQuotaLockStatus() {
+      const token = getAuthToken();
+      if (!token) {
+        const gLim = getGuestMsgLimit();
+        const gUsed = typeof getGuestCount === "function" ? getGuestCount() : 0;
+        const gVLim = getGuestVoiceLimit();
+        const gVUsed = getGuestVoiceCount();
+        const msgLocked = gLim <= 0 || gUsed >= gLim;
+        const voiceLocked = msgLocked || gVLim <= 0 || gVUsed >= gVLim;
+        return {
+          isGuest: true,
+          isAdmin: false,
+          msgLocked,
+          voiceLocked,
+          voiceRemaining: Math.max(0, gVLim - gVUsed),
+          voiceLimit: gVLim,
+          remaining: Math.max(0, gLim - gUsed),
+          limit: gLim
+        };
+      }
+      let user = null;
+      try { user = JSON.parse(localStorage.getItem(KEYS.USER) || "null"); } catch {}
+      const adminEmails = ["zihanfakir@gmail.com", "x@zihan.uk"];
+      const isAdmin = Boolean(user && (user.role === "admin" || (user.email && adminEmails.includes(String(user.email).toLowerCase()))));
+      if (isAdmin) {
+        return { isGuest: false, isAdmin: true, msgLocked: false, voiceLocked: false, voiceRemaining: 999999, voiceLimit: 999999, remaining: 999999, limit: 999999 };
+      }
+      const planName = (user && user.subscription && user.subscription.plan_name) || localStorage.getItem(KEYS.PLAN) || "Free";
+      const pInfo = cachedPlanLimits[planName] || cachedPlanLimits.Free;
+      const rl = (user && (user.rateLimit || user.usage)) || {};
+      const resetExpired = rl.resetAt ? (Date.now() >= new Date(rl.resetAt).getTime()) : false;
+      const limit = rl.limit !== undefined ? Number(rl.limit) : Number(pInfo.limit ?? 50);
+      const rem = resetExpired ? limit : (rl.remaining !== undefined ? Number(rl.remaining) : Math.max(0, limit - Number(rl.used ?? rl.count ?? 0)));
+      const vLim = rl.voiceLimit !== undefined ? Number(rl.voiceLimit) : Number(rl.voice_limit ?? pInfo.voice_limit ?? 0);
+      const vRem = resetExpired ? vLim : (rl.voiceRemaining !== undefined ? Number(rl.voiceRemaining) : Math.max(0, vLim - Number(rl.voiceUsed ?? rl.voice_used ?? 0)));
+      const msgLocked = rem <= 0;
+      const voiceLocked = msgLocked || vLim <= 0 || vRem <= 0;
+      return { isGuest: false, isAdmin: false, msgLocked, voiceLocked, voiceRemaining: vRem, voiceLimit: vLim, remaining: rem, limit };
+    }
+
+    let quotaUnlockTimer = null;
+    function applyGlobalQuotaLockUI() {
+      const st = getQuotaLockStatus();
+      const input = document.getElementById("messageInput");
+      const micBtn = document.getElementById("micBtn");
+      const voiceBtn = document.getElementById("voiceModeBtn");
+      const plusBtn = document.getElementById("composerPlusBtn");
+      const vQuotaChip = document.getElementById("voiceModeQuotaChip");
+
+      if (vQuotaChip) {
+        if (st.isAdmin) {
+          vQuotaChip.textContent = currentLanguage === "bn" ? "ভয়েস: সীমাহীন" : "Voice: ∞";
+        } else {
+          vQuotaChip.textContent = currentLanguage === "bn"
+            ? `ভয়েস ${st.voiceRemaining}/${st.voiceLimit}`
+            : `Voice ${st.voiceRemaining}/${st.voiceLimit}`;
+        }
+      }
+
+      if (input && !isGenerating && !isSending) {
+        if (st.msgLocked) {
+          input.dataset.quotaLocked = "1";
+          input.placeholder = currentLanguage === "bn"
+            ? (st.isGuest ? "গেস্ট বার্তা সীমা শেষ — চালিয়ে যেতে লগইন করুন" : "বার্তা সীমা শেষ হয়েছে — রিসেট হওয়া পর্যন্ত অপেক্ষা করুন বা প্ল্যান আপগ্রেড করুন")
+            : (st.isGuest ? "Guest limit reached — Sign in to continue" : "Message limit reached — Wait for reset or upgrade plan");
+        } else if (input.dataset.quotaLocked === "1") {
+          delete input.dataset.quotaLocked;
+          input.placeholder = t("askPlaceholder") || (currentLanguage === "bn" ? "যেকোনো প্রশ্ন করুন..." : "Ask anything...");
+        }
+      }
+      if (micBtn) {
+        micBtn.style.opacity = st.msgLocked ? "0.4" : "";
+        micBtn.title = st.msgLocked
+          ? (currentLanguage === "bn" ? "বার্তা সীমা শেষ হয়েছে" : "Message limit reached")
+          : "Voice dictation";
+      }
+      if (voiceBtn) {
+        voiceBtn.style.opacity = st.voiceLocked ? "0.42" : "";
+        voiceBtn.title = st.voiceLocked
+          ? (currentLanguage === "bn" ? "ভয়েস বা বার্তা সীমা শেষ হয়েছে" : "Voice or message limit reached")
+          : "Live Voice Mode";
+      }
+      if (plusBtn) {
+        plusBtn.style.opacity = st.msgLocked ? "0.4" : "";
+      }
+
+      if (quotaUnlockTimer) { clearTimeout(quotaUnlockTimer); quotaUnlockTimer = null; }
+      if (st.msgLocked || st.voiceLocked) {
+        try {
+          const u = JSON.parse(localStorage.getItem(KEYS.USER) || "null");
+          const rst = u?.rateLimit?.resetAt || u?.usage?.resetAt;
+          if (rst) {
+            const ms = Math.max(2000, new Date(rst).getTime() - Date.now() + 1000);
+            if (ms < 6 * 3600 * 1000) {
+              quotaUnlockTimer = setTimeout(() => { refreshUserFromServer(); }, ms);
+            }
+          }
+        } catch {}
+      }
+      if (typeof updateSendButtonState === "function") updateSendButtonState();
     }
     function getGuestHours() {
       const g = cachedPlanLimits.Guest;
@@ -5404,22 +5779,30 @@
     function renderQuotaWidget(user, planName, isAdmin) {
       const sumEl = document.getElementById("settingsQuotaSummary");
       const barEl = document.getElementById("settingsQuotaBar");
+      const voiceEl = document.getElementById("settingsVoiceQuotaSummary");
       const imgEl = document.getElementById("settingsImgQuotaSummary");
       const rstEl = document.getElementById("settingsQuotaResetLabel");
+      applyGlobalQuotaLockUI();
       if (!sumEl) return;
       if (isAdmin) {
         sumEl.textContent = t("unlimitedWord");
         if (barEl) barEl.style.width = "100%";
+        if (voiceEl) {
+          voiceEl.style.display = "inline";
+          voiceEl.textContent = `${currentLanguage === "bn" ? "লাইভ ভয়েস" : "Live Voice"}: ${t("unlimitedWord")}`;
+        }
         if (imgEl) imgEl.textContent = `${t("imagesPrefix")}: ${t("unlimitedWord")}`;
         if (rstEl) rstEl.textContent = t("adminAccessLabel");
         return;
       }
       const pInfo = cachedPlanLimits[planName] || cachedPlanLimits.Free;
-      const rl = user.rateLimit || user.usage || {};
-      const limit = rl.limit !== undefined ? Number(rl.limit) : Number(pInfo.limit ?? 10);
+      const rl = (user && (user.rateLimit || user.usage)) || {};
+      const limit = rl.limit !== undefined ? Number(rl.limit) : Number(pInfo.limit ?? 50);
       const used = Number(rl.used ?? rl.count ?? 0);
       const rem = rl.remaining !== undefined ? Number(rl.remaining) : Math.max(0, limit - used);
-      const imgLimit = rl.imageLimit !== undefined ? Number(rl.imageLimit) : Number(rl.image_limit ?? pInfo.image_limit ?? 5);
+      const voiceLimit = rl.voiceLimit !== undefined ? Number(rl.voiceLimit) : Number(rl.voice_limit ?? pInfo.voice_limit ?? 0);
+      const voiceRem = rl.voiceRemaining !== undefined ? Number(rl.voiceRemaining) : Math.max(0, voiceLimit - Number(rl.voiceUsed ?? rl.voice_used ?? 0));
+      const imgLimit = rl.imageLimit !== undefined ? Number(rl.imageLimit) : Number(rl.image_limit ?? pInfo.image_limit ?? 0);
       const imgRem = rl.imageRemaining !== undefined ? Number(rl.imageRemaining) : Math.max(0, imgLimit - Number(rl.imageUsed || 0));
       const resetMins = Number(rl.resetInMinutes || ((pInfo.hours || 3) * 60));
       const h = Math.floor(resetMins / 60);
@@ -5427,6 +5810,10 @@
 
       sumEl.textContent = `${rem} / ${limit} ${t("remainingWord")}`;
       if (barEl) barEl.style.width = `${limit > 0 ? Math.max(0, Math.min(100, Math.round((rem / limit) * 100))) : 0}%`;
+      if (voiceEl) {
+        voiceEl.style.display = "inline";
+        voiceEl.textContent = `${currentLanguage === "bn" ? "ভয়েস" : "Voice"}: ${voiceRem} / ${voiceLimit} ${t("leftWord")}`;
+      }
       if (imgEl) {
         if (imgLimit > 0) {
           imgEl.style.display = "inline";
@@ -5451,6 +5838,7 @@
             cachedPlanLimits[pName] = {
               limit: (p.message_limit !== undefined && !isNaN(Number(p.message_limit))) ? Number(p.message_limit) : (prev.limit ?? 50),
               image_limit: (p.image_limit !== undefined && !isNaN(Number(p.image_limit))) ? Number(p.image_limit) : (prev.image_limit ?? 0),
+              voice_limit: (p.voice_limit !== undefined && !isNaN(Number(p.voice_limit))) ? Number(p.voice_limit) : (prev.voice_limit ?? 0),
               hours: (Number(p.window_hours) > 0) ? Number(p.window_hours) : (prev.hours ?? 3),
               price_bdt: (p.price_bdt !== undefined && !isNaN(Number(p.price_bdt))) ? Number(p.price_bdt) : (prev.price_bdt ?? 0),
               is_active: p.is_active !== false
@@ -5458,6 +5846,7 @@
             cacheObj[pName] = {
               message_limit: cachedPlanLimits[pName].limit,
               image_limit: cachedPlanLimits[pName].image_limit,
+              voice_limit: cachedPlanLimits[pName].voice_limit,
               window_hours: cachedPlanLimits[pName].hours,
               price_usd: p.price_usd,
               price_bdt: cachedPlanLimits[pName].price_bdt
@@ -5523,7 +5912,7 @@
       if (!bd) { window.location.href = "/pricing"; return; }
       const plan = promoOfferState.plan || "Pro";
       const days = promoOfferState.days || 7;
-      const pInfo = cachedPlanLimits[plan] || cachedPlanLimits.Pro || { limit: 40, image_limit: 50, hours: 2 };
+      const pInfo = cachedPlanLimits[plan] || cachedPlanLimits.Pro || { limit: 3000, image_limit: 0, voice_limit: 300, hours: 1 };
       const titleEl = document.getElementById("claimOfferTitle");
       const descEl = document.getElementById("claimOfferDesc");
       const detailsEl = document.getElementById("claimOfferDetailsBox");
@@ -5533,15 +5922,19 @@
       if (titleEl) titleEl.textContent = t("claimTrialHeading");
       if (descEl) descEl.textContent = promoOfferState.description || (currentLanguage === "bn" ? `${days} দিনের জন্য ${plan} প্ল্যান ফ্রি ট্রায়াল নিন` : `Try ${plan} free for ${days} days`);
       if (detailsEl) {
+        const vNoteBn = Number(pInfo.voice_limit) > 0 ? ` · ${pInfo.voice_limit}টি লাইভ ভয়েস` : "";
+        const iNoteBn = Number(pInfo.image_limit) > 0 ? ` · ${pInfo.image_limit}টি ছবি` : "";
+        const vNoteEn = Number(pInfo.voice_limit) > 0 ? ` · ${pInfo.voice_limit} live voice` : "";
+        const iNoteEn = Number(pInfo.image_limit) > 0 ? ` · ${pInfo.image_limit} images` : "";
         detailsEl.innerHTML = currentLanguage === "bn"
           ? `
             <div>• ${days} দিনের জন্য ${escapeHtml(plan)} প্ল্যান আনলক হবে</div>
-            <div>• প্রতি ${pInfo.hours} ঘণ্টায় ${pInfo.limit}টি মেসেজ ও ${pInfo.image_limit}টি ছবি তৈরি</div>
+            <div>• প্রতি ${pInfo.hours} ঘণ্টায় ${pInfo.limit}টি মেসেজ${vNoteBn}${iNoteBn}</div>
             <div>• কোনো পেমেন্ট লাগবে না — সাথে সাথে সক্রিয় হবে</div>
           `
           : `
             <div>• ${escapeHtml(plan)} Plan unlocked for ${days} days</div>
-            <div>• ${pInfo.limit} messages / ${pInfo.hours}h &amp; ${pInfo.image_limit} images</div>
+            <div>• ${pInfo.limit} messages / ${pInfo.hours}h${vNoteEn}${iNoteEn}</div>
             <div>• No payment required — instant activation</div>
           `;
       }
@@ -7171,7 +7564,8 @@
           window.location.href = "/auth/login";
           return null;
         }
-        if (res.status === 403 || data.code === "PLAN_UPGRADE_REQUIRED") {
+        if (res.status === 403 || res.status === 429 || data.code === "PLAN_UPGRADE_REQUIRED" || data.code === "IMAGE_LIMIT_REACHED" || data.code === "MESSAGE_LIMIT_REACHED") {
+          refreshUserFromServer();
           renderUpgradeCard(contentEl, data.error);
           soundEngine.error();
           return null;
@@ -7207,6 +7601,7 @@
         const input = document.getElementById("messageInput");
         if (input) { input.readOnly = false; input.focus(); }
         updateSendButtonState();
+        refreshUserFromServer();
         scrollToBottom(false);
       }
     }
@@ -7309,6 +7704,18 @@
     async function sendMessage() {
       if (isSending || isGenerating) {
         if (isGenerating) stopGeneration();
+        return;
+      }
+
+      const qLock = getQuotaLockStatus();
+      if (qLock.msgLocked && isAppOnline()) {
+        if (qLock.isGuest) {
+          showToast(getGuestLimitMessage());
+          window.location.href = "/auth/signup";
+        } else {
+          showToast(currentLanguage === "bn" ? "আপনার বার্তা সীমা শেষ হয়েছে। রিসেট হওয়া পর্যন্ত অপেক্ষা করুন অথবা প্ল্যান আপগ্রেড করুন।" : "Your message limit is finished. Wait for reset or upgrade your plan.");
+          openUpgradeDialog();
+        }
         return;
       }
 
@@ -7534,6 +7941,20 @@
             soundEngine.error();
             return;
           }
+          if (res.status === 429 && (errData.code === "MESSAGE_LIMIT_REACHED" || errData.code === "IMAGE_LIMIT_REACHED" || errData.code === "VOICE_LIMIT_REACHED" || (errData.error && /সীমা শেষ|limit reached/i.test(errData.error)))) {
+            try {
+              const u = JSON.parse(localStorage.getItem(KEYS.USER) || "null");
+              if (u) {
+                u.rateLimit = { ...(u.rateLimit || {}), remaining: 0 };
+                localStorage.setItem(KEYS.USER, JSON.stringify(u));
+              }
+            } catch {}
+            applyGlobalQuotaLockUI();
+            refreshUserFromServer();
+            renderUpgradeCard(content, errData.error);
+            soundEngine.error();
+            return;
+          }
           const busyErr = new Error(localizeServerError(errData.error, "busyDesc") || `Server error (${res.status})`);
           busyErr.code = errData.code || (res.status >= 500 || res.status === 429 ? "MODEL_BUSY" : "");
           throw busyErr;
@@ -7677,11 +8098,19 @@
           input.focus();
         }
         updateSendButtonState();
+        if (getAuthToken()) refreshUserFromServer();
+        else applyGlobalQuotaLockUI();
         scrollToBottom(false);
       }
     }
 
     function retryLastMessage() {
+      const qLock = getQuotaLockStatus();
+      if (qLock.msgLocked) {
+        if (qLock.isGuest) window.location.href = "/auth/signup";
+        else openUpgradeDialog();
+        return;
+      }
       const feed = document.getElementById("chatFeed");
       const lastRow = feed?.querySelector(".chatgpt-row.assistant:last-child");
       if (lastRow && lastRow.querySelector(".chat-model-busy-card")) {
@@ -7717,11 +8146,14 @@
         btn.title = "Sending...";
         btn.disabled = true;
       } else {
-        const hasContent = (input && input.value.trim().length > 0) || pendingFiles.length > 0;
+        const qSt = (typeof getQuotaLockStatus === "function" && isAppOnline()) ? getQuotaLockStatus() : { msgLocked: false };
+        const hasContent = !qSt.msgLocked && ((input && input.value.trim().length > 0) || pendingFiles.length > 0);
         btn.className = `chatgpt-send-btn ${hasContent ? 'active' : ''}`;
         btn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg>`;
-        btn.title = "Send message";
-        btn.disabled = false;
+        btn.title = qSt.msgLocked
+          ? (currentLanguage === "bn" ? "বার্তা সীমা শেষ হয়েছে" : "Message limit reached")
+          : "Send message";
+        btn.disabled = Boolean(qSt.msgLocked);
       }
     }
 
@@ -7742,22 +8174,185 @@
     }
 
     // =========================================================================
-    // FULL WEB SPEECH READ ALOUD (CHUNKED PLAY / STOP TOGGLE)
+    // CURATED BILINGUAL VOICE ENGINE (BN + EN + MULTI) & CHUNKED READ ALOUD
     // =========================================================================
+    const VOICE_PRESET_KEY = "alora_voice_preset";
+    const VOICE_INPUT_LANG_KEY = "alora_voice_input_lang";
+    const ALORA_VOICE_PRESETS = [
+      { id: "auto", name: "Alora Auto", nameBn: "অ্যালোরা অটো", subEn: "Smart Bengali & English", subBn: "স্মার্ট বাংলা ও ইংরেজি", badge: "BN / EN", pitch: 1.0, rate: 1.0, gender: "female" },
+      { id: "nova", name: "Nova (Nabanita)", nameBn: "নোভা (নবনীতা)", subEn: "Warm & Natural • All languages", subBn: "মধুর ও স্বাভাবিক নারী কণ্ঠ", badge: "Female", pitch: 1.06, rate: 1.0, gender: "female" },
+      { id: "cove", name: "Cove (Pradeep)", nameBn: "কোভ (প্রদীপ)", subEn: "Calm & Deep • All languages", subBn: "শান্ত ও গম্ভীর পুরুষ কণ্ঠ", badge: "Male", pitch: 0.88, rate: 0.96, gender: "male" },
+      { id: "breeze", name: "Breeze", nameBn: "ব্রিজ", subEn: "Bright & Crisp • All languages", subBn: "উজ্জ্বল ও স্পষ্ট কণ্ঠ", badge: "Bright", pitch: 1.12, rate: 1.04, gender: "female" },
+      { id: "ember", name: "Ember", nameBn: "এম্বার", subEn: "Rich & Steady • All languages", subBn: "আত্মবিশ্বাসী ও স্থির কণ্ঠ", badge: "Deep", pitch: 0.82, rate: 0.94, gender: "male" },
+      { id: "juniper", name: "Juniper", nameBn: "জুনিপার", subEn: "Friendly & Lively • All languages", subBn: "আন্তরিক ও প্রাণবন্ত কণ্ঠ", badge: "Warm", pitch: 1.16, rate: 1.02, gender: "female" }
+    ];
+
+    function getActiveVoicePreset() {
+      const savedId = localStorage.getItem(VOICE_PRESET_KEY) || "auto";
+      return ALORA_VOICE_PRESETS.find(v => v.id === savedId) || ALORA_VOICE_PRESETS[0];
+    }
+
+    function getVoiceInputLanguageSetting() {
+      const saved = localStorage.getItem(VOICE_INPUT_LANG_KEY) || "auto";
+      return ["auto", "bn-BD", "en-US"].includes(saved) ? saved : "auto";
+    }
+
+    function getEffectiveVoiceInputLang() {
+      const pref = getVoiceInputLanguageSetting();
+      if (pref !== "auto") return pref;
+      if (currentLanguage === "bn") return "bn-BD";
+      const recentHasBn = (messagesHistory || []).slice(-3).some(m => /[\u0980-\u09FF]/.test(String(m?.content || m?.displayText || "")));
+      return recentHasBn ? "bn-BD" : "en-US";
+    }
+
+    function renderAloraVoiceCards() {
+      const grid = document.getElementById("aloraVoiceGrid");
+      const chip = document.getElementById("voiceModePresetChip");
+      const preset = getActiveVoicePreset();
+      const isBn = currentLanguage === "bn";
+      if (chip) {
+        chip.textContent = `${isBn ? preset.nameBn : preset.name}`;
+      }
+      const vlangPref = getVoiceInputLanguageSetting();
+      document.querySelectorAll("#voiceInputLangChips .theme-opt-chip").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.vlang === vlangPref);
+      });
+      const langChip = document.getElementById("voiceModeLangChip");
+      if (langChip) {
+        langChip.textContent = vlangPref === "bn-BD" ? "বাংলা" : (vlangPref === "en-US" ? "English" : "Auto BN/EN");
+      }
+      if (!grid) return;
+
+      grid.innerHTML = "";
+      ALORA_VOICE_PRESETS.forEach(p => {
+        const card = document.createElement("div");
+        card.className = "alora-voice-card" + (p.id === preset.id ? " active" : "");
+        card.setAttribute("role", "button");
+        card.setAttribute("tabindex", "0");
+
+        const meta = document.createElement("div");
+        meta.className = "alora-voice-card-meta";
+        const title = document.createElement("div");
+        title.className = "alora-voice-card-title";
+        title.textContent = isBn ? p.nameBn : p.name;
+        const badge = document.createElement("span");
+        badge.className = "alora-voice-badge";
+        badge.textContent = p.badge;
+        title.appendChild(badge);
+
+        const sub = document.createElement("div");
+        sub.className = "alora-voice-card-sub";
+        sub.textContent = isBn ? p.subBn : p.subEn;
+        meta.appendChild(title);
+        meta.appendChild(sub);
+
+        const playBtn = document.createElement("button");
+        playBtn.type = "button";
+        playBtn.className = "alora-voice-play-mini";
+        playBtn.title = isBn ? "ভয়েস শুনুন" : "Preview voice";
+        playBtn.innerHTML = `<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>`;
+
+        const selectThisVoice = () => {
+          localStorage.setItem(VOICE_PRESET_KEY, p.id);
+          localStorage.setItem(KEYS.SPEECH_VOICE, "");
+          const osSel = document.getElementById("speechVoiceSelect");
+          if (osSel) osSel.value = "";
+          renderAloraVoiceCards();
+        };
+
+        card.addEventListener("click", (e) => {
+          if (e.target.closest(".alora-voice-play-mini")) return;
+          selectThisVoice();
+          const sample = isBn
+            ? `নমস্কার! আমি অ্যালোরা। বাংলা এবং ইংরেজি দুই ভাষাতেই আমি কথা বলতে পারি।`
+            : `Hello! I am ${p.name.split(" ")[0]}. আমি বাংলাতেও স্বাভাবিকভাবে কথা বলতে পারি।`;
+          toggleReadAloud(sample, playBtn);
+        });
+        card.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); card.click(); }
+        });
+        playBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          selectThisVoice();
+          const sample = isBn
+            ? `নমস্কার! আমি অ্যালোরা। বাংলা এবং ইংরেজি দুই ভাষাতেই আমি কথা বলতে পারি।`
+            : `Hello! I am ${p.name.split(" ")[0]}. আমি বাংলাতেও স্বাভাবিকভাবে কথা বলতে পারি।`;
+          toggleReadAloud(sample, playBtn);
+        });
+
+        card.appendChild(meta);
+        card.appendChild(playBtn);
+        grid.appendChild(card);
+      });
+    }
+
     function populateSpeechVoices() {
+      renderAloraVoiceCards();
       const sel = document.getElementById("speechVoiceSelect");
-      if (!sel || !("speechSynthesis" in window)) return;
-      const voices = window.speechSynthesis.getVoices() || [];
+      if (!sel) return;
+      const voices = ("speechSynthesis" in window ? window.speechSynthesis.getVoices() : []) || [];
       const saved = localStorage.getItem(KEYS.SPEECH_VOICE) || "";
       const currentVal = sel.value || saved;
-      sel.innerHTML = `<option value="">System Default (Auto BN/EN)</option>`;
-      voices.forEach(v => {
+      sel.innerHTML = `<option value="">${escapeHtml(t("speechDefaultOption"))}</option>`;
+      // Prioritize Bengali & English voices cleanly at the top instead of burying under Afrikaans/Amharic
+      const scored = [...voices].sort((a, b) => {
+        const rank = (v) => {
+          const l = (v.lang || "").toLowerCase();
+          if (l.startsWith("bn-bd")) return 0;
+          if (l.startsWith("bn")) return 1;
+          if (l.startsWith("en-us") || l.startsWith("en-gb")) return 2;
+          if (l.startsWith("en")) return 3;
+          return 4;
+        };
+        const ra = rank(a), rb = rank(b);
+        if (ra !== rb) return ra - rb;
+        const aNat = /natural|online|google/i.test(a.name) ? 0 : 1;
+        const bNat = /natural|online|google/i.test(b.name) ? 0 : 1;
+        if (aNat !== bNat) return aNat - bNat;
+        return (a.name || "").localeCompare(b.name || "");
+      });
+      scored.forEach(v => {
         const opt = document.createElement("option");
         opt.value = v.name;
         opt.textContent = `${v.name} (${v.lang})`;
         if (v.name === currentVal) opt.selected = true;
         sel.appendChild(opt);
       });
+    }
+
+    function detectSegmentLang(piece) {
+      if (/[\u0980-\u09FF]/.test(piece)) return "bn-BD";
+      if (/[\u0900-\u097F]/.test(piece)) return "hi-IN";
+      if (/[\u0600-\u06FF]/.test(piece)) return "ar-SA";
+      return "en-US";
+    }
+
+    function pickWebVoiceForSegment(voices, targetLang, preset) {
+      const shortLang = targetLang.split("-")[0].toLowerCase();
+      const savedOverride = localStorage.getItem(KEYS.SPEECH_VOICE) || "";
+      if (savedOverride) {
+        const ov = voices.find(v => v.name === savedOverride);
+        // Never force a non-Bengali override voice onto Bengali text!
+        if (ov && (!shortLang.startsWith("bn") || (ov.lang || "").toLowerCase().startsWith("bn"))) {
+          return ov;
+        }
+      }
+      const matching = voices.filter(v => (v.lang || "").toLowerCase().startsWith(shortLang));
+      if (!matching.length) return null;
+      const maleRe = /pradeep|bashkar|male|man|guy|andrew|david|daniel|mark|christopher|ryan|eric/i;
+      const femaleRe = /nabanita|tanishaa|female|woman|aria|jenny|ava|samantha|zira|sonia|natasha/i;
+      const wantMale = preset.gender === "male";
+      const ranked = [...matching].sort((a, b) => {
+        const score = (v) => {
+          let s = 0;
+          if (/natural|online|neural|google/i.test(v.name)) s -= 10;
+          if (targetLang.toLowerCase() === (v.lang || "").toLowerCase()) s -= 4;
+          if (wantMale ? maleRe.test(v.name) : femaleRe.test(v.name)) s -= 6;
+          return s;
+        };
+        return score(a) - score(b);
+      });
+      return ranked[0];
     }
 
     let ttsChunksQueue = [];
@@ -7778,7 +8373,11 @@
       isSpeaking = false;
       if (activeAudioButton) {
         activeAudioButton.classList.remove("active");
-        activeAudioButton.innerHTML = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>`;
+        if (activeAudioButton.classList.contains("alora-voice-play-mini")) {
+          activeAudioButton.innerHTML = `<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>`;
+        } else {
+          activeAudioButton.innerHTML = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>`;
+        }
         activeAudioButton = null;
       }
     }
@@ -7791,27 +8390,46 @@
         return;
       }
       const piece = ttsChunksQueue[ttsChunkIndex++];
-      const hasBengali = /[\u0980-\u09FF]/.test(piece);
-      const langCode = hasBengali ? "bn" : "en";
+      const segLang = detectSegmentLang(piece);
+      const preset = getActiveVoicePreset();
       const bridge = getNativeAndroidBridge();
-      if (bridge && typeof bridge.speakText === "function") {
+
+      if (bridge && typeof bridge.speakTextWithStyle === "function") {
         try {
-          if (bridge.speakText(piece, langCode)) {
+          if (bridge.speakTextWithStyle(piece, segLang, preset.pitch, preset.rate, preset.gender)) {
+            return;
+          }
+        } catch (e) {}
+      } else if (bridge && typeof bridge.speakText === "function") {
+        try {
+          if (bridge.speakText(piece, segLang)) {
             return;
           }
         } catch (e) {}
       }
+
       if ("speechSynthesis" in window) {
         const voices = window.speechSynthesis.getVoices() || [];
-        const savedVoiceName = localStorage.getItem(KEYS.SPEECH_VOICE) || "";
-        const chosenVoice = voices.find(v => v.name === savedVoiceName)
-          || voices.find(v => v.lang && v.lang.toLowerCase().startsWith(hasBengali ? "bn" : "en"));
+        const chosenVoice = pickWebVoiceForSegment(voices, segLang, preset);
         const u = new SpeechSynthesisUtterance(piece);
-        if (chosenVoice) u.voice = chosenVoice;
-        u.lang = hasBengali ? "bn-BD" : "en-US";
+        if (chosenVoice) {
+          u.voice = chosenVoice;
+          u.lang = chosenVoice.lang || segLang;
+        } else {
+          u.lang = segLang;
+        }
+        u.pitch = preset.pitch;
+        u.rate = preset.rate;
         u.onend = playNextTtsChunk;
-        u.onerror = () => stopReadAloud();
-        window.speechSynthesis.speak(u);
+        u.onerror = () => {
+          if (isSpeaking && ttsChunkIndex < ttsChunksQueue.length) playNextTtsChunk();
+          else {
+            const doneCb = ttsOnCompleteCallback;
+            stopReadAloud();
+            if (typeof doneCb === "function") doneCb();
+          }
+        };
+        try { window.speechSynthesis.speak(u); } catch (e) { stopReadAloud(); }
       } else {
         stopReadAloud();
       }
@@ -7821,42 +8439,53 @@
       if (isSpeaking) playNextTtsChunk();
     };
 
+    function splitMultilingualTtsChunks(cleanText) {
+      const rawSentences = String(cleanText || "")
+        .split(/(?<=[।.!?])\s+|\n+/)
+        .map(s => s.trim())
+        .filter(Boolean);
+      const chunks = [];
+      for (const sent of rawSentences) {
+        let rem = sent;
+        while (rem.length > 0) {
+          if (rem.length <= 210) { chunks.push(rem); break; }
+          const cut = rem.slice(0, 210);
+          const lastPunc = Math.max(cut.lastIndexOf(","), cut.lastIndexOf(";"), cut.lastIndexOf(" "));
+          const splitIdx = lastPunc > 60 ? lastPunc + 1 : 210;
+          chunks.push(rem.slice(0, splitIdx).trim());
+          rem = rem.slice(splitIdx).trim();
+        }
+      }
+      return chunks;
+    }
+
     function toggleReadAloud(rawText, btnEl, onFinished = null) {
       if (isSpeaking && activeAudioButton === btnEl && btnEl) {
         stopReadAloud();
-        return;
+        return false;
       }
       stopReadAloud();
       const clean = String(rawText || "")
         .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
         .replace(/```[\s\S]*?```/g, " code block ")
+        .replace(/https?:\/\/\S+/g, " ")
         .replace(/[*_#>`~$]/g, " ")
         .replace(/\s+/g, " ")
         .trim();
       if (!clean) {
         if (typeof onFinished === "function") onFinished();
-        return;
+        return false;
       }
 
       const bridge = getNativeAndroidBridge();
-      const hasNativeTts = Boolean(bridge && typeof bridge.speakText === "function");
+      const hasNativeTts = Boolean(bridge && (typeof bridge.speakTextWithStyle === "function" || typeof bridge.speakText === "function"));
       if (!hasNativeTts && !("speechSynthesis" in window)) {
         showToast(currentLanguage === "bn" ? "এই ডিভাইসে ভয়েস প্লেব্যাক পাওয়া যায়নি" : "Voice playback unavailable in this browser");
         if (typeof onFinished === "function") onFinished();
-        return;
+        return false;
       }
 
-      const chunks = [];
-      let rem = clean;
-      while (rem.length > 0) {
-        if (rem.length <= 210) { chunks.push(rem); break; }
-        let cut = rem.slice(0, 210);
-        const lastPunc = Math.max(cut.lastIndexOf("।"), cut.lastIndexOf("."), cut.lastIndexOf("!"), cut.lastIndexOf("?"), cut.lastIndexOf(" "));
-        const splitIdx = lastPunc > 60 ? lastPunc + 1 : 210;
-        chunks.push(rem.slice(0, splitIdx).trim());
-        rem = rem.slice(splitIdx).trim();
-      }
-
+      const chunks = splitMultilingualTtsChunks(clean);
       isSpeaking = true;
       activeAudioButton = btnEl || null;
       ttsChunksQueue = chunks;
@@ -7865,9 +8494,11 @@
 
       if (btnEl) {
         btnEl.classList.add("active");
-        btnEl.innerHTML = `<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>`;
+        const sz = btnEl.classList.contains("alora-voice-play-mini") ? 11 : 15;
+        btnEl.innerHTML = `<svg viewBox="0 0 24 24" width="${sz}" height="${sz}" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>`;
       }
       playNextTtsChunk();
+      return true;
     }
 
     function updateChipsUI() {
@@ -8083,6 +8714,11 @@
         setMicState(false);
         resetSpeechPlaceholder(false);
       };
+      window.onNativeSpeechVolume = (vol) => {
+        if (window.__voiceModeHooks && window.__voiceModeHooks.active && typeof window.__voiceModeHooks.onVolume === "function") {
+          window.__voiceModeHooks.onVolume(vol);
+        }
+      };
       window.onNativeSpeechEnd = () => {
         if (window.__voiceModeHooks && window.__voiceModeHooks.active) {
           window.__voiceModeHooks.onEnd();
@@ -8101,6 +8737,49 @@
         if (msg) showToast(String(msg));
       };
 
+      window.onNativeAudioSilence = () => {
+        if (window.__voiceModeHooks && window.__voiceModeHooks.active && typeof window.__voiceModeHooks.onSilence === "function") {
+          window.__voiceModeHooks.onSilence();
+          return;
+        }
+        setMicState(false);
+        resetSpeechPlaceholder(false);
+      };
+
+      window.onNativeAudioCaptured = async (base64Wav, capMode) => {
+        if (window.__voiceModeHooks && window.__voiceModeHooks.active && capMode !== "dictation" && typeof window.__voiceModeHooks.onAudioCaptured === "function") {
+          window.__voiceModeHooks.onAudioCaptured(base64Wav);
+          return;
+        }
+        // Composer dictation fallback via custom AudioRecord (zero Google popup)
+        setMicState(false);
+        resetSpeechPlaceholder(false);
+        if (!base64Wav) return;
+        try {
+          const token = getAuthToken();
+          const headers = { "Content-Type": "application/json" };
+          if (token) headers["Authorization"] = `Bearer ${token}`;
+          const res = await fetch(`${API_BASE}/chat/voice-live`, {
+            method: "POST",
+            headers,
+            body: JSON.stringify({
+              audio_base64: base64Wav,
+              mime_type: "audio/wav",
+              language: getVoiceInputLanguageSetting()
+            })
+          });
+          const data = await res.json().catch(() => ({}));
+          if (res.ok && data.success && data.transcript) {
+            const inp = document.getElementById("messageInput");
+            if (inp) {
+              inp.value = speechBaseText ? (speechBaseText + " " + data.transcript.trim()) : data.transcript.trim();
+              autoResizeTextarea();
+              updateSendButtonState();
+            }
+          }
+        } catch {}
+      };
+
       micBtn.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -8108,15 +8787,32 @@
         if (now - lastMicToggleMs < 320) return;
         lastMicToggleMs = now;
 
-        const lang = currentLanguage === "bn" ? "bn-BD" : "en-US";
+        const qLock = getQuotaLockStatus();
+        if (qLock.msgLocked && isAppOnline()) {
+          if (qLock.isGuest) {
+            showToast(getGuestLimitMessage());
+            window.location.href = "/auth/signup";
+          } else {
+            showToast(currentLanguage === "bn" ? "আপনার বার্তা সীমা শেষ হয়েছে।" : "Message limit reached.");
+            openUpgradeDialog();
+          }
+          return;
+        }
+
+        const lang = getEffectiveVoiceInputLang();
         const bridge = getNativeAndroidBridge();
 
         if (recording || micBtn.classList.contains("recording")) {
           const wasNative = usingNative;
           setMicState(false);
           resetSpeechPlaceholder(false);
-          if (wasNative && bridge && typeof bridge.stopNativeVoice === "function") {
-            try { bridge.stopNativeVoice(); } catch (err) {}
+          if (wasNative && bridge) {
+            if (typeof bridge.stopCustomAudio === "function") {
+              try { bridge.stopCustomAudio(true); } catch (err) {}
+            }
+            if (typeof bridge.stopNativeVoice === "function") {
+              try { bridge.stopNativeVoice(); } catch (err) {}
+            }
           }
           if (rec) {
             try { rec.abort(); } catch (err) { try { rec.stop(); } catch (err2) {} }
@@ -8206,42 +8902,68 @@
         return;
       }
 
-      let matched = models.find(m => (m.id === selectedModel || m.model_id === selectedModel));
+      const chatOnlyList = models.filter(m => (m.category || "chat") === "chat");
+      const displayModels = chatOnlyList.length > 0 ? chatOnlyList : models;
+
+      let matched = displayModels.find(m => (m.id === selectedModel || m.model_id === selectedModel) && m.accessible !== false);
       if (!matched) {
-        matched = models[0];
+        matched = displayModels.find(m => m.accessible !== false) || displayModels[0];
         selectedModel = matched.id || matched.model_id;
         localStorage.setItem(KEYS.SELECTED_MODEL, selectedModel);
       }
 
-      models.forEach(m => {
+      displayModels.forEach(m => {
         const mId = m.id || m.model_id;
         const name = (typeof m.name === "string" && m.name.trim()) ? m.name.trim() : mId;
         const isSelected = matched && (matched.id === mId || matched.model_id === mId);
+        const isLocked = m.accessible === false;
 
         let badgeText = "Free";
         let badgeStyle = "background:rgba(255,255,255,0.1); color:var(--text-main); font-size:0.7rem; padding:2px 8px; border-radius:9999px;";
         let defaultDesc = "Great for everyday tasks and fast answers";
 
-        if (m.efficient) {
-          badgeText = "Pro Max";
+        const plansArr = Array.isArray(m.allowed_plans) ? m.allowed_plans : [];
+        if (plansArr.length > 0 && !plansArr.includes("*")) {
+          if (plansArr.includes("Free") || plansArr.includes("Guest")) {
+            badgeText = "Free";
+          } else if (plansArr.includes("Go")) {
+            badgeText = "Go+";
+            badgeStyle = "background:#2b2b2b; color:#ffffff; font-size:0.7rem; padding:2px 8px; border-radius:9999px;";
+          } else if (plansArr.includes("Plus")) {
+            badgeText = "Plus+";
+            badgeStyle = "background:#333333; color:#ffffff; font-size:0.7rem; padding:2px 8px; border-radius:9999px;";
+            defaultDesc = "Our smartest model & deeper reasoning";
+          } else if (plansArr.includes("Pro")) {
+            badgeText = "Pro+";
+            badgeStyle = "background:#383838; color:#ffffff; font-size:0.7rem; padding:2px 8px; border-radius:9999px;";
+            defaultDesc = "Priority reasoning & analytical workflows";
+          } else {
+            badgeText = "Max";
+            badgeStyle = "background:#404040; color:#ffffff; font-size:0.7rem; padding:2px 8px; border-radius:9999px;";
+            defaultDesc = "Frontier intelligence & complex analytical workflows";
+          }
+        } else if (m.efficient) {
+          badgeText = "Max";
           badgeStyle = "background:#404040; color:#ffffff; font-size:0.7rem; padding:2px 8px; border-radius:9999px;";
           defaultDesc = "Frontier intelligence & complex analytical workflows";
         } else if (m.premium) {
-          badgeText = "Pro";
+          badgeText = "Plus+";
           badgeStyle = "background:#333333; color:#ffffff; font-size:0.7rem; padding:2px 8px; border-radius:9999px;";
           defaultDesc = "Our smartest model & deeper reasoning";
         }
+        if (isLocked) badgeText = `🔒 ${badgeText}`;
 
         const desc = m.description || defaultDesc;
         const item = document.createElement("div");
         item.className = `model-option-item ${isSelected ? "selected" : ""}`;
+        if (isLocked) item.style.opacity = "0.72";
         item.setAttribute("data-model", mId);
         item.setAttribute("data-label", name);
         item.innerHTML = `
           <div style="flex:1;">
             <div style="display:flex; align-items:center; gap:8px;">
               <span class="model-opt-title">${escapeHtml(name)}</span>
-              <span class="model-opt-badge" style="${badgeStyle}">${badgeText}</span>
+              <span class="model-opt-badge" style="${badgeStyle}">${escapeHtml(badgeText)}</span>
             </div>
             <div class="model-opt-desc">${escapeHtml(desc)}</div>
           </div>
@@ -8251,6 +8973,12 @@
         `;
 
         item.addEventListener("click", () => {
+          if (isLocked) {
+            modelMenu?.classList.remove("open");
+            showToast(currentLanguage === "bn" ? `'${name}' ব্যবহারের জন্য ${badgeText.replace("🔒 ", "")} প্ল্যান প্রয়োজন` : `Upgrade to ${badgeText.replace("🔒 ", "")} to unlock ${name}`);
+            openUpgradeDialog();
+            return;
+          }
           selectedModel = mId;
           localStorage.setItem(KEYS.SELECTED_MODEL, selectedModel);
           document.querySelectorAll("#dynamicModelList .model-option-item").forEach(i => {
@@ -8370,53 +9098,211 @@
       const btn = document.getElementById("voiceModeBtn");
       const backdrop = document.getElementById("voiceModeBackdrop");
       const orbEl = document.getElementById("voiceOrbEl");
+      const auraEl = document.getElementById("voiceDotAura");
       const stateLabel = document.getElementById("voiceModeStateLabel");
       const transcriptEl = document.getElementById("voiceModeTranscript");
       const modelLabel = document.getElementById("voiceModeModelLabel");
       const micToggleBtn = document.getElementById("voiceModeMicToggleBtn");
+      const micBtnText = document.getElementById("voiceModeMicBtnText");
       const closeBtn = document.getElementById("voiceModeCloseBtn");
+      const presetChip = document.getElementById("voiceModePresetChip");
+      const langChip = document.getElementById("voiceModeLangChip");
       if (!btn || !backdrop) return;
 
       const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
       let active = false;
       let muted = false;
-      let phase = "idle"; // idle | listening | thinking | speaking | paused
+      let phase = "idle"; // idle | listening | thinking | speaking | paused | offline
       let webRec = null;
       let usingNative = false;
       let voiceAbort = null;
-      let silentRetryCount = 0;
+      let restartTimer = null;
+      let animRaf = null;
+      let smoothLevel = 0;
+      let nativeRmsLevel = 0;
+      let lastNativeRmsTs = 0;
+      let micStream = null;
+      let audioCtx = null;
+      let analyserNode = null;
+      let analyserData = null;
+
+      function clearRestartTimer() {
+        if (restartTimer) {
+          clearTimeout(restartTimer);
+          restartTimer = null;
+        }
+      }
+
+      function scheduleListeningRestart(delayMs = 340) {
+        clearRestartTimer();
+        if (!active || muted) return;
+        restartTimer = setTimeout(() => {
+          restartTimer = null;
+          if (active && !muted && phase === "listening") {
+            startVoiceModeListening();
+          }
+        }, delayMs);
+      }
+
+      function stopMicMeter() {
+        if (micStream) {
+          try { micStream.getTracks().forEach(tr => tr.stop()); } catch (e) {}
+          micStream = null;
+        }
+        if (audioCtx) {
+          try { audioCtx.close(); } catch (e) {}
+          audioCtx = null;
+        }
+        analyserNode = null;
+        analyserData = null;
+      }
+
+      async function startDesktopMicMeter() {
+        if (analyserNode || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+        const bridge = getNativeAndroidBridge();
+        if (bridge && typeof bridge.startNativeVoice === "function") return;
+        try {
+          micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          const AudioCtor = window.AudioContext || window.webkitAudioContext;
+          if (!AudioCtor || !active) { stopMicMeter(); return; }
+          audioCtx = new AudioCtor();
+          const src = audioCtx.createMediaStreamSource(micStream);
+          analyserNode = audioCtx.createAnalyser();
+          analyserNode.fftSize = 256;
+          analyserData = new Uint8Array(analyserNode.fftSize);
+          src.connect(analyserNode);
+        } catch (e) {
+          stopMicMeter();
+        }
+      }
+
+      function stopDotAnimator() {
+        if (animRaf) {
+          cancelAnimationFrame(animRaf);
+          animRaf = null;
+        }
+        smoothLevel = 0;
+        if (orbEl) {
+          orbEl.style.setProperty("--vlevel", "0");
+          orbEl.style.setProperty("--vtilt", "0deg");
+        }
+        if (auraEl) auraEl.style.setProperty("--vlevel", "0");
+      }
+
+      function startDotAnimator() {
+        if (animRaf) return;
+        const tick = (t) => {
+          if (!active) { stopDotAnimator(); return; }
+          let target = 0;
+          if (phase === "speaking" && !muted) {
+            target = 0.16 + 0.56 * Math.abs(Math.sin(t * 0.009) * Math.cos(t * 0.014));
+          } else if (phase === "listening" && !muted) {
+            let micAmp = 0;
+            if (analyserNode && analyserData) {
+              analyserNode.getByteTimeDomainData(analyserData);
+              let sumSq = 0;
+              for (let i = 0; i < analyserData.length; i++) {
+                const v = (analyserData[i] - 128) / 128;
+                sumSq += v * v;
+              }
+              micAmp = Math.min(1, Math.sqrt(sumSq / analyserData.length) * 4.2);
+            } else if (Date.now() - lastNativeRmsTs < 320) {
+              micAmp = nativeRmsLevel;
+            }
+            target = Math.max(micAmp, 0.05 + 0.04 * Math.sin(t * 0.0032));
+          } else if (phase === "thinking") {
+            target = 0.12 + 0.08 * Math.sin(t * 0.0055);
+          }
+          smoothLevel += (target - smoothLevel) * 0.24;
+          const tiltDeg = (Math.sin(t * 0.0042) * (1.2 + smoothLevel * 7.2)).toFixed(2);
+          if (orbEl) {
+            orbEl.style.setProperty("--vlevel", smoothLevel.toFixed(3));
+            orbEl.style.setProperty("--vtilt", `${tiltDeg}deg`);
+          }
+          if (auraEl) auraEl.style.setProperty("--vlevel", smoothLevel.toFixed(3));
+          animRaf = requestAnimationFrame(tick);
+        };
+        animRaf = requestAnimationFrame(tick);
+      }
 
       function setOrbState(nextPhase, customLabel = "") {
         phase = nextPhase;
         if (orbEl) {
-          orbEl.classList.remove("listening", "thinking", "speaking");
+          orbEl.classList.remove("listening", "thinking", "speaking", "muted");
           if (nextPhase === "listening" || nextPhase === "thinking" || nextPhase === "speaking") {
             orbEl.classList.add(nextPhase);
+          } else if (nextPhase === "paused" || nextPhase === "offline") {
+            orbEl.classList.add("muted");
           }
         }
         if (stateLabel) {
           const isBn = currentLanguage === "bn";
           const defaults = {
-            listening: isBn ? "শুনছি... কথা বলুন" : "Listening...",
+            listening: isBn ? "শুনছি... নির্দ্বিধায় বলুন" : "Listening continuously...",
             thinking: isBn ? "চিন্তা করছি..." : "Thinking...",
-            speaking: isBn ? "বলছি..." : "Speaking...",
-            paused: isBn ? "বিরতি • কথা বলতে মাইক চাপুন" : "Paused • Tap mic to speak",
+            speaking: isBn ? "Alora কথা বলছে..." : "Alora speaking...",
+            paused: isBn ? "মিউট করা হয়েছে • আনমিউট করতে চাপুন" : "Muted • Tap to unmute",
             offline: isBn ? "অফলাইন মোড • সংযোগ নেই" : "Offline • Waiting for connection"
           };
           stateLabel.textContent = customLabel || defaults[nextPhase] || "Ready";
         }
         if (micToggleBtn) {
-          micToggleBtn.style.opacity = muted ? "0.55" : "1";
-          micToggleBtn.style.background = (nextPhase === "listening" && !muted)
-            ? "rgba(239, 68, 68, 0.25)"
-            : "rgba(255,255,255,0.12)";
+          micToggleBtn.style.opacity = muted ? "0.7" : "1";
+          micToggleBtn.style.background = muted
+            ? "rgba(255,255,255,0.08)"
+            : (nextPhase === "listening" ? "rgba(56, 189, 248, 0.22)" : "rgba(255,255,255,0.14)");
+        }
+        if (micBtnText) {
+          const isBn = currentLanguage === "bn";
+          if (nextPhase === "speaking") micBtnText.textContent = isBn ? "থামুন ও বলুন" : "Interrupt";
+          else if (muted) micBtnText.textContent = isBn ? "আনমিউট" : "Unmute";
+          else micBtnText.textContent = isBn ? "মিউট" : "Mute";
         }
       }
 
+      let currentLiveAudio = null;
+      let mediaRecorder = null;
+      let mediaChunks = [];
+      let webVadTimer = null;
+
+      function stopLiveAudioPlayback() {
+        if (currentLiveAudio) {
+          try {
+            currentLiveAudio.pause();
+            currentLiveAudio.src = "";
+          } catch (e) {}
+          currentLiveAudio = null;
+        }
+      }
+
+      function stopWebMediaRecorder(discard = true) {
+        if (webVadTimer) {
+          clearInterval(webVadTimer);
+          webVadTimer = null;
+        }
+        if (mediaRecorder) {
+          const mr = mediaRecorder;
+          mediaRecorder = null;
+          if (discard) mr.ondataavailable = null;
+          if (discard) mr.onstop = null;
+          try {
+            if (mr.state !== "inactive") mr.stop();
+          } catch (e) {}
+        }
+        if (discard) mediaChunks = [];
+      }
+
       function stopRecognitionOnly() {
+        clearRestartTimer();
+        stopWebMediaRecorder(true);
         const bridge = getNativeAndroidBridge();
-        if (usingNative && bridge && typeof bridge.stopNativeVoice === "function") {
-          try { bridge.stopNativeVoice(); } catch (e) {}
+        if (usingNative && bridge) {
+          if (typeof bridge.stopCustomAudio === "function") {
+            try { bridge.stopCustomAudio(false); } catch (e) {}
+          }
+          if (typeof bridge.stopNativeVoice === "function") {
+            try { bridge.stopNativeVoice(); } catch (e) {}
+          }
         }
         usingNative = false;
         if (webRec) {
@@ -8429,28 +9315,87 @@
         if (!active && !backdrop.classList.contains("open")) return;
         active = false;
         muted = false;
+        clearRestartTimer();
         if (window.__voiceModeHooks) window.__voiceModeHooks.active = false;
         if (voiceAbort) {
           try { voiceAbort.abort(); } catch (e) {}
           voiceAbort = null;
         }
+        stopLiveAudioPlayback();
         stopReadAloud();
         stopRecognitionOnly();
+        stopMicMeter();
+        stopDotAnimator();
         backdrop.classList.remove("open");
         backdrop.setAttribute("aria-hidden", "true");
         setOrbState("idle");
+        applyGlobalQuotaLockUI();
       }
       window.closeVoiceMode = closeVoiceMode;
 
-      async function handleSpokenQuery(rawText) {
-        const cleanPrompt = String(rawText || "").trim();
-        if (!active || !cleanPrompt) return;
-        silentRetryCount = 0;
-
-        if (transcriptEl) {
-          const youLbl = currentLanguage === "bn" ? "আপনি" : "You";
-          transcriptEl.textContent = `${youLbl}: "${cleanPrompt}"`;
+      function enforceVoiceQuotaOrLock(customErrText = "") {
+        const qSt = getQuotaLockStatus();
+        applyGlobalQuotaLockUI();
+        if (qSt.msgLocked || qSt.voiceLocked) {
+          stopLiveAudioPlayback();
+          stopReadAloud();
+          stopRecognitionOnly();
+          muted = true;
+          const isBn = currentLanguage === "bn";
+          const lockTitle = qSt.msgLocked
+            ? (isBn ? "বার্তা সীমা শেষ • আপগ্রেড বা রিসেটের অপেক্ষা করুন" : "Message limit reached")
+            : (isBn ? "ভয়েস সীমা শেষ • আপগ্রেড বা রিসেটের অপেক্ষা করুন" : "Voice limit reached");
+          setOrbState("paused", lockTitle);
+          if (transcriptEl) {
+            transcriptEl.textContent = customErrText || (qSt.isGuest
+              ? (isBn ? "গেস্ট ভয়েস/বার্তা সীমা শেষ হয়েছে। চালিয়ে যেতে লগইন বা সাইন-আপ করুন।" : "Guest voice/message limit finished. Sign in to continue.")
+              : (isBn ? "আপনার এই উইন্ডোর ভয়েস বা বার্তা সীমা শেষ হয়েছে। রিসেট হওয়া পর্যন্ত অপেক্ষা করুন অথবা প্ল্যান আপগ্রেড করুন।" : "Your voice or message quota for this window is finished. Wait for reset or upgrade your plan."));
+          }
+          return true;
         }
+        return false;
+      }
+
+      function resumeAfterVoiceTurn() {
+        if (!active) return;
+        if (enforceVoiceQuotaOrLock()) return;
+        if (!muted) {
+          setOrbState("listening");
+          setTimeout(() => startVoiceModeListening(), 280);
+        } else {
+          setOrbState("paused");
+        }
+      }
+
+      function playLiveAudioBase64(b64, mimeType, onFinished) {
+        stopLiveAudioPlayback();
+        try {
+          const aud = new Audio(`data:${mimeType || "audio/wav"};base64,${b64}`);
+          currentLiveAudio = aud;
+          aud.onended = () => {
+            if (currentLiveAudio === aud) currentLiveAudio = null;
+            if (typeof onFinished === "function") onFinished();
+          };
+          aud.onerror = () => {
+            if (currentLiveAudio === aud) currentLiveAudio = null;
+            if (typeof onFinished === "function") onFinished();
+          };
+          const playPromise = aud.play();
+          if (playPromise && typeof playPromise.catch === "function") {
+            playPromise.catch(() => {
+              if (currentLiveAudio === aud) currentLiveAudio = null;
+              if (typeof onFinished === "function") onFinished(true);
+            });
+          }
+          return true;
+        } catch {
+          return false;
+        }
+      }
+
+      async function handleVoiceTurnPayload({ audioBase64 = "", mimeType = "audio/wav", rawText = "" }) {
+        const cleanPrompt = String(rawText || "").trim();
+        if (!active || (!audioBase64 && !cleanPrompt)) return;
 
         if (!isAppOnline()) {
           const msg = currentLanguage === "bn"
@@ -8462,113 +9407,274 @@
           return;
         }
 
+        if (enforceVoiceQuotaOrLock()) return;
+
+        if (cleanPrompt && transcriptEl) {
+          const youLbl = currentLanguage === "bn" ? "আপনি" : "You";
+          transcriptEl.textContent = `${youLbl}: "${cleanPrompt}"`;
+        } else if (transcriptEl) {
+          transcriptEl.textContent = currentLanguage === "bn" ? "কথা প্রসেস হচ্ছে..." : "Processing live voice...";
+        }
+
         setOrbState("thinking");
         stopRecognitionOnly();
         if (voiceAbort) { try { voiceAbort.abort(); } catch (e) {} }
         voiceAbort = new AbortController();
 
         try {
-          const userMsg = { role: "user", content: cleanPrompt, displayText: cleanPrompt };
-          messagesHistory.push(userMsg);
-          renderUserBubble(userMsg, messagesHistory.length - 1);
-          updateComposerPosition();
-
           const token = getAuthToken();
           const headers = { "Content-Type": "application/json" };
           if (token) headers["Authorization"] = `Bearer ${token}`;
-          const customInst = buildCombinedCustomInstructions();
+          const preset = getActiveVoicePreset();
+          const langSetting = getVoiceInputLanguageSetting();
 
-          const res = await fetch(`${API_BASE}/chat/completions`, {
+          const res = await fetch(`${API_BASE}/chat/voice-live`, {
             method: "POST",
             headers,
             body: JSON.stringify({
-              model: selectedModel,
-              messages: serializeMessagesForApi(messagesHistory),
-              stream: true,
-              thinking: false,
-              custom_instructions: customInst || undefined
+              audio_base64: audioBase64 || undefined,
+              mime_type: audioBase64 ? mimeType : undefined,
+              text_prompt: cleanPrompt || undefined,
+              voice_preset: preset.id || "auto",
+              language: langSetting,
+              chat_model: selectedModel,
+              messages: serializeMessagesForApi(messagesHistory.slice(-6))
             }),
             signal: voiceAbort.signal
           });
 
-          if (!res.ok) {
-            const errJson = await res.json().catch(() => ({}));
-            throw new Error(localizeServerError(errJson.error, "busyDesc"));
-          }
-
-          let rawReply = "";
-          const respCt = (res.headers.get("content-type") || "").toLowerCase();
-          if (!respCt.includes("text/event-stream") || !res.body) {
-            const jData = await res.json().catch(() => null);
-            rawReply = jData?.content || jData?.choices?.[0]?.message?.content || jData?.choices?.[0]?.text || "";
-          } else {
-            const reader = res.body.getReader();
-            const decoder = new TextDecoder();
-            let sseBuf = "";
-            while (true) {
-              const { value, done } = await reader.read();
-              if (done) break;
-              sseBuf += decoder.decode(value, { stream: true });
-              const lines = sseBuf.split("\n");
-              sseBuf = lines.pop() || "";
-              for (const rawLine of lines) {
-                const line = rawLine.trim();
-                if (!line.startsWith("data:")) continue;
-                const payload = line.slice(5).trim();
-                if (payload === "[DONE]") break;
-                try {
-                  const p = JSON.parse(payload);
-                  if (p.delta) rawReply += p.delta;
-                  else if (p.choices?.[0]?.delta?.content) rawReply += p.choices[0].delta.content;
-                  else if (p.error) throw new Error(localizeServerError(p.error, "busyDesc"));
-                  if (transcriptEl && rawReply) {
-                    const livePreview = extractThoughts(rawReply).cleanText.trim();
-                    if (livePreview) transcriptEl.textContent = livePreview.slice(-260);
-                  }
-                } catch (parseErr) {
-                  if (parseErr && parseErr.message && !/JSON/i.test(parseErr.message)) throw parseErr;
-                }
-              }
-            }
-          }
-
-          const finalReply = extractThoughts(rawReply).cleanText.trim();
-          if (!finalReply) throw new Error(localizeServerError("", "busyDesc"));
+          const data = await res.json().catch(() => ({}));
           if (!active) return;
 
-          const assistantMsg = { role: "assistant", content: finalReply, branches: [finalReply], activeBranch: 0, model: selectedModel };
-          messagesHistory.push(assistantMsg);
-          persistSession();
-          renderAssistantBubble(assistantMsg, messagesHistory.length - 1);
-          scrollToBottom(false);
+          if (!res.ok || data.success === false) {
+            if (res.status === 401 || res.status === 403 || res.status === 429 || data.code === "VOICE_LIMIT_REACHED" || data.code === "MESSAGE_LIMIT_REACHED" || data.code === "PLAN_UPGRADE_REQUIRED") {
+              if (!token) {
+                try {
+                  localStorage.setItem("alora_guest_voice_usage", JSON.stringify({ count: 9999, start: Date.now() }));
+                } catch {}
+              } else {
+                try {
+                  const u = JSON.parse(localStorage.getItem(KEYS.USER) || "null");
+                  if (u) {
+                    u.rateLimit = { ...(u.rateLimit || {}), voiceRemaining: 0 };
+                    if (data.code === "MESSAGE_LIMIT_REACHED") u.rateLimit.remaining = 0;
+                    localStorage.setItem(KEYS.USER, JSON.stringify(u));
+                  }
+                } catch {}
+                refreshUserFromServer();
+              }
+              enforceVoiceQuotaOrLock(data.error || "");
+              return;
+            }
+            throw new Error(localizeServerError(data.error, "busyDesc"));
+          }
 
-          if (transcriptEl) transcriptEl.textContent = finalReply.slice(0, 320);
+          if (data.empty_audio) {
+            if (active && !muted) {
+              setOrbState("listening");
+              scheduleListeningRestart(240);
+            }
+            return;
+          }
+
+          // Update local voice quota immediately
+          if (!token) {
+            incrementGuestVoiceCount();
+          } else if (data.usage) {
+            try {
+              const u = JSON.parse(localStorage.getItem(KEYS.USER) || "null");
+              if (u) {
+                u.rateLimit = { ...(u.rateLimit || {}), ...data.usage };
+                localStorage.setItem(KEYS.USER, JSON.stringify(u));
+              }
+            } catch {}
+          }
+          applyGlobalQuotaLockUI();
+
+          const userSpoken = String(data.transcript || cleanPrompt || "").trim();
+          const finalReply = extractThoughts(String(data.reply || "")).cleanText.trim();
+
+          if (userSpoken) {
+            const userMsg = { role: "user", content: userSpoken, displayText: userSpoken };
+            messagesHistory.push(userMsg);
+            renderUserBubble(userMsg, messagesHistory.length - 1);
+            updateComposerPosition();
+          }
+
+          if (finalReply) {
+            const assistantMsg = { role: "assistant", content: finalReply, branches: [finalReply], activeBranch: 0, model: data.model || selectedModel };
+            messagesHistory.push(assistantMsg);
+            persistSession();
+            renderAssistantBubble(assistantMsg, messagesHistory.length - 1);
+            scrollToBottom(false);
+            if (transcriptEl) transcriptEl.textContent = finalReply.slice(0, 320);
+          }
+
           setOrbState("speaking");
 
-          const startedSpeech = toggleReadAloud(finalReply, null, () => {
-            if (active && !muted) {
-              setTimeout(() => startVoiceModeListening(), 320);
-            } else if (active) {
-              setOrbState("paused");
+          if (data.audio_base64) {
+            const okAudio = playLiveAudioBase64(data.audio_base64, data.audio_mime || "audio/wav", (playbackBlocked) => {
+              if (playbackBlocked && finalReply) {
+                const fbSpeech = toggleReadAloud(finalReply, null, () => resumeAfterVoiceTurn());
+                if (!fbSpeech) resumeAfterVoiceTurn();
+              } else {
+                resumeAfterVoiceTurn();
+              }
+            });
+            if (!okAudio && finalReply) {
+              const fbSpeech = toggleReadAloud(finalReply, null, () => resumeAfterVoiceTurn());
+              if (!fbSpeech) resumeAfterVoiceTurn();
             }
-          });
-          if (!startedSpeech && active) {
-            muted = true;
-            setOrbState("paused");
+            return;
+          }
+
+          if (finalReply) {
+            const startedSpeech = toggleReadAloud(finalReply, null, () => resumeAfterVoiceTurn());
+            if (!startedSpeech) resumeAfterVoiceTurn();
+          } else {
+            resumeAfterVoiceTurn();
           }
         } catch (err) {
           if (err && err.name === "AbortError") return;
           if (!active) return;
           const errText = err?.message || (currentLanguage === "bn" ? "উত্তর আনা যায়নি।" : "Could not get response.");
           if (transcriptEl) transcriptEl.textContent = errText;
-          muted = true;
-          setOrbState("paused", errText.slice(0, 48));
+          if (!enforceVoiceQuotaOrLock()) {
+            if (!muted) {
+              setOrbState("listening");
+              setTimeout(() => startVoiceModeListening(), 900);
+            } else {
+              setOrbState("paused");
+            }
+          }
         } finally {
           voiceAbort = null;
         }
       }
 
-      function startVoiceModeListening() {
+      function handleSpokenQuery(rawText) {
+        return handleVoiceTurnPayload({ rawText });
+      }
+
+      async function startBrowserMediaRecorderCapture(lang) {
+        await startDesktopMicMeter();
+        if (!micStream || typeof MediaRecorder === "undefined") return false;
+        let chosenMime = "";
+        const mimeCandidates = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg"];
+        for (const m of mimeCandidates) {
+          if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(m)) {
+            chosenMime = m;
+            break;
+          }
+        }
+        try {
+          mediaChunks = [];
+          const mr = chosenMime ? new MediaRecorder(micStream, { mimeType: chosenMime }) : new MediaRecorder(micStream);
+          mediaRecorder = mr;
+          let interimTranscript = "";
+          if (Speech) {
+            try {
+              webRec = new Speech();
+              webRec.lang = lang;
+              webRec.continuous = true;
+              webRec.interimResults = true;
+              webRec.onresult = (ev) => {
+                let s = "";
+                for (let i = 0; i < (ev?.results?.length || 0); i++) {
+                  s += ev.results[i][0]?.transcript || "";
+                }
+                interimTranscript = s.trim();
+                if (interimTranscript && transcriptEl) transcriptEl.textContent = `"${interimTranscript}"`;
+              };
+              webRec.onerror = () => {};
+              webRec.start();
+            } catch {}
+          }
+
+          let speechStarted = false;
+          let speechFrames = 0;
+          const startTs = Date.now();
+          let lastVoiceTs = startTs;
+
+          mr.ondataavailable = (ev) => {
+            if (ev.data && ev.data.size > 0) mediaChunks.push(ev.data);
+          };
+          mr.onstop = () => {
+            if (webRec) {
+              try { webRec.abort(); } catch {}
+              webRec = null;
+            }
+            if (!active || muted || phase !== "listening") return;
+            if (!speechStarted && !interimTranscript) {
+              scheduleListeningRestart(240);
+              return;
+            }
+            const blob = new Blob(mediaChunks, { type: mr.mimeType || chosenMime || "audio/webm" });
+            mediaChunks = [];
+            if (blob.size < 900 && !interimTranscript) {
+              scheduleListeningRestart(240);
+              return;
+            }
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              const resStr = typeof reader.result === "string" ? reader.result : "";
+              const b64 = resStr.includes(",") ? resStr.split(",")[1] : "";
+              handleVoiceTurnPayload({
+                audioBase64: b64,
+                mimeType: blob.type || "audio/webm",
+                rawText: interimTranscript
+              });
+            };
+            reader.readAsDataURL(blob);
+          };
+
+          mr.start(200);
+          webVadTimer = setInterval(() => {
+            if (!active || muted || phase !== "listening" || mediaRecorder !== mr) {
+              stopWebMediaRecorder(true);
+              return;
+            }
+            let amp = 0;
+            if (analyserNode && analyserData) {
+              analyserNode.getByteTimeDomainData(analyserData);
+              let sum = 0;
+              for (let i = 0; i < analyserData.length; i++) {
+                const v = (analyserData[i] - 128) / 128;
+                sum += v * v;
+              }
+              amp = Math.sqrt(sum / analyserData.length);
+            }
+            const now = Date.now();
+            if (amp > 0.028 || interimTranscript.length > 0) {
+              speechFrames++;
+              if (speechFrames >= 2 || interimTranscript.length > 0) {
+                speechStarted = true;
+                if (amp > 0.024) lastVoiceTs = now;
+              }
+            } else {
+              speechFrames = 0;
+            }
+            if (speechStarted && (now - lastVoiceTs >= 1350 || now - startTs >= 22000)) {
+              clearInterval(webVadTimer);
+              webVadTimer = null;
+              mediaRecorder = null;
+              try { if (mr.state !== "inactive") mr.stop(); } catch {}
+            } else if (!speechStarted && (now - startTs >= 8500)) {
+              clearInterval(webVadTimer);
+              webVadTimer = null;
+              mediaRecorder = null;
+              try { if (mr.state !== "inactive") mr.stop(); } catch {}
+            }
+          }, 80);
+          return true;
+        } catch {
+          stopWebMediaRecorder(true);
+          return false;
+        }
+      }
+
+      async function startVoiceModeListening() {
+        clearRestartTimer();
         if (!active || muted) {
           if (active) setOrbState("paused");
           return;
@@ -8578,12 +9684,25 @@
           setOrbState("offline");
           return;
         }
+        if (enforceVoiceQuotaOrLock()) return;
+
+        stopLiveAudioPlayback();
         stopReadAloud();
         stopRecognitionOnly();
         setOrbState("listening");
 
-        const lang = currentLanguage === "bn" ? "bn-BD" : "en-US";
+        const lang = getEffectiveVoiceInputLang();
         const bridge = getNativeAndroidBridge();
+        // On Android: ALWAYS use custom hardware AudioRecord WAV+VAD — ZERO Google UI popup ever!
+        if (bridge && typeof bridge.startCustomAudio === "function") {
+          usingNative = true;
+          try {
+            bridge.startCustomAudio("live");
+            return;
+          } catch (e) {
+            usingNative = false;
+          }
+        }
         if (bridge && typeof bridge.startNativeVoice === "function") {
           usingNative = true;
           try {
@@ -8594,18 +9713,24 @@
           }
         }
 
+        // Browser MediaRecorder + VAD -> Gemini Live / Voice API
+        const startedMedia = await startBrowserMediaRecorderCapture(lang);
+        if (startedMedia) return;
+
         if (!Speech) {
           showToast(currentLanguage === "bn" ? "এই ডিভাইসে ভয়েস ইনপুট সমর্থিত নয়।" : "Voice input is not supported on this device.");
           closeVoiceMode();
           return;
         }
 
+        startDesktopMicMeter();
         try {
           webRec = new Speech();
           webRec.lang = lang;
           webRec.continuous = false;
           webRec.interimResults = true;
           let heardText = "";
+          let permDenied = false;
           webRec.onresult = (ev) => {
             let tStr = "";
             for (let i = 0; i < (ev?.results?.length || 0); i++) {
@@ -8618,6 +9743,7 @@
             const code = ev?.error || "";
             if (!active) return;
             if (code === "not-allowed" || code === "service-not-allowed") {
+              permDenied = true;
               showToast(currentLanguage === "bn" ? "মাইক্রোফোনের অনুমতি প্রয়োজন।" : "Microphone permission required.");
               muted = true;
               setOrbState("paused");
@@ -8626,35 +9752,52 @@
           webRec.onend = () => {
             webRec = null;
             if (!active) return;
+            if (permDenied || muted) {
+              setOrbState("paused");
+              return;
+            }
             if (heardText) {
               handleSpokenQuery(heardText);
-            } else if (!muted) {
-              silentRetryCount += 1;
-              if (silentRetryCount >= 2) {
-                muted = true;
-                setOrbState("paused");
-              } else {
-                setTimeout(() => startVoiceModeListening(), 350);
-              }
             } else {
-              setOrbState("paused");
+              scheduleListeningRestart(280);
             }
           };
           webRec.start();
         } catch (e) {
-          muted = true;
-          setOrbState("paused");
+          if (!muted) scheduleListeningRestart(600);
+          else setOrbState("paused");
         }
       }
 
       window.__voiceModeHooks = {
         active: false,
         onStart() {
-          if (active) setOrbState("listening");
+          if (active && !muted) setOrbState("listening");
+        },
+        onVolume(vol) {
+          if (active && !muted && phase === "listening") {
+            nativeRmsLevel = Math.max(0, Math.min(1, Number(vol) || 0));
+            lastNativeRmsTs = Date.now();
+          }
         },
         onPartial(txt) {
           const clean = String(txt || "").trim();
           if (active && clean && transcriptEl) transcriptEl.textContent = `"${clean}"`;
+        },
+        onAudioCaptured(b64Wav) {
+          usingNative = false;
+          if (!active || muted) return;
+          if (b64Wav) {
+            handleVoiceTurnPayload({ audioBase64: b64Wav, mimeType: "audio/wav" });
+          } else {
+            scheduleListeningRestart(280);
+          }
+        },
+        onSilence() {
+          usingNative = false;
+          if (active && phase === "listening" && !muted) {
+            scheduleListeningRestart(240);
+          }
         },
         onResult(txt) {
           usingNative = false;
@@ -8663,55 +9806,96 @@
           if (clean) {
             handleSpokenQuery(clean);
           } else if (!muted) {
-            silentRetryCount += 1;
-            if (silentRetryCount >= 2) {
-              muted = true;
-              setOrbState("paused");
-            } else {
-              setTimeout(() => startVoiceModeListening(), 350);
-            }
+            scheduleListeningRestart(300);
+          } else {
+            setOrbState("paused");
           }
         },
         onEnd() {
           usingNative = false;
           if (active && phase === "listening" && !muted) {
-            setOrbState("paused");
+            scheduleListeningRestart(340);
           }
         },
         onError(msg) {
           usingNative = false;
           if (!active) return;
-          muted = true;
-          setOrbState("paused");
-          if (msg) showToast(String(msg));
+          if (msg && /permission/i.test(String(msg))) {
+            muted = true;
+            setOrbState("paused");
+            showToast(String(msg));
+            return;
+          }
+          if (!muted && phase === "listening") {
+            scheduleListeningRestart(650);
+          } else {
+            setOrbState("paused");
+          }
         }
       };
+
+      presetChip?.addEventListener("click", () => {
+        const cur = getActiveVoicePreset();
+        const idx = ALORA_VOICE_PRESETS.findIndex(v => v.id === cur.id);
+        const next = ALORA_VOICE_PRESETS[(idx + 1) % ALORA_VOICE_PRESETS.length];
+        localStorage.setItem(VOICE_PRESET_KEY, next.id);
+        localStorage.setItem(KEYS.SPEECH_VOICE, "");
+        renderAloraVoiceCards();
+        const label = currentLanguage === "bn" ? next.nameBn : next.name;
+        showToast(currentLanguage === "bn" ? `ভয়েস: ${label}` : `Voice: ${label}`);
+      });
+
+      langChip?.addEventListener("click", () => {
+        const cur = getVoiceInputLanguageSetting();
+        const order = ["auto", "bn-BD", "en-US"];
+        const next = order[(order.indexOf(cur) + 1) % order.length];
+        localStorage.setItem(VOICE_INPUT_LANG_KEY, next);
+        renderAloraVoiceCards();
+        if (active && !muted && phase === "listening") {
+          startVoiceModeListening();
+        }
+      });
 
       btn.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
+        const qSt = getQuotaLockStatus();
+        if ((qSt.msgLocked || qSt.voiceLocked) && isAppOnline()) {
+          if (qSt.isGuest) {
+            showToast(currentLanguage === "bn" ? "ভয়েস সীমা শেষ — চালিয়ে যেতে লগইন করুন" : "Voice limit reached — Sign in to continue");
+            window.location.href = "/auth/signup";
+          } else {
+            showToast(currentLanguage === "bn" ? "আপনার ভয়েস বা বার্তা সীমা শেষ হয়েছে। প্ল্যান আপগ্রেড করুন বা রিসেটের অপেক্ষা করুন।" : "Your voice or message limit is finished. Upgrade your plan or wait for reset.");
+            openUpgradeDialog();
+          }
+          return;
+        }
         if (isGenerating || isSending) stopGeneration();
+        stopLiveAudioPlayback();
         stopReadAloud();
         active = true;
         muted = false;
-        silentRetryCount = 0;
         window.__voiceModeHooks.active = true;
+        renderAloraVoiceCards();
+        applyGlobalQuotaLockUI();
         if (modelLabel) {
           modelLabel.textContent = document.getElementById("headerModelLabel")?.textContent || selectedModel || "Alora";
         }
         if (transcriptEl) {
           transcriptEl.textContent = currentLanguage === "bn"
-            ? "স্বাভাবিক কণ্ঠে কথা বলুন — উত্তর নিজেই শোনাবে।"
-            : "Speak naturally — Alora listens and replies aloud.";
+            ? "স্বাভাবিক কণ্ঠে কথা বলুন — একবার কথা শেষ হলেই উত্তর নিজে শোনাবে ও আবার শুনতে থাকবে।"
+            : "Hands-free active — speak naturally and Alora stays listening automatically.";
         }
         backdrop.classList.add("open");
         backdrop.setAttribute("aria-hidden", "false");
+        startDotAnimator();
         startVoiceModeListening();
       });
 
       micToggleBtn?.addEventListener("click", () => {
         if (!active) return;
         if (phase === "speaking") {
+          stopLiveAudioPlayback();
           stopReadAloud();
           muted = false;
           startVoiceModeListening();
@@ -8726,7 +9910,6 @@
           stopRecognitionOnly();
           setOrbState("paused");
         } else {
-          silentRetryCount = 0;
           startVoiceModeListening();
         }
       });
@@ -9262,12 +10445,79 @@
         renderSavedMemories();
       });
 
+      const TONE_PRESET_PROMPTS = {
+        balanced: "",
+        coder: "Write clean, modular, production-ready code with zero placeholders, clear structure, and concise technical explanations.",
+        teacher: "সহজ ও সাবলীল বাংলায় ধাপে ধাপে বুঝিয়ে উত্তর দাও, উদাহরণসহ স্পষ্টভাবে ব্যাখ্যা করো।",
+        concise: "Be ultra-concise, direct, and scannable with bullet points or tables where helpful."
+      };
+      document.querySelectorAll("#inlineTonePresetChips button[data-tone-preset]").forEach(chip => {
+        chip.addEventListener("click", () => {
+          const key = chip.dataset.tonePreset || "balanced";
+          const val = TONE_PRESET_PROMPTS[key] || "";
+          const prefEl = document.getElementById("customResponsePref");
+          if (prefEl) prefEl.value = val;
+          localStorage.setItem(KEYS.CUSTOM_PREF, val);
+          localStorage.setItem(KEYS.CUSTOM_INST, val);
+          document.querySelectorAll("#inlineTonePresetChips button[data-tone-preset]").forEach(c => c.classList.toggle("active", c === chip));
+          showToast(currentLanguage === "bn" ? "টোন প্রিসেট প্রয়োগ হয়েছে" : "Tone preset applied");
+        });
+      });
+
+      document.getElementById("secUpdatePassBtn")?.addEventListener("click", async () => {
+        const token = getAuthToken();
+        if (!token) { window.location.href = "/auth/login"; return; }
+        const curEl = document.getElementById("secCurrentPassInput");
+        const newEl = document.getElementById("secNewPassInput");
+        const curPass = (curEl?.value || "").trim();
+        const newPass = (newEl?.value || "").trim();
+        if (!curPass || newPass.length < 6) {
+          showToast(currentLanguage === "bn" ? "বর্তমান পাসওয়ার্ড ও কমপক্ষে ৬ অক্ষরের নতুন পাসওয়ার্ড দিন" : "Enter current password and a new password (min 6 chars)");
+          return;
+        }
+        const btn = document.getElementById("secUpdatePassBtn");
+        if (btn) btn.disabled = true;
+        try {
+          const res = await fetch(`${API_BASE}/auth/change-password`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+            body: JSON.stringify({ current_password: curPass, new_password: newPass, confirm_password: newPass })
+          });
+          const data = await res.json().catch(() => ({}));
+          if (res.ok && data.success) {
+            if (curEl) curEl.value = "";
+            if (newEl) newEl.value = "";
+            showToast(currentLanguage === "bn" ? "পাসওয়ার্ড আপডেট হয়েছে" : "Password updated successfully");
+          } else {
+            showToast(data.error || "Password update failed");
+          }
+        } catch (e) {
+          showToast(currentLanguage === "bn" ? "সংযোগ ত্রুটি" : "Connection error");
+        } finally {
+          if (btn) btn.disabled = false;
+        }
+      });
+
+      document.querySelectorAll("#voiceInputLangChips .theme-opt-chip").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const vlang = btn.dataset.vlang || "auto";
+          localStorage.setItem(VOICE_INPUT_LANG_KEY, vlang);
+          renderAloraVoiceCards();
+          showToast(currentLanguage === "bn" ? `ভয়েস ভাষা: ${btn.textContent.trim()}` : `Voice input: ${btn.textContent.trim()}`);
+        });
+      });
+
       document.getElementById("speechVoiceSelect")?.addEventListener("change", (e) => {
         localStorage.setItem(KEYS.SPEECH_VOICE, e.target.value);
+        if (e.target.value) renderAloraVoiceCards();
+      });
+      document.getElementById("testSpeechBnBtn")?.addEventListener("click", (e) => {
+        const sampleBn = "নমস্কার! আমি অ্যালোরা। বাংলা এবং ইংরেজি দুই ভাষাতেই আমি সাবলীলভাবে সাহায্য করতে পারি।";
+        toggleReadAloud(sampleBn, e.currentTarget);
       });
       document.getElementById("testSpeechVoiceBtn")?.addEventListener("click", (e) => {
-        const sample = currentLanguage === "bn" ? "হ্যালো! আমি অ্যালোরা। কীভাবে আপনাকে সাহায্য করতে পারি?" : "Hello! I am Alora. How can I help you today?";
-        toggleReadAloud(sample, e.currentTarget);
+        const sampleEn = "Hello! I am Alora. Every voice supports Bengali and English seamlessly.";
+        toggleReadAloud(sampleEn, e.currentTarget);
       });
 
       document.getElementById("settingsDeleteAccountBtn")?.addEventListener("click", async () => {

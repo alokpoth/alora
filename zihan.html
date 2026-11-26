@@ -1233,7 +1233,7 @@
 
   <div class="navbar">
     <div class="logo-area">
-      <a href="/" class="logo-brand-wrap" title="Back"><img src="/logo_wordmark_white.png" class="theme-wordmark" alt="Alora" style="height: 28px; width: auto; object-fit: contain;" onerror="this.onerror=null;this.src='/alokpath_logo_light.png';"></a>
+      <a href="/" class="logo-brand-wrap" title="Back"><img src="/logo_wordmark_white.png" class="theme-wordmark" alt="Alora" style="height: 28px; width: auto; object-fit: contain;" onerror="this.onerror=null;this.src='/logo_icon_white.png';"></a>
       <span class="admin-badge"><span class="live-dot"></span> Admin Dashboard</span>
     </div>
     <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
@@ -1472,6 +1472,25 @@
               <input type="checkbox" id="newModelEff"> <span class="tag tag-max">MAX</span> ব্যাজ
             </label>
           </div>
+          <div class="form-group" style="min-width: 150px;">
+            <label>মডেল ক্যাটাগরি (Type)</label>
+            <select id="newModelCategory" style="padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text-primary); font-size: 0.85rem;">
+              <option value="chat">Chat Model (চ্যাট)</option>
+              <option value="voice">Voice Model (ভয়েস)</option>
+              <option value="image">Image Model (ইমেজ)</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex: 1.5; min-width: 260px;">
+            <label>কোন কোন প্ল্যানে চলবে (Allowed Plans)</label>
+            <div id="newModelPlansWrap" style="display:flex; gap:8px; flex-wrap:wrap; padding-top:6px;">
+              <label style="font-size:0.78rem;display:inline-flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="new-model-plan-cb" value="Guest" checked> Guest</label>
+              <label style="font-size:0.78rem;display:inline-flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="new-model-plan-cb" value="Free" checked> Free</label>
+              <label style="font-size:0.78rem;display:inline-flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="new-model-plan-cb" value="Go" checked> Go</label>
+              <label style="font-size:0.78rem;display:inline-flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="new-model-plan-cb" value="Plus" checked> Plus</label>
+              <label style="font-size:0.78rem;display:inline-flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="new-model-plan-cb" value="Pro" checked> Pro</label>
+              <label style="font-size:0.78rem;display:inline-flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="new-model-plan-cb" value="Max" checked> Max</label>
+            </div>
+          </div>
         </div>
 
         <!-- 3 Internal APIs Container -->
@@ -1560,7 +1579,7 @@
               <th>প্রধান API URL</th>
               <th>প্রধান API Key</th>
               <th>অভ্যন্তরীণ ৩টি API</th>
-              <th>ব্যাজ (Pro / Max)</th>
+              <th>ক্যাটাগরি ও প্ল্যান অ্যাক্সেস</th>
               <th>অ্যাকশন</th>
             </tr>
           </thead>
@@ -1737,6 +1756,77 @@
         <div id="searchTestResultBox" style="display: none; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 14px; margin-top: 6px;">
           <div style="font-size: 0.85rem; font-weight: 600; color: #34d399; margin-bottom: 8px;">টেস্ট সার্চ রেজাল্ট:</div>
           <pre id="searchTestOutput" style="font-size: 0.82rem; color: #e2e8f0; white-space: pre-wrap; word-break: break-word; background: rgba(0,0,0,0.4); padding: 10px; border-radius: 8px; margin: 0; max-height: 220px; overflow-y: auto;"></pre>
+        </div>
+      </form>
+
+      <!-- Card 3: Dedicated Live Voice API Settings -->
+      <form id="voiceLiveSettingsForm" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); padding: 20px; border-radius: 14px; display: flex; flex-direction: column; gap: 16px; margin-top: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+          <h4 style="color: #a78bfa; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; margin: 0;">
+            লাইভ ভয়েস ইঞ্জিন ও API কনফিগারেশন (Gemini Live / Custom / Chat Models)
+          </h4>
+          <span style="font-size: 0.8rem; color: #ddd6fe; background: rgba(139,92,246,0.14); border: 1px solid rgba(139,92,246,0.3); padding: 3px 10px; border-radius: 999px;">Real-Time Bilingual Voice</span>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group" style="flex: 1.3; min-width: 240px;">
+            <label>ভয়েস ইঞ্জিন মোড (Voice Engine Mode) *</label>
+            <select id="settingVoiceProvider" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text-primary); font-size: 0.9rem;">
+              <option value="gemini_live">Gemini Live API (Native Live Audio-In &amp; Voice-Out - Recommended)</option>
+              <option value="custom_api">Custom / Normal Voice API (OpenAI Audio / Whisper + Chat)</option>
+              <option value="chat_models">Chat Models (চ্যাট মডেল — বাংলা/ইংরেজি ট্রান্সলেট ও Alora TTS ভয়েস)</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="flex: 1.1; min-width: 220px;">
+            <label>লাইভ ভয়েস মডেল আইডি (Live Voice Model ID)</label>
+            <input type="text" id="settingVoiceModel" placeholder="gemini-2.5-flash-native-audio-preview-12-2025">
+          </div>
+
+          <div class="form-group" style="flex: 1.2; min-width: 240px;">
+            <label style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <span>ভয়েস API Key (Gemini / Custom Voice Key)</span>
+              <span id="settingVoiceKeySavedBadge" style="display:none;font-size:0.7rem;padding:2px 8px;border-radius:999px;background:rgba(34,197,94,0.14);color:#4ade80;border:1px solid rgba(34,197,94,0.3);">✓ Key সংরক্ষিত (লুকানো)</span>
+            </label>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <div style="position: relative; display: flex; align-items: center; flex: 1;">
+                <input type="password" id="settingVoiceKey" placeholder="AIza... বা sk-... (ফাঁকা রাখলে গ্লোবাল Key ব্যবহৃত হবে)" style="width: 100%; padding-right: 40px;">
+                <button type="button" id="toggleSettingVoiceKeyBtn" class="btn-icon" onclick="togglePasswordVisibility('settingVoiceKey')" style="position: absolute; right: 6px; background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px;" title="দেখান / লুকান"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+              </div>
+              <button type="button" id="clearSettingVoiceKeyBtn" class="btn btn-danger" style="display:none;padding:8px 10px;font-size:0.75rem;" onclick="clearSavedSystemKey('voice')">✕ ক্লিয়ার</button>
+            </div>
+            <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">নিরাপদে এনক্রিপ্টেড থাকে; সেভ করার পর আর দেখা যায় না।</span>
+          </div>
+        </div>
+
+        <div class="form-row" id="customVoiceUrlRow">
+          <div class="form-group" style="flex: 1; min-width: 220px;">
+            <label>কাস্টম ভয়েস API URL (শুধুমাত্র Custom API মোডের জন্য)</label>
+            <input type="text" id="settingVoiceUrl" placeholder="https://api.openai.com/v1/chat/completions">
+          </div>
+          <div class="form-group" style="flex: 1; min-width: 220px;">
+            <label>অপশনাল STT / Whisper URL (Custom বা Chat Models অডিও ট্রান্সক্রিপশন)</label>
+            <input type="text" id="settingVoiceSttUrl" placeholder="https://api.groq.com/openai/v1/audio/transcriptions">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>ভয়েস সিস্টেম নির্দেশনা (Optional Bilingual Voice Persona Prompt)</label>
+          <input type="text" id="settingVoicePrompt" placeholder="যেমন: সংক্ষেপে সাবলীল বাংলা ও ইংরেজিতে বন্ধুসুলভভাবে কথা বলবে।">
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 6px;">
+          <button type="button" id="btnTestVoiceLive" class="btn" style="background: rgba(139,92,246,0.14); border: 1px solid rgba(139,92,246,0.35); color: #ddd6fe; font-size: 0.85rem; padding: 8px 16px;">
+            টেস্ট লাইভ ভয়েস
+          </button>
+          <button type="submit" id="btnSaveVoiceSettings" class="btn btn-primary" style="padding: 9px 24px;">
+            ভয়েস সেটিংস সংরক্ষণ করুন
+          </button>
+        </div>
+
+        <div id="voiceTestResultBox" style="display: none; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 14px; margin-top: 6px;">
+          <div style="font-size: 0.85rem; font-weight: 600; color: #a78bfa; margin-bottom: 8px;">টেস্ট ভয়েস রেজাল্ট:</div>
+          <div id="voiceTestOutput" style="font-size: 0.84rem; color: #e2e8f0; display: flex; flex-direction: column; gap: 8px;"></div>
         </div>
       </form>
     </div>
@@ -2790,10 +2880,26 @@
               <button type="button" class="btn" style="padding: 4px 8px; font-size: 0.74rem; background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); border-radius: 6px;" onclick="openModelApiModal('${escapeHtml(mId)}')">৩টি API কনফিগার</button>
             </div>
           </td>
-          <td data-label="ব্যাজ">
-            <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-              <label style="font-size: 0.78rem; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;"><input type="checkbox" class="model-input-prem" ${m.premium ? 'checked' : ''}> <span class="tag tag-pro" style="padding: 1px 5px; font-size: 0.65rem;">PRO</span></label>
-              <label style="font-size: 0.78rem; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;"><input type="checkbox" class="model-input-eff" ${m.efficient ? 'checked' : ''}> <span class="tag tag-max" style="padding: 1px 5px; font-size: 0.65rem;">MAX</span></label>
+          <td data-label="ক্যাটাগরি ও প্ল্যান">
+            <div style="display:flex; flex-direction:column; gap:6px; min-width:175px;">
+              <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+                <select class="model-input-cat" style="padding:3px 6px; font-size:0.74rem; border-radius:6px; background:var(--surface); color:var(--text-primary); border:1px solid var(--border);">
+                  <option value="chat" ${(m.category || 'chat') === 'chat' ? 'selected' : ''}>Chat</option>
+                  <option value="voice" ${m.category === 'voice' ? 'selected' : ''}>Voice</option>
+                  <option value="image" ${m.category === 'image' ? 'selected' : ''}>Image</option>
+                </select>
+                <label style="font-size: 0.74rem; cursor: pointer; display: inline-flex; align-items: center; gap: 3px;"><input type="checkbox" class="model-input-prem" ${m.premium ? 'checked' : ''}> <span class="tag tag-pro" style="padding: 1px 5px; font-size: 0.62rem;">PRO</span></label>
+                <label style="font-size: 0.74rem; cursor: pointer; display: inline-flex; align-items: center; gap: 3px;"><input type="checkbox" class="model-input-eff" ${m.efficient ? 'checked' : ''}> <span class="tag tag-max" style="padding: 1px 5px; font-size: 0.62rem;">MAX</span></label>
+              </div>
+              <div style="display:flex; gap:5px; flex-wrap:wrap;">
+                ${['Guest', 'Free', 'Go', 'Plus', 'Pro', 'Max'].map(pn => {
+                  const effPlans = Array.isArray(m.allowed_plans) && m.allowed_plans.length > 0
+                    ? m.allowed_plans
+                    : (m.efficient ? ['Max'] : (m.premium ? ['Plus', 'Pro', 'Max'] : ['Guest', 'Free', 'Go', 'Plus', 'Pro', 'Max']));
+                  const isChecked = effPlans.includes('*') || effPlans.includes(pn);
+                  return `<label style="font-size:0.68rem;display:inline-flex;align-items:center;gap:2px;cursor:pointer;background:rgba(255,255,255,0.04);padding:1px 5px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);"><input type="checkbox" class="model-plan-cb" value="${pn}" ${isChecked ? 'checked' : ''}>${pn}</label>`;
+                }).join('')}
+              </div>
             </div>
           </td>
           <td data-label="অ্যাকশন">
@@ -3014,13 +3120,17 @@
       const api_key = tr.querySelector(".model-input-key")?.value.trim() || "";
       const premium = tr.querySelector(".model-input-prem")?.checked || false;
       const efficient = tr.querySelector(".model-input-eff")?.checked || false;
+      const category = tr.querySelector(".model-input-cat")?.value || "chat";
+      const allowed_plans = Array.from(tr.querySelectorAll(".model-plan-cb:checked")).map(cb => cb.value);
 
       const currentMod = currentModelsList.find(m => (m.id === modelId || m.model_id === modelId)) || {};
       const payload = {
         name,
         base_url,
         premium,
-        efficient
+        efficient,
+        category,
+        allowed_plans
       };
       if (api_key) payload.api_key = api_key;
       if (currentMod.api_model_1) payload.api_model_1 = currentMod.api_model_1;
@@ -3058,6 +3168,9 @@
             if (api_key) target.has_api_key = true;
             target.premium = premium;
             target.efficient = efficient;
+            target.category = category;
+            target.allowed_plans = allowed_plans;
+            if (typeof loadPlans === "function") loadPlans();
           }
           if (keyEl && api_key) {
             keyEl.value = "";
@@ -3119,6 +3232,8 @@
       const name = document.getElementById("newModelName").value.trim();
       const premium = document.getElementById("newModelPrem").checked;
       const efficient = document.getElementById("newModelEff").checked;
+      const category = document.getElementById("newModelCategory")?.value || "chat";
+      const allowed_plans = Array.from(document.querySelectorAll(".new-model-plan-cb:checked")).map(cb => cb.value);
 
       // API 1
       const api_model_1 = document.getElementById("newModelApiModel1")?.value.trim() || model_id;
@@ -3159,6 +3274,8 @@
             name,
             premium,
             efficient,
+            category,
+            allowed_plans,
             api_model_1,
             base_url,
             api_key,
@@ -3445,12 +3562,12 @@
     }
 
     const ADMIN_CANONICAL_PLANS = [
-      { name: 'Guest', displayName: 'গেস্ট ট্রায়াল', message_limit: 10, image_limit: 0, window_hours: 3, price_usd: 0, price_bdt: 0, tagline: 'অ্যাকাউন্ট ছাড়াই ফ্রি ব্যবহার', allowed_models: ['*'], is_active: true },
-      { name: 'Free', displayName: 'Alora Free', message_limit: 10, image_limit: 5, window_hours: 3, price_usd: 0, price_bdt: 0, tagline: 'দৈনন্দিন কাজের জন্য ফ্রি এআই অ্যাক্সেস', allowed_models: ['*'], is_active: true },
-      { name: 'Go', displayName: 'Alora Go', message_limit: 20, image_limit: 15, window_hours: 3, price_usd: 5, price_bdt: 699, tagline: 'লেখালেখি, পড়াশোনা ও নিয়মিত কাজের জন্য', allowed_models: ['*'], is_active: true },
-      { name: 'Plus', displayName: 'Alora Plus', message_limit: 30, image_limit: 25, window_hours: 3, price_usd: 20, price_bdt: 2500, tagline: 'বড় সীমা ও দ্রুত কাজের পার্সোনালাইজড AI', allowed_models: ['*'], is_active: true },
-      { name: 'Pro', displayName: 'Alora Pro', message_limit: 40, image_limit: 50, window_hours: 2, price_usd: 55, price_bdt: 6900, tagline: 'সকল প্রিমিয়াম মডেল ও সর্বোচ্চ গতি', allowed_models: ['*'], is_active: true },
-      { name: 'Max', displayName: 'Alora Max', message_limit: 50, image_limit: 100, window_hours: 1, price_usd: 120, price_bdt: 15000, tagline: 'পাওয়ার ইউজারদের জন্য সর্বোচ্চ লিমিট ও প্রায়োরিটি', allowed_models: ['*'], is_active: true }
+      { name: 'Guest', displayName: 'গেস্ট (Guest)', message_limit: 2, image_limit: 0, voice_limit: 2, voice_model: '', image_model: '', window_hours: 24, price_usd: 0, price_bdt: 0, tagline: 'Try Alora instantly without logging in', allowed_models: ['openrouter/free'], is_active: true },
+      { name: 'Free', displayName: 'ফ্রি প্ল্যান (Free)', message_limit: 50, image_limit: 0, voice_limit: 10, voice_model: '', image_model: '', window_hours: 3, price_usd: 0, price_bdt: 0, tagline: 'Intelligence for everyday tasks and quick answers', allowed_models: ['openrouter/free'], is_active: true },
+      { name: 'Go', displayName: 'গো প্ল্যান (Go)', message_limit: 100, image_limit: 0, voice_limit: 30, voice_model: '', image_model: '', window_hours: 3, price_usd: 5, price_bdt: 650, tagline: 'More room to write, learn, and create', allowed_models: ['openrouter/free'], is_active: true },
+      { name: 'Plus', displayName: 'প্লাস প্ল্যান (Plus)', message_limit: 500, image_limit: 0, voice_limit: 100, voice_model: '', image_model: '', window_hours: 3, price_usd: 20, price_bdt: 2600, tagline: 'Personalized AI with advanced reasoning models', allowed_models: ['*'], is_active: true },
+      { name: 'Pro', displayName: 'প্রো প্ল্যান (Pro)', message_limit: 3000, image_limit: 0, voice_limit: 300, voice_model: '', image_model: '', window_hours: 1, price_usd: 60, price_bdt: 7800, tagline: 'Higher speed and expanded limits for heavy work', allowed_models: ['*'], is_active: true },
+      { name: 'Max', displayName: 'ম্যাক্স প্ল্যান (Max)', message_limit: 7000, image_limit: 0, voice_limit: 1000, voice_model: '', image_model: '', window_hours: 1, price_usd: 120, price_bdt: 15600, tagline: 'Full frontier intelligence with our highest usage limits', allowed_models: ['*'], is_active: true }
     ];
 
     let renderedPlanNames = [];
@@ -3571,11 +3688,34 @@
         const allowedModelsStr = Array.isArray(p.allowed_models) ? p.allowed_models.join(', ') : (p.allowed_models || '*');
         const isActive = p.is_active !== false;
         const msgLimitVal = (p.message_limit !== undefined && p.message_limit !== null && !isNaN(Number(p.message_limit))) ? Number(p.message_limit) : 10;
-        const imageLimitVal = (p.image_limit !== undefined && p.image_limit !== null && !isNaN(Number(p.image_limit))) ? Number(p.image_limit) : (p.name === 'Guest' ? 0 : 5);
+        const imageLimitVal = (p.image_limit !== undefined && p.image_limit !== null && !isNaN(Number(p.image_limit))) ? Number(p.image_limit) : 0;
+        const voiceLimitVal = (p.voice_limit !== undefined && p.voice_limit !== null && !isNaN(Number(p.voice_limit))) ? Number(p.voice_limit) : 0;
+        const curVoiceMod = String(p.voice_model || '').trim();
+        const curImgMod = String(p.image_model || '').trim();
         const priceUsdVal = (p.price_usd !== undefined && p.price_usd !== null && !isNaN(Number(p.price_usd))) ? Number(p.price_usd) : 0;
         const priceVal = (p.price_bdt !== undefined && p.price_bdt !== null && !isNaN(Number(p.price_bdt))) ? Number(p.price_bdt) : 0;
         const taglineVal = escapeHtml(p.tagline || '');
         const pendingBadge = p._missingOnBackend ? `<span class="tag" style="background:rgba(245,158,11,0.18);color:#fde68a;border:1px solid rgba(245,158,11,0.35);">সার্ভার আপডেট পেন্ডিং</span>` : '';
+
+        const voiceModelOptions = [
+          `<option value="" ${curVoiceMod === '' ? 'selected' : ''}>গ্লোবাল ভয়েস ইঞ্জিন (ডিফল্ট)</option>`,
+          `<option value="__gemini_live__" ${curVoiceMod === '__gemini_live__' ? 'selected' : ''}>Gemini Live API (লাইভ ভয়েস)</option>`,
+          `<option value="__custom_voice__" ${curVoiceMod === '__custom_voice__' ? 'selected' : ''}>Custom Voice API</option>`,
+          `<option value="__chat_models__" ${curVoiceMod === '__chat_models__' ? 'selected' : ''}>Chat Models (ট্রান্সলেট ও TTS)</option>`
+        ].concat((currentModelsList || []).map(m => {
+          const mid = String(m.id || m.model_id || '').trim();
+          const mlabel = `${m.name || mid} (${m.category || 'chat'})`;
+          return `<option value="${escapeHtml(mid)}" ${curVoiceMod === mid ? 'selected' : ''}>${escapeHtml(mlabel)}</option>`;
+        })).join('');
+
+        const imageModelOptions = [
+          `<option value="" ${curImgMod === '' ? 'selected' : ''}>গ্লোবাল ইমেজ ইঞ্জিন (ডিফল্ট)</option>`,
+          `<option value="pollinations/flux" ${curImgMod === 'pollinations/flux' ? 'selected' : ''}>Pollinations Flux</option>`,
+          `<option value="dall-e-3" ${curImgMod === 'dall-e-3' ? 'selected' : ''}>DALL-E 3</option>`
+        ].concat((currentModelsList || []).filter(m => m.category === 'image').map(m => {
+          const mid = String(m.id || m.model_id || '').trim();
+          return `<option value="${escapeHtml(mid)}" ${curImgMod === mid ? 'selected' : ''}>${escapeHtml(m.name || mid)}</option>`;
+        })).join('');
 
         const card = document.createElement("div");
         card.className = "stat-card";
@@ -3594,13 +3734,27 @@
             <input type="text" id="display_${safeId}" value="${safeDisplayName}">
           </div>
           <div class="form-row" style="gap:10px; margin:0;">
-            <div class="form-group" style="flex:1; min-width:110px;">
-              <label>মেসেজ লিমিট${safeName === 'Guest' ? ' (0 = লগইন)' : ''}</label>
+            <div class="form-group" style="flex:1; min-width:95px;">
+              <label>মেসেজ লিমিট${safeName === 'Guest' ? ' (0=লগইন)' : ''}</label>
               <input type="number" min="${safeName === 'Guest' ? 0 : 1}" id="limit_${safeId}" value="${msgLimitVal}">
             </div>
-            <div class="form-group" style="flex:1; min-width:110px;">
+            <div class="form-group" style="flex:1; min-width:95px;">
+              <label>ভয়েস লিমিট</label>
+              <input type="number" min="0" id="voice_limit_${safeId}" value="${voiceLimitVal}">
+            </div>
+            <div class="form-group" style="flex:1; min-width:95px;">
               <label>ছবি লিমিট</label>
               <input type="number" min="0" id="img_limit_${safeId}" value="${imageLimitVal}">
+            </div>
+          </div>
+          <div class="form-row" style="gap:10px; margin:0;">
+            <div class="form-group" style="flex:1; min-width:130px;">
+              <label>ভয়েস মডেল (Voice Model)</label>
+              <select id="voice_model_${safeId}" style="width:100%;padding:7px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text-primary);font-size:0.8rem;">${voiceModelOptions}</select>
+            </div>
+            <div class="form-group" style="flex:1; min-width:130px;">
+              <label>ইমেজ মডেল (Image Model)</label>
+              <select id="image_model_${safeId}" style="width:100%;padding:7px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text-primary);font-size:0.8rem;">${imageModelOptions}</select>
             </div>
           </div>
           <div class="form-row" style="gap:10px; margin:0;">
@@ -3645,6 +3799,9 @@
       const displayInput = document.getElementById(`display_${safeId}`);
       const limitInput = document.getElementById(`limit_${safeId}`);
       const imgLimitInput = document.getElementById(`img_limit_${safeId}`);
+      const voiceLimitInput = document.getElementById(`voice_limit_${safeId}`);
+      const voiceModelInput = document.getElementById(`voice_model_${safeId}`);
+      const imageModelInput = document.getElementById(`image_model_${safeId}`);
       const windowInput = document.getElementById(`window_${safeId}`);
       const priceUsdInput = document.getElementById(`price_usd_${safeId}`);
       const priceInput = document.getElementById(`price_${safeId}`);
@@ -3655,6 +3812,9 @@
       const displayName = displayInput ? displayInput.value.trim() : "";
       const message_limit = limitInput ? parseInt(limitInput.value, 10) : NaN;
       const image_limit = imgLimitInput ? parseInt(imgLimitInput.value, 10) : NaN;
+      const voice_limit = voiceLimitInput ? parseInt(voiceLimitInput.value, 10) : 0;
+      const voice_model = voiceModelInput ? voiceModelInput.value.trim() : "";
+      const image_model = imageModelInput ? imageModelInput.value.trim() : "";
       const window_hours = windowInput ? parseInt(windowInput.value, 10) : NaN;
       const price_usd = priceUsdInput ? parseFloat(priceUsdInput.value) : 0;
       const price_bdt = priceInput ? parseInt(priceInput.value, 10) : 0;
@@ -3670,6 +3830,9 @@
       if (isNaN(image_limit) || image_limit < 0) {
         return { error: `${planName}: সঠিক ছবি তৈরির লিমিট (০ বা ধনাত্মক) লিখুন` };
       }
+      if (isNaN(voice_limit) || voice_limit < 0) {
+        return { error: `${planName}: সঠিক ভয়েস লিমিট (০ বা ধনাত্মক) লিখুন` };
+      }
       if (isNaN(window_hours) || window_hours <= 0 || window_hours > 168) {
         return { error: `${planName}: সঠিক সময়সীমা (১-১৬৮ ঘণ্টা) লিখুন` };
       }
@@ -3679,7 +3842,7 @@
       if (isNaN(price_bdt) || price_bdt < 0) {
         return { error: `${planName}: সঠিক মাসিক মূল্য লিখুন` };
       }
-      return { payload: { displayName, message_limit, image_limit, window_hours, price_usd, price_bdt, tagline, allowed_models, is_active } };
+      return { payload: { displayName, message_limit, image_limit, voice_limit, voice_model, image_model, window_hours, price_usd, price_bdt, tagline, allowed_models, is_active } };
     }
 
     async function savePlanLimits(planName, btn, silent = false) {
@@ -3996,7 +4159,9 @@
     async function clearSavedSystemKey(kind) {
       const confirmed = await customConfirm("আপনি কি নিশ্চিত সংরক্ষিত API Key টি স্থায়ীভাবে মুছে ফেলতে চান?", "API Key ক্লিয়ার");
       if (!confirmed) return;
-      const payload = kind === "image" ? { clear_image_api_key: true } : { clear_web_search_api_key: true };
+      const payload = kind === "image"
+        ? { clear_image_api_key: true }
+        : (kind === "voice" ? { clear_voice_live_api_key: true } : { clear_web_search_api_key: true });
       try {
         const res = await authFetch(`${API_BASE}/zihan/settings`, {
           method: "PUT",
@@ -4075,6 +4240,27 @@
 
           const customRow = document.getElementById("customSearchUrlRow");
           if (customRow) customRow.style.display = (searchProvider === "custom") ? "flex" : "none";
+
+          // Live Voice Engine Fields
+          const voiceProvider = ["gemini_live", "custom_api", "chat_models"].includes(s.voice_provider) ? s.voice_provider : "gemini_live";
+          const selectVoiceProvider = document.getElementById("settingVoiceProvider");
+          if (selectVoiceProvider) selectVoiceProvider.value = voiceProvider;
+          const inputVoiceModel = document.getElementById("settingVoiceModel");
+          if (inputVoiceModel) inputVoiceModel.value = s.voice_live_model || "gemini-2.5-flash-native-audio-preview-12-2025";
+          const inputVoiceUrl = document.getElementById("settingVoiceUrl");
+          if (inputVoiceUrl) inputVoiceUrl.value = s.voice_live_url || "";
+          const inputVoiceSttUrl = document.getElementById("settingVoiceSttUrl");
+          if (inputVoiceSttUrl) inputVoiceSttUrl.value = s.voice_stt_url || "";
+          const inputVoicePrompt = document.getElementById("settingVoicePrompt");
+          if (inputVoicePrompt) inputVoicePrompt.value = s.voice_system_prompt || "";
+          applyWriteOnlySystemKey(
+            "settingVoiceKey",
+            "toggleSettingVoiceKeyBtn",
+            "settingVoiceKeySavedBadge",
+            "clearSettingVoiceKeyBtn",
+            Boolean(s.has_voice_live_api_key),
+            "AIza... বা sk-... (ফাঁকা রাখলে গ্লোবাল Key ব্যবহৃত হবে)"
+          );
 
           // System Prompt Field
           const inputSystemPrompt = document.getElementById("settingSystemPrompt");
@@ -4255,6 +4441,93 @@
           showToast("সার্ভারে সমস্যা হয়েছে", "error");
         } finally {
           if (btn) btn.disabled = false;
+        }
+      });
+    }
+
+    // Save & Test Live Voice Engine Settings
+    const voiceLiveSettingsForm = document.getElementById("voiceLiveSettingsForm");
+    if (voiceLiveSettingsForm) {
+      voiceLiveSettingsForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById("btnSaveVoiceSettings");
+        if (btn) btn.disabled = true;
+        const voiceKeyVal = (document.getElementById("settingVoiceKey")?.value || "").trim();
+        const payload = {
+          voice_provider: document.getElementById("settingVoiceProvider")?.value || "gemini_live",
+          voice_live_model: (document.getElementById("settingVoiceModel")?.value || "gemini-2.5-flash-native-audio-preview-12-2025").trim(),
+          voice_live_url: (document.getElementById("settingVoiceUrl")?.value || "").trim(),
+          voice_stt_url: (document.getElementById("settingVoiceSttUrl")?.value || "").trim(),
+          voice_system_prompt: (document.getElementById("settingVoicePrompt")?.value || "").trim()
+        };
+        if (voiceKeyVal) payload.voice_live_api_key = voiceKeyVal;
+        try {
+          const res = await authFetch(`${API_BASE}/zihan/settings`, {
+            method: "PUT",
+            body: JSON.stringify(payload)
+          });
+          const data = await res.json();
+          if (data.success) {
+            showToast(voiceKeyVal ? "লাইভ ভয়েস ও API Key সংরক্ষিত হয়েছে (Key এখন লুকানো)" : "লাইভ ভয়েস সেটিংস সফলভাবে সংরক্ষিত হয়েছে", "success");
+            loadSettings();
+          } else {
+            showToast(data.error || "ভয়েস সেটিংস সেভ করতে সমস্যা হয়েছে", "error");
+          }
+        } catch {
+          showToast("সার্ভারে সমস্যা হয়েছে", "error");
+        } finally {
+          if (btn) btn.disabled = false;
+        }
+      });
+    }
+
+    const btnTestVoiceLive = document.getElementById("btnTestVoiceLive");
+    if (btnTestVoiceLive) {
+      btnTestVoiceLive.addEventListener("click", async () => {
+        btnTestVoiceLive.disabled = true;
+        const origText = btnTestVoiceLive.textContent;
+        btnTestVoiceLive.textContent = "টেস্ট চলছে...";
+        const box = document.getElementById("voiceTestResultBox");
+        const out = document.getElementById("voiceTestOutput");
+        if (box) box.style.display = "block";
+        if (out) out.textContent = "লাইভ ভয়েস ইঞ্জিনের সাথে সংযোগ পরীক্ষা করা হচ্ছে...";
+        try {
+          const res = await authFetch(`${API_BASE}/zihan/settings/test-voice`, {
+            method: "POST",
+            body: JSON.stringify({
+              provider: document.getElementById("settingVoiceProvider")?.value || "gemini_live",
+              model: (document.getElementById("settingVoiceModel")?.value || "").trim(),
+              api_url: (document.getElementById("settingVoiceUrl")?.value || "").trim(),
+              api_key: (document.getElementById("settingVoiceKey")?.value || "").trim(),
+              stt_url: (document.getElementById("settingVoiceSttUrl")?.value || "").trim(),
+              system_prompt: (document.getElementById("settingVoicePrompt")?.value || "").trim()
+            })
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            if (out) {
+              out.innerHTML = "";
+              const info = document.createElement("div");
+              info.textContent = `ইঞ্জিন: ${data.provider || 'live'} • উত্তর: ${data.reply || '(অডিও প্রস্তুত)'}`;
+              out.appendChild(info);
+              if (data.audio_base64) {
+                const aud = document.createElement("audio");
+                aud.controls = true;
+                aud.autoplay = true;
+                aud.src = `data:${data.audio_mime || 'audio/wav'};base64,${data.audio_base64}`;
+                out.appendChild(aud);
+              }
+            }
+            showToast("লাইভ ভয়েস টেস্ট সফল হয়েছে!", "success");
+          } else {
+            if (out) out.textContent = `ত্রুটি: ${data.error || "সংযোগ ব্যর্থ"}`;
+            showToast(data.error || "ভয়েস টেস্ট ব্যর্থ হয়েছে", "error");
+          }
+        } catch (err) {
+          if (out) out.textContent = `ত্রুটি: ${err.message}`;
+        } finally {
+          btnTestVoiceLive.disabled = false;
+          btnTestVoiceLive.textContent = origText;
         }
       });
     }

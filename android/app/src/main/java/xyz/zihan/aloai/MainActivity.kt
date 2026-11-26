@@ -23,6 +23,9 @@ import android.os.Looper
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
+import android.media.AudioFormat
+import android.media.AudioRecord
+import android.media.MediaRecorder
 import android.util.Base64
 import android.util.Log
 import android.view.View
@@ -40,12 +43,16 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import org.json.JSONObject
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.math.sqrt
 
 class MainActivity : AppCompatActivity() {
 
@@ -161,38 +168,30 @@ class MainActivity : AppCompatActivity() {
     }
 
     private var pendingSpeechLang: String? = null
+    private var pendingCaptureMode: String? = null
     private var speechRecognizer: SpeechRecognizer? = null
     private var isSpeechListening = false
+    private var customAudioRecord: AudioRecord? = null
+    private var customAudioThread: Thread? = null
+    @Volatile private var isCustomAudioRecording = false
+    @Volatile private var forceFinishCustomAudio = false
 
     private val speechPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
         val lang = pendingSpeechLang
+        val capMode = pendingCaptureMode
         pendingSpeechLang = null
+        pendingCaptureMode = null
         if (granted) {
-            launchNativeSpeechRecognizer(lang)
+            if (capMode != null) {
+                launchCustomAudioRecord(capMode)
+            } else {
+                launchNativeSpeechRecognizer(lang)
+            }
         } else {
             webView.post {
                 webView.evaluateJavascript("if (typeof window.onNativeSpeechError === 'function') window.onNativeSpeechError('Microphone permission denied.'); if (typeof window.onNativeSpeechEnd === 'function') window.onNativeSpeechEnd();", null)
-            }
-        }
-    }
-
-    private val speechRecognizerLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        isSpeechListening = false
-        val spoken = if (result.resultCode == RESULT_OK) {
-            result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()?.trim()
-        } else {
-            null
-        }
-        webView.post {
-            if (!spoken.isNullOrEmpty()) {
-                val quoted = JSONObject.quote(spoken)
-                webView.evaluateJavascript("if (typeof window.onNativeSpeechResult === 'function') window.onNativeSpeechResult($quoted);", null)
-            } else {
-                webView.evaluateJavascript("if (typeof window.onNativeSpeechEnd === 'function') window.onNativeSpeechEnd();", null)
             }
         }
     }
@@ -206,15 +205,229 @@ class MainActivity : AppCompatActivity() {
         isSpeechListening = false
     }
 
+    private fun buildPcm16WavBytes(pcmData: ByteArray, sampleRate: Int = 16000): ByteArray {
+        val header = ByteBuffer.allocate(44).order(ByteOrder.LITTLE_ENDIAN)
+        header.put("RIFF".toByteArray(Charsets.US_ASCII))
+        header.putInt(36 + pcmData.size)
+        header.put("WAVE".toByteArray(Charsets.US_ASCII))
+        header.put("fmt ".toByteArray(Charsets.US_ASCII))
+        header.putInt(16)
+        header.putShort(1) // PCM
+        header.putShort(1) // Mono
+        header.putInt(sampleRate)
+        header.putInt(sampleRate * 2)
+        header.putShort(2)
+        header.putShort(16)
+        header.put("data".toByteArray(Charsets.US_ASCII))
+        header.putInt(pcmData.size)
+        val out = ByteArray(44 + pcmData.size)
+        System.arraycopy(header.array(), 0, out, 0, 44)
+        System.arraycopy(pcmData, 0, out, 44, pcmData.size)
+        return out
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun launchCustomAudioRecord(mode: String) {
+        stopCustomAudioInternal(deliverCapture = false)
+        destroySpeechRecognizer()
+
+        val sampleRate = 16000
+        val minBuf = AudioRecord.getMinBufferSize(
+            sampleRate,
+            AudioFormat.CHANNEL_IN_MONO,
+            AudioFormat.ENCODING_PCM_16BIT
+        )
+        if (minBuf <= 0) {
+            webView.post {
+                webView.evaluateJavascript("if (typeof window.onNativeSpeechError === 'function') window.onNativeSpeechError('Audio capture unavailable.'); if (typeof window.onNativeSpeechEnd === 'function') window.onNativeSpeechEnd();", null)
+            }
+            return
+        }
+        val bufSize = maxOf(minBuf * 2, 8192)
+        var recorder: AudioRecord? = null
+        try {
+            recorder = AudioRecord(
+                MediaRecorder.AudioSource.VOICE_RECOGNITION,
+                sampleRate,
+                AudioFormat.CHANNEL_IN_MONO,
+                AudioFormat.ENCODING_PCM_16BIT,
+                bufSize
+            )
+            if (recorder.state != AudioRecord.STATE_INITIALIZED) {
+                recorder.release()
+                recorder = AudioRecord(
+                    MediaRecorder.AudioSource.MIC,
+                    sampleRate,
+                    AudioFormat.CHANNEL_IN_MONO,
+                    AudioFormat.ENCODING_PCM_16BIT,
+                    bufSize
+                )
+            }
+            if (recorder.state != AudioRecord.STATE_INITIALIZED) {
+                recorder.release()
+                webView.post {
+                    webView.evaluateJavascript("if (typeof window.onNativeSpeechError === 'function') window.onNativeSpeechError('Microphone busy.'); if (typeof window.onNativeSpeechEnd === 'function') window.onNativeSpeechEnd();", null)
+                }
+                return
+            }
+        } catch (_: Exception) {
+            try { recorder?.release() } catch (_: Exception) {}
+            webView.post {
+                webView.evaluateJavascript("if (typeof window.onNativeSpeechError === 'function') window.onNativeSpeechError('Microphone error.'); if (typeof window.onNativeSpeechEnd === 'function') window.onNativeSpeechEnd();", null)
+            }
+            return
+        }
+
+        customAudioRecord = recorder
+        isCustomAudioRecording = true
+        forceFinishCustomAudio = false
+
+        webView.post {
+            webView.evaluateJavascript("if (typeof window.onNativeSpeechStart === 'function') window.onNativeSpeechStart();", null)
+        }
+
+        customAudioThread = Thread({
+            val shortBuf = ShortArray(1024)
+            val preRollChunks = ArrayDeque<ByteArray>()
+            val capturedStream = ByteArrayOutputStream()
+            var speechDetected = false
+            var speechConfirmFrames = 0
+            val startedMs = android.os.SystemClock.elapsedRealtime()
+            var lastVoiceMs = startedMs
+            var lastVolPushMs = 0L
+
+            try {
+                recorder.startRecording()
+                while (isCustomAudioRecording) {
+                    val readCount = recorder.read(shortBuf, 0, shortBuf.size)
+                    if (readCount <= 0) continue
+
+                    var sumSq = 0.0
+                    val byteChunk = ByteArray(readCount * 2)
+                    var bi = 0
+                    for (i in 0 until readCount) {
+                        val s = shortBuf[i].toInt()
+                        sumSq += (s * s).toDouble()
+                        byteChunk[bi++] = (s and 0xFF).toByte()
+                        byteChunk[bi++] = ((s shr 8) and 0xFF).toByte()
+                    }
+                    val rms = sqrt(sumSq / readCount)
+                    val now = android.os.SystemClock.elapsedRealtime()
+
+                    if (now - lastVolPushMs >= 55L) {
+                        lastVolPushMs = now
+                        val norm = ((rms - 120.0) / 3800.0).toFloat().coerceIn(0f, 1f)
+                        webView.post {
+                            if (isCustomAudioRecording) {
+                                webView.evaluateJavascript("if (typeof window.onNativeSpeechVolume === 'function') window.onNativeSpeechVolume($norm);", null)
+                            }
+                        }
+                    }
+
+                    if (rms > 360.0) {
+                        speechConfirmFrames++
+                        if (speechConfirmFrames >= 2) {
+                            if (!speechDetected) {
+                                speechDetected = true
+                                while (preRollChunks.isNotEmpty()) {
+                                    capturedStream.write(preRollChunks.removeFirst())
+                                }
+                            }
+                            lastVoiceMs = now
+                        }
+                    } else {
+                        speechConfirmFrames = 0
+                    }
+
+                    if (speechDetected) {
+                        capturedStream.write(byteChunk)
+                        val silenceElapsed = now - lastVoiceMs
+                        val totalElapsed = now - startedMs
+                        if (forceFinishCustomAudio || silenceElapsed >= 1350L || totalElapsed >= 22000L) {
+                            break
+                        }
+                    } else {
+                        preRollChunks.addLast(byteChunk)
+                        while (preRollChunks.size > 6) preRollChunks.removeFirst()
+                        if (forceFinishCustomAudio || (now - startedMs) >= 8500L) {
+                            break
+                        }
+                    }
+                }
+            } catch (_: Exception) {
+            } finally {
+                val wasActive = isCustomAudioRecording || forceFinishCustomAudio
+                isCustomAudioRecording = false
+                forceFinishCustomAudio = false
+                try { recorder.stop() } catch (_: Exception) {}
+                try { recorder.release() } catch (_: Exception) {}
+                if (customAudioRecord === recorder) customAudioRecord = null
+
+                if (wasActive) {
+                    val pcmBytes = capturedStream.toByteArray()
+                    if (speechDetected && pcmBytes.size >= 3200) {
+                        val wavBytes = buildPcm16WavBytes(pcmBytes, sampleRate)
+                        val b64 = Base64.encodeToString(wavBytes, Base64.NO_WRAP)
+                        val qB64 = JSONObject.quote(b64)
+                        val qMode = JSONObject.quote(mode)
+                        webView.post {
+                            webView.evaluateJavascript("if (typeof window.onNativeAudioCaptured === 'function') window.onNativeAudioCaptured($qB64, $qMode);", null)
+                        }
+                    } else {
+                        webView.post {
+                            webView.evaluateJavascript("if (typeof window.onNativeAudioSilence === 'function') window.onNativeAudioSilence(); if (typeof window.onNativeSpeechEnd === 'function') window.onNativeSpeechEnd();", null)
+                        }
+                    }
+                }
+            }
+        }, "AloraCustomAudioThread").also { it.start() }
+    }
+
+    private fun stopCustomAudioInternal(deliverCapture: Boolean) {
+        if (!isCustomAudioRecording) return
+        if (deliverCapture) {
+            forceFinishCustomAudio = true
+        } else {
+            isCustomAudioRecording = false
+            forceFinishCustomAudio = false
+            try { customAudioRecord?.stop() } catch (_: Exception) {}
+            try { customAudioRecord?.release() } catch (_: Exception) {}
+            customAudioRecord = null
+        }
+    }
+
+    fun startCustomAudioCapture(mode: String?) {
+        runOnUiThread {
+            val cleanMode = mode?.trim()?.takeIf { it.isNotEmpty() } ?: "live"
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                pendingCaptureMode = cleanMode
+                pendingSpeechLang = null
+                speechPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                return@runOnUiThread
+            }
+            launchCustomAudioRecord(cleanMode)
+        }
+    }
+
+    fun stopCustomAudioCapture(deliver: Boolean = false) {
+        runOnUiThread {
+            stopCustomAudioInternal(deliverCapture = deliver)
+        }
+    }
+
     private fun launchNativeSpeechRecognizer(langTag: String?) {
         runOnUiThread {
-            val cleanLang = langTag?.trim()?.takeIf { it.isNotEmpty() } ?: "en-US"
+            val cleanLang = langTag?.trim()?.takeIf { it.isNotEmpty() && !it.equals("auto", ignoreCase = true) } ?: "bn-BD"
             val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
                 putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
                 putExtra(RecognizerIntent.EXTRA_LANGUAGE, cleanLang)
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, cleanLang)
                 putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
                 putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
                 putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, packageName)
+                putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 2400L)
+                putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 1800L)
+                putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 700L)
             }
 
             if (SpeechRecognizer.isRecognitionAvailable(this)) {
@@ -223,23 +436,35 @@ class MainActivity : AppCompatActivity() {
                     val sr = SpeechRecognizer.createSpeechRecognizer(this)
                     speechRecognizer = sr
                     sr.setRecognitionListener(object : RecognitionListener {
+                        private var lastRmsPushMs = 0L
                         override fun onReadyForSpeech(params: Bundle?) {
                             isSpeechListening = true
                             webView.evaluateJavascript("if (typeof window.onNativeSpeechStart === 'function') window.onNativeSpeechStart();", null)
                         }
                         override fun onBeginningOfSpeech() {}
-                        override fun onRmsChanged(rmsdB: Float) {}
+                        override fun onRmsChanged(rmsdB: Float) {
+                            val now = android.os.SystemClock.elapsedRealtime()
+                            if (now - lastRmsPushMs < 55L) return
+                            lastRmsPushMs = now
+                            val clamped = ((rmsdB - 1.5f) / 10.5f).coerceIn(0f, 1f)
+                            webView.evaluateJavascript("if (typeof window.onNativeSpeechVolume === 'function') window.onNativeSpeechVolume($clamped);", null)
+                        }
                         override fun onBufferReceived(buffer: ByteArray?) {}
                         override fun onEndOfSpeech() {
                             isSpeechListening = false
                         }
                         override fun onError(error: Int) {
                             isSpeechListening = false
+                            destroySpeechRecognizer()
+                            if (error == SpeechRecognizer.ERROR_CLIENT || error == SpeechRecognizer.ERROR_RECOGNIZER_BUSY) {
+                                // Never open Google UI popup; fall back seamlessly to custom AudioRecord capture
+                                launchCustomAudioRecord("dictation")
+                                return
+                            }
                             val errMsg = when (error) {
                                 SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Microphone permission required."
                                 SpeechRecognizer.ERROR_AUDIO -> "Audio recording error."
                                 SpeechRecognizer.ERROR_NETWORK, SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "Network needed for speech recognition."
-                                SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "Speech recognizer busy."
                                 else -> null
                             }
                             if (errMsg != null) {
@@ -248,7 +473,6 @@ class MainActivity : AppCompatActivity() {
                             } else {
                                 webView.evaluateJavascript("if (typeof window.onNativeSpeechEnd === 'function') window.onNativeSpeechEnd();", null)
                             }
-                            destroySpeechRecognizer()
                         }
                         override fun onResults(results: Bundle?) {
                             isSpeechListening = false
@@ -277,12 +501,8 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-            try {
-                intent.putExtra(RecognizerIntent.EXTRA_PROMPT, if (cleanLang.startsWith("bn")) "বলুন..." else "Listening...")
-                speechRecognizerLauncher.launch(intent)
-            } catch (_: Exception) {
-                webView.evaluateJavascript("if (typeof window.onNativeSpeechError === 'function') window.onNativeSpeechError('Speech recognition unavailable.'); if (typeof window.onNativeSpeechEnd === 'function') window.onNativeSpeechEnd();", null)
-            }
+            // Custom in-app PCM AudioRecord capture — NEVER opens external Google RecognizerIntent popup!
+            launchCustomAudioRecord("dictation")
         }
     }
 
@@ -290,6 +510,7 @@ class MainActivity : AppCompatActivity() {
         runOnUiThread {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
                 pendingSpeechLang = langTag
+                pendingCaptureMode = null
                 speechPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
                 return@runOnUiThread
             }
@@ -300,6 +521,10 @@ class MainActivity : AppCompatActivity() {
     fun stopNativeSpeechInput() {
         runOnUiThread {
             try {
+                if (isCustomAudioRecording) {
+                    stopCustomAudioInternal(deliverCapture = true)
+                    return@runOnUiThread
+                }
                 if (isSpeechListening) {
                     speechRecognizer?.stopListening()
                 }
@@ -1297,6 +1522,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         cancelPendingLoadTimeout()
+        stopCustomAudioInternal(deliverCapture = false)
         destroySpeechRecognizer()
         webAppInterface?.destroy()
         webView.destroy()

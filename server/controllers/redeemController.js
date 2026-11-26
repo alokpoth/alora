@@ -53,11 +53,24 @@ const claimRedeemCode = async (req, res) => {
         // Atomically increment use_count and add to used_by_list
         redeemCode = await RedeemCode.findOneAndUpdate(
           { code: cleanCode, use_count: { $lt: redeemCode.max_uses || 1 } },
-          { 
-            $inc: { use_count: 1 },
-            $push: { used_by_list: { user_id: userId, email: user.email || '', used_at: now } },
-            $set: { is_used: (redeemCode.use_count + 1) >= (redeemCode.max_uses || 1) }
-          },
+          [
+            {
+              $set: {
+                use_count: { $add: [{ $ifNull: ['$use_count', 0] }, 1] },
+                used_by_list: {
+                  $concatArrays: [
+                    { $ifNull: ['$used_by_list', []] },
+                    [{ user_id: userId, email: user.email || '', used_at: now }]
+                  ]
+                }
+              }
+            },
+            {
+              $set: {
+                is_used: { $gte: ['$use_count', { $ifNull: ['$max_uses', 1] }] }
+              }
+            }
+          ],
           { new: true }
         );
         if (!redeemCode) {

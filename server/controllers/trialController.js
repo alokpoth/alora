@@ -46,42 +46,66 @@ const getPromo = async (req, res) => {
   }
 };
 
+let trialClaimMutex = Promise.resolve();
+function withTrialLock(fn) {
+  let release;
+  const current = new Promise(resolve => { release = resolve; });
+  const prev = trialClaimMutex;
+  trialClaimMutex = prev.then(() => current, () => current);
+  return prev.catch(() => {}).then(fn).finally(() => release());
+}
+
 // POST /api/redeem/trial  (requires login)
 const claimFreeTrial = async (req, res) => {
-  try {
-    const user = req.user;
-    if (!user) {
-      return res.status(401).json({ success: false, error: 'Please log in to claim the free trial.' });
-    }
-    const { getSystemSettings, saveSystemSettings, getPersistedUsers, savePersistedUsers } = require('../../utils/getModelConfig');
-    const settings = await getSystemSettings();
-    const promo = buildPromo(settings);
-    if (!promo.enabled) {
-      return res.status(400).json({ success: false, error: 'No free trial offer is available right now.' });
-    }
+  return withTrialLock(async () => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ success: false, error: 'Please log in to claim the free trial.' });
+      }
+      const { getSystemSettings, saveSystemSettings, getPersistedUsers, savePersistedUsers } = require('../../utils/getModelConfig');
+      const settings = await getSystemSettings();
+      const promo = buildPromo(settings);
+      if (!promo.enabled) {
+        return res.status(400).json({ success: false, error: 'No free trial offer is available right now.' });
+      }
 
-    const claimed = Array.isArray(settings.free_trial_claimed) ? [...settings.free_trial_claimed] : [];
-    const keys = claimKeysFor(user);
-    if (keys.some(k => claimed.includes(k))) {
-      return res.status(400).json({ success: false, error: 'You have already claimed this free trial.' });
-    }
+      const claimed = Array.isArray(settings.free_trial_claimed) ? [...settings.free_trial_claimed] : [];
+      const keys = claimKeysFor(user);
+      if (keys.some(k => claimed.includes(k))) {
+        return res.status(400).json({ success: false, error: 'You have already claimed this free trial.' });
+      }
 
-    const now = new Date();
-    const sub = user.subscription || {};
-    const currentTier = PLAN_HIERARCHY[sub.plan_name] || 1;
-    const isActivePaid = currentTier > 1 && (!sub.expires_at || new Date(sub.expires_at) > now);
-    if (user.role === 'admin' || (isActivePaid && currentTier >= PLAN_HIERARCHY[promo.plan])) {
-      return res.status(400).json({ success: false, error: `You already have an active ${sub.plan_name || 'paid'} plan.` });
-    }
+      const now = new Date();
+      const sub = user.subscription || {};
+      const currentTier = PLAN_HIERARCHY[sub.plan_name] || 1;
+      const isActivePaid = currentTier > 1 && (!sub.expires_at || new Date(sub.expires_at) > now);
+      if (user.role === 'admin' || (isActivePaid && currentTier >= PLAN_HIERARCHY[promo.plan])) {
+        return res.status(400).json({ success: false, error: `You already have an active ${sub.plan_name || 'paid'} plan.` });
+      }
 
-    const expiresAt = new Date(now.getTime() + promo.days * 24 * 60 * 60 * 1000);
-    const subscriptionData = { plan_name: promo.plan, starts_at: now, expires_at: expiresAt, is_active: true, is_trial: true, payment_source: 'trial' };
-    const userId = user._id || user.id;
-    const email = (user.email || '').toLowerCase().trim();
+      const expiresAt = new Date(now.getTime() + promo.days * 24 * 60 * 60 * 1000);
+      const subscriptionData = { plan_name: promo.plan, starts_at: now, expires_at: expiresAt, is_active: true, is_trial: true, payment_source: 'trial' };
+      const userId = user._id || user.id;
+      const email = (user.email || '').toLowerCase().trim();
 
-    // Reserve the claim first so double clicks cannot grant twice.
-    claimed.push(...keys);
-    await saveSystemSettings({ free_trial_claimed: claimed });
+      // Atomic reservation in MongoDB when connected + serialized settings update
+      if (getIsMongoConnected()) {
+        const SystemSetting = require('../models/SystemSetting');
+        const atomicRes = await SystemSetting.findOneAndUpdate(
+          { key: '__system_settings__', 'value.free_trial_claimed': { $nin: keys } },
+          { $addToSet: { 'value.free_trial_claimed': { $each: keys } } },
+          { new: true }
+        ).lean().catch(() => null);
+        if (!atomicRes) {
+          const recheck = await SystemSetting.findOne({ key: '__system_settings__' }).lean().catch(() => null);
+          if (recheck && Array.isArray(recheck.value?.free_trial_claimed) && keys.some(k => recheck.value.free_trial_claimed.includes(k))) {
+            return res.status(400).json({ success: false, error: 'You have already claimed this free trial.' });
+          }
+        }
+      }
+      const uniqueClaimed = Array.from(new Set([...claimed, ...keys]));
+      await saveSystemSettings({ free_trial_claimed: uniqueClaimed });
 
     if (getIsMongoConnected()) {
       const isStrictHex = Boolean(userId && /^[0-9a-fA-F]{24}$/.test(String(userId)));
@@ -127,10 +151,11 @@ const claimFreeTrial = async (req, res) => {
       expires_at: expiresAt.toISOString(),
       subscription: subscriptionData
     });
-  } catch (error) {
-    console.error('[Free Trial Error]:', error);
-    return res.status(500).json({ success: false, error: 'Could not activate the free trial. Please try again.' });
-  }
+    } catch (error) {
+      console.error('[Free Trial Error]:', error);
+      return res.status(500).json({ success: false, error: 'Could not activate the free trial. Please try again.' });
+    }
+  });
 };
 
 module.exports = { getPromo, claimFreeTrial, buildPromo };

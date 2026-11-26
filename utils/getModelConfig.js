@@ -2,6 +2,7 @@
 // Primary persistence in MongoDB (SystemSetting, AiModel, Plan, RedeemCode, PromoCode, PaymentOrder, User, UsageLog)
 // with fast in-memory caching and local memoryStore fallback. Zero Supabase dependency.
 const { memoryStore, debouncedSave } = require('../server/config/memoryStore');
+const { encryptSecret, decryptSecret } = require('../server/utils/secretVault');
 
 // Cache: avoid repeated DB hits per request cycle (1 min TTL)
 const keyCache = new Map(); // keyId -> { api_key, ts }
@@ -21,15 +22,21 @@ async function getStoredApiKey(modelId) {
       const SystemSetting = require('../server/models/SystemSetting');
       const doc = await SystemSetting.findOne({ key: `__api_key__:${modelId}` }).lean();
       if (doc && typeof doc.value === 'string' && doc.value.trim()) {
-        keyCache.set(modelId, { api_key: doc.value, ts: now });
-        return doc.value;
+        const decrypted = decryptSecret(doc.value);
+        if (decrypted) {
+          keyCache.set(modelId, { api_key: decrypted, ts: now });
+          return decrypted;
+        }
       }
       if (!String(modelId).startsWith('__')) {
         const AiModel = require('../server/models/AiModel');
         const mDoc = await AiModel.findOne({ $or: [{ model_id: modelId }, { id: modelId }] }).select('api_key').lean();
         if (mDoc && mDoc.api_key) {
-          keyCache.set(modelId, { api_key: mDoc.api_key, ts: now });
-          return mDoc.api_key;
+          const decrypted = decryptSecret(mDoc.api_key);
+          if (decrypted) {
+            keyCache.set(modelId, { api_key: decrypted, ts: now });
+            return decrypted;
+          }
         }
       }
     } catch (e) {
@@ -38,9 +45,11 @@ async function getStoredApiKey(modelId) {
   }
 
   if (memoryStore.apiKeys && typeof memoryStore.apiKeys[modelId] === 'string' && memoryStore.apiKeys[modelId]) {
-    const k = memoryStore.apiKeys[modelId];
-    keyCache.set(modelId, { api_key: k, ts: now });
-    return k;
+    const k = decryptSecret(memoryStore.apiKeys[modelId]);
+    if (k) {
+      keyCache.set(modelId, { api_key: k, ts: now });
+      return k;
+    }
   }
 
   return null;
@@ -49,11 +58,12 @@ async function getStoredApiKey(modelId) {
 async function saveStoredApiKey(modelId, apiKey) {
   if (!modelId) return;
   const cleanKey = typeof apiKey === 'string' ? apiKey.trim() : '';
+  const encryptedKey = cleanKey ? encryptSecret(cleanKey) : '';
   if (!memoryStore.apiKeys || typeof memoryStore.apiKeys !== 'object') {
     memoryStore.apiKeys = {};
   }
   if (cleanKey) {
-    memoryStore.apiKeys[modelId] = cleanKey;
+    memoryStore.apiKeys[modelId] = encryptedKey;
     keyCache.set(modelId, { api_key: cleanKey, ts: Date.now() });
   } else {
     delete memoryStore.apiKeys[modelId];
@@ -68,7 +78,7 @@ async function saveStoredApiKey(modelId, apiKey) {
       if (cleanKey) {
         await SystemSetting.findOneAndUpdate(
           { key: `__api_key__:${modelId}` },
-          { $set: { value: cleanKey } },
+          { $set: { value: encryptedKey } },
           { upsert: true }
         );
       } else {
@@ -169,8 +179,8 @@ async function getModelConfig(rawId) {
 
   const effectiveId = model ? (model.id || model.model_id) : rawId;
 
-  // 4. Load API key from model first, then SystemSetting store if missing
-  let apiKey = (model && model.api_key) ? model.api_key : null;
+  // 4. Load API key from model first, then SystemSetting store if missing (decrypting vault entries)
+  let apiKey = (model && model.api_key) ? decryptSecret(model.api_key) : null;
   if (!apiKey) {
     apiKey = await getStoredApiKey(effectiveId);
   }
@@ -179,7 +189,12 @@ async function getModelConfig(rawId) {
   }
 
   if (model) {
-    return { ...model, api_key: apiKey || null };
+    return {
+      ...model,
+      api_key: apiKey || null,
+      fallback_key_1: model.fallback_key_1 ? decryptSecret(model.fallback_key_1) : '',
+      fallback_key_2: model.fallback_key_2 ? decryptSecret(model.fallback_key_2) : ''
+    };
   }
 
   if (apiKey) {
@@ -335,7 +350,12 @@ async function getPersistedModels() {
         const normalized = filterDeleted(mongoModels).map(m => ({
           ...m,
           id: m.id || m.model_id,
-          model_id: m.model_id || m.id
+          model_id: m.model_id || m.id,
+          api_key: m.api_key ? decryptSecret(m.api_key) : '',
+          fallback_key_1: m.fallback_key_1 ? decryptSecret(m.fallback_key_1) : '',
+          fallback_key_2: m.fallback_key_2 ? decryptSecret(m.fallback_key_2) : '',
+          category: ['chat', 'voice', 'image'].includes(m.category) ? m.category : 'chat',
+          allowed_plans: Array.isArray(m.allowed_plans) ? m.allowed_plans : []
         }));
         modelsCache = normalized;
         modelsCacheTs = now;
@@ -346,36 +366,79 @@ async function getPersistedModels() {
     }
   }
 
-  const fallback = filterDeleted(memoryStore.models || []);
+  const fallback = filterDeleted(memoryStore.models || []).map(m => ({
+    ...m,
+    id: m.id || m.model_id,
+    model_id: m.model_id || m.id,
+    api_key: m.api_key ? decryptSecret(m.api_key) : '',
+    fallback_key_1: m.fallback_key_1 ? decryptSecret(m.fallback_key_1) : '',
+    fallback_key_2: m.fallback_key_2 ? decryptSecret(m.fallback_key_2) : '',
+    category: ['chat', 'voice', 'image'].includes(m.category) ? m.category : 'chat',
+    allowed_plans: Array.isArray(m.allowed_plans) ? m.allowed_plans : []
+  }));
   modelsCache = fallback;
   modelsCacheTs = now;
   return fallback;
 }
 
 async function savePersistedModels(models) {
-  modelsCache = models;
+  const cleanNormalized = (Array.isArray(models) ? models : []).map(m => ({
+    ...m,
+    api_key: m.api_key ? decryptSecret(m.api_key) : '',
+    fallback_key_1: m.fallback_key_1 ? decryptSecret(m.fallback_key_1) : '',
+    fallback_key_2: m.fallback_key_2 ? decryptSecret(m.fallback_key_2) : ''
+  }));
+  modelsCache = cleanNormalized;
   modelsCacheTs = Date.now();
 
   if (!memoryStore.settings || typeof memoryStore.settings !== 'object') {
     memoryStore.settings = {};
   }
   memoryStore.settings.modelsInitialized = true;
-  memoryStore.models = models;
+  memoryStore.models = cleanNormalized.map(m => ({
+    ...m,
+    api_key: m.api_key ? encryptSecret(m.api_key) : '',
+    fallback_key_1: m.fallback_key_1 ? encryptSecret(m.fallback_key_1) : '',
+    fallback_key_2: m.fallback_key_2 ? encryptSecret(m.fallback_key_2) : ''
+  }));
   debouncedSave();
 }
 
 // High-Performance In-Memory Cache for User Quotas & Rate Limits (10s TTL)
 const userUsageCache = new Map();
 const userImgUsageCache = new Map();
+const userVoiceUsageCache = new Map();
+const userQuotaLocks = new Map();
 const USAGE_CACHE_TTL = 10 * 1000;
+
+async function withUserQuotaLock(userId, fn) {
+  const key = String(userId || 'anon');
+  const prev = userQuotaLocks.get(key) || Promise.resolve();
+  let release;
+  const current = new Promise(resolve => { release = resolve; });
+  const tail = prev.then(() => current, () => current);
+  userQuotaLocks.set(key, tail);
+  await prev.catch(() => {});
+  try {
+    return await fn();
+  } finally {
+    release();
+    if (userQuotaLocks.get(key) === tail) {
+      userQuotaLocks.delete(key);
+    }
+  }
+}
 
 function invalidateUserUsageCache(userId) {
   if (!userId) {
     userUsageCache.clear();
     userImgUsageCache.clear();
+    userVoiceUsageCache.clear();
   } else {
-    userUsageCache.delete(String(userId));
-    userImgUsageCache.delete(String(userId));
+    const k = String(userId);
+    userUsageCache.delete(k);
+    userImgUsageCache.delete(k);
+    userVoiceUsageCache.delete(k);
   }
 }
 
@@ -397,7 +460,7 @@ async function getUserUsageDetails(userId, windowHours) {
         const UsageLog = require('../server/models/UsageLog');
         const logs = await UsageLog.find({
           user_id: String(userId),
-          model_id: { $ne: 'image-generation' },
+          model_id: { $nin: ['image-generation', 'voice-live'] },
           timestamp: { $gte: new Date(windowStart) }
         }).select('timestamp').lean();
         if (logs && logs.length > 0) {
@@ -409,7 +472,12 @@ async function getUserUsageDetails(userId, windowHours) {
     }
   }
 
-  const memLogs = (memoryStore.usageLogs || []).filter(l => String(l.user_id) === String(userId) && l.model_id !== 'image-generation' && new Date(l.timestamp).getTime() >= windowStart);
+  const memLogs = (memoryStore.usageLogs || []).filter(l =>
+    String(l.user_id) === String(userId) &&
+    l.model_id !== 'image-generation' &&
+    l.model_id !== 'voice-live' &&
+    new Date(l.timestamp).getTime() >= windowStart
+  );
   if (memLogs.length > count) {
     count = memLogs.length;
     start = memLogs.length > 0 ? Math.min(...memLogs.map(l => new Date(l.timestamp).getTime())) : now;
@@ -430,14 +498,14 @@ async function getUserUsage(userId, windowHours) {
   return details.count;
 }
 
-async function getUserImageUsageDetails(userId, windowHours) {
+async function getUserSpecialUsageDetails(userId, windowHours, modelTag, targetCache) {
   const windowMs = (windowHours || 3) * 60 * 60 * 1000;
   const now = Date.now();
   const windowStart = now - windowMs;
   let count = 0;
   let start = now;
 
-  const cached = userImgUsageCache.get(String(userId));
+  const cached = targetCache.get(String(userId));
   if (cached && (now - cached.ts) < USAGE_CACHE_TTL && (now - cached.start) < windowMs) {
     count = cached.count || 0;
     start = cached.start;
@@ -448,27 +516,27 @@ async function getUserImageUsageDetails(userId, windowHours) {
         const UsageLog = require('../server/models/UsageLog');
         const logs = await UsageLog.find({
           user_id: String(userId),
-          model_id: 'image-generation',
+          model_id: modelTag,
           timestamp: { $gte: new Date(windowStart) }
         }).select('timestamp').lean();
         if (logs && logs.length > 0) {
           count = logs.length;
           start = Math.min(...logs.map(l => new Date(l.timestamp).getTime()));
         }
-        userImgUsageCache.set(String(userId), { count, start, ts: now });
+        targetCache.set(String(userId), { count, start, ts: now });
       } catch (e) {}
     }
   }
 
   const memLogs = (memoryStore.usageLogs || []).filter(l =>
     String(l.user_id) === String(userId) &&
-    (l.model_id === 'image-generation') &&
+    l.model_id === modelTag &&
     new Date(l.timestamp).getTime() >= windowStart
   );
   if (memLogs.length > count) {
     count = memLogs.length;
     start = memLogs.length > 0 ? Math.min(...memLogs.map(l => new Date(l.timestamp).getTime())) : now;
-    userImgUsageCache.set(String(userId), { count, start, ts: now });
+    targetCache.set(String(userId), { count, start, ts: now });
   }
 
   const remainingMs = Math.max(0, (start + windowMs) - now);
@@ -480,30 +548,68 @@ async function getUserImageUsageDetails(userId, windowHours) {
   };
 }
 
-async function incrementUserImageUsage(userId, windowHours) {
+function getUserImageUsageDetails(userId, windowHours) {
+  return getUserSpecialUsageDetails(userId, windowHours, 'image-generation', userImgUsageCache);
+}
+
+function getUserVoiceUsageDetails(userId, windowHours) {
+  return getUserSpecialUsageDetails(userId, windowHours, 'voice-live', userVoiceUsageCache);
+}
+
+function bumpUsageCache(targetCache, userId, windowHours) {
   const windowMs = (windowHours || 3) * 60 * 60 * 1000;
   const now = Date.now();
-  const cached = userImgUsageCache.get(String(userId));
+  const cached = targetCache.get(String(userId));
   let count = 1;
   let start = now;
   if (cached && (now - cached.start) < windowMs) {
     count = (cached.count || 0) + 1;
     start = cached.start;
   }
-  userImgUsageCache.set(String(userId), { count, start, ts: now });
+  targetCache.set(String(userId), { count, start, ts: now });
+}
+
+async function incrementUserImageUsage(userId, windowHours) {
+  bumpUsageCache(userImgUsageCache, userId, windowHours);
+}
+
+async function incrementUserVoiceUsage(userId, windowHours) {
+  bumpUsageCache(userVoiceUsageCache, userId, windowHours);
 }
 
 async function incrementUserUsage(userId, windowHours) {
-  const windowMs = (windowHours || 3) * 60 * 60 * 1000;
-  const now = Date.now();
-  const cached = userUsageCache.get(String(userId));
-  let count = 1;
-  let start = now;
-  if (cached && (now - cached.start) < windowMs) {
-    count = (cached.count || 0) + 1;
-    start = cached.start;
+  bumpUsageCache(userUsageCache, userId, windowHours);
+}
+
+async function recordUsageLogEntry(userId, modelId, windowHours) {
+  if (!userId) return;
+  const cleanUid = String(userId);
+  const cleanMod = String(modelId || 'openrouter/free');
+  const { getIsMongoConnected } = require('../server/config/db');
+  if (getIsMongoConnected()) {
+    try {
+      const UsageLog = require('../server/models/UsageLog');
+      await UsageLog.create({ user_id: cleanUid, model_id: cleanMod, timestamp: new Date() });
+    } catch (e) {}
+  } else {
+    memoryStore.usageLogs.push({
+      _id: 'log_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+      user_id: cleanUid,
+      model_id: cleanMod,
+      timestamp: new Date()
+    });
+    if (memoryStore.usageLogs.length > 5000) {
+      memoryStore.usageLogs = memoryStore.usageLogs.slice(-5000);
+    }
+    debouncedSave();
   }
-  userUsageCache.set(String(userId), { count, start, ts: now });
+  if (cleanMod === 'image-generation') {
+    await incrementUserImageUsage(cleanUid, windowHours);
+  } else if (cleanMod === 'voice-live') {
+    await incrementUserVoiceUsage(cleanUid, windowHours);
+  } else {
+    await incrementUserUsage(cleanUid, windowHours);
+  }
 }
 
 let plansCache = null;
@@ -612,6 +718,27 @@ async function savePersistedRedeemCodes(codes) {
   redeemCodesCache = cleanCodes;
   redeemCodesCacheTs = Date.now();
   debouncedSave();
+
+  const { getIsMongoConnected } = require('../server/config/db');
+  if (getIsMongoConnected() && cleanCodes.length > 0) {
+    try {
+      const RedeemCode = require('../server/models/RedeemCode');
+      const ops = cleanCodes.map(c => {
+        const { _id, __v, ...rest } = c;
+        const cleanCode = String(c.code).trim().toUpperCase();
+        return {
+          updateOne: {
+            filter: { code: cleanCode },
+            update: { $set: { ...rest, code: cleanCode } },
+            upsert: true
+          }
+        };
+      });
+      await RedeemCode.bulkWrite(ops, { ordered: false });
+    } catch (e) {
+      console.warn('[MongoDB] savePersistedRedeemCodes warning:', e.message);
+    }
+  }
 }
 
 let promoCodesCache = null;
@@ -791,10 +918,57 @@ async function savePersistedUsers(users) {
   usersCache = cleanUsers;
   usersCacheTs = Date.now();
   debouncedSave();
+
+  const { getIsMongoConnected } = require('../server/config/db');
+  if (getIsMongoConnected() && cleanUsers.length > 0) {
+    try {
+      const User = require('../server/models/User');
+      const ops = [];
+      for (const u of cleanUsers) {
+        const { _id, id, __v, password, ...rest } = u;
+        const idStr = String(_id || id || '');
+        const emailClean = u.email ? String(u.email).toLowerCase().trim() : '';
+        if (/^[0-9a-fA-F]{24}$/.test(idStr)) {
+          ops.push({ updateOne: { filter: { _id: idStr }, update: { $set: rest } } });
+        } else if (emailClean) {
+          ops.push({ updateOne: { filter: { email: emailClean }, update: { $set: rest } } });
+        }
+      }
+      if (ops.length > 0) {
+        await User.bulkWrite(ops, { ordered: false });
+      }
+    } catch (e) {
+      console.warn('[MongoDB] savePersistedUsers warning:', e.message);
+    }
+  }
 }
 
 let settingsCache = null;
 let settingsCacheTs = 0;
+
+const SETTINGS_SECRET_KEYS = ['image_api_key', 'web_search_api_key', 'voice_live_api_key'];
+
+function decryptSettingsSecrets(rawObj) {
+  if (!rawObj || typeof rawObj !== 'object') return rawObj;
+  const out = { ...rawObj };
+  for (const k of SETTINGS_SECRET_KEYS) {
+    if (typeof out[k] === 'string' && out[k]) {
+      out[k] = decryptSecret(out[k]);
+    }
+  }
+  return out;
+}
+
+function encryptSettingsSecrets(rawObj) {
+  if (!rawObj || typeof rawObj !== 'object') return rawObj;
+  const out = { ...rawObj };
+  for (const k of SETTINGS_SECRET_KEYS) {
+    if (typeof out[k] === 'string' && out[k].trim()) {
+      out[k] = encryptSecret(out[k]);
+    }
+  }
+  return out;
+}
 
 async function getSystemSettings() {
   const now = Date.now();
@@ -808,6 +982,12 @@ async function getSystemSettings() {
     image_api_key: '',
     image_size: '1024x1024',
     image_enhance: true,
+    voice_provider: 'gemini_live',
+    voice_live_model: 'gemini-2.5-flash-native-audio-preview-12-2025',
+    voice_live_url: '',
+    voice_live_api_key: '',
+    voice_stt_url: '',
+    voice_system_prompt: '',
     web_search_provider: 'duckduckgo',
     web_search_api_key: '',
     web_search_custom_url: '',
@@ -834,11 +1014,11 @@ async function getSystemSettings() {
       const SystemSetting = require('../server/models/SystemSetting');
       const doc = await SystemSetting.findOne({ key: '__system_settings__' }).lean();
       if (doc && doc.value && typeof doc.value === 'object') {
-        const merged = { ...defaultSettings, ...doc.value };
+        const merged = decryptSettingsSecrets({ ...defaultSettings, ...doc.value });
         settingsCache = merged;
         settingsCacheTs = now;
         if (!memoryStore.settings) memoryStore.settings = {};
-        Object.assign(memoryStore.settings, merged);
+        Object.assign(memoryStore.settings, encryptSettingsSecrets(merged));
         return merged;
       }
     } catch (e) {
@@ -846,17 +1026,19 @@ async function getSystemSettings() {
     }
   }
 
-  const def = { ...defaultSettings, ...(memoryStore.settings || {}) };
+  const def = decryptSettingsSecrets({ ...defaultSettings, ...(memoryStore.settings || {}) });
   settingsCache = def;
   settingsCacheTs = now;
   return def;
 }
 
 async function saveSystemSettings(settings) {
-  const updated = { ...(memoryStore.settings || {}), ...settings };
-  settingsCache = updated;
+  const baseDecrypted = decryptSettingsSecrets(memoryStore.settings || {});
+  const updatedDecrypted = decryptSettingsSecrets({ ...baseDecrypted, ...settings });
+  const encryptedForDisk = encryptSettingsSecrets(updatedDecrypted);
+  settingsCache = updatedDecrypted;
   settingsCacheTs = Date.now();
-  memoryStore.settings = updated;
+  memoryStore.settings = encryptedForDisk;
   debouncedSave();
 
   const { getIsMongoConnected } = require('../server/config/db');
@@ -865,7 +1047,7 @@ async function saveSystemSettings(settings) {
       const SystemSetting = require('../server/models/SystemSetting');
       await SystemSetting.findOneAndUpdate(
         { key: '__system_settings__' },
-        { $set: { value: updated } },
+        { $set: { value: encryptedForDisk } },
         { upsert: true }
       );
     } catch (e) {
@@ -873,7 +1055,7 @@ async function saveSystemSettings(settings) {
     }
   }
 
-  return updated;
+  return updatedDecrypted;
 }
 
 async function autoPurgeOrphanedDatabaseCaches() {
@@ -960,6 +1142,10 @@ module.exports = {
   incrementUserUsage,
   getUserImageUsageDetails,
   incrementUserImageUsage,
+  getUserVoiceUsageDetails,
+  incrementUserVoiceUsage,
+  withUserQuotaLock,
+  recordUsageLogEntry,
   invalidateUserUsageCache,
   getPersistedRedeemCodes,
   savePersistedRedeemCodes,

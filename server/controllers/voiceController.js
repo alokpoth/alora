@@ -1,0 +1,1182 @@
+const http = require('http');
+const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
+const UsageLog = require('../models/UsageLog');
+const Plan = require('../models/Plan');
+const AiModel = require('../models/AiModel');
+const User = require('../models/User');
+const { getIsMongoConnected } = require('../config/db');
+const { memoryStore, debouncedSave } = require('../config/memoryStore');
+const { JWT_SECRET } = require('../config/jwtSecret');
+const {
+  getSystemSettings,
+  getModelConfig,
+  getPersistedModels,
+  getPersistedPlans,
+  getApiKeyFromSupabase,
+  getUserUsageDetails,
+  getUserVoiceUsageDetails,
+  incrementUserVoiceUsage,
+  invalidateUserUsageCache,
+  withUserQuotaLock
+} = require('../../utils/getModelConfig');
+const { DEFAULT_PLANS_MAP, normalizePlanDoc } = require('../utils/planDefaults');
+const { isPublicHttpUrl, canPlanAccessModel } = require('../utils/secretVault');
+const { redactSecrets } = require('../utils/safeError');
+const { inspectPromptSafety } = require('../utils/safetyFilter');
+
+const GEMINI_VOICE_MAP = {
+  auto: 'Aoede',
+  nova: 'Aoede',
+  cove: 'Charon',
+  breeze: 'Puck',
+  ember: 'Fenrir',
+  juniper: 'Kore'
+};
+
+const OPENAI_VOICE_MAP = {
+  auto: 'nova',
+  nova: 'nova',
+  cove: 'onyx',
+  breeze: 'shimmer',
+  ember: 'echo',
+  juniper: 'coral'
+};
+
+function wrapPcm16ToWavBase64(pcmBuffer, sampleRate = 24000, numChannels = 1) {
+  const byteRate = sampleRate * numChannels * 2;
+  const blockAlign = numChannels * 2;
+  const dataSize = pcmBuffer.length;
+  const header = Buffer.alloc(44);
+  header.write('RIFF', 0);
+  header.writeUInt32LE(36 + dataSize, 4);
+  header.write('WAVE', 8);
+  header.write('fmt ', 12);
+  header.writeUInt32LE(16, 16); // PCM chunk size
+  header.writeUInt16LE(1, 20);  // Audio format 1 = PCM
+  header.writeUInt16LE(numChannels, 22);
+  header.writeUInt32LE(sampleRate, 24);
+  header.writeUInt32LE(byteRate, 28);
+  header.writeUInt16LE(blockAlign, 32);
+  header.writeUInt16LE(16, 34); // 16 bits per sample
+  header.write('data', 36);
+  header.writeUInt32LE(dataSize, 40);
+  return Buffer.concat([header, pcmBuffer]).toString('base64');
+}
+
+function stripWavHeaderIfPresent(audioBuf) {
+  if (!Buffer.isBuffer(audioBuf) || audioBuf.length <= 44) return null;
+  if (audioBuf.slice(0, 4).toString('ascii') === 'RIFF' && audioBuf.slice(8, 12).toString('ascii') === 'WAVE') {
+    const sampleRate = audioBuf.readUInt32LE(24) || 16000;
+    let offset = 12;
+    while (offset + 8 <= audioBuf.length) {
+      const chunkId = audioBuf.slice(offset, offset + 4).toString('ascii');
+      const chunkSize = audioBuf.readUInt32LE(offset + 4);
+      if (chunkId === 'data') {
+        return { pcm: audioBuf.slice(offset + 8, Math.min(audioBuf.length, offset + 8 + chunkSize)), sampleRate };
+      }
+      offset += 8 + chunkSize;
+    }
+    return { pcm: audioBuf.slice(44), sampleRate };
+  }
+  return null;
+}
+
+function cleanSpokenText(raw) {
+  if (!raw || typeof raw !== 'string') return '';
+  return raw
+    .replace(/<think>[\s\S]*?(?:<\/think>|$)/gi, '')
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/[*_#`~>]+/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function buildVoiceSystemInstruction(language, customPrompt = '') {
+  const langRule = language === 'bn-BD'
+    ? 'Respond primarily in natural, warm conversational Bengali (বাংলা), smoothly mixing English terms only when natural.'
+    : language === 'en-US'
+      ? 'Respond primarily in natural conversational English unless the user explicitly asks for Bengali or translation.'
+      : 'Detect the user\'s spoken language automatically (especially Bengali বাংলা and English). Reply naturally in the same language, and translate smoothly between Bengali and English whenever asked.';
+  const base = `You are Alora, a warm, intelligent, real-time bilingual voice assistant created by Alokpath. Keep spoken answers concise (1 to 4 natural sentences), clear, expressive, and free of markdown symbols, bullet lists, or code blocks unless specifically requested. ${langRule}`;
+  return customPrompt && String(customPrompt).trim() ? `${base}\n${String(customPrompt).trim()}` : base;
+}
+
+async function resolveGeminiVoiceKey(settings, modelCfg) {
+  if (modelCfg && modelCfg.api_key && !String(modelCfg.api_key).startsWith('sk-placeholder')) {
+    return String(modelCfg.api_key).trim();
+  }
+  if (settings && settings.voice_live_api_key) {
+    return String(settings.voice_live_api_key).trim();
+  }
+  const envKey = process.env.GEMINI_API_KEY || (process.env.GEMINI_API_KEYS ? process.env.GEMINI_API_KEYS.split(',')[0].trim() : '');
+  if (envKey) return envKey;
+  const stored = await getApiKeyFromSupabase('__gemini_key__');
+  if (stored) return stored;
+  const models = await getPersistedModels();
+  const gMod = (models || []).find(m => m && m.api_key && /gemini/i.test(String(m.type || '') + String(m.model_id || '') + String(m.base_url || '')));
+  return gMod ? String(gMod.api_key).trim() : '';
+}
+
+async function runGeminiLiveWebSocketTurn({ apiKey, modelName, audioBase64, mimeType, textPrompt, voicePreset, systemInstruction, history = [] }) {
+  if (typeof WebSocket !== 'function') {
+    throw new Error('WebSocket client unavailable');
+  }
+  const cleanMod = String(modelName || 'gemini-2.5-flash-native-audio-preview-12-2025').replace(/^models\//, '');
+  const wsUrl = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${encodeURIComponent(apiKey)}`;
+  const voiceName = GEMINI_VOICE_MAP[voicePreset] || 'Aoede';
+
+  return await new Promise((resolve, reject) => {
+    let settled = false;
+    const pcmChunks = [];
+    let outputTranscript = '';
+    let inputTranscript = '';
+    let modelText = '';
+
+    const finish = (err, val) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      try { ws.close(); } catch {}
+      if (err) reject(err);
+      else resolve(val);
+    };
+
+    const ws = new WebSocket(wsUrl);
+    const timer = setTimeout(() => {
+      finish(new Error('Gemini Live WebSocket timeout'));
+    }, 18000);
+
+    ws.addEventListener('open', () => {
+      const setupFrame = {
+        setup: {
+          model: `models/${cleanMod}`,
+          generationConfig: {
+            responseModalities: ['AUDIO'],
+            speechConfig: {
+              voiceConfig: {
+                prebuiltVoiceConfig: { voiceName }
+              }
+            }
+          },
+          systemInstruction: {
+            parts: [{ text: systemInstruction }]
+          },
+          outputAudioTranscription: {},
+          inputAudioTranscription: {}
+        }
+      };
+      ws.send(JSON.stringify(setupFrame));
+    });
+
+    ws.addEventListener('message', async (evt) => {
+      try {
+        let rawStr = '';
+        if (typeof evt.data === 'string') {
+          rawStr = evt.data;
+        } else if (evt.data instanceof ArrayBuffer) {
+          rawStr = Buffer.from(evt.data).toString('utf8');
+        } else if (Buffer.isBuffer(evt.data)) {
+          rawStr = evt.data.toString('utf8');
+        } else if (evt.data && typeof evt.data.text === 'function') {
+          rawStr = await evt.data.text();
+        }
+        if (!rawStr) return;
+        const msg = JSON.parse(rawStr);
+
+        if (msg.error) {
+          return finish(new Error(msg.error.message || 'Gemini Live error'));
+        }
+
+        if (msg.setupComplete !== undefined) {
+          // Send prior turns if any + current user audio/text
+          const priorTurns = (Array.isArray(history) ? history.slice(-6) : [])
+            .filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content.trim())
+            .map(m => ({
+              role: m.role === 'assistant' ? 'model' : 'user',
+              parts: [{ text: m.content.slice(0, 600) }]
+            }));
+
+          if (audioBase64) {
+            const audioBuf = Buffer.from(audioBase64, 'base64');
+            const wavInfo = stripWavHeaderIfPresent(audioBuf);
+            if (wavInfo && wavInfo.pcm.length > 0) {
+              if (priorTurns.length > 0) {
+                ws.send(JSON.stringify({ clientContent: { turns: priorTurns, turnComplete: false } }));
+              }
+              ws.send(JSON.stringify({
+                realtimeInput: {
+                  mediaChunks: [{
+                    mimeType: `audio/pcm;rate=${wavInfo.sampleRate || 16000}`,
+                    data: wavInfo.pcm.toString('base64')
+                  }]
+                }
+              }));
+              ws.send(JSON.stringify({ clientContent: { turnComplete: true } }));
+              return;
+            }
+          }
+
+          const currentParts = [];
+          if (audioBase64) {
+            currentParts.push({ inlineData: { mimeType: mimeType || 'audio/webm', data: audioBase64 } });
+          }
+          if (textPrompt) {
+            currentParts.push({ text: textPrompt });
+          } else if (audioBase64) {
+            currentParts.push({ text: 'Listen carefully to the user audio and reply naturally.' });
+          }
+          ws.send(JSON.stringify({
+            clientContent: {
+              turns: [...priorTurns, { role: 'user', parts: currentParts }],
+              turnComplete: true
+            }
+          }));
+          return;
+        }
+
+        const sc = msg.serverContent;
+        if (sc) {
+          if (sc.inputTranscription && typeof sc.inputTranscription.text === 'string') {
+            inputTranscript += sc.inputTranscription.text;
+          }
+          if (sc.outputTranscription && typeof sc.outputTranscription.text === 'string') {
+            outputTranscript += sc.outputTranscription.text;
+          }
+          if (sc.modelTurn && Array.isArray(sc.modelTurn.parts)) {
+            for (const part of sc.modelTurn.parts) {
+              if (part.text) modelText += part.text;
+              if (part.inlineData && part.inlineData.data) {
+                pcmChunks.push(Buffer.from(part.inlineData.data, 'base64'));
+              }
+            }
+          }
+          if (sc.turnComplete) {
+            const wavB64 = pcmChunks.length > 0 ? wrapPcm16ToWavBase64(Buffer.concat(pcmChunks), 24000, 1) : '';
+            const finalReply = cleanSpokenText(outputTranscript || modelText);
+            return finish(null, {
+              transcript: inputTranscript.trim() || textPrompt || '',
+              reply: finalReply || (wavB64 ? ' ' : ''),
+              audio_base64: wavB64 || null,
+              audio_mime: wavB64 ? 'audio/wav' : null,
+              provider: 'gemini_live'
+            });
+          }
+        }
+      } catch (parseErr) {
+        finish(parseErr);
+      }
+    });
+
+    ws.addEventListener('error', () => {
+      finish(new Error('Gemini Live WebSocket connection failed'));
+    });
+
+    ws.addEventListener('close', (ev) => {
+      if (!settled) {
+        if (pcmChunks.length > 0 || outputTranscript || modelText) {
+          const wavB64 = pcmChunks.length > 0 ? wrapPcm16ToWavBase64(Buffer.concat(pcmChunks), 24000, 1) : '';
+          finish(null, {
+            transcript: inputTranscript.trim() || textPrompt || '',
+            reply: cleanSpokenText(outputTranscript || modelText),
+            audio_base64: wavB64 || null,
+            audio_mime: wavB64 ? 'audio/wav' : null,
+            provider: 'gemini_live'
+          });
+        } else {
+          finish(new Error(`Gemini Live closed (${ev?.code || 1006})`));
+        }
+      }
+    });
+  });
+}
+
+async function runGeminiMultimodalRestTurn({ apiKey, modelName, audioBase64, mimeType, textPrompt, systemInstruction, history = [] }) {
+  const candidateModels = [];
+  if (modelName && !String(modelName).includes('native-audio')) {
+    candidateModels.push(String(modelName).replace(/^models\//, ''));
+  }
+  candidateModels.push('gemini-2.5-flash', 'gemini-2.0-flash');
+
+  const contents = (Array.isArray(history) ? history.slice(-6) : [])
+    .filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content.trim())
+    .map(m => ({
+      role: m.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: m.content.slice(0, 600) }]
+    }));
+
+  const userParts = [];
+  if (audioBase64) {
+    const cleanMime = String(mimeType || 'audio/wav').split(';')[0].trim() || 'audio/wav';
+    userParts.push({ inlineData: { mimeType: cleanMime, data: audioBase64 } });
+    userParts.push({
+      text: textPrompt
+        ? `User said: "${textPrompt}". Return JSON: {"transcript": "...", "reply": "..."} where reply is your spoken answer.`
+        : 'Transcribe what the user spoke in the audio accurately (preserving Bengali script if Bengali, English if English) and generate your spoken reply. Return strictly valid JSON: {"transcript": "<what user said>", "reply": "<your concise spoken response>"}'
+    });
+  } else {
+    userParts.push({ text: textPrompt });
+  }
+  contents.push({ role: 'user', parts: userParts });
+
+  let lastErr = null;
+  for (const mod of candidateModels) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(mod)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+      const body = {
+        systemInstruction: { parts: [{ text: systemInstruction }] },
+        contents,
+        generationConfig: audioBase64 ? { responseMimeType: 'application/json', temperature: 0.65 } : { temperature: 0.65 }
+      };
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(16000)
+      });
+      if (!resp.ok) {
+        lastErr = new Error(`Gemini HTTP ${resp.status}`);
+        continue;
+      }
+      const data = await resp.json();
+      const rawText = data?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || '';
+      if (audioBase64) {
+        try {
+          const parsed = JSON.parse(rawText);
+          return {
+            transcript: String(parsed.transcript || textPrompt || '').trim(),
+            reply: cleanSpokenText(parsed.reply || ''),
+            audio_base64: null,
+            audio_mime: null,
+            provider: 'gemini_live'
+          };
+        } catch {
+          return {
+            transcript: textPrompt || '',
+            reply: cleanSpokenText(rawText),
+            audio_base64: null,
+            audio_mime: null,
+            provider: 'gemini_live'
+          };
+        }
+      }
+      return {
+        transcript: textPrompt || '',
+        reply: cleanSpokenText(rawText),
+        audio_base64: null,
+        audio_mime: null,
+        provider: 'gemini_live'
+      };
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  throw lastErr || new Error('Gemini voice turn failed');
+}
+
+async function transcribeAudioFallback({ audioBase64, mimeType, sttUrl, apiKey, language }) {
+  if (!audioBase64) return '';
+  const audioBuf = Buffer.from(audioBase64, 'base64');
+  const cleanMime = String(mimeType || 'audio/wav').split(';')[0].trim() || 'audio/wav';
+  const ext = cleanMime.includes('webm') ? 'webm' : (cleanMime.includes('mp4') ? 'm4a' : (cleanMime.includes('ogg') ? 'ogg' : 'wav'));
+
+  // 1. Custom STT URL or Groq Whisper if key available
+  const groqKey = process.env.GROQ_API_KEY || (await getApiKeyFromSupabase('__groq_key__')) || '';
+  const targetSttUrl = (sttUrl && isPublicHttpUrl(sttUrl))
+    ? sttUrl.trim()
+    : (groqKey ? 'https://api.groq.com/openai/v1/audio/transcriptions' : '');
+  const targetKey = (sttUrl && apiKey) ? apiKey : groqKey;
+
+  if (targetSttUrl && targetKey && typeof FormData === 'function' && typeof Blob === 'function') {
+    try {
+      const form = new FormData();
+      form.append('file', new Blob([audioBuf], { type: cleanMime }), `speech.${ext}`);
+      form.append('model', targetSttUrl.includes('groq.com') ? 'whisper-large-v3-turbo' : 'whisper-1');
+      if (language === 'bn-BD') form.append('language', 'bn');
+      else if (language === 'en-US') form.append('language', 'en');
+
+      const sttRes = await fetch(targetSttUrl, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${targetKey}` },
+        body: form,
+        signal: AbortSignal.timeout(12000)
+      });
+      if (sttRes.ok) {
+        const sttJson = await sttRes.json();
+        if (sttJson && typeof sttJson.text === 'string' && sttJson.text.trim()) {
+          return sttJson.text.trim();
+        }
+      }
+    } catch {}
+  }
+
+  // 2. Gemini Multimodal STT fallback if Gemini key exists
+  const gKey = await resolveGeminiVoiceKey(null, null);
+  if (gKey) {
+    try {
+      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(gKey)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            role: 'user',
+            parts: [
+              { inlineData: { mimeType: cleanMime, data: audioBase64 } },
+              { text: 'Transcribe the exact spoken words from this audio (in Bengali script if Bengali, English if English). Return ONLY the transcript text and nothing else. If silent, return empty string.' }
+            ]
+          }]
+        }),
+        signal: AbortSignal.timeout(12000)
+      });
+      if (r.ok) {
+        const d = await r.json();
+        const t = d?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        return t.trim();
+      }
+    } catch {}
+  }
+
+  return '';
+}
+
+async function runCustomVoiceApiTurn({ apiUrl, apiKey, modelName, audioBase64, mimeType, textPrompt, voicePreset, systemInstruction, sttUrl, language, history = [] }) {
+  if (!apiUrl || !isPublicHttpUrl(apiUrl)) {
+    throw new Error('সঠিক কাস্টম ভয়েস API URL কনফিগার করা হয়নি।');
+  }
+  let endpoint = apiUrl.trim();
+  if (!endpoint.endsWith('/chat/completions') && !endpoint.includes('/models/') && !endpoint.includes(':generateContent')) {
+    endpoint = endpoint.replace(/\/+$/, '') + '/chat/completions';
+  }
+
+  const headers = { 'Content-Type': 'application/json' };
+  if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+
+  const priorMsgs = [
+    { role: 'system', content: systemInstruction },
+    ...(Array.isArray(history) ? history.slice(-6) : [])
+      .filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
+      .map(m => ({ role: m.role, content: m.content.slice(0, 600) }))
+  ];
+
+  const isAudioPreviewModel = /audio/i.test(String(modelName || ''));
+  const wavCheck = audioBase64 ? stripWavHeaderIfPresent(Buffer.from(audioBase64, 'base64')) : null;
+
+  if (isAudioPreviewModel && (wavCheck || textPrompt)) {
+    const userContent = [];
+    if (wavCheck) {
+      userContent.push({ type: 'input_audio', input_audio: { data: audioBase64, format: 'wav' } });
+    }
+    if (textPrompt) {
+      userContent.push({ type: 'text', text: textPrompt });
+    }
+    const resp = await fetch(endpoint, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        model: modelName || 'gpt-4o-audio-preview',
+        modalities: ['text', 'audio'],
+        audio: { voice: OPENAI_VOICE_MAP[voicePreset] || 'nova', format: 'wav' },
+        messages: [...priorMsgs, { role: 'user', content: userContent }]
+      }),
+      signal: AbortSignal.timeout(20000)
+    });
+    if (resp.ok) {
+      const data = await resp.json();
+      const msg = data?.choices?.[0]?.message || {};
+      const outAudio = msg?.audio?.data || null;
+      const outTranscript = msg?.audio?.transcript || (typeof msg.content === 'string' ? msg.content : '') || '';
+      return {
+        transcript: textPrompt || '',
+        reply: cleanSpokenText(outTranscript),
+        audio_base64: outAudio,
+        audio_mime: outAudio ? 'audio/wav' : null,
+        provider: 'custom_api'
+      };
+    }
+  }
+
+  let spokenText = String(textPrompt || '').trim();
+  if (!spokenText && audioBase64) {
+    spokenText = await transcribeAudioFallback({ audioBase64, mimeType, sttUrl, apiKey, language });
+  }
+  if (!spokenText) {
+    return { transcript: '', reply: '', audio_base64: null, audio_mime: null, empty_audio: true, provider: 'custom_api' };
+  }
+
+  const resp = await fetch(endpoint, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      model: modelName || 'gpt-4o-mini',
+      messages: [...priorMsgs, { role: 'user', content: spokenText }],
+      temperature: 0.65,
+      stream: false
+    }),
+    signal: AbortSignal.timeout(18000)
+  });
+  if (!resp.ok) {
+    throw new Error(`Custom Voice API HTTP ${resp.status}`);
+  }
+  const data = await resp.json();
+  const replyText = data?.choices?.[0]?.message?.content || data?.reply || data?.text || '';
+  return {
+    transcript: spokenText,
+    reply: cleanSpokenText(replyText),
+    audio_base64: data?.audio_base64 || null,
+    audio_mime: data?.audio_base64 ? (data.audio_mime || 'audio/wav') : null,
+    provider: 'custom_api'
+  };
+}
+
+async function runChatModelVoiceTurn({ targetModelId, audioBase64, mimeType, textPrompt, systemInstruction, sttUrl, language, history = [] }) {
+  let spokenText = String(textPrompt || '').trim();
+  if (!spokenText && audioBase64) {
+    spokenText = await transcribeAudioFallback({ audioBase64, mimeType, sttUrl, apiKey: '', language });
+  }
+  if (!spokenText) {
+    return { transcript: '', reply: '', audio_base64: null, audio_mime: null, empty_audio: true, provider: 'chat_models' };
+  }
+
+  const models = await getPersistedModels();
+  let modelCfg = targetModelId
+    ? ((await getModelConfig(targetModelId)) || (models || []).find(m => m && (m.id === targetModelId || m.model_id === targetModelId)))
+    : null;
+  if (!modelCfg && Array.isArray(models) && models.length > 0) {
+    modelCfg = models.find(m => m && m.is_active !== false) || models[0];
+  }
+
+  const tiers = [];
+  if (modelCfg) {
+    tiers.push({
+      url: modelCfg.base_url || '',
+      key: modelCfg.api_key || '',
+      mod: modelCfg.api_model_1 || modelCfg.model_id || modelCfg.id,
+      type: modelCfg.type || ''
+    });
+    if (modelCfg.fallback_url_1 || modelCfg.api_model_2 || modelCfg.fallback_model_1) {
+      tiers.push({
+        url: modelCfg.fallback_url_1 || modelCfg.base_url || '',
+        key: modelCfg.fallback_key_1 || modelCfg.api_key || '',
+        mod: modelCfg.api_model_2 || modelCfg.fallback_model_1,
+        type: ''
+      });
+    }
+    if (modelCfg.fallback_url_2 || modelCfg.api_model_3 || modelCfg.fallback_model_2) {
+      tiers.push({
+        url: modelCfg.fallback_url_2 || modelCfg.base_url || '',
+        key: modelCfg.fallback_key_2 || modelCfg.api_key || '',
+        mod: modelCfg.api_model_3 || modelCfg.fallback_model_2,
+        type: ''
+      });
+    }
+  } else {
+    tiers.push({
+      url: 'https://openrouter.ai/api/v1/chat/completions',
+      key: process.env.OPENROUTER_API_KEY || (await getApiKeyFromSupabase('__openrouter_key__')) || '',
+      mod: targetModelId || 'openrouter/free',
+      type: 'openrouter'
+    });
+  }
+
+  const messages = [
+    { role: 'system', content: systemInstruction },
+    ...(Array.isArray(history) ? history.slice(-6) : [])
+      .filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
+      .map(m => ({ role: m.role, content: m.content.slice(0, 600) })),
+    { role: 'user', content: spokenText }
+  ];
+
+  for (const tier of tiers) {
+    if (!tier.mod) continue;
+    try {
+      const isGem = tier.type === 'gemini' || String(tier.mod).startsWith('gemini-') || String(tier.url).includes('generativelanguage.googleapis.com');
+      if (isGem && !String(tier.url).includes('/openai/')) {
+        const gKey = tier.key || (await resolveGeminiVoiceKey(null, modelCfg));
+        if (!gKey) continue;
+        const gMod = String(tier.mod === 'gemini-3.5-flash-lite' || tier.mod === 'gemini-3.6-flash' ? 'gemini-2.5-flash' : tier.mod);
+        const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(gMod)}:generateContent?key=${encodeURIComponent(gKey)}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: systemInstruction }] },
+            contents: messages.filter(m => m.role !== 'system').map(m => ({
+              role: m.role === 'assistant' ? 'model' : 'user',
+              parts: [{ text: m.content }]
+            }))
+          }),
+          signal: AbortSignal.timeout(15000)
+        });
+        if (r.ok) {
+          const d = await r.json();
+          const txt = d?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || '';
+          if (txt.trim()) {
+            return {
+              transcript: spokenText,
+              reply: cleanSpokenText(txt),
+              audio_base64: null,
+              audio_mime: null,
+              model: modelCfg?.name || 'Alora Voice',
+              provider: 'chat_models'
+            };
+          }
+        }
+        continue;
+      }
+
+      let url = tier.url;
+      let key = tier.key;
+      if (!url) {
+        if (tier.type === 'groq' || tier.mod === 'openai/gpt-oss-120b') {
+          url = 'https://api.groq.com/openai/v1/chat/completions';
+          key = key || process.env.GROQ_API_KEY || (await getApiKeyFromSupabase('__groq_key__')) || '';
+        } else {
+          url = 'https://openrouter.ai/api/v1/chat/completions';
+          key = key || process.env.OPENROUTER_API_KEY || (await getApiKeyFromSupabase('__openrouter_key__')) || '';
+        }
+      }
+      if (!isPublicHttpUrl(url)) continue;
+      if (!url.endsWith('/chat/completions') && !url.endsWith('/completions')) {
+        url = url.replace(/\/+$/, '') + '/chat/completions';
+      }
+      const headers = { 'Content-Type': 'application/json' };
+      if (key) headers['Authorization'] = `Bearer ${key}`;
+      const r = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ model: tier.mod, messages, temperature: 0.65, stream: false }),
+        signal: AbortSignal.timeout(15000)
+      });
+      if (r.ok) {
+        const d = await r.json();
+        const txt = d?.choices?.[0]?.message?.content || '';
+        if (txt && String(txt).trim()) {
+          return {
+            transcript: spokenText,
+            reply: cleanSpokenText(String(txt)),
+            audio_base64: null,
+            audio_mime: null,
+            model: modelCfg?.name || 'Alora Voice',
+            provider: 'chat_models'
+          };
+        }
+      }
+    } catch {}
+  }
+
+  throw new Error('ভয়েস উত্তর তৈরি করতে মডেল বর্তমানে ব্যস্ত আছে।');
+}
+
+async function executeVoiceTurn(payload = {}, forcedSettings = null, planObj = null, planName = 'Free') {
+  const settings = forcedSettings ? { ...(await getSystemSettings()), ...forcedSettings } : await getSystemSettings();
+  const {
+    audio_base64 = '',
+    mime_type = 'audio/wav',
+    text_prompt = '',
+    voice_preset = 'auto',
+    language = 'auto',
+    chat_model = '',
+    voice_model = '',
+    messages = []
+  } = payload;
+
+  const cleanAudio = typeof audio_base64 === 'string' ? audio_base64.replace(/^data:[^;]+;base64,/, '').trim() : '';
+  const cleanText = typeof text_prompt === 'string' ? text_prompt.trim().slice(0, 4000) : '';
+
+  if (!cleanAudio && !cleanText) {
+    const err = new Error('কোনো ভয়েস অডিও বা টেক্সট পাওয়া যায়নি।');
+    err.statusCode = 400;
+    throw err;
+  }
+  if (cleanAudio && cleanAudio.length > 6 * 1024 * 1024) {
+    const err = new Error('ভয়েস অডিও সাইজ অতিরিক্ত বড়। ছোট করে বলুন।');
+    err.statusCode = 400;
+    throw err;
+  }
+  if (cleanText) {
+    const safety = inspectPromptSafety(cleanText);
+    if (safety.blocked) {
+      const err = new Error(safety.message);
+      err.statusCode = 400;
+      err.code = 'SAFETY_BLOCKED';
+      throw err;
+    }
+  }
+
+  const sysInstruction = buildVoiceSystemInstruction(language, settings.voice_system_prompt);
+
+  // Determine effective provider & model (honoring per-plan voice_model override & explicit voice models)
+  let provider = ['gemini_live', 'custom_api', 'chat_models'].includes(settings.voice_provider)
+    ? settings.voice_provider
+    : 'gemini_live';
+  let chosenModelId = String(voice_model || chat_model || '').trim();
+  const planOverride = planObj && typeof planObj.voice_model === 'string' ? planObj.voice_model.trim() : '';
+
+  if (!forcedSettings && planOverride) {
+    if (planOverride === '__gemini_live__') {
+      provider = 'gemini_live';
+    } else if (planOverride === '__custom_voice__') {
+      provider = 'custom_api';
+    } else if (planOverride === '__chat_models__') {
+      provider = 'chat_models';
+    } else {
+      chosenModelId = planOverride;
+    }
+  }
+
+  let explicitModelCfg = null;
+  if (chosenModelId) {
+    explicitModelCfg = await getModelConfig(chosenModelId);
+    if (explicitModelCfg && !canPlanAccessModel(explicitModelCfg, planName, planObj)) {
+      explicitModelCfg = null;
+    }
+    if (explicitModelCfg && explicitModelCfg.category === 'voice') {
+      if (explicitModelCfg.type === 'gemini' || /gemini/i.test(String(explicitModelCfg.api_model_1 || explicitModelCfg.model_id || ''))) {
+        provider = 'gemini_live';
+      } else if (explicitModelCfg.base_url) {
+        provider = 'custom_api';
+      } else {
+        provider = 'chat_models';
+      }
+    }
+  }
+
+  if (provider === 'gemini_live') {
+    const gKey = await resolveGeminiVoiceKey(settings, explicitModelCfg);
+    const liveMod = (explicitModelCfg && explicitModelCfg.category === 'voice' && (explicitModelCfg.api_model_1 || explicitModelCfg.model_id))
+      ? (explicitModelCfg.api_model_1 || explicitModelCfg.model_id)
+      : (settings.voice_live_model || 'gemini-2.5-flash-native-audio-preview-12-2025');
+
+    if (gKey) {
+      try {
+        const wsResult = await runGeminiLiveWebSocketTurn({
+          apiKey: gKey,
+          modelName: liveMod,
+          audioBase64: cleanAudio,
+          mimeType: mime_type,
+          textPrompt: cleanText,
+          voicePreset: voice_preset,
+          systemInstruction: sysInstruction,
+          history: messages
+        });
+        if (wsResult && (wsResult.reply || wsResult.audio_base64)) {
+          return { ...wsResult, model: explicitModelCfg?.name || 'Alora Live Voice' };
+        }
+      } catch (wsErr) {
+        // Seamless fallback to Gemini multimodal REST generateContent
+        try {
+          const restRes = await runGeminiMultimodalRestTurn({
+            apiKey: gKey,
+            modelName: liveMod,
+            audioBase64: cleanAudio,
+            mimeType: mime_type,
+            textPrompt: cleanText,
+            systemInstruction: sysInstruction,
+            history: messages
+          });
+          return { ...restRes, model: explicitModelCfg?.name || 'Alora Live Voice' };
+        } catch (restErr) {
+          if (!cleanText && !forcedSettings) {
+            throw new Error('Gemini Live বর্তমানে সাড়া দিচ্ছে না। কিছুক্ষণ পর আবার চেষ্টা করুন।');
+          }
+          if (forcedSettings) throw restErr;
+        }
+      }
+    } else if (forcedSettings) {
+      throw new Error('Gemini Live API Key কনফিগার করা হয়নি।');
+    }
+    // Fallback to chat_models if Gemini key isn't configured yet
+    return await runChatModelVoiceTurn({
+      targetModelId: chosenModelId,
+      audioBase64: cleanAudio,
+      mimeType: mime_type,
+      textPrompt: cleanText,
+      systemInstruction: sysInstruction,
+      sttUrl: settings.voice_stt_url,
+      language,
+      history: messages
+    });
+  }
+
+  if (provider === 'custom_api') {
+    const customUrl = (explicitModelCfg && explicitModelCfg.base_url) ? explicitModelCfg.base_url : settings.voice_live_url;
+    const customKey = (explicitModelCfg && explicitModelCfg.api_key) ? explicitModelCfg.api_key : settings.voice_live_api_key;
+    const customMod = (explicitModelCfg && (explicitModelCfg.api_model_1 || explicitModelCfg.model_id))
+      ? (explicitModelCfg.api_model_1 || explicitModelCfg.model_id)
+      : settings.voice_live_model;
+    const resCustom = await runCustomVoiceApiTurn({
+      apiUrl: customUrl,
+      apiKey: customKey,
+      modelName: customMod,
+      audioBase64: cleanAudio,
+      mimeType: mime_type,
+      textPrompt: cleanText,
+      voicePreset: voice_preset,
+      systemInstruction: sysInstruction,
+      sttUrl: settings.voice_stt_url,
+      language,
+      history: messages
+    });
+    return { ...resCustom, model: explicitModelCfg?.name || 'Alora Voice' };
+  }
+
+  // Default / 'chat_models': use regular chat models with bilingual response/translation
+  return await runChatModelVoiceTurn({
+    targetModelId: chosenModelId,
+    audioBase64: cleanAudio,
+    mimeType: mime_type,
+    textPrompt: cleanText,
+    systemInstruction: sysInstruction,
+    sttUrl: settings.voice_stt_url,
+    language,
+    history: messages
+  });
+}
+
+const handleLiveVoiceTurn = async (req, res) => {
+  const userId = req.user ? String(req.user._id || req.user.id) : (req.guestId ? String(req.guestId) : null);
+  try {
+    const planObj = req.currentPlan || DEFAULT_PLANS_MAP.Free;
+    const planName = req.user ? (planObj.name || 'Free') : 'Guest';
+
+    const result = await executeVoiceTurn(req.body || {}, null, planObj, planName);
+
+    // If audio was pure silence, roll back reserved cache slot and do not deduct voice quota
+    if (result.empty_audio) {
+      if (req.user && userId) {
+        invalidateUserUsageCache(userId);
+      }
+      return res.json({
+        success: true,
+        empty_audio: true,
+        transcript: '',
+        reply: '',
+        audio_base64: null
+      });
+    }
+
+    // Check output prompt safety if transcript came from raw audio
+    if (result.transcript) {
+      const safety = inspectPromptSafety(result.transcript);
+      if (safety.blocked) {
+        if (req.user && userId) invalidateUserUsageCache(userId);
+        return res.status(400).json({ success: false, code: 'SAFETY_BLOCKED', error: safety.message });
+      }
+    }
+
+    if (userId) {
+      if (getIsMongoConnected()) {
+        UsageLog.create({
+          user_id: userId,
+          model_id: 'voice-live',
+          timestamp: new Date()
+        }).catch(() => {});
+      } else {
+        memoryStore.usageLogs.push({
+          _id: 'log_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+          user_id: userId,
+          model_id: 'voice-live',
+          timestamp: new Date()
+        });
+        if (memoryStore.usageLogs.length > 5000) {
+          memoryStore.usageLogs = memoryStore.usageLogs.slice(-5000);
+        }
+        debouncedSave();
+      }
+      if (!req._quotaCacheReserved) {
+        await incrementUserVoiceUsage(userId, planObj.window_hours || 3).catch(() => {});
+      }
+    }
+
+    let voiceUsage = null;
+    if (req.user && userId && planObj.name !== 'Admin') {
+      const [vDet, mDet] = await Promise.all([
+        getUserVoiceUsageDetails(userId, planObj.window_hours || 3),
+        getUserUsageDetails(userId, planObj.window_hours || 3)
+      ]);
+      voiceUsage = {
+        voiceUsed: vDet.count,
+        voiceLimit: Number(planObj.voice_limit ?? 0),
+        voiceRemaining: Math.max(0, Number(planObj.voice_limit ?? 0) - vDet.count),
+        used: mDet.count,
+        limit: Number(planObj.message_limit || 50),
+        remaining: Math.max(0, Number(planObj.message_limit || 50) - mDet.count)
+      };
+    }
+
+    return res.json({
+      success: true,
+      transcript: result.transcript || '',
+      reply: result.reply || '',
+      audio_base64: result.audio_base64 || null,
+      audio_mime: result.audio_mime || null,
+      provider: result.provider || 'gemini_live',
+      model: result.model || 'Alora Live Voice',
+      usage: voiceUsage
+    });
+  } catch (error) {
+    if (req.user && userId) {
+      invalidateUserUsageCache(userId);
+    }
+    const status = error.statusCode || 500;
+    return res.status(status).json({
+      success: false,
+      code: error.code || 'VOICE_ERROR',
+      error: redactSecrets(error.message || 'ভয়েস সংযোগে সমস্যা হয়েছে।')
+    });
+  }
+};
+
+// Zero-dependency RFC-6455 WebSocket frame helpers for /ws/voice-live
+function encodeWsTextFrame(str) {
+  const payload = Buffer.from(str, 'utf8');
+  const len = payload.length;
+  let header;
+  if (len < 126) {
+    header = Buffer.alloc(2);
+    header[0] = 0x81;
+    header[1] = len;
+  } else if (len < 65536) {
+    header = Buffer.alloc(4);
+    header[0] = 0x81;
+    header[1] = 126;
+    header.writeUInt16BE(len, 2);
+  } else {
+    header = Buffer.alloc(10);
+    header[0] = 0x81;
+    header[1] = 127;
+    header.writeBigUInt64BE(BigInt(len), 2);
+  }
+  return Buffer.concat([header, payload]);
+}
+
+function attachVoiceLiveWebSocket(httpServer) {
+  if (!httpServer || typeof WebSocket !== 'function') return;
+
+  httpServer.on('upgrade', async (req, socket, head) => {
+    try {
+      const parsedUrl = new URL(req.url || '/', 'http://localhost');
+      if (parsedUrl.pathname !== '/ws/voice-live' && parsedUrl.pathname !== '/api/chat/ws/voice-live') {
+        socket.destroy();
+        return;
+      }
+
+      const wsKey = req.headers['sec-websocket-key'];
+      if (!wsKey) {
+        socket.write('HTTP/1.1 400 Bad Request\r\n\r\n');
+        socket.destroy();
+        return;
+      }
+
+      // Authenticate optional JWT token
+      let user = null;
+      const token = parsedUrl.searchParams.get('token') || '';
+      if (token) {
+        try {
+          const decoded = jwt.verify(token, JWT_SECRET);
+          if (getIsMongoConnected() && decoded.id && /^[0-9a-fA-F]{24}$/.test(String(decoded.id))) {
+            user = await User.findById(decoded.id).lean();
+          }
+          if (!user && memoryStore.users) {
+            user = memoryStore.users.find(u => String(u._id || u.id) === String(decoded.id) || (decoded.email && u.email === decoded.email));
+          }
+        } catch {}
+      }
+
+      const adminEmails = ['zihanfakir@gmail.com', 'x@zihan.uk'];
+      const isAdmin = Boolean(user && (user.role === 'admin' || (user.email && adminEmails.includes(String(user.email).toLowerCase()))));
+      const planName = isAdmin ? 'Admin' : (user?.subscription?.plan_name || (user ? 'Free' : 'Guest'));
+      let plan = DEFAULT_PLANS_MAP[planName] || DEFAULT_PLANS_MAP.Free;
+      if (!isAdmin) {
+        if (getIsMongoConnected()) {
+          try {
+            const pDoc = await Plan.findOne({ name: planName }).lean();
+            if (pDoc) plan = normalizePlanDoc(pDoc);
+          } catch {}
+        } else {
+          const pList = await getPersistedPlans();
+          const found = pList.find(p => p.name === planName);
+          if (found) plan = normalizePlanDoc(found);
+        }
+      }
+
+      const userId = user ? String(user._id || user.id) : `guest_${String(req.socket?.remoteAddress || '127.0.0.1').replace(/[^a-zA-Z0-9]/g, '_')}`;
+      if (!isAdmin && user) {
+        const [mDet, vDet] = await Promise.all([
+          getUserUsageDetails(userId, plan.window_hours || 3),
+          getUserVoiceUsageDetails(userId, plan.window_hours || 3)
+        ]);
+        if (mDet.count >= plan.message_limit || plan.voice_limit <= 0 || vDet.count >= plan.voice_limit) {
+          socket.write('HTTP/1.1 429 Too Many Requests\r\n\r\n');
+          socket.destroy();
+          return;
+        }
+      }
+
+      const settings = await getSystemSettings();
+      const gKey = await resolveGeminiVoiceKey(settings, null);
+      if (!gKey) {
+        socket.write('HTTP/1.1 503 Service Unavailable\r\n\r\n');
+        socket.destroy();
+        return;
+      }
+
+      const acceptHash = crypto
+        .createHash('sha1')
+        .update(wsKey + '258EAFA5-E914-47DA-95CA-C5AB0DC85B11')
+        .digest('base64');
+
+      socket.write(
+        'HTTP/1.1 101 Switching Protocols\r\n' +
+        'Upgrade: websocket\r\n' +
+        'Connection: Upgrade\r\n' +
+        `Sec-WebSocket-Accept: ${acceptHash}\r\n\r\n`
+      );
+
+      const voicePreset = parsedUrl.searchParams.get('voice') || 'auto';
+      const lang = parsedUrl.searchParams.get('lang') || 'auto';
+      const liveMod = String(settings.voice_live_model || 'gemini-2.5-flash-native-audio-preview-12-2025').replace(/^models\//, '');
+      const upstream = new WebSocket(`wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${encodeURIComponent(gKey)}`);
+
+      const sendClientJson = (obj) => {
+        if (!socket.destroyed) {
+          try { socket.write(encodeWsTextFrame(JSON.stringify(obj))); } catch {}
+        }
+      };
+
+      upstream.addEventListener('open', () => {
+        upstream.send(JSON.stringify({
+          setup: {
+            model: `models/${liveMod}`,
+            generationConfig: {
+              responseModalities: ['AUDIO'],
+              speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: GEMINI_VOICE_MAP[voicePreset] || 'Aoede' } } }
+            },
+            systemInstruction: { parts: [{ text: buildVoiceSystemInstruction(lang, settings.voice_system_prompt) }] },
+            outputAudioTranscription: {},
+            inputAudioTranscription: {}
+          }
+        }));
+      });
+
+      let pcmTurnChunks = [];
+      upstream.addEventListener('message', async (ev) => {
+        try {
+          const str = typeof ev.data === 'string'
+            ? ev.data
+            : (ev.data instanceof ArrayBuffer ? Buffer.from(ev.data).toString('utf8') : await ev.data.text());
+          const msg = JSON.parse(str);
+          if (msg.setupComplete !== undefined) {
+            sendClientJson({ type: 'ready' });
+            return;
+          }
+          const sc = msg.serverContent;
+          if (sc) {
+            if (sc.inputTranscription?.text) sendClientJson({ type: 'input_transcript', text: sc.inputTranscription.text });
+            if (sc.outputTranscription?.text) sendClientJson({ type: 'output_transcript', text: sc.outputTranscription.text });
+            if (sc.modelTurn?.parts) {
+              for (const p of sc.modelTurn.parts) {
+                if (p.inlineData?.data) pcmTurnChunks.push(Buffer.from(p.inlineData.data, 'base64'));
+                if (p.text) sendClientJson({ type: 'text', text: p.text });
+              }
+            }
+            if (sc.turnComplete) {
+              const wav = pcmTurnChunks.length > 0 ? wrapPcm16ToWavBase64(Buffer.concat(pcmTurnChunks), 24000, 1) : null;
+              pcmTurnChunks = [];
+              if (!isAdmin && userId) {
+                await withUserQuotaLock(userId, async () => {
+                  if (getIsMongoConnected()) {
+                    await UsageLog.create({ user_id: userId, model_id: 'voice-live', timestamp: new Date() }).catch(() => {});
+                  } else {
+                    memoryStore.usageLogs.push({ _id: 'log_' + Date.now(), user_id: userId, model_id: 'voice-live', timestamp: new Date() });
+                    debouncedSave();
+                  }
+                  await incrementUserVoiceUsage(userId, plan.window_hours || 3);
+                });
+              }
+              sendClientJson({ type: 'turn_complete', audio_base64: wav, audio_mime: wav ? 'audio/wav' : null });
+            }
+          }
+        } catch {}
+      });
+
+      upstream.addEventListener('close', () => { try { socket.end(); } catch {} });
+      upstream.addEventListener('error', () => { try { socket.destroy(); } catch {} });
+
+      let recvBuf = Buffer.alloc(0);
+      if (head && head.length) recvBuf = Buffer.concat([recvBuf, head]);
+
+      const parseFrames = () => {
+        while (recvBuf.length >= 2) {
+          const first = recvBuf[0];
+          const opcode = first & 0x0f;
+          const masked = (recvBuf[1] & 0x80) !== 0;
+          let len = recvBuf[1] & 0x7f;
+          let offset = 2;
+          if (len === 126) {
+            if (recvBuf.length < 4) return;
+            len = recvBuf.readUInt16BE(2);
+            offset = 4;
+          } else if (len === 127) {
+            if (recvBuf.length < 10) return;
+            len = Number(recvBuf.readBigUInt64BE(2));
+            offset = 10;
+          }
+          if (len > 4 * 1024 * 1024) {
+            socket.destroy();
+            return;
+          }
+          const maskLen = masked ? 4 : 0;
+          if (recvBuf.length < offset + maskLen + len) return;
+          const mask = masked ? recvBuf.slice(offset, offset + 4) : null;
+          const data = Buffer.from(recvBuf.slice(offset + maskLen, offset + maskLen + len));
+          recvBuf = recvBuf.slice(offset + maskLen + len);
+          if (masked && mask) {
+            for (let i = 0; i < data.length; i++) data[i] ^= mask[i & 3];
+          }
+          if (opcode === 0x8) {
+            try { upstream.close(); } catch {}
+            socket.end();
+            return;
+          }
+          if (opcode === 0x1 && upstream.readyState === 1) {
+            try {
+              const clientMsg = JSON.parse(data.toString('utf8'));
+              if (clientMsg.type === 'audio_pcm' && clientMsg.data) {
+                upstream.send(JSON.stringify({
+                  realtimeInput: { mediaChunks: [{ mimeType: `audio/pcm;rate=${clientMsg.rate || 16000}`, data: clientMsg.data }] }
+                }));
+              } else if (clientMsg.type === 'turn_end') {
+                upstream.send(JSON.stringify({ clientContent: { turnComplete: true } }));
+              } else if (clientMsg.type === 'text' && clientMsg.text) {
+                upstream.send(JSON.stringify({
+                  clientContent: { turns: [{ role: 'user', parts: [{ text: String(clientMsg.text).slice(0, 2000) }] }], turnComplete: true }
+                }));
+              }
+            } catch {}
+          }
+        }
+      };
+
+      socket.on('data', (chunk) => {
+        recvBuf = Buffer.concat([recvBuf, chunk]);
+        if (recvBuf.length > 5 * 1024 * 1024) {
+          socket.destroy();
+          return;
+        }
+        parseFrames();
+      });
+      socket.on('close', () => { try { upstream.close(); } catch {} });
+      socket.on('error', () => { try { upstream.close(); } catch {} });
+      parseFrames();
+    } catch {
+      try { socket.destroy(); } catch {}
+    }
+  });
+}
+
+module.exports = {
+  executeVoiceTurn,
+  handleLiveVoiceTurn,
+  attachVoiceLiveWebSocket,
+  wrapPcm16ToWavBase64
+};

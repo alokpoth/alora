@@ -182,8 +182,6 @@ const flushOnExit = () => {
     fs.writeFileSync(BACKUP_FILE, JSON.stringify(backupData, null, 2), 'utf8');
   } catch (e) {}
 };
-process.once('SIGINT', () => { flushOnExit(); process.exit(0); });
-process.once('SIGTERM', () => { flushOnExit(); process.exit(0); });
 process.once('beforeExit', () => { flushOnExit(); });
 
-module.exports = { memoryStore, debouncedSave, saveBackup };
+module.exports = { memoryStore, debouncedSave, saveBackup, flushOnExit };
