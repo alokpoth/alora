@@ -36,8 +36,10 @@ const redactSettingsSecretsForAdmin = (s) => {
   const copy = { ...s };
   copy.has_image_api_key = Boolean(copy.image_api_key && String(copy.image_api_key).trim());
   copy.has_web_search_api_key = Boolean(copy.web_search_api_key && String(copy.web_search_api_key).trim());
+  copy.has_discord_client_secret = Boolean(copy.discord_client_secret && String(copy.discord_client_secret).trim());
   delete copy.image_api_key;
   delete copy.web_search_api_key;
+  delete copy.discord_client_secret;
   return copy;
 };
 
@@ -1700,30 +1702,28 @@ const updateSettings = async (req, res) => {
     const rawBody = (typeof req.body === 'object' && req.body !== null && !Array.isArray(req.body)) ? req.body : {};
     const existingSettings = await getSystemSettings();
     const toSave = {};
+    const WRITE_ONLY_SECRETS = {
+      image_api_key: 'clear_image_api_key',
+      web_search_api_key: 'clear_web_search_api_key',
+      discord_client_secret: 'clear_discord_client_secret'
+    };
+    const clearKeys = new Set(Object.values(WRITE_ONLY_SECRETS));
     for (const [k, v] of Object.entries(rawBody)) {
       if (k === '__proto__' || k === 'constructor' || k === 'prototype') continue;
-      if (k === 'clear_image_api_key' || k === 'clear_web_search_api_key') continue;
-      if (k === 'image_api_key') {
+      if (clearKeys.has(k)) continue;
+      if (Object.prototype.hasOwnProperty.call(WRITE_ONLY_SECRETS, k)) {
         const str = typeof v === 'string' ? v.trim() : '';
-        if (str) toSave.image_api_key = str;
+        if (str) toSave[k] = str;
         continue;
       }
-      if (k === 'web_search_api_key') {
-        const str = typeof v === 'string' ? v.trim() : '';
-        if (str) toSave.web_search_api_key = str;
-        continue;
+      toSave[k] = k === 'discord_client_id' && typeof v === 'string' ? v.trim() : v;
+    }
+    for (const [secretKey, clearFlag] of Object.entries(WRITE_ONLY_SECRETS)) {
+      if (rawBody[clearFlag] === true) {
+        toSave[secretKey] = '';
+      } else if (!Object.prototype.hasOwnProperty.call(toSave, secretKey) && existingSettings[secretKey]) {
+        toSave[secretKey] = existingSettings[secretKey];
       }
-      toSave[k] = v;
-    }
-    if (rawBody.clear_image_api_key === true) {
-      toSave.image_api_key = '';
-    } else if (!Object.prototype.hasOwnProperty.call(toSave, 'image_api_key') && existingSettings.image_api_key) {
-      toSave.image_api_key = existingSettings.image_api_key;
-    }
-    if (rawBody.clear_web_search_api_key === true) {
-      toSave.web_search_api_key = '';
-    } else if (!Object.prototype.hasOwnProperty.call(toSave, 'web_search_api_key') && existingSettings.web_search_api_key) {
-      toSave.web_search_api_key = existingSettings.web_search_api_key;
     }
     const saved = await saveSystemSettings(toSave);
     debouncedSave();

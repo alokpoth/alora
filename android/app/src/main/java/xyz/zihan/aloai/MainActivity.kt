@@ -822,7 +822,7 @@ class MainActivity : AppCompatActivity() {
                         if (scheme == "https" || scheme == "http") {
                             val extras = Bundle().apply {
                                 putBinder("android.support.customtabs.extra.SESSION", null)
-                                putInt("android.support.customtabs.extra.TOOLBAR_COLOR", Color.parseColor("#212121"))
+                                putInt("android.support.customtabs.extra.TOOLBAR_COLOR", Color.parseColor("#000000"))
                                 putInt("android.support.customtabs.extra.TITLE_VISIBILITY", 1)
                                 putInt("android.support.customtabs.extra.SHARE_MENU_ITEM", 2)
                             }

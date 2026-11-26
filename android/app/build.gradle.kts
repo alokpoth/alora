@@ -20,9 +20,9 @@ android {
         applicationId = "xyz.zihan.aloai"
         minSdk = 24
         targetSdk = 35
-        // 4-part base-10 rollover versioning: 1.3.0.1 .. 1.3.0.9 -> 1.3.1.0
-        versionCode = 21
-        versionName = "1.5.0.0"
+        // Version format strictly pinned to 1.0.0.XX (increment only XX unless explicitly authorized)
+        versionCode = 22
+        versionName = "1.0.0.22"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

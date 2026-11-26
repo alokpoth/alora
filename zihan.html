@@ -1739,6 +1739,50 @@
           <pre id="searchTestOutput" style="font-size: 0.82rem; color: #e2e8f0; white-space: pre-wrap; word-break: break-word; background: rgba(0,0,0,0.4); padding: 10px; border-radius: 8px; margin: 0; max-height: 220px; overflow-y: auto;"></pre>
         </div>
       </form>
+
+      <!-- Card 3: Discord Sign-In (OAuth2) Settings -->
+      <form id="discordOAuthSettingsForm" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); padding: 20px; border-radius: 14px; display: flex; flex-direction: column; gap: 16px; margin-top: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 12px;">
+          <h4 style="color: #818cf8; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; margin: 0;">
+            <span></span> Discord সাইন-ইন কনফিগারেশন (Discord OAuth2)
+          </h4>
+          <span style="font-size: 0.8rem; color: var(--text-muted); background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.3); padding: 3px 10px; border-radius: 999px;">Social Login</span>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group" style="flex: 1; min-width: 220px;">
+            <label>Discord Client ID *</label>
+            <input type="text" id="settingDiscordClientId" placeholder="Discord Developer Portal -> OAuth2 -> Client ID">
+          </div>
+
+          <div class="form-group" style="flex: 1.2; min-width: 240px;">
+            <label style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <span>Discord Client Secret *</span>
+              <span id="settingDiscordSecretSavedBadge" style="display:none;font-size:0.7rem;padding:2px 8px;border-radius:999px;background:rgba(34,197,94,0.14);color:#4ade80;border:1px solid rgba(34,197,94,0.3);">✓ Secret সংরক্ষিত (লুকানো)</span>
+            </label>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <div style="position: relative; display: flex; align-items: center; flex: 1;">
+                <input type="password" id="settingDiscordClientSecret" placeholder="Discord OAuth2 Client Secret পেস্ট করুন..." style="width: 100%; padding-right: 40px;">
+                <button type="button" id="toggleSettingDiscordSecretBtn" class="btn-icon" onclick="togglePasswordVisibility('settingDiscordClientSecret')" style="position: absolute; right: 6px; background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px;" title="গোপন মান দেখান / লুকান"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+              </div>
+              <button type="button" id="clearSettingDiscordSecretBtn" class="btn btn-danger" style="display:none;padding:8px 10px;font-size:0.75rem;" onclick="clearSavedSystemKey('discord')">✕ ক্লিয়ার</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.22); border-radius: 10px; padding: 12px 14px; font-size: 0.78rem; color: #c7d2fe; line-height: 1.55;">
+          <strong>Discord Developer Portal Redirect URIs (OAuth2 -> General -> Redirects):</strong><br>
+          <code>https://alora.zdots.net/api/auth/discord/callback</code><br>
+          <code>https://alora-backend-emw3.onrender.com/api/auth/discord/callback</code><br>
+          <code>https://alora.zihan.xyz/api/auth/discord/callback</code>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: 6px;">
+          <button type="submit" id="btnSaveDiscordSettings" class="btn btn-primary" style="padding: 9px 24px;">
+            Discord সাইন-ইন সংরক্ষণ করুন
+          </button>
+        </div>
+      </form>
     </div>
 
     <!-- Section 6: System Prompt Settings -->
@@ -3994,9 +4038,11 @@
     }
 
     async function clearSavedSystemKey(kind) {
-      const confirmed = await customConfirm("আপনি কি নিশ্চিত সংরক্ষিত API Key টি স্থায়ীভাবে মুছে ফেলতে চান?", "API Key ক্লিয়ার");
+      const confirmed = await customConfirm("আপনি কি নিশ্চিত সংরক্ষিত API Key / Secret টি স্থায়ীভাবে মুছে ফেলতে চান?", "গোপন মান ক্লিয়ার");
       if (!confirmed) return;
-      const payload = kind === "image" ? { clear_image_api_key: true } : { clear_web_search_api_key: true };
+      const payload = kind === "image"
+        ? { clear_image_api_key: true }
+        : (kind === "discord" ? { clear_discord_client_secret: true } : { clear_web_search_api_key: true });
       try {
         const res = await authFetch(`${API_BASE}/zihan/settings`, {
           method: "PUT",
@@ -4079,6 +4125,18 @@
           // System Prompt Field
           const inputSystemPrompt = document.getElementById("settingSystemPrompt");
           if (inputSystemPrompt) inputSystemPrompt.value = s.system_prompt || "";
+
+          // Discord OAuth2 Fields
+          const discordIdInput = document.getElementById("settingDiscordClientId");
+          if (discordIdInput) discordIdInput.value = s.discord_client_id || "";
+          applyWriteOnlySystemKey(
+            "settingDiscordClientSecret",
+            "toggleSettingDiscordSecretBtn",
+            "settingDiscordSecretSavedBadge",
+            "clearSettingDiscordSecretBtn",
+            Boolean(s.has_discord_client_secret),
+            "Discord OAuth2 Client Secret পেস্ট করুন..."
+          );
 
           // Free Trial Offer Fields
           const trialEnabled = document.getElementById("settingTrialEnabled");
@@ -4247,6 +4305,40 @@
           const data = await res.json();
           if (data.success) {
             showToast(searchKeyVal ? "ওয়েব সার্চ ও API Key সংরক্ষিত হয়েছে (Key এখন লুকানো)" : "ওয়েব সার্চ সেটিংস সফলভাবে সংরক্ষিত হয়েছে", "success");
+            loadSettings();
+          } else {
+            showToast(data.error || "সেভ করতে সমস্যা হয়েছে", "error");
+          }
+        } catch (err) {
+          showToast("সার্ভারে সমস্যা হয়েছে", "error");
+        } finally {
+          if (btn) btn.disabled = false;
+        }
+      });
+    }
+
+    // Save Discord OAuth2 Settings
+    const discordOAuthSettingsForm = document.getElementById("discordOAuthSettingsForm");
+    if (discordOAuthSettingsForm) {
+      discordOAuthSettingsForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById("btnSaveDiscordSettings");
+        if (btn) btn.disabled = true;
+
+        const discordSecretVal = (document.getElementById("settingDiscordClientSecret")?.value || "").trim();
+        const payload = {
+          discord_client_id: (document.getElementById("settingDiscordClientId")?.value || "").trim()
+        };
+        if (discordSecretVal) payload.discord_client_secret = discordSecretVal;
+
+        try {
+          const res = await authFetch(`${API_BASE}/zihan/settings`, {
+            method: "PUT",
+            body: JSON.stringify(payload)
+          });
+          const data = await res.json();
+          if (data.success) {
+            showToast(discordSecretVal ? "Discord OAuth2 ও Secret সংরক্ষিত হয়েছে (Secret এখন লুকানো)" : "Discord Client ID সংরক্ষিত হয়েছে", "success");
             loadSettings();
           } else {
             showToast(data.error || "সেভ করতে সমস্যা হয়েছে", "error");
