@@ -515,9 +515,12 @@
     /* Toast */
     .toast {
       position: fixed;
-      bottom: max(20px, env(safe-area-inset-bottom, 20px));
+      top: max(66px, calc(env(safe-area-inset-top, 0px) + 64px));
+      bottom: auto;
       left: 50%;
       transform: translateX(-50%);
+      pointer-events: none;
+      max-width: calc(100vw - 24px);
       padding: 10px 20px;
       border-radius: 9999px;
       font-size: 0.88rem;
@@ -530,6 +533,8 @@
       display: none;
       backdrop-filter: none;
       white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .toast.success { border-color: rgba(255, 255, 255, 0.25);  }
     .toast.error { border-color: #ef4444; }

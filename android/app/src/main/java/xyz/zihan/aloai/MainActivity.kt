@@ -19,7 +19,9 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
 import android.os.Looper
+import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
 import android.util.Base64
 import android.util.Log
 import android.view.View
@@ -157,6 +159,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private var pendingSpeechLang: String? = null
+    private var speechRecognizer: SpeechRecognizer? = null
+    private var isSpeechListening = false
 
     private val speechPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -175,6 +179,7 @@ class MainActivity : AppCompatActivity() {
     private val speechRecognizerLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
+        isSpeechListening = false
         val spoken = if (result.resultCode == RESULT_OK) {
             result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()?.trim()
         } else {
@@ -190,15 +195,88 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun destroySpeechRecognizer() {
+        try {
+            speechRecognizer?.cancel()
+            speechRecognizer?.destroy()
+        } catch (_: Exception) {}
+        speechRecognizer = null
+        isSpeechListening = false
+    }
+
     private fun launchNativeSpeechRecognizer(langTag: String?) {
         runOnUiThread {
-            try {
-                val cleanLang = langTag?.trim()?.takeIf { it.isNotEmpty() } ?: "en-US"
-                val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-                    putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                    putExtra(RecognizerIntent.EXTRA_LANGUAGE, cleanLang)
-                    putExtra(RecognizerIntent.EXTRA_PROMPT, if (cleanLang.startsWith("bn")) "বলুন..." else "Listening...")
+            val cleanLang = langTag?.trim()?.takeIf { it.isNotEmpty() } ?: "en-US"
+            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE, cleanLang)
+                putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
+                putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+                putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, packageName)
+            }
+
+            if (SpeechRecognizer.isRecognitionAvailable(this)) {
+                try {
+                    destroySpeechRecognizer()
+                    val sr = SpeechRecognizer.createSpeechRecognizer(this)
+                    speechRecognizer = sr
+                    sr.setRecognitionListener(object : RecognitionListener {
+                        override fun onReadyForSpeech(params: Bundle?) {
+                            isSpeechListening = true
+                            webView.evaluateJavascript("if (typeof window.onNativeSpeechStart === 'function') window.onNativeSpeechStart();", null)
+                        }
+                        override fun onBeginningOfSpeech() {}
+                        override fun onRmsChanged(rmsdB: Float) {}
+                        override fun onBufferReceived(buffer: ByteArray?) {}
+                        override fun onEndOfSpeech() {
+                            isSpeechListening = false
+                        }
+                        override fun onError(error: Int) {
+                            isSpeechListening = false
+                            val errMsg = when (error) {
+                                SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Microphone permission required."
+                                SpeechRecognizer.ERROR_AUDIO -> "Audio recording error."
+                                SpeechRecognizer.ERROR_NETWORK, SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "Network needed for speech recognition."
+                                SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "Speech recognizer busy."
+                                else -> null
+                            }
+                            if (errMsg != null) {
+                                val quoted = JSONObject.quote(errMsg)
+                                webView.evaluateJavascript("if (typeof window.onNativeSpeechError === 'function') window.onNativeSpeechError($quoted);", null)
+                            } else {
+                                webView.evaluateJavascript("if (typeof window.onNativeSpeechEnd === 'function') window.onNativeSpeechEnd();", null)
+                            }
+                            destroySpeechRecognizer()
+                        }
+                        override fun onResults(results: Bundle?) {
+                            isSpeechListening = false
+                            val spoken = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull()?.trim()
+                            if (!spoken.isNullOrEmpty()) {
+                                val quoted = JSONObject.quote(spoken)
+                                webView.evaluateJavascript("if (typeof window.onNativeSpeechResult === 'function') window.onNativeSpeechResult($quoted);", null)
+                            } else {
+                                webView.evaluateJavascript("if (typeof window.onNativeSpeechEnd === 'function') window.onNativeSpeechEnd();", null)
+                            }
+                            destroySpeechRecognizer()
+                        }
+                        override fun onPartialResults(partialResults: Bundle?) {
+                            val partial = partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull()?.trim()
+                            if (!partial.isNullOrEmpty()) {
+                                val quoted = JSONObject.quote(partial)
+                                webView.evaluateJavascript("if (typeof window.onNativeSpeechPartial === 'function') window.onNativeSpeechPartial($quoted);", null)
+                            }
+                        }
+                        override fun onEvent(eventType: Int, params: Bundle?) {}
+                    })
+                    sr.startListening(intent)
+                    return@runOnUiThread
+                } catch (_: Exception) {
+                    destroySpeechRecognizer()
                 }
+            }
+
+            try {
+                intent.putExtra(RecognizerIntent.EXTRA_PROMPT, if (cleanLang.startsWith("bn")) "বলুন..." else "Listening...")
                 speechRecognizerLauncher.launch(intent)
             } catch (_: Exception) {
                 webView.evaluateJavascript("if (typeof window.onNativeSpeechError === 'function') window.onNativeSpeechError('Speech recognition unavailable.'); if (typeof window.onNativeSpeechEnd === 'function') window.onNativeSpeechEnd();", null)
@@ -220,6 +298,10 @@ class MainActivity : AppCompatActivity() {
     fun stopNativeSpeechInput() {
         runOnUiThread {
             try {
+                if (isSpeechListening) {
+                    speechRecognizer?.stopListening()
+                }
+                destroySpeechRecognizer()
                 webView.evaluateJavascript("if (typeof window.onNativeSpeechEnd === 'function') window.onNativeSpeechEnd();", null)
             } catch (_: Exception) {}
         }
@@ -617,6 +699,78 @@ class MainActivity : AppCompatActivity() {
         }
 
         webView.webViewClient = object : WebViewClient() {
+            override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
+                if (!request.method.equals("GET", ignoreCase = true)) return null
+                val uri = request.url ?: return null
+                val scheme = uri.scheme?.lowercase(Locale.US) ?: return null
+                val host = uri.host?.lowercase(Locale.US) ?: return null
+                val isAppOrigin = scheme == "https" && (
+                    isTrustedHost(host) ||
+                    host == "zihanfakir.github.io" ||
+                    host == "zihanfakir.gitlab.io"
+                )
+                if (!isAppOrigin) return null
+
+                val rawPath = uri.path ?: "/"
+                if (rawPath.startsWith("/api/") || rawPath == "/api" ||
+                    rawPath.startsWith("/chat/") ||
+                    rawPath.startsWith("/socket.io") ||
+                    rawPath.startsWith("/.well-known/") ||
+                    rawPath.startsWith("/auth/google") ||
+                    rawPath.startsWith("/auth/discord") ||
+                    rawPath.startsWith("/zihan") ||
+                    rawPath.startsWith("/admin") ||
+                    rawPath == "/sw.js" ||
+                    rawPath.endsWith(".apk", ignoreCase = true) ||
+                    rawPath.endsWith(".ipa", ignoreCase = true)
+                ) {
+                    return null
+                }
+
+                val assetRel = when {
+                    rawPath == "/" || rawPath == "/index" || rawPath == "/index.html" ||
+                        rawPath.startsWith("/c/") || rawPath == "/settings" || rawPath.startsWith("/settings/") -> "index.html"
+                    rawPath == "/auth/login" || rawPath == "/auth/signup" || rawPath == "/login" || rawPath == "/login.html" -> "login.html"
+                    rawPath == "/pricing" || rawPath == "/plans" || rawPath == "/plans.html" -> "plans.html"
+                    rawPath == "/checkout" || rawPath == "/checkout.html" -> "checkout.html"
+                    rawPath == "/account" || rawPath == "/account.html" -> "account.html"
+                    rawPath == "/profile" || rawPath == "/profile.html" -> "profile.html"
+                    rawPath == "/security" || rawPath == "/security.html" -> "security.html"
+                    rawPath == "/personalization" || rawPath == "/personalization.html" -> "personalization.html"
+                    rawPath == "/help" || rawPath == "/help.html" -> "help.html"
+                    rawPath == "/redeem" || rawPath == "/redeem.html" -> "redeem.html"
+                    rawPath == "/download" || rawPath == "/download.html" -> "download.html"
+                    else -> rawPath.trimStart('/').takeIf {
+                        it.isNotEmpty() && !it.contains("..") && !it.startsWith("server/")
+                    }
+                } ?: return null
+
+                return try {
+                    val stream = assets.open("www/$assetRel")
+                    val lower = assetRel.lowercase(Locale.US)
+                    val mime = when {
+                        lower.endsWith(".html") -> "text/html"
+                        lower.endsWith(".json") -> "application/json"
+                        lower.endsWith(".png") -> "image/png"
+                        lower.endsWith(".svg") -> "image/svg+xml"
+                        lower.endsWith(".ico") -> "image/x-icon"
+                        lower.endsWith(".jpg") || lower.endsWith(".jpeg") -> "image/jpeg"
+                        lower.endsWith(".webp") -> "image/webp"
+                        lower.endsWith(".js") -> "application/javascript"
+                        lower.endsWith(".css") -> "text/css"
+                        else -> "application/octet-stream"
+                    }
+                    val encoding = if (mime.startsWith("text/") || mime == "application/json" || mime == "application/javascript" || mime == "image/svg+xml") {
+                        "UTF-8"
+                    } else {
+                        null
+                    }
+                    WebResourceResponse(mime, encoding, stream)
+                } catch (_: Exception) {
+                    null
+                }
+            }
+
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                 val uri = request.url
                 val scheme = uri.scheme?.lowercase(Locale.US) ?: return true
@@ -897,10 +1051,8 @@ class MainActivity : AppCompatActivity() {
     private fun showOfflineView(show: Boolean) {
         offlineView.visibility = if (show) View.VISIBLE else View.GONE
         webView.visibility = if (show) View.GONE else View.VISIBLE
-        swipeRefresh.isEnabled = show
-        if (show) {
-            swipeRefresh.isRefreshing = false
-        }
+        swipeRefresh.isEnabled = false
+        swipeRefresh.isRefreshing = false
     }
 
     private fun createCameraIntent(): Intent? {
@@ -1023,6 +1175,9 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         webView.onResume()
+        if (::webView.isInitialized) {
+            webView.evaluateJavascript("if (typeof window.onNativeNotificationPermissionChanged === 'function') window.onNativeNotificationPermissionChanged();", null)
+        }
     }
 
     override fun onPause() {
@@ -1057,6 +1212,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         cancelPendingLoadTimeout()
+        destroySpeechRecognizer()
         webAppInterface?.destroy()
         webView.destroy()
         super.onDestroy()

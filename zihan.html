@@ -4115,7 +4115,7 @@
 
           // Billing Rates & Wallets Fields
           const bdtRateEl = document.getElementById("settingUsdToBdtRate");
-          if (bdtRateEl) bdtRateEl.value = String(s.usd_to_bdt_rate || 120);
+          if (bdtRateEl) bdtRateEl.value = String(s.usd_to_bdt_rate || 130);
           const usdtRateEl = document.getElementById("settingUsdToUsdtRate");
           if (usdtRateEl) usdtRateEl.value = String(s.usd_to_usdt_rate || 1);
           const cryptoOnEl = document.getElementById("settingCryptoEnabled");
@@ -4460,7 +4460,7 @@
         const btn = document.getElementById("btnSaveBillingSettings");
         if (btn) btn.disabled = true;
         const payload = {
-          usd_to_bdt_rate: parseFloat(document.getElementById("settingUsdToBdtRate")?.value || "120") || 120,
+          usd_to_bdt_rate: parseFloat(document.getElementById("settingUsdToBdtRate")?.value || "130") || 130,
           usd_to_usdt_rate: parseFloat(document.getElementById("settingUsdToUsdtRate")?.value || "1") || 1,
           payment_crypto_enabled: !!document.getElementById("settingCryptoEnabled")?.checked,
           crypto_bsc_address: (document.getElementById("settingCryptoBscAddress")?.value || "").trim(),

@@ -21,8 +21,8 @@ android {
         minSdk = 24
         targetSdk = 35
         // 4-part base-10 rollover versioning: 1.3.0.1 .. 1.3.0.9 -> 1.3.1.0
-        versionCode = 19
-        versionName = "1.3.0.5"
+        versionCode = 20
+        versionName = "1.4.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -104,4 +104,43 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+}
+
+val syncWebAssets = tasks.register<Sync>("syncWebAssets") {
+    val webRoot = rootProject.projectDir.parentFile
+    from(webRoot) {
+        include(
+            "index.html",
+            "login.html",
+            "plans.html",
+            "checkout.html",
+            "account.html",
+            "profile.html",
+            "security.html",
+            "personalization.html",
+            "help.html",
+            "redeem.html",
+            "download.html",
+            "404.html",
+            "manifest.json",
+            "favicon.ico",
+            "favicon.svg",
+            "favicon.png",
+            "favicon-32x32.png",
+            "favicon-16x16.png",
+            "apple-touch-icon.png",
+            "app_logo.png",
+            "app_logo_*.png",
+            "logo_*.png",
+            "alokpath_*.png",
+            "alokpath_*.svg",
+            "logo/**",
+            "avatars/**"
+        )
+    }
+    into(layout.projectDirectory.dir("src/main/assets/www"))
+}
+
+tasks.named("preBuild").configure {
+    dependsOn(syncWebAssets)
 }

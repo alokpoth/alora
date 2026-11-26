@@ -1242,6 +1242,35 @@
     handleOAuthReturn();
     window.addEventListener('hashchange', handleOAuthReturn);
 
+    // Sync active OAuth providers dynamically from server so unconfigured buttons never show broken errors
+    (async function syncOAuthProviders() {
+      const googleBtn = document.getElementById('googleAuthBtn');
+      const discordBtn = document.getElementById('discordAuthBtn');
+      function applyProviderVisibility(p) {
+        if (!p || typeof p !== 'object') return;
+        if (googleBtn && p.google === false) googleBtn.style.display = 'none';
+        else if (googleBtn) googleBtn.style.display = 'inline-flex';
+        if (discordBtn && p.discord === false) discordBtn.style.display = 'none';
+        else if (discordBtn) discordBtn.style.display = 'inline-flex';
+      }
+      try {
+        const cached = JSON.parse(localStorage.getItem('alora_auth_providers') || 'null');
+        if (cached) applyProviderVisibility(cached);
+        else if (discordBtn) discordBtn.style.display = 'none';
+      } catch (e) {
+        if (discordBtn) discordBtn.style.display = 'none';
+      }
+      try {
+        const res = await fetch(API_BASE + '/auth/providers?_t=' + Date.now(), { cache: 'no-store' });
+        const data = await res.json().catch(() => null);
+        if (res.ok && data && data.success) {
+          const state = { google: Boolean(data.google), discord: Boolean(data.discord) };
+          try { localStorage.setItem('alora_auth_providers', JSON.stringify(state)); } catch (e) {}
+          applyProviderVisibility(state);
+        }
+      } catch (e) {}
+    })();
+
     // Google OAuth
     document.getElementById('googleAuthBtn').addEventListener('click', async () => {
       clearMessages();

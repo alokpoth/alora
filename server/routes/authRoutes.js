@@ -13,6 +13,7 @@ router.delete('/account', protect, authController.deleteAccount);
 router.put('/change-password', protect, authController.changePassword);
 router.post('/change-password', protect, authController.changePassword);
 router.post('/forgot-password', authController.forgotPassword);
+router.get('/providers', authController.getAuthProviders);
 router.get('/google', authController.googleAuth);
 router.get('/google/callback', authController.googleCallback);
 router.get('/discord', authController.discordAuth);

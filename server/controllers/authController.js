@@ -946,6 +946,15 @@ const sendNativeOAuthBridge = (res, appUrl, webFallbackUrl, isError = false) => 
 </html>`);
 };
 
+const getAuthProviders = async (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+  return res.json({
+    success: true,
+    google: Boolean(String(process.env.GOOGLE_CLIENT_ID || '').trim() && String(process.env.GOOGLE_CLIENT_SECRET || '').trim()),
+    discord: Boolean(String(process.env.DISCORD_CLIENT_ID || '').trim() && String(process.env.DISCORD_CLIENT_SECRET || '').trim())
+  });
+};
+
 const googleAuth = async (req, res) => {
   try {
     const clientId = String(process.env.GOOGLE_CLIENT_ID || '').trim();
@@ -960,7 +969,7 @@ const googleAuth = async (req, res) => {
     return res.status(501).json({
       success: false,
       code: 'GOOGLE_OAUTH_UNCONFIGURED',
-      error: 'Google OAuth configuration is currently pending on the server (GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET required). Please log in with your email and password or continue as Guest.'
+      error: 'Google Sign-In is temporarily unavailable. Please log in with email and password or continue as Guest.'
     });
   } catch (error) {
     return sendServerError(res, error, 'সার্ভারে ত্রুটি হয়েছে। অনুগ্রহ করে পরে আবার চেষ্টা করুন।', '[Auth Error]:');
@@ -1151,7 +1160,7 @@ const discordAuth = async (req, res) => {
     return res.status(501).json({
       success: false,
       code: 'DISCORD_OAUTH_UNCONFIGURED',
-      error: 'Discord OAuth configuration is currently pending on the server (DISCORD_CLIENT_ID / DISCORD_CLIENT_SECRET required). Please log in with your email and password or continue as Guest.'
+      error: 'Discord Sign-In is currently disabled. Please continue with Google or email and password.'
     });
   } catch (error) {
     return sendServerError(res, error, 'সার্ভারে ত্রুটি হয়েছে। অনুগ্রহ করে পরে আবার চেষ্টা করুন।', '[Auth Error]:');
@@ -1386,7 +1395,7 @@ const deleteAccount = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, loginUser, getMe, updateProfile, changePassword, forgotPassword, googleAuth, googleCallback, discordAuth, discordCallback, deleteAccount };
+module.exports = { registerUser, loginUser, getMe, updateProfile, changePassword, forgotPassword, getAuthProviders, googleAuth, googleCallback, discordAuth, discordCallback, deleteAccount };
 
 
 

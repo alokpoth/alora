@@ -812,7 +812,7 @@ async function getSystemSettings() {
     web_search_api_key: '',
     web_search_custom_url: '',
     web_search_max_results: 4,
-    usd_to_bdt_rate: 120,
+    usd_to_bdt_rate: 130,
     usd_to_usdt_rate: 1,
     payment_crypto_enabled: true,
     crypto_bsc_address: '',

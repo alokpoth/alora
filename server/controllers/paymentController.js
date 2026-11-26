@@ -20,7 +20,7 @@ function getBillingConfigFromSettings(s = {}) {
   const bdtRate = Number(s.usd_to_bdt_rate);
   const usdtRate = Number(s.usd_to_usdt_rate);
   return {
-    usd_to_bdt_rate: (!isNaN(bdtRate) && bdtRate > 0) ? Math.round(bdtRate * 100) / 100 : 120,
+    usd_to_bdt_rate: (!isNaN(bdtRate) && bdtRate > 0) ? Math.round(bdtRate * 100) / 100 : 130,
     usd_to_usdt_rate: (!isNaN(usdtRate) && usdtRate > 0) ? Math.round(usdtRate * 10000) / 10000 : 1,
     direct_crypto: {
       enabled: s.payment_crypto_enabled !== false && s.payment_crypto_enabled !== 'false',
@@ -100,9 +100,12 @@ function validatePromoEligibility(promo, planName) {
   return null;
 }
 
-function computeOrderQuote({ planDoc, promoDoc, billing, currency }) {
+function computeOrderQuote({ planDoc, promoDoc, billing, currency, billingCycle = 'monthly' }) {
   const safeCurrency = currency === 'BDT' ? 'BDT' : 'USDT';
-  const baseUsd = Math.max(0, Math.round((Number(planDoc && planDoc.price_usd) || 0) * 100) / 100);
+  const safeCycle = billingCycle === 'yearly' ? 'yearly' : 'monthly';
+  const monthlyUsd = Math.max(0, Number(planDoc && planDoc.price_usd) || 0);
+  const rawBaseUsd = safeCycle === 'yearly' ? (monthlyUsd * 12 * 0.8) : monthlyUsd;
+  const baseUsd = Math.max(0, Math.round(rawBaseUsd * 100) / 100);
   let discountUsd = 0;
   if (promoDoc) {
     const val = Math.max(0, Number(promoDoc.discount_value) || 0);
@@ -121,6 +124,8 @@ function computeOrderQuote({ planDoc, promoDoc, billing, currency }) {
     : Math.round(finalUsd * exchangeRate * 100) / 100;
 
   return {
+    billing_cycle: safeCycle,
+    duration_days: safeCycle === 'yearly' ? 365 : 30,
     base_usd: baseUsd,
     discount_usd: discountUsd,
     final_usd: finalUsd,
@@ -158,7 +163,7 @@ const getPaymentConfig = async (req, res) => {
 
 const validatePromo = async (req, res) => {
   try {
-    const { code, plan_name, currency = 'USDT' } = req.body || {};
+    const { code, plan_name, currency = 'USDT', billing_cycle = 'monthly' } = req.body || {};
     if (!plan_name || !PAID_PLANS.includes(plan_name)) {
       return res.status(400).json({ success: false, error: `প্ল্যান অবশ্যই ${PAID_PLANS.join(', ')} এর মধ্যে হতে হবে।` });
     }
@@ -183,7 +188,7 @@ const validatePromo = async (req, res) => {
     }
 
     const billing = getBillingConfigFromSettings(settings);
-    const quote = computeOrderQuote({ planDoc, promoDoc: promo, billing, currency });
+    const quote = computeOrderQuote({ planDoc, promoDoc: promo, billing, currency, billingCycle: billing_cycle });
 
     return res.json({
       success: true,
@@ -209,6 +214,7 @@ const submitOrder = async (req, res) => {
     const {
       plan_name,
       currency = 'USDT',
+      billing_cycle = 'monthly',
       payment_method,
       chain = '',
       promo_code = '',
@@ -333,7 +339,7 @@ const submitOrder = async (req, res) => {
       }
     }
 
-    const quote = computeOrderQuote({ planDoc, promoDoc: appliedPromo, billing, currency: cleanCurrency });
+    const quote = computeOrderQuote({ planDoc, promoDoc: appliedPromo, billing, currency: cleanCurrency, billingCycle: billing_cycle });
     const orderId = 'ORD-' + Date.now().toString(36).toUpperCase() + '-' + crypto.randomBytes(2).toString('hex').toUpperCase();
     const userId = String(user._id || user.id || '');
     const now = new Date();
@@ -344,7 +350,7 @@ const submitOrder = async (req, res) => {
       user_email: String(user.email || '').toLowerCase().trim(),
       user_name: String(user.name || 'Alora User').trim(),
       plan_name,
-      duration_days: 30,
+      duration_days: quote.duration_days,
       currency: quote.currency,
       payment_method: cleanMethod,
       chain: cleanMethod === 'direct_crypto' ? cleanChain : '',

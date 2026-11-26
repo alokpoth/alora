@@ -604,9 +604,12 @@
     /* Toast */
     .toast {
       position: fixed;
-      bottom: max(20px, env(safe-area-inset-bottom, 20px));
+      top: max(66px, calc(env(safe-area-inset-top, 0px) + 64px));
+      bottom: auto;
       left: 50%;
       transform: translateX(-50%);
+      pointer-events: none;
+      max-width: calc(100vw - 24px);
       padding: 10px 18px;
       border-radius: 9999px;
       font-size: 0.88rem;
@@ -778,7 +781,7 @@
       <div class="row-divider"></div>
 
       <!-- Usage Row -->
-      <a href="/#settings/account" class="settings-row" id="rowUsage">
+      <a href="/#settings/usage" class="settings-row" id="rowUsage">
         <div class="row-lead">
           <span class="row-icon">
             <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
@@ -1012,7 +1015,7 @@
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #71717a;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
             <span id="imageQuotaTitleText">Image Generation Quota</span>
           </span>
-          <span id="imageQuotaCountDisplay"><strong id="imageQuotaRemainingDigits">5</strong> / <span id="imageQuotaTotalDigits">5</span> left</span>
+          <span id="imageQuotaCountDisplay"><strong id="imageQuotaRemainingDigits">--</strong> / <span id="imageQuotaTotalDigits">--</span> left</span>
         </div>
         <div class="account-quota-track" id="accountImageQuotaTrack">
           <div class="account-quota-fill" id="accountImageQuotaFill" style="background: var(--accent-blue);"></div>
@@ -1028,7 +1031,7 @@
           <div class="stat-val-label" id="labelUsageSent">Sent this window</div>
         </div>
         <div class="stat-pill">
-          <div class="stat-val-num" id="usageRemainingVal">10</div>
+          <div class="stat-val-num" id="usageRemainingVal">--</div>
           <div class="stat-val-label" id="labelUsageRemaining">Messages left</div>
         </div>
         <div class="stat-pill">
@@ -1131,9 +1134,9 @@
         if (tab) {
           const tabRedirects = {
             "tabPlan": "/#settings/account", "subscription": "/#settings/account", "settingsPlanView": "/#settings/account",
-            "limits": "/#settings/account", "settingsLimitsView": "/#settings/account", "usage": "/#settings/account",
+            "limits": "/#settings/usage", "settingsLimitsView": "/#settings/usage", "usage": "/#settings/usage",
             "redeem": "/redeem", "settingsRedeemView": "/redeem",
-            "account": "/security", "settingsAccountView": "/security", "security": "/security",
+            "account": "/account", "settingsAccountView": "/account", "security": "/security",
             "help": "/help",
             "profile": "/profile",
             "theme": "/#settings/general",
@@ -1408,7 +1411,7 @@
     document.getElementById("rowEditProfile")?.addEventListener("click", () => { window.location.href = "/profile"; });
     document.getElementById("rowAccount")?.addEventListener("click", () => { window.location.href = "/security"; });
     document.getElementById("rowSubscription")?.addEventListener("click", () => { window.location.href = "/#settings/account"; });
-    document.getElementById("rowUsage")?.addEventListener("click", () => { window.location.href = "/#settings/account"; });
+    document.getElementById("rowUsage")?.addEventListener("click", () => { window.location.href = "/#settings/usage"; });
     document.getElementById("rowUpgrade")?.addEventListener("click", () => { window.location.href = "/pricing"; });
     document.getElementById("rowTheme")?.addEventListener("click", () => { window.location.href = "/#settings/general"; });
     document.getElementById("rowPersonalization")?.addEventListener("click", () => { window.location.href = "/personalization"; });
@@ -1514,13 +1517,27 @@
     }
 
     let dynamicPlanLimits = {
-      Guest: { limit: 10, image_limit: 0, hours: 3 },
-      Free: { limit: 10, image_limit: 5, hours: 3 },
-      Go: { limit: 20, image_limit: 15, hours: 3 },
-      Plus: { limit: 30, image_limit: 25, hours: 3 },
-      Pro: { limit: 40, image_limit: 50, hours: 2 },
-      Max: { limit: 50, image_limit: 100, hours: 1 }
+      Guest: { limit: 2, image_limit: 0, hours: 24 },
+      Free: { limit: 50, image_limit: 0, hours: 3 },
+      Go: { limit: 100, image_limit: 0, hours: 3 },
+      Plus: { limit: 500, image_limit: 0, hours: 3 },
+      Pro: { limit: 3000, image_limit: 0, hours: 1 },
+      Max: { limit: 7000, image_limit: 0, hours: 1 }
     };
+    (function hydrateAccountPlanCache() {
+      try {
+        const cached = JSON.parse(localStorage.getItem("alora_cached_plans") || "null");
+        if (cached && typeof cached === "object") {
+          Object.keys(dynamicPlanLimits).forEach(k => {
+            if (cached[k]) {
+              if (Number(cached[k].message_limit) >= 0) dynamicPlanLimits[k].limit = Number(cached[k].message_limit);
+              if (Number(cached[k].image_limit) >= 0) dynamicPlanLimits[k].image_limit = Number(cached[k].image_limit);
+              if (Number(cached[k].window_hours) > 0) dynamicPlanLimits[k].hours = Number(cached[k].window_hours);
+            }
+          });
+        }
+      } catch (e) {}
+    })();
 
     let accountLiveTimerInterval = null;
 
@@ -1542,19 +1559,29 @@
     // Dynamic Plans Sync
     async function syncDynamicPlans() {
       try {
-        const res = await fetch(`${API_BASE}/plans`, {
+        const res = await fetch(`${API_BASE}/plans?_t=${Date.now()}`, {
+          cache: "no-store",
           headers: token ? { "Authorization": `Bearer ${token}` } : {}
         });
         const data = await res.json();
         if (res.ok && data.success && Array.isArray(data.plans)) {
+          const cacheObj = {};
           data.plans.forEach(p => {
-            const cur = dynamicPlanLimits[p.name] || { limit: 10, image_limit: 5, hours: 3 };
+            const cur = dynamicPlanLimits[p.name] || { limit: 50, image_limit: 0, hours: 3 };
             dynamicPlanLimits[p.name] = {
               limit: (p.message_limit !== undefined && !isNaN(Number(p.message_limit))) ? Number(p.message_limit) : cur.limit,
               image_limit: (p.image_limit !== undefined && !isNaN(Number(p.image_limit))) ? Number(p.image_limit) : cur.image_limit,
               hours: (Number(p.window_hours) > 0) ? Number(p.window_hours) : cur.hours
             };
+            cacheObj[p.name] = {
+              message_limit: dynamicPlanLimits[p.name].limit,
+              image_limit: dynamicPlanLimits[p.name].image_limit,
+              window_hours: dynamicPlanLimits[p.name].hours,
+              price_usd: p.price_usd,
+              price_bdt: p.price_bdt
+            };
           });
+          try { localStorage.setItem("alora_cached_plans", JSON.stringify(cacheObj)); } catch (e) {}
           renderUserData();
         }
       } catch(e) { console.error('[Alokpoth]', e); }

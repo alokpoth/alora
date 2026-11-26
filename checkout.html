@@ -559,7 +559,7 @@
     </div>
 
     <div class="rate-banner" id="rateBanner">
-      <span id="rateInfoText">Live Rate: 1 USD = 1.00 USDT · 1 USD = ৳120 BDT</span>
+      <span id="rateInfoText">Live Rate: 1 USD = 1.00 USDT · 1 USD = ৳130 BDT</span>
       <span id="userSessionLabel" style="font-weight: 600;"></span>
     </div>
 
@@ -574,7 +574,15 @@
         </div>
 
         <div>
-          <span class="section-label" id="lblSelectCurrency">2. Currency</span>
+          <span class="section-label" id="lblSelectCycle">2. Billing Cycle</span>
+          <div class="segment-switch" role="tablist">
+            <button type="button" class="segment-opt active" id="cycleMonthlyBtn">Monthly (30 days)</button>
+            <button type="button" class="segment-opt" id="cycleYearlyBtn">Yearly · Save 20% (365d)</button>
+          </div>
+        </div>
+
+        <div>
+          <span class="section-label" id="lblSelectCurrency">3. Currency</span>
           <div class="segment-switch" role="tablist">
             <button type="button" class="segment-opt active" id="currUsdtBtn">USDT (USD)</button>
             <button type="button" class="segment-opt" id="currBdtBtn">BDT (৳)</button>
@@ -582,7 +590,7 @@
         </div>
 
         <div>
-          <span class="section-label" id="lblSelectMethod">3. Payment Method</span>
+          <span class="section-label" id="lblSelectMethod">4. Payment Method</span>
           <div class="method-grid" id="methodGrid">
             <button type="button" class="method-card active" data-method="direct_crypto" id="methodDirectCrypto">
               <span class="method-title">Direct Crypto (USDT)</span>
@@ -713,8 +721,11 @@
         title: 'Complete your upgrade',
         sub: 'Pay directly via Crypto (USDT), Binance Pay, Bybit Pay, or bKash. Verified orders unlock a Paid checkmark badge on your account.',
         lblPlan: '1. Select Plan',
-        lblCurrency: '2. Currency',
-        lblMethod: '3. Payment Method',
+        lblCycle: '2. Billing Cycle',
+        cycleMonthly: 'Monthly (30 days)',
+        cycleYearly: 'Yearly · Save 20% (365d)',
+        lblCurrency: '3. Currency',
+        lblMethod: '4. Payment Method',
         lblChain: 'Network / Chain',
         sendTo: 'Send payment to:',
         openLink: 'Open Payment URL',
@@ -750,8 +761,11 @@
         title: 'প্ল্যান আপগ্রেড সম্পন্ন করুন',
         sub: 'Crypto (USDT), Binance Pay, Bybit Pay অথবা bKash দিয়ে সরাসরি পেমেন্ট করুন। অ্যাডমিন অনুমোদন করলে ভেরিফায়েড Paid (✓) ব্যাজ পাবেন।',
         lblPlan: '১. প্ল্যান নির্বাচন করুন',
-        lblCurrency: '২. কারেন্সি',
-        lblMethod: '৩. পেমেন্ট মাধ্যম',
+        lblCycle: '২. বিলিং সাইকেল',
+        cycleMonthly: 'মাসিক (৩০ দিন)',
+        cycleYearly: 'বাৎসরিক · ২০% সাশ্রয় (৩৬৫ দিন)',
+        lblCurrency: '৩. কারেন্সি',
+        lblMethod: '৪. পেমেন্ট মাধ্যম',
         lblChain: 'নেটওয়ার্ক / চেইন',
         sendTo: 'নিচের ঠিকানায় পেমেন্ট পাঠান:',
         openLink: 'পেমেন্ট লিংক খুলুন',
@@ -783,14 +797,14 @@
     };
 
     const PAID_DEFAULTS = [
-      { name: 'Go', displayName: 'Alora Go', price_usd: 5, message_limit: 20, window_hours: 3, image_limit: 15 },
-      { name: 'Plus', displayName: 'Alora Plus', price_usd: 20, message_limit: 30, window_hours: 3, image_limit: 25 },
-      { name: 'Pro', displayName: 'Alora Pro', price_usd: 55, message_limit: 40, window_hours: 2, image_limit: 50 },
-      { name: 'Max', displayName: 'Alora Max', price_usd: 120, message_limit: 50, window_hours: 1, image_limit: 100 }
+      { name: 'Go', displayName: 'Alora Go', price_usd: 5, message_limit: 100, window_hours: 3, image_limit: 0 },
+      { name: 'Plus', displayName: 'Alora Plus', price_usd: 20, message_limit: 500, window_hours: 3, image_limit: 0 },
+      { name: 'Pro', displayName: 'Alora Pro', price_usd: 60, message_limit: 3000, window_hours: 1, image_limit: 0 },
+      { name: 'Max', displayName: 'Alora Max', price_usd: 120, message_limit: 7000, window_hours: 1, image_limit: 0 }
     ];
 
     let paymentConfig = {
-      usd_to_bdt_rate: 120,
+      usd_to_bdt_rate: 130,
       usd_to_usdt_rate: 1,
       direct_crypto: {
         enabled: true,
@@ -804,12 +818,28 @@
       bkash: { enabled: true, number: '', account_type: 'Send Money' }
     };
     let plansList = [...PAID_DEFAULTS];
-    const queryPlan = new URLSearchParams(window.location.search).get('plan');
+    const queryParams = new URLSearchParams(window.location.search);
+    const queryPlan = queryParams.get('plan');
     let selectedPlan = ['Go', 'Plus', 'Pro', 'Max'].includes(queryPlan) ? queryPlan : 'Plus';
+    let selectedCycle = queryParams.get('cycle') === 'yearly' ? 'yearly' : 'monthly';
     let selectedCurrency = 'USDT';
     let selectedMethod = 'direct_crypto';
     let selectedChain = 'BSC (BEP-20)';
     let appliedPromo = null;
+
+    (function hydrateCheckoutCaches() {
+      try {
+        const cachedBilling = JSON.parse(localStorage.getItem('alora_cached_billing') || 'null');
+        if (cachedBilling && typeof cachedBilling === 'object') {
+          if (Number(cachedBilling.usd_to_bdt_rate) > 0) paymentConfig.usd_to_bdt_rate = Number(cachedBilling.usd_to_bdt_rate);
+          if (Number(cachedBilling.usd_to_usdt_rate) > 0) paymentConfig.usd_to_usdt_rate = Number(cachedBilling.usd_to_usdt_rate);
+        }
+        const cachedPlans = JSON.parse(localStorage.getItem('alora_cached_plans') || 'null');
+        if (cachedPlans && typeof cachedPlans === 'object') {
+          plansList = plansList.map(p => (cachedPlans[p.name] ? { ...p, ...cachedPlans[p.name], name: p.name } : p));
+        }
+      } catch (e) {}
+    })();
 
     function getAuthToken() {
       try { return localStorage.getItem('alokpoth_token') || ''; } catch (e) { return ''; }
@@ -845,7 +875,10 @@
 
     function computeQuoteClient() {
       const planObj = getSelectedPlanObj();
-      const baseUsd = Math.max(0, Math.round((Number(planObj.price_usd) || 0) * 100) / 100);
+      const monthlyUsd = Math.max(0, Math.round((Number(planObj.price_usd) || 0) * 100) / 100);
+      const baseUsd = selectedCycle === 'yearly'
+        ? Math.max(0, Math.round(monthlyUsd * 12 * 0.8 * 100) / 100)
+        : monthlyUsd;
       let discountUsd = 0;
       if (appliedPromo) {
         const val = Math.max(0, Number(appliedPromo.discount_value) || 0);
@@ -870,6 +903,9 @@
       document.getElementById('checkoutTitle').textContent = t.title;
       document.getElementById('checkoutSub').textContent = t.sub;
       document.getElementById('lblSelectPlan').textContent = t.lblPlan;
+      document.getElementById('lblSelectCycle').textContent = t.lblCycle;
+      document.getElementById('cycleMonthlyBtn').textContent = t.cycleMonthly;
+      document.getElementById('cycleYearlyBtn').textContent = t.cycleYearly;
       document.getElementById('lblSelectCurrency').textContent = t.lblCurrency;
       document.getElementById('lblSelectMethod').textContent = t.lblMethod;
       document.getElementById('lblSelectChain').textContent = t.lblChain;
@@ -905,7 +941,7 @@
       document.getElementById('submitOrderBtn').style.display = hasToken ? 'inline-flex' : 'none';
       const loginBtn = document.getElementById('loginToPayBtn');
       loginBtn.style.display = hasToken ? 'none' : 'inline-flex';
-      loginBtn.href = '/auth/login?redirect=' + encodeURIComponent('/checkout?plan=' + encodeURIComponent(selectedPlan));
+      loginBtn.href = '/auth/login?redirect=' + encodeURIComponent('/checkout?plan=' + encodeURIComponent(selectedPlan) + '&cycle=' + encodeURIComponent(selectedCycle));
 
       // Plan selector chips
       const planGrid = document.getElementById('planSelectorGrid');
@@ -914,20 +950,25 @@
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'tier-chip' + (p.name === selectedPlan ? ' active' : '');
-        const usdtPrice = Math.round((Number(p.price_usd) || 0) * paymentConfig.usd_to_usdt_rate * 100) / 100;
-        btn.innerHTML = `<span class="tier-chip-name">${escapeHtml(p.name)}</span><span class="tier-chip-price">$${usdtPrice} USDT</span>`;
+        const baseM = Number(p.price_usd) || 0;
+        const cycleUsd = selectedCycle === 'yearly' ? Math.round(baseM * 12 * 0.8 * 100) / 100 : baseM;
+        const usdtPrice = Math.round(cycleUsd * paymentConfig.usd_to_usdt_rate * 100) / 100;
+        btn.innerHTML = `<span class="tier-chip-name">${escapeHtml(p.name)}</span><span class="tier-chip-price">$${usdtPrice} USDT${selectedCycle === 'yearly' ? '/yr' : ''}</span>`;
         btn.onclick = () => {
           selectedPlan = p.name;
           appliedPromo = null;
           document.getElementById('removePromoBtn').style.display = 'none';
           document.getElementById('promoMsg').textContent = '';
           if (window.history && window.history.replaceState) {
-            window.history.replaceState(null, '', '/checkout?plan=' + encodeURIComponent(selectedPlan));
+            window.history.replaceState(null, '', '/checkout?plan=' + encodeURIComponent(selectedPlan) + '&cycle=' + encodeURIComponent(selectedCycle));
           }
           renderCheckoutUI();
         };
         planGrid.appendChild(btn);
       });
+
+      document.getElementById('cycleMonthlyBtn').classList.toggle('active', selectedCycle !== 'yearly');
+      document.getElementById('cycleYearlyBtn').classList.toggle('active', selectedCycle === 'yearly');
 
       // Currency toggle
       document.getElementById('currUsdtBtn').classList.toggle('active', selectedCurrency === 'USDT');
@@ -984,9 +1025,13 @@
       // Order Summary
       const planObj = getSelectedPlanObj();
       const q = computeQuoteClient();
-      document.getElementById('summaryPlanTitle').textContent = `Alora ${planObj.name}`;
+      const cycleText = selectedCycle === 'yearly'
+        ? (currentLang === 'bn' ? 'বাৎসরিক (৩৬৫ দিন)' : 'Yearly (365 days)')
+        : (currentLang === 'bn' ? 'মাসিক (৩০ দিন)' : 'Monthly (30 days)');
+      const imgSuffix = Number(planObj.image_limit) > 0 ? ` · ${planObj.image_limit} images` : '';
+      document.getElementById('summaryPlanTitle').textContent = `Alora ${planObj.name} · ${cycleText}`;
       document.getElementById('summaryPlanLimits').textContent =
-        `${planObj.message_limit} msgs / ${planObj.window_hours}h · ${planObj.image_limit} images`;
+        `${planObj.message_limit} msgs / ${planObj.window_hours}h${imgSuffix}`;
       document.getElementById('valSubtotal').textContent = `$${q.baseUsd.toFixed(2)} USD`;
 
       const discRow = document.getElementById('discountRow');
@@ -1010,6 +1055,21 @@
       try { localStorage.setItem('alokpoth_lang', currentLang); } catch (e) {}
       renderCheckoutUI();
       loadMyOrders();
+    });
+
+    document.getElementById('cycleMonthlyBtn').addEventListener('click', () => {
+      selectedCycle = 'monthly';
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState(null, '', '/checkout?plan=' + encodeURIComponent(selectedPlan) + '&cycle=monthly');
+      }
+      renderCheckoutUI();
+    });
+    document.getElementById('cycleYearlyBtn').addEventListener('click', () => {
+      selectedCycle = 'yearly';
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState(null, '', '/checkout?plan=' + encodeURIComponent(selectedPlan) + '&cycle=yearly');
+      }
+      renderCheckoutUI();
     });
 
     document.getElementById('currUsdtBtn').addEventListener('click', () => {
@@ -1077,7 +1137,7 @@
         const res = await fetch(API_BASE + '/payments/validate-promo', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-          body: JSON.stringify({ code, plan_name: selectedPlan, currency: selectedCurrency })
+          body: JSON.stringify({ code, plan_name: selectedPlan, billing_cycle: selectedCycle, currency: selectedCurrency })
         });
         const data = await res.json();
         if (res.ok && data.success && data.valid && data.promo) {
@@ -1111,7 +1171,7 @@
       const t = I18N[currentLang] || I18N.en;
       const token = getAuthToken();
       if (!token) {
-        window.location.href = '/auth/login?redirect=' + encodeURIComponent('/checkout?plan=' + selectedPlan);
+        window.location.href = '/auth/login?redirect=' + encodeURIComponent('/checkout?plan=' + encodeURIComponent(selectedPlan) + '&cycle=' + encodeURIComponent(selectedCycle));
         return;
       }
 
@@ -1128,6 +1188,7 @@
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
           body: JSON.stringify({
             plan_name: selectedPlan,
+            billing_cycle: selectedCycle,
             currency: selectedCurrency,
             payment_method: selectedMethod,
             chain: selectedMethod === 'direct_crypto' ? selectedChain : '',
@@ -1163,8 +1224,23 @@
         const res = await fetch(API_BASE + '/payments/config?_t=' + Date.now(), { cache: 'no-store' });
         const data = await res.json();
         if (data && data.success) {
-          if (data.billing) paymentConfig = data.billing;
-          if (Array.isArray(data.plans) && data.plans.length > 0) plansList = data.plans;
+          if (data.billing) {
+            paymentConfig = data.billing;
+            try {
+              localStorage.setItem('alora_cached_billing', JSON.stringify({
+                usd_to_bdt_rate: paymentConfig.usd_to_bdt_rate,
+                usd_to_usdt_rate: paymentConfig.usd_to_usdt_rate
+              }));
+            } catch (e) {}
+          }
+          if (Array.isArray(data.plans) && data.plans.length > 0) {
+            plansList = data.plans;
+            try {
+              const existing = JSON.parse(localStorage.getItem('alora_cached_plans') || '{}') || {};
+              data.plans.forEach(p => { if (p && p.name) existing[p.name] = p; });
+              localStorage.setItem('alora_cached_plans', JSON.stringify(existing));
+            } catch (e) {}
+          }
           renderCheckoutUI();
         }
       } catch (e) {}

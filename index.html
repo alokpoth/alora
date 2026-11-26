@@ -1574,6 +1574,18 @@
       gap: 14px;
       padding-bottom: 14px;
       border-bottom: 1px solid var(--border-subtle);
+      flex-shrink: 0;
+    }
+    .setting-row.setting-row-stacked {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .setting-row.setting-row-stacked .theme-select-chips {
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
     }
     .setting-row > div:first-child {
       flex: 1;
@@ -1798,9 +1810,10 @@
     /* Toast Pill */
     .toast-box {
       position: fixed;
-      top: 18px;
+      top: calc(var(--header-height, 56px) + env(safe-area-inset-top, 0px) + 10px);
       left: 50%;
       transform: translateX(-50%);
+      max-width: calc(100vw - 24px);
       z-index: 200;
       display: flex;
       flex-direction: column;
@@ -1926,9 +1939,13 @@
       }
       .header-left {
         gap: 2px;
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
       }
       .header-right {
         gap: 4px;
+        flex-shrink: 0;
       }
       .header-icon-action {
         width: 30px;
@@ -1945,14 +1962,27 @@
         padding: 5px 9px;
         font-size: 0.73rem;
         gap: 4px;
+        max-width: 132px;
+      }
+      #headerOfferText {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
       body.is-guest .header-offer-btn:not(.trial-active) {
         display: none !important;
       }
       .model-selector-btn {
-        font-size: 0.94rem;
+        font-size: 0.92rem;
         padding: 4px 6px;
         gap: 4px;
+        max-width: 100%;
+        min-width: 0;
+      }
+      #headerModelLabel {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
       .chatgpt-auth-card {
         padding: 20px 16px;
@@ -1964,6 +1994,35 @@
         flex-wrap: wrap;
         gap: 10px;
       }
+    }
+    @media (max-width: 410px) {
+      .header-offer-btn {
+        max-width: 108px;
+        padding: 5px 8px;
+        font-size: 0.7rem;
+      }
+    }
+    html.is-android-app,
+    body.is-android-app {
+      overscroll-behavior-y: contain;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body.is-android-app .chatgpt-header,
+    body.is-android-app .chatgpt-sidebar,
+    body.is-android-app .mset-row,
+    body.is-android-app .setting-row,
+    body.is-android-app button,
+    body.is-android-app a {
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+    }
+    body.is-android-app .markdown-body,
+    body.is-android-app .chatgpt-user-bubble,
+    body.is-android-app textarea,
+    body.is-android-app input {
+      -webkit-user-select: text;
+      user-select: text;
     }
 
     /* ==========================================================================
@@ -3090,7 +3149,7 @@
 
           <!-- Alora Dynamic Model Dropdown Trigger -->
           <button type="button" class="model-selector-btn" id="modelSelectorBtn">
-            <span id="headerModelLabel">Alora</span>
+            <span id="headerModelLabel">ALO 3 Mini</span><script>(function(){try{var l=document.getElementById("headerModelLabel");if(!l)return;var s=localStorage.getItem("alokpoth_selected_model")||"";var m=JSON.parse(localStorage.getItem("alokpoth_cached_models")||"null");if(Array.isArray(m)&&m.length){var f=m.find(function(x){return x&&(x.id===s||x.model_id===s)})||m[0];if(f&&f.name)l.textContent=String(f.name).replace(/\s+/g," ").trim();}}catch(e){}})();</script>
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4">
               <path d="m6 9 6 6 6-6"/>
             </svg>
@@ -3466,7 +3525,7 @@
               <span class="mset-row-right"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></span>
             </button>
 
-            <button type="button" class="mset-row" data-mset-tab="account" data-search="usage limits quota messages images reset voucher plan">
+            <button type="button" class="mset-row" data-mset-tab="usage" data-search="usage limits quota messages images reset voucher plan">
               <span class="mset-row-left">
                 <span class="mset-row-icon">
                   <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
@@ -3556,7 +3615,7 @@
 
         <!-- General Tab -->
         <div class="settings-tab-content" id="tabGeneralContent">
-          <div class="setting-row">
+          <div class="setting-row setting-row-stacked">
             <div>
               <div class="setting-label-title" data-i18n="themeTitle">Theme</div>
               <div class="setting-label-sub" data-i18n="themeSub">Customize Alora appearance</div>
@@ -4352,17 +4411,50 @@
     const PLAN_HIERARCHY = { Free: 1, Go: 2, Plus: 3, Pro: 4, Max: 5 };
 
     let cachedPlanLimits = {
-      Guest: { limit: 10, image_limit: 0, hours: 3, price_bdt: 0 },
-      Free:  { limit: 10, image_limit: 5, hours: 3, price_bdt: 0 },
-      Go:    { limit: 20, image_limit: 15, hours: 3, price_bdt: 699 },
-      Plus:  { limit: 30, image_limit: 25, hours: 3, price_bdt: 2500 },
-      Pro:   { limit: 40, image_limit: 50, hours: 2, price_bdt: 6900 },
-      Max:   { limit: 50, image_limit: 100, hours: 1, price_bdt: 15000 }
+      Guest: { limit: 2, image_limit: 0, hours: 24, price_bdt: 0 },
+      Free:  { limit: 50, image_limit: 0, hours: 3, price_bdt: 0 },
+      Go:    { limit: 100, image_limit: 0, hours: 3, price_bdt: 650 },
+      Plus:  { limit: 500, image_limit: 0, hours: 3, price_bdt: 2600 },
+      Pro:   { limit: 3000, image_limit: 0, hours: 1, price_bdt: 7800 },
+      Max:   { limit: 7000, image_limit: 0, hours: 1, price_bdt: 15600 }
     };
+
+    function normalizeModelTitle(name) {
+      return String(name || "").replace(/\s+/g, " ").trim();
+    }
+
+    (function hydrateInstantBootCaches() {
+      try {
+        const cachedPlans = JSON.parse(localStorage.getItem("alora_cached_plans") || "null");
+        if (cachedPlans && typeof cachedPlans === "object") {
+          Object.keys(cachedPlanLimits).forEach(k => {
+            if (cachedPlans[k] && typeof cachedPlans[k] === "object") {
+              if (Number(cachedPlans[k].message_limit) >= 0) cachedPlanLimits[k].limit = Number(cachedPlans[k].message_limit);
+              if (Number(cachedPlans[k].image_limit) >= 0) cachedPlanLimits[k].image_limit = Number(cachedPlans[k].image_limit);
+              if (Number(cachedPlans[k].window_hours) > 0) cachedPlanLimits[k].hours = Number(cachedPlans[k].window_hours);
+              if (Number(cachedPlans[k].price_bdt) >= 0) cachedPlanLimits[k].price_bdt = Number(cachedPlans[k].price_bdt);
+            }
+          });
+        }
+        const cachedModels = JSON.parse(localStorage.getItem("alokpoth_cached_models") || "null");
+        if (Array.isArray(cachedModels) && cachedModels.length > 0) {
+          cachedDynamicModels = cachedModels.filter(m => m && m.name).map(m => ({
+            ...m,
+            name: normalizeModelTitle(m.name)
+          }));
+          const savedId = localStorage.getItem(KEYS.SELECTED_MODEL) || "";
+          const matched = cachedDynamicModels.find(m => m.id === savedId || m.model_id === savedId) || cachedDynamicModels[0];
+          const hl = document.getElementById("headerModelLabel");
+          if (hl && matched && matched.name) {
+            hl.textContent = normalizeModelTitle(matched.name);
+          }
+        }
+      } catch (e) {}
+    })();
 
     function getGuestMsgLimit() {
       const g = cachedPlanLimits.Guest;
-      return (g && g.limit !== undefined && !isNaN(Number(g.limit))) ? Number(g.limit) : 10;
+      return (g && g.limit !== undefined && !isNaN(Number(g.limit))) ? Number(g.limit) : 2;
     }
     function getGuestImgLimit() {
       const g = cachedPlanLimits.Guest;
@@ -4370,7 +4462,7 @@
     }
     function getGuestHours() {
       const g = cachedPlanLimits.Guest;
-      return (g && Number(g.hours) > 0) ? Number(g.hours) : 3;
+      return (g && Number(g.hours) > 0) ? Number(g.hours) : 24;
     }
     function getGuestLimitMessage() {
       return t("guestLimit").replace("{limit}", String(getGuestMsgLimit()));
@@ -4416,6 +4508,7 @@
             bridge.showLocalNotification(cleanTitle, cleanBody || cleanTitle);
             return true;
           }
+          return false;
         } else if ("Notification" in window && Notification.permission === "granted") {
           new Notification(cleanTitle, { body: cleanBody, icon: "/app_logo.png" });
           return true;
@@ -4427,6 +4520,10 @@
       }
       return false;
     }
+
+    window.onNativeNotificationPermissionChanged = function() {
+      syncNotificationUI();
+    };
 
     function syncNotificationUI() {
       const masterToggle = document.getElementById("notifMasterToggle");
@@ -4525,8 +4622,8 @@
     let contextTargetSessionId = null;
     let currentSettingsTab = "general";
 
-    // Register Service Worker cleanly
-    if ("serviceWorker" in navigator) {
+    // Register Service Worker cleanly (browser PWA only; native Android bundles assets locally)
+    if ("serviceWorker" in navigator && !getNativeAndroidBridge()) {
       window.addEventListener("load", () => {
         navigator.serviceWorker.register("/sw.js").catch(() => {});
       });
@@ -4843,7 +4940,12 @@
         hdrOfferBtn.style.display = "inline-flex";
         hdrOfferBtn.classList.toggle("trial-active", offer.isTrial);
       }
-      if (hdrOfferText) hdrOfferText.textContent = offer.text;
+      if (hdrOfferText) {
+        const isCompactPhone = window.innerWidth <= 430;
+        const shortUpgradeText = currentLanguage === "bn" ? "আপগ্রেড" : "Upgrade";
+        hdrOfferText.textContent = (isCompactPhone && !offer.isTrial) ? shortUpgradeText : offer.text;
+        if (hdrOfferBtn) hdrOfferBtn.title = offer.text;
+      }
       if (hdrOfferIcon) hdrOfferIcon.innerHTML = iconSvg;
 
       if (popOfferBtn) popOfferBtn.style.display = "flex";
@@ -5000,7 +5102,14 @@
 
       sumEl.textContent = `${rem} / ${limit} ${t("remainingWord")}`;
       if (barEl) barEl.style.width = `${limit > 0 ? Math.max(0, Math.min(100, Math.round((rem / limit) * 100))) : 0}%`;
-      if (imgEl) imgEl.textContent = `${t("imagesPrefix")}: ${imgRem} / ${imgLimit} ${t("leftWord")}`;
+      if (imgEl) {
+        if (imgLimit > 0) {
+          imgEl.style.display = "inline";
+          imgEl.textContent = `${t("imagesPrefix")}: ${imgRem} / ${imgLimit} ${t("leftWord")}`;
+        } else {
+          imgEl.style.display = "none";
+        }
+      }
       if (rstEl) rstEl.textContent = h > 0 ? `${t("resetsInPrefix")} ${h}h ${m}m` : `${t("resetsInPrefix")} ${m}m`;
     }
 
@@ -5009,18 +5118,27 @@
         const res = await fetch(`${API_BASE}/plans?_t=${Date.now()}`, { cache: "no-store" });
         const data = await res.json();
         if (res.ok && data.success && Array.isArray(data.plans)) {
+          const cacheObj = {};
           data.plans.forEach(p => {
             const pName = p.name || "";
             if (!pName) return;
             const prev = cachedPlanLimits[pName] || {};
             cachedPlanLimits[pName] = {
-              limit: (p.message_limit !== undefined && !isNaN(Number(p.message_limit))) ? Number(p.message_limit) : (prev.limit ?? 10),
+              limit: (p.message_limit !== undefined && !isNaN(Number(p.message_limit))) ? Number(p.message_limit) : (prev.limit ?? 50),
               image_limit: (p.image_limit !== undefined && !isNaN(Number(p.image_limit))) ? Number(p.image_limit) : (prev.image_limit ?? 0),
               hours: (Number(p.window_hours) > 0) ? Number(p.window_hours) : (prev.hours ?? 3),
               price_bdt: (p.price_bdt !== undefined && !isNaN(Number(p.price_bdt))) ? Number(p.price_bdt) : (prev.price_bdt ?? 0),
               is_active: p.is_active !== false
             };
+            cacheObj[pName] = {
+              message_limit: cachedPlanLimits[pName].limit,
+              image_limit: cachedPlanLimits[pName].image_limit,
+              window_hours: cachedPlanLimits[pName].hours,
+              price_usd: p.price_usd,
+              price_bdt: cachedPlanLimits[pName].price_bdt
+            };
           });
+          try { localStorage.setItem("alora_cached_plans", JSON.stringify(cacheObj)); } catch (e) {}
           syncUserUI();
         }
       } catch(e) {}
@@ -5420,7 +5538,8 @@
       }
 
       const activeOpt = document.querySelector("#dynamicModelList .model-option-item.selected");
-      const baseLabel = activeOpt ? (activeOpt.getAttribute("data-label") || "Alora") : (cachedDynamicModels[0]?.name || "Alora");
+      const rawLabel = activeOpt ? (activeOpt.getAttribute("data-label") || "Alora") : (cachedDynamicModels[0]?.name || "Alora");
+      const baseLabel = normalizeModelTitle(rawLabel) || "Alora";
       const hl = document.getElementById("headerModelLabel");
       if (hl) hl.textContent = isTemporaryChat ? `${baseLabel} (Temp)` : baseLabel;
     }
@@ -5479,6 +5598,7 @@
       const subTitleMap = {
         general: t("tabGeneral"),
         account: t("msetAccountLabel"),
+        usage: t("msetUsageLimits"),
         custom: t("msetCustomizeTitle"),
         notifications: t("tabNotifications"),
         speech: t("msetVoiceLabel"),
@@ -5501,7 +5621,7 @@
         backdrop.classList.remove("mobile-subview");
       }
 
-      const activeTab = normalized === "mobile-home" ? "general" : normalized;
+      const activeTab = normalized === "mobile-home" ? "general" : (normalized === "usage" ? "account" : normalized);
       document.querySelectorAll(".settings-tab-btn").forEach(b => {
         b.classList.toggle("active", b.getAttribute("data-tab") === activeTab);
       });
@@ -5523,8 +5643,13 @@
         if (targetEl) targetEl.style.display = "flex";
       }
 
-      if (normalized === "account") {
+      if (normalized === "account" || normalized === "usage") {
         refreshUserFromServer();
+        if (normalized === "usage") {
+          setTimeout(() => {
+            document.getElementById("settingsQuotaBox")?.scrollIntoView({ behavior: "smooth", block: "center" });
+          }, 80);
+        }
       } else if (normalized === "data") {
         renderArchivedChatsList();
       } else if (normalized === "storage") {
@@ -7035,20 +7160,41 @@
         updateSendButtonState();
       }
 
+      let speechBaseText = "";
+      function resetSpeechPlaceholder(active) {
+        const inp = document.getElementById("messageInput");
+        if (!inp) return;
+        inp.placeholder = active
+          ? (currentLanguage === "bn" ? "শুনছি... কথা বলুন" : "Listening... Speak now")
+          : t("askPlaceholder");
+      }
+
       if (Speech) {
         rec = new Speech();
         rec.continuous = false;
-        rec.interimResults = false;
+        rec.interimResults = true;
         rec.onstart = () => {
+          speechBaseText = (document.getElementById("messageInput")?.value || "").trim();
           setMicState(true, false);
-          showToast(currentLanguage === "bn" ? "শুনছি..." : "Listening...");
+          resetSpeechPlaceholder(true);
         };
         rec.onresult = (e) => {
-          const txt = e?.results?.[0]?.[0]?.transcript;
-          appendVoiceText(txt);
+          let transcript = "";
+          for (let i = 0; i < (e?.results?.length || 0); i++) {
+            transcript += e.results[i][0]?.transcript || "";
+          }
+          const clean = transcript.trim();
+          if (!clean) return;
+          const inp = document.getElementById("messageInput");
+          if (inp) {
+            inp.value = speechBaseText ? (speechBaseText + " " + clean) : clean;
+            autoResizeTextarea();
+            updateSendButtonState();
+          }
         };
         rec.onerror = (e) => {
           setMicState(false);
+          resetSpeechPlaceholder(false);
           const errCode = e?.error || "";
           if (errCode && errCode !== "aborted" && errCode !== "no-speech") {
             showToast(currentLanguage === "bn" ? "মাইক্রোফোন ব্যবহারের অনুমতি পাওয়া যায়নি।" : "Microphone access unavailable.");
@@ -7056,18 +7202,43 @@
         };
         rec.onend = () => {
           setMicState(false);
+          resetSpeechPlaceholder(false);
         };
       }
 
+      window.onNativeSpeechStart = () => {
+        speechBaseText = (document.getElementById("messageInput")?.value || "").trim();
+        setMicState(true, true);
+        resetSpeechPlaceholder(true);
+      };
+      window.onNativeSpeechPartial = (txt) => {
+        const clean = (txt || "").trim();
+        if (!clean) return;
+        const inp = document.getElementById("messageInput");
+        if (inp) {
+          inp.value = speechBaseText ? (speechBaseText + " " + clean) : clean;
+          autoResizeTextarea();
+          updateSendButtonState();
+        }
+      };
       window.onNativeSpeechResult = (txt) => {
-        appendVoiceText(txt);
+        const clean = (txt || "").trim();
+        const inp = document.getElementById("messageInput");
+        if (clean && inp) {
+          inp.value = speechBaseText ? (speechBaseText + " " + clean) : clean;
+          autoResizeTextarea();
+          updateSendButtonState();
+        }
         setMicState(false);
+        resetSpeechPlaceholder(false);
       };
       window.onNativeSpeechEnd = () => {
         setMicState(false);
+        resetSpeechPlaceholder(false);
       };
       window.onNativeSpeechError = (msg) => {
         setMicState(false);
+        resetSpeechPlaceholder(false);
         if (msg) showToast(String(msg));
       };
 
@@ -7084,24 +7255,26 @@
         if (recording || micBtn.classList.contains("recording")) {
           const wasNative = usingNative;
           setMicState(false);
+          resetSpeechPlaceholder(false);
           if (wasNative && bridge && typeof bridge.stopNativeVoice === "function") {
             try { bridge.stopNativeVoice(); } catch (err) {}
           }
           if (rec) {
             try { rec.abort(); } catch (err) { try { rec.stop(); } catch (err2) {} }
           }
-          showToast(currentLanguage === "bn" ? "মাইক্রোফোন বন্ধ করা হয়েছে" : "Microphone stopped");
           return;
         }
 
         if (bridge && typeof bridge.startNativeVoice === "function") {
+          speechBaseText = (document.getElementById("messageInput")?.value || "").trim();
           setMicState(true, true);
-          showToast(currentLanguage === "bn" ? "শুনছি..." : "Listening...");
+          resetSpeechPlaceholder(true);
           try {
             bridge.startNativeVoice(lang);
             return;
           } catch (err) {
             setMicState(false);
+            resetSpeechPlaceholder(false);
           }
         }
 
@@ -7147,9 +7320,13 @@
         const res = await fetch(`${API_BASE}/chat/models?_t=${now}`);
         const data = await res.json();
         if (data && data.success && Array.isArray(data.models)) {
-          cachedDynamicModels = data.models;
+          cachedDynamicModels = data.models.filter(Boolean).map(m => ({
+            ...m,
+            name: normalizeModelTitle(m.name || m.id || m.model_id)
+          }));
+          try { localStorage.setItem("alokpoth_cached_models", JSON.stringify(cachedDynamicModels)); } catch (e) {}
           lastModelFetchTime = now;
-          renderDynamicModels(data.models);
+          renderDynamicModels(cachedDynamicModels);
           applyPendingRouteModel();
         }
       } catch(e) {
@@ -7634,23 +7811,44 @@
         showToast(currentLanguage === "bn" ? "এই ডিভাইসে সিস্টেম অনুমতি পাওয়া যায়নি" : "System notification prompt unavailable");
       });
       document.getElementById("sendTestNotificationBtn")?.addEventListener("click", async () => {
-        const bridge = getNativeAndroidBridge();
-        if (bridge && typeof bridge.canPostNotifications === "function" && !bridge.canPostNotifications()) {
-          if (typeof bridge.requestNotificationPermission === "function") bridge.requestNotificationPermission();
-          showToast(currentLanguage === "bn" ? "অনুমতি চালু করে আবার চেষ্টা করুন" : "Allow notification permission and try again");
+        if (!isNotifMasterEnabled()) {
+          showToast(currentLanguage === "bn" ? "প্রথমে নোটিফিকেশন টগল চালু করুন" : "Turn on App & Broadcast Notifications first");
           return;
         }
-        if (!bridge && "Notification" in window && Notification.permission === "default") {
-          try { await Notification.requestPermission(); } catch(err) {}
-          syncNotificationUI();
+        const bridge = getNativeAndroidBridge();
+        if (bridge && typeof bridge.canPostNotifications === "function") {
+          if (!bridge.canPostNotifications()) {
+            if (typeof bridge.requestNotificationPermission === "function") bridge.requestNotificationPermission();
+            syncNotificationUI();
+            showToast(currentLanguage === "bn" ? "ডিভাইসের নোটিফিকেশন অনুমতি দিয়ে আবার চেষ্টা করুন" : "Allow device notification permission and try again");
+            return;
+          }
+        } else if ("Notification" in window) {
+          if (Notification.permission === "default") {
+            try { await Notification.requestPermission(); } catch(err) {}
+            syncNotificationUI();
+          }
+          if (Notification.permission !== "granted") {
+            showToast(currentLanguage === "bn"
+              ? "ব্রাউজারে নোটিফিকেশন অনুমতি নেই (Enable চাপুন বা সাইট সেটিংস থেকে অনুমোদন দিন)"
+              : "Permission not granted yet — allow notifications in browser settings");
+            return;
+          }
+        } else {
+          showToast(currentLanguage === "bn" ? "এই ডিভাইসে ব্রাউজার নোটিফিকেশন সমর্থিত নয়" : "Browser notifications are unavailable on this device");
+          return;
         }
         const msg = currentLanguage === "bn"
           ? "আপনার ডিভাইসে Alora নোটিফিকেশন সঠিকভাবে কাজ করছে!"
           : "Alora notifications are working properly on this device!";
-        const sent = sendAppNotification("Alora", msg, true);
-        if (sent) {
-          showToast(currentLanguage === "bn" ? "টেস্ট নোটিফিকেশন পাঠানো হয়েছে" : "Test notification sent");
-        }
+        const sent = sendAppNotification("Alora", msg, false);
+        showToast(sent
+          ? (currentLanguage === "bn" ? "টেস্ট নোটিফিকেশন পাঠানো হয়েছে" : "Test notification sent")
+          : (currentLanguage === "bn" ? "নোটিফিকেশন পাঠানো যায়নি" : "Could not dispatch notification"));
+      });
+      window.addEventListener("focus", () => syncNotificationUI());
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") syncNotificationUI();
       });
 
       document.getElementById("adsPersonalizedToggle")?.addEventListener("change", (e) => {
