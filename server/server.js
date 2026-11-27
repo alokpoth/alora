@@ -156,6 +156,7 @@ connectDB().then(async () => {
 
 // API Routes with Rate Limiting & Anti-Cache Headers (fixes login/logout stale cache)
 app.use('/api', async (req, res, next) => {
+  if (req.path === '/health') return next();
   try {
     await ensureDBConnected();
   } catch (dbErr) {

@@ -2919,6 +2919,15 @@
           });
         }
 
+        [tr.querySelector(".model-input-name"), tr.querySelector(".model-input-desc"), tr.querySelector(".model-input-cost")].forEach(inp => {
+          if (!inp) return;
+          inp.addEventListener("keydown", (ev) => {
+            if (ev.key === "Enter") {
+              ev.preventDefault();
+              saveModelConfig(mId, saveBtn);
+            }
+          });
+        });
         if (testBtn) testBtn.addEventListener("click", () => testModelConfig(mId, testBtn));
         if (saveBtn) saveBtn.addEventListener("click", () => saveModelConfig(mId, saveBtn));
         if (delBtn) delBtn.addEventListener("click", () => deleteModel(mId, delBtn));
@@ -3229,7 +3238,15 @@
         });
         const data = await res.json();
         if (data.success) {
-          showToast(`'${name || modelId}' সফলভাবে সেভ হয়েছে! প্ল্যান ব্যাজ সাথে সাথে সিঙ্ক হয়েছে।`, "success");
+          const hasReturnedCost = data.model && data.model.limit_cost !== undefined && data.model.limit_cost !== null;
+          if (!hasReturnedCost && limit_cost !== 1) {
+            showToast("সার্ভার আপডেট পেন্ডিং থাকায় মডেল লিমিট সংরক্ষিত হয়নি — কয়েক মিনিট পর আবার সেভ দিন।", "error");
+            return;
+          }
+          const savedCost = hasReturnedCost ? Number(data.model.limit_cost) : limit_cost;
+          const costEl = tr.querySelector(".model-input-cost");
+          if (costEl && !isNaN(savedCost)) costEl.value = savedCost;
+          showToast(`'${name || modelId}' সেভ হয়েছে! (প্রতি বার্তা লিমিট: ${savedCost})`, "success");
           broadcastAdminSync("models_updated");
           const keyEl = tr.querySelector(".model-input-key");
           const eyeEl = tr.querySelector(".model-key-eye-btn");
@@ -3243,7 +3260,7 @@
             target.efficient = efficient;
             target.is_active = is_active;
             target.category = category;
-            target.limit_cost = limit_cost;
+            target.limit_cost = savedCost;
             target.allowed_plans = allowed_plans;
             if (typeof loadPlans === "function") loadPlans();
           }

@@ -613,7 +613,12 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
 
     const emitNonStreamedReply = (rawFullText) => {
       const cleanFull = sanitizeCompletedText(rawFullText);
-      if (cleanFull) recordCompletionUsage();
+      if (cleanFull) {
+        recordCompletionUsage();
+      } else if (user) {
+        const { invalidateUserUsageCache } = require('../../utils/getModelConfig');
+        invalidateUserUsageCache(String(user._id || user.id));
+      }
       if (!clientWantsStream && !res.headersSent) {
         if (!cleanFull) {
           return res.status(503).json({
@@ -989,6 +994,10 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
     });
 
   } catch (error) {
+    if (req.user) {
+      const { invalidateUserUsageCache } = require('../../utils/getModelConfig');
+      invalidateUserUsageCache(String(req.user._id || req.user.id));
+    }
     console.error('[Chat Completion Error]:', error.message);
     if (!res.headersSent) {
       return res.status(500).json({ success: false, error: 'সার্ভারে চ্যাট সম্পন্ন করতে সমস্যা হয়েছে।' });

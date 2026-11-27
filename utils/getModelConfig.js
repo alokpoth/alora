@@ -468,9 +468,14 @@ async function getUserUsageDetails(userId, windowHours) {
     const { getIsMongoConnected } = require('../server/config/db');
     if (getIsMongoConnected()) {
       try {
+        const mongoose = require('mongoose');
         const UsageLog = require('../server/models/UsageLog');
+        const cleanUid = String(userId);
+        const userQuery = /^[0-9a-fA-F]{24}$/.test(cleanUid)
+          ? { $in: [cleanUid, new mongoose.Types.ObjectId(cleanUid)] }
+          : cleanUid;
         const logs = await UsageLog.find({
-          user_id: String(userId),
+          user_id: userQuery,
           model_id: { $nin: ['image-generation', 'voice-live'] },
           timestamp: { $gte: new Date(windowStart) }
         }).select('timestamp cost').lean();

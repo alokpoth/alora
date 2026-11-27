@@ -407,17 +407,20 @@ const getMe = async (req, res) => {
       let windowStartTs = windowStart.getTime();
       
       if (getIsMongoConnected()) {
+        const { getUserUsageDetails } = require('../../utils/getModelConfig');
         const userQuery = isStrictObjectId(userId) ? { $in: [userId, new mongoose.Types.ObjectId(userId)] } : userId;
-        const [aggMsg, imgCnt, voiceCnt, oldestLog] = await Promise.all([
+        const [aggMsg, cachedDetails, imgCnt, voiceCnt, oldestLog] = await Promise.all([
           UsageLog.aggregate([
             { $match: { user_id: userQuery, model_id: { $nin: ['image-generation', 'voice-live'] }, timestamp: { $gte: windowStart } } },
             { $group: { _id: null, totalCost: { $sum: { $ifNull: ['$cost', 1] } } } }
           ]),
+          getUserUsageDetails(userId, planWindow).catch(() => ({ count: 0 })),
           UsageLog.countDocuments({ user_id: userQuery, model_id: 'image-generation', timestamp: { $gte: windowStart } }),
           UsageLog.countDocuments({ user_id: userQuery, model_id: 'voice-live', timestamp: { $gte: windowStart } }),
           UsageLog.findOne({ user_id: userQuery, model_id: { $nin: ['image-generation', 'voice-live'] }, timestamp: { $gte: windowStart } }).sort({ timestamp: 1 }).select('timestamp').lean()
         ]);
-        messageCount = (aggMsg && aggMsg[0]) ? Math.round((Number(aggMsg[0].totalCost) || 0) * 100) / 100 : 0;
+        const mongoCount = (aggMsg && aggMsg[0]) ? Math.round((Number(aggMsg[0].totalCost) || 0) * 100) / 100 : 0;
+        messageCount = Math.max(mongoCount, cachedDetails?.count || 0);
         imageCount = imgCnt;
         voiceCount = voiceCnt;
         if (oldestLog) {
