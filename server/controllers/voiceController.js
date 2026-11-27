@@ -133,25 +133,42 @@ function pickRotatedKeys(keysList, bucket = 'default') {
 }
 
 async function resolveGeminiVoiceKeyList(settings, modelCfg, explicitKey = '') {
+  const isGemHint = (str) => /gemini|googleapis/i.test(String(str || ''));
+  const collectGemKeysFromModel = (m) => {
+    if (!m || m.is_active === false) return [];
+    const out = [];
+    const slots = [
+      { key: m.api_key, hint: `${m.type || ''} ${m.model_id || ''} ${m.id || ''} ${m.api_model_1 || ''} ${m.base_url || ''}` },
+      { key: m.fallback_key_1, hint: `${m.fallback_model_1 || ''} ${m.api_model_2 || ''} ${m.fallback_url_1 || ''} ${m.base_url || ''}` },
+      { key: m.fallback_key_2, hint: `${m.fallback_model_2 || ''} ${m.api_model_3 || ''} ${m.fallback_url_2 || ''} ${m.base_url || ''}` }
+    ];
+    for (const s of slots) {
+      for (const k of splitApiKeys(s.key)) {
+        if (k.startsWith('AIza') || isGemHint(s.hint)) out.push(k);
+      }
+    }
+    return out;
+  };
+
   const collected = [
     ...splitApiKeys(explicitKey),
-    ...splitApiKeys(modelCfg && modelCfg.api_key),
-    ...splitApiKeys(settings && settings.voice_live_api_key),
-    ...splitApiKeys(process.env.GEMINI_API_KEYS),
-    ...splitApiKeys(process.env.GEMINI_API_KEY)
+    ...collectGemKeysFromModel(modelCfg),
+    ...splitApiKeys(settings && settings.voice_live_api_key).filter(k => k.startsWith('AIza') || !settings?.voice_provider || settings.voice_provider === 'gemini_live')
   ];
-  if (collected.length === 0) {
-    const stored = await getApiKeyFromSupabase('__gemini_key__');
-    collected.push(...splitApiKeys(stored));
-  }
-  if (collected.length === 0) {
-    const models = await getPersistedModels();
-    (models || []).forEach(m => {
-      if (m && m.api_key && /gemini/i.test(String(m.type || '') + String(m.model_id || '') + String(m.base_url || ''))) {
-        collected.push(...splitApiKeys(m.api_key));
-      }
-    });
-  }
+
+  // Always check stored vault / Admin Panel models so Render env vars are completely optional
+  const stored = await getApiKeyFromSupabase('__gemini_key__');
+  collected.push(...splitApiKeys(stored));
+
+  const models = await getPersistedModels();
+  (models || []).forEach(m => {
+    collected.push(...collectGemKeysFromModel(m));
+  });
+
+  // Env vars are optional fallback only
+  collected.push(...splitApiKeys(process.env.GEMINI_API_KEYS));
+  collected.push(...splitApiKeys(process.env.GEMINI_API_KEY));
+
   const unique = Array.from(new Set(collected));
   return pickRotatedKeys(unique, (modelCfg && (modelCfg.model_id || modelCfg.id)) || 'global_gemini_voice');
 }
@@ -511,24 +528,36 @@ async function transcribeAudioFallback({ audioBase64, mimeType, sttUrl, apiKey, 
   let lastErrMsg = '';
   const allModels = (await getPersistedModels().catch(() => [])) || [];
 
-  // 1. Collect Custom STT, Groq Whisper & OpenAI Whisper candidates (env + vault + DB models)
+  // 1. Collect Custom STT, Groq Whisper & OpenAI Whisper candidates (Admin Panel settings + all 3 model slots + optional env)
+  const settings = await getSystemSettings().catch(() => ({}));
   const sttCandidates = [];
-  const groqEnv = process.env.GROQ_API_KEY || (await getApiKeyFromSupabase('__groq_key__')) || '';
   if (sttUrl && isPublicHttpUrl(sttUrl) && apiKey) {
     sttCandidates.push({ url: sttUrl.trim(), key: apiKey.trim(), model: sttUrl.includes('groq.com') ? 'whisper-large-v3-turbo' : 'whisper-1' });
   }
-  for (const gk of splitApiKeys(groqEnv)) {
-    sttCandidates.push({ url: 'https://api.groq.com/openai/v1/audio/transcriptions', key: gk, model: 'whisper-large-v3-turbo' });
+  for (const vk of splitApiKeys(settings && settings.voice_live_api_key)) {
+    if (vk.startsWith('gsk_')) {
+      sttCandidates.push({ url: 'https://api.groq.com/openai/v1/audio/transcriptions', key: vk, model: 'whisper-large-v3-turbo' });
+    }
   }
   for (const m of allModels) {
     if (!m || m.is_active === false) continue;
-    const rawKeys = [m.api_key, m.fallback_key_1, m.fallback_key_2].filter(Boolean).join(',');
-    const urlStr = `${m.base_url || ''} ${m.fallback_url_1 || ''} ${m.type || ''}`.toLowerCase();
-    if (urlStr.includes('groq')) {
-      for (const gk of splitApiKeys(rawKeys)) {
-        sttCandidates.push({ url: 'https://api.groq.com/openai/v1/audio/transcriptions', key: gk, model: 'whisper-large-v3-turbo' });
+    const modelSlots = [
+      { key: m.api_key, url: m.base_url || '', type: m.type || '' },
+      { key: m.fallback_key_1, url: m.fallback_url_1 || m.base_url || '', type: '' },
+      { key: m.fallback_key_2, url: m.fallback_url_2 || m.base_url || '', type: '' }
+    ];
+    for (const sl of modelSlots) {
+      const hint = `${sl.url} ${sl.type}`.toLowerCase();
+      for (const k of splitApiKeys(sl.key)) {
+        if (hint.includes('groq') || k.startsWith('gsk_')) {
+          sttCandidates.push({ url: 'https://api.groq.com/openai/v1/audio/transcriptions', key: k, model: 'whisper-large-v3-turbo' });
+        }
       }
     }
+  }
+  const groqEnv = process.env.GROQ_API_KEY || (await getApiKeyFromSupabase('__groq_key__')) || '';
+  for (const gk of splitApiKeys(groqEnv)) {
+    sttCandidates.push({ url: 'https://api.groq.com/openai/v1/audio/transcriptions', key: gk, model: 'whisper-large-v3-turbo' });
   }
 
   if (typeof FormData === 'function' && typeof Blob === 'function') {
@@ -565,8 +594,7 @@ async function transcribeAudioFallback({ audioBase64, mimeType, sttUrl, apiKey, 
     }
   }
 
-  // 2. Gemini Multimodal STT fallback across rotated keys (env + settings + DB Gemini models)
-  const settings = await getSystemSettings().catch(() => ({}));
+  // 2. Gemini Multimodal STT fallback across rotated keys (Admin Panel settings + DB Gemini models + optional env)
   const gKeys = await resolveGeminiVoiceKeyList(settings, null, '');
   const gemModels = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.5-flash-lite'];
   for (const gKey of gKeys.slice(0, 4)) {
@@ -710,7 +738,7 @@ async function runChatModelVoiceTurn({ targetModelId, audioBase64, mimeType, tex
     const sttOut = await transcribeAudioFallback({ audioBase64, mimeType, sttUrl, apiKey: '', language });
     spokenText = (sttOut && typeof sttOut === 'object') ? (sttOut.text || '') : String(sttOut || '');
     if (!spokenText && sttOut && sttOut.status === 'error' && audioBase64.length > 2000) {
-      throw new Error('ভয়েস অডিও প্রসেস করতে সার্ভারে Gemini বা Groq STT API সক্রিয় নেই। ব্রাউজার স্পিচ বা Admin প্যানেলে Live/Groq API কী যুক্ত করুন।');
+      throw new Error('ভয়েস অডিও প্রসেস করতে অ্যাডমিন প্যানেলে (Models বা Live Voice সেটিংসে) একটি সক্রিয় Gemini বা Groq API কী যুক্ত করুন।');
     }
   }
   if (!spokenText) {

@@ -1823,7 +1823,7 @@
             </label>
             <div style="display: flex; align-items: center; gap: 6px;">
               <div style="position: relative; display: flex; align-items: center; flex: 1;">
-                <input type="password" id="settingVoiceKey" placeholder="AIza... বা sk-... (ফাঁকা রাখলে গ্লোবাল Key ব্যবহৃত হবে)" style="width: 100%; padding-right: 40px;">
+                <input type="password" id="settingVoiceKey" placeholder="AIza... বা কমা দিয়ে একাধিক Gemini/Groq Key (ফাঁকা রাখলে Models-এর Key ব্যবহৃত হবে)" style="width: 100%; padding-right: 40px;">
                 <button type="button" id="toggleSettingVoiceKeyBtn" class="btn-icon" onclick="togglePasswordVisibility('settingVoiceKey')" style="position: absolute; right: 6px; background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px;" title="দেখান / লুকান"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
               </div>
               <button type="button" id="clearSettingVoiceKeyBtn" class="btn btn-danger" style="display:none;padding:8px 10px;font-size:0.75rem;" onclick="clearSavedSystemKey('voice')">✕ ক্লিয়ার</button>
