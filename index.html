@@ -4992,7 +4992,7 @@
     let selectedVoiceModel = localStorage.getItem(KEYS.SELECTED_VOICE_MODEL) || "";
     let pendingRouteModel = null;
     let cachedDynamicModels = [];
-    let cachedPlanMeta = { name: "Guest", is_admin: false, voice_mode: "chat_as_live", voice_model: "", image_model: "", expires_at: null, days_remaining: null, hours_remaining: null };
+    let cachedPlanMeta = { name: "Guest", is_admin: false, voice_mode: "chat_as_live", voice_model: "", voice_stt_available: false, image_model: "", expires_at: null, days_remaining: null, hours_remaining: null };
     let lastModelFetchTime = 0;
     let lastUserSyncTime = 0;
 
@@ -5974,7 +5974,7 @@
               limit: (p.message_limit !== undefined && !isNaN(Number(p.message_limit))) ? Number(p.message_limit) : (prev.limit ?? 50),
               image_limit: (p.image_limit !== undefined && !isNaN(Number(p.image_limit))) ? Number(p.image_limit) : (prev.image_limit ?? 0),
               voice_limit: (p.voice_limit !== undefined && !isNaN(Number(p.voice_limit))) ? Number(p.voice_limit) : (prev.voice_limit ?? 0),
-              voice_mode: p.voice_mode || prev.voice_mode || (["Plus", "Pro"].includes(pName) ? "live_models" : (pName === "Max" ? "both" : "chat_as_live")),
+              voice_mode: "chat_as_live",
               hours: (Number(p.window_hours) > 0) ? Number(p.window_hours) : (prev.hours ?? 3),
               price_bdt: (p.price_bdt !== undefined && !isNaN(Number(p.price_bdt))) ? Number(p.price_bdt) : (prev.price_bdt ?? 0),
               is_active: p.is_active !== false
@@ -8368,7 +8368,13 @@
       if (pref !== "auto") return pref;
       if (currentLanguage === "bn") return "bn-BD";
       const recentHasBn = (messagesHistory || []).slice(-3).some(m => /[\u0980-\u09FF]/.test(String(m?.content || m?.displayText || "")));
-      return recentHasBn ? "bn-BD" : "en-US";
+      if (recentHasBn) return "bn-BD";
+      try {
+        if (Array.isArray(navigator.languages) && navigator.languages.some(l => /^bn/i.test(String(l || "")))) {
+          return "bn-BD";
+        }
+      } catch {}
+      return "en-US";
     }
 
     function renderAloraVoiceCards() {
@@ -8639,6 +8645,8 @@
         s = s.replace(/[\uD83C-\uDBFF][\uDC00-\uDFFF]/g, " ");
       }
       return s
+        .replace(/(?:^|\s)[:;xX8=][-~']?[)DdpP(\/|\\*oO3<>]+(?=\s|$)/g, " ")
+        .replace(/<3+|:\)+|;\)+|:\(+/g, " ")
         .replace(/\*(?:smiles?|smiling|laughs?|laughing|chuckles?|waves?|winks?|nods?|sighs?|cries?|happy|sad|wink|emoji)\*/gi, " ")
         .replace(/\[(?:emoji|smile|laugh|grin|heart|thumbs\s*up|clap|fire|rocket|wave|wink|sparkles?)[^\]]*\]/gi, " ")
         .replace(/\s+/g, " ")
@@ -9158,13 +9166,7 @@
       const planName = isAdmin
         ? "Max"
         : (hasToken ? ((u?.subscription?.plan_name) || (cachedPlanMeta?.name !== "Guest" ? cachedPlanMeta?.name : "") || localStorage.getItem(KEYS.PLAN) || "Free") : "Guest");
-      const pLimitObj = cachedPlanLimits[planName] || cachedPlanLimits.Free || {};
-      const voiceMode = isAdmin
-        ? "both"
-        : (cachedPlanMeta?.voice_mode && cachedPlanMeta.name === planName
-          ? cachedPlanMeta.voice_mode
-          : (pLimitObj.voice_mode || (["Plus", "Pro"].includes(planName) ? "live_models" : (planName === "Max" ? "both" : "chat_as_live"))));
-      return { hasToken, isAdmin, planName, voiceMode };
+      return { hasToken, isAdmin, planName, voiceMode: "chat_as_live" };
     }
 
     function isClientModelAccessible(m, ctx) {
@@ -9181,19 +9183,8 @@
     function getLiveVoiceCandidateModels() {
       const ctx = getActiveUserPlanContext();
       const models = Array.isArray(cachedDynamicModels) ? cachedDynamicModels : [];
-      const voiceList = models.filter(m => m.category === "voice");
-      const chatList = models.filter(m => (m.category || "chat") === "chat");
-
-      let combined = [];
-      if (ctx.voiceMode === "chat_as_live") {
-        combined = chatList;
-      } else if (ctx.voiceMode === "both") {
-        combined = [...voiceList, ...chatList];
-      } else {
-        // 'live_models': show dedicated Live Voice models first, or fallback to Chat if none added yet
-        combined = voiceList.length > 0 ? voiceList : chatList;
-      }
-      return { ctx, models: combined, hasDedicatedVoice: voiceList.length > 0 };
+      const chatList = models.filter(m => m && m.category !== "voice" && m.category !== "image");
+      return { ctx, models: chatList, hasDedicatedVoice: false };
     }
 
     function renderLiveVoiceModelPickers() {
@@ -9205,7 +9196,7 @@
 
       let activeVoiceModelObj = models.find(m => (m.id === selectedVoiceModel || m.model_id === selectedVoiceModel) && isClientModelAccessible(m, ctx));
       if (!activeVoiceModelObj) {
-        activeVoiceModelObj = models.find(m => m.category === "voice" && isClientModelAccessible(m, ctx))
+        activeVoiceModelObj = models.find(m => (m.id === selectedModel || m.model_id === selectedModel) && isClientModelAccessible(m, ctx))
           || models.find(m => isClientModelAccessible(m, ctx))
           || models[0]
           || null;
@@ -9222,18 +9213,9 @@
 
       if (settingsModeSub) {
         const isBn = currentLanguage === "bn";
-        const modeDescMap = {
-          chat_as_live: isBn
-            ? `আপনার (${ctx.planName}) প্ল্যানে চ্যাট মডেলগুলোই বাংলা ও ইংরেজি লাইভ ভয়েস হিসেবে কাজ করে`
-            : `On your ${ctx.planName} plan, Chat models power Live Voice directly in Bengali & English`,
-          live_models: isBn
-            ? `আপনার (${ctx.planName}) প্ল্যানে ডেডিকেটেড Live API ভয়েস মডেলসমূহ সক্রিয়`
-            : `Dedicated Gemini Live & Audio models are active on your ${ctx.planName} plan`,
-          both: isBn
-            ? `আপনার (${ctx.planName}) প্ল্যানে Live API মডেল ও চ্যাট মডেল—দুটোই লাইভ ভয়েসে ব্যবহার করতে পারবেন`
-            : `Use both dedicated Live API models and Chat models inside Voice Mode`
-        };
-        settingsModeSub.textContent = modeDescMap[ctx.voiceMode] || modeDescMap.chat_as_live;
+        settingsModeSub.textContent = isBn
+          ? `আপনার (${ctx.planName}) প্ল্যানে চ্যাট মডেলগুলোই বাংলা ও ইংরেজিতে মুখে কথা বলে উত্তর দেবে`
+          : `On your ${ctx.planName} plan, Chat models answer aloud in Bengali and English`;
       }
 
       const selectVoiceModel = (m, isLocked, badgeLabel) => {
@@ -9265,7 +9247,7 @@
             const isSel = activeVoiceModelObj && (activeVoiceModelObj.id === mId || activeVoiceModelObj.model_id === mId);
             const isLocked = !isClientModelAccessible(m, ctx);
             const { badgeText } = getModelPlanBadgeInfo(m);
-            const finalBadge = isLocked ? `🔒 ${badgeText}` : (m.category === "voice" ? `Live · ${badgeText}` : badgeText);
+            const finalBadge = isLocked ? `🔒 ${badgeText}` : badgeText;
 
             const opt = document.createElement("button");
             opt.type = "button";
@@ -9307,7 +9289,7 @@
             card.innerHTML = `
               <div class="alora-voice-card-meta">
                 <span class="alora-voice-card-title">${escapeHtml(mName)}</span>
-                <span class="alora-voice-card-sub">${escapeHtml(m.category === "voice" ? "Live API Model" : "Chat-as-Live Model")} · ${escapeHtml(finalBadge)}</span>
+                <span class="alora-voice-card-sub">Chat Voice Model · ${escapeHtml(finalBadge)}</span>
               </div>
               <span style="font-size:0.75rem; font-weight:600; color:var(--text-main);">${isSel ? "✓" : ""}</span>
             `;
@@ -9531,6 +9513,7 @@
       let analyserData = null;
       let lastMicPermError = "";
       let forceFlushCapture = false;
+      let preferDirectSpeechRec = false;
 
       function clearRestartTimer() {
         if (restartTimer) {
@@ -9852,9 +9835,10 @@
         }
       }
 
-      async function handleVoiceTurnPayload({ audioBase64 = "", mimeType = "audio/wav", rawText = "" }) {
+      async function handleVoiceTurnPayload({ audioBase64 = "", mimeType = "audio/wav", rawText = "", fallbackText = "" }) {
         const cleanPrompt = String(rawText || "").trim();
-        if (!active || (!audioBase64 && !cleanPrompt)) return;
+        const cleanFallback = String(fallbackText || "").trim();
+        if (!active || (!audioBase64 && !cleanPrompt && !cleanFallback)) return;
 
         if (!isAppOnline()) {
           const msg = currentLanguage === "bn"
@@ -9868,11 +9852,12 @@
 
         if (enforceVoiceQuotaOrLock()) return;
 
-        if (cleanPrompt && transcriptEl) {
+        const shownPrompt = cleanPrompt || cleanFallback;
+        if (shownPrompt && transcriptEl) {
           const youLbl = currentLanguage === "bn" ? "আপনি" : "You";
-          transcriptEl.textContent = `${youLbl}: "${cleanPrompt}"`;
+          transcriptEl.textContent = `${youLbl}: "${shownPrompt}"`;
         } else if (transcriptEl) {
-          transcriptEl.textContent = currentLanguage === "bn" ? "কথা প্রসেস হচ্ছে..." : "Processing live voice...";
+          transcriptEl.textContent = currentLanguage === "bn" ? "কথা প্রসেস হচ্ছে..." : "Processing voice...";
         }
 
         setOrbState("thinking");
@@ -9894,6 +9879,7 @@
               audio_base64: audioBase64 || undefined,
               mime_type: audioBase64 ? mimeType : undefined,
               text_prompt: cleanPrompt || undefined,
+              fallback_text: cleanFallback || undefined,
               voice_preset: preset.id || "auto",
               language: langSetting,
               chat_model: selectedModel,
@@ -9907,14 +9893,27 @@
           if (!active) return;
 
           if (!res.ok || data.success === false) {
+            const bridge = getNativeAndroidBridge();
+            if (data.code === "NO_STT_KEY" && (Speech || (bridge && typeof bridge.startNativeVoice === "function"))) {
+              preferDirectSpeechRec = true;
+              cachedPlanMeta.voice_stt_available = false;
+              setOrbState("listening");
+              if (transcriptEl) {
+                transcriptEl.textContent = currentLanguage === "bn"
+                  ? "আবার বলুন — সরাসরি ভয়েস রিকগনিশন চালু হচ্ছে..."
+                  : "Speak again — direct speech recognition active...";
+              }
+              scheduleListeningRestart(180);
+              return;
+            }
             if (res.status === 404) {
-              // Live Voice endpoint not deployed yet on backend: pause gracefully instead of looping errors
+              // Voice endpoint not deployed yet on backend: pause gracefully instead of looping errors
               muted = true;
               setOrbState("paused", currentLanguage === "bn" ? "ভয়েস সার্ভার আপডেট হচ্ছে..." : "Voice server updating...");
               if (transcriptEl) {
                 transcriptEl.textContent = currentLanguage === "bn"
                   ? "ব্যাকএন্ড সার্ভারে /api/chat/voice-live এখনো আপডেট হয়নি। অনুগ্রহ করে Render সার্ভিসটি ডিপ্লয় করুন।"
-                  : "Live Voice endpoint is not active on the backend yet. Please deploy the latest Render backend.";
+                  : "Voice endpoint is not active on the backend yet. Please deploy the latest Render backend.";
               }
               return;
             }
@@ -9962,7 +9961,7 @@
           }
           applyGlobalQuotaLockUI();
 
-          const userSpoken = stripEmojisForSpeech(String(data.transcript || cleanPrompt || ""));
+          const userSpoken = stripEmojisForSpeech(String(data.transcript || cleanPrompt || cleanFallback || ""));
           const finalReply = stripEmojisForSpeech(extractThoughts(String(data.reply || "")).cleanText);
 
           if (userSpoken) {
@@ -10096,8 +10095,8 @@
           let interimTranscript = "";
           const langPrefMode = getVoiceInputLanguageSetting();
           const isMobileBrowser = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
-          // Run Web Speech interim preview only when explicit single language is selected on desktop
-          if (Speech && !isMobileBrowser && langPrefMode !== "auto") {
+          // Run Web Speech concurrently on desktop to display live interim captions & provide offline STT fallback
+          if (Speech && !isMobileBrowser) {
             try {
               webRec = new Speech();
               webRec.lang = lang;
@@ -10145,7 +10144,8 @@
               handleVoiceTurnPayload({
                 audioBase64: wavB64,
                 mimeType: "audio/wav",
-                rawText: langPrefMode === "auto" ? "" : interimTranscript
+                rawText: langPrefMode === "auto" ? "" : interimTranscript,
+                fallbackText: interimTranscript
               });
               return;
             }
@@ -10156,7 +10156,8 @@
               handleVoiceTurnPayload({
                 audioBase64: b64,
                 mimeType: blob.type || "audio/webm",
-                rawText: langPrefMode === "auto" ? "" : interimTranscript
+                rawText: langPrefMode === "auto" ? "" : interimTranscript,
+                fallbackText: interimTranscript
               });
             };
             reader.readAsDataURL(blob);
@@ -10248,10 +10249,11 @@
         stopRecognitionOnly();
         setOrbState("listening");
 
+        const langPrefMode = getVoiceInputLanguageSetting();
         const lang = getEffectiveVoiceInputLang();
+        const allowAudioCapture = !preferDirectSpeechRec && Boolean(cachedPlanMeta?.voice_stt_available);
         const bridge = getNativeAndroidBridge();
-        // On Android: ALWAYS use custom hardware AudioRecord WAV+VAD — ZERO Google UI popup ever!
-        if (bridge && typeof bridge.startCustomAudio === "function") {
+        if (allowAudioCapture && bridge && typeof bridge.startCustomAudio === "function") {
           usingNative = true;
           try {
             bridge.startCustomAudio("live");
@@ -10263,16 +10265,27 @@
         if (bridge && typeof bridge.startNativeVoice === "function") {
           usingNative = true;
           try {
-            bridge.startNativeVoice(lang);
+            bridge.startNativeVoice(langPrefMode === "auto" ? "auto" : lang);
+            return;
+          } catch (e) {
+            usingNative = false;
+          }
+        }
+        if (bridge && typeof bridge.startCustomAudio === "function") {
+          usingNative = true;
+          try {
+            bridge.startCustomAudio("live");
             return;
           } catch (e) {
             usingNative = false;
           }
         }
 
-        // Browser MediaRecorder + VAD -> Gemini Live / Voice API
-        const startedMedia = await startBrowserMediaRecorderCapture(lang);
-        if (startedMedia) return;
+        // Browser MediaRecorder + VAD (when Whisper/Custom STT is available or SpeechRecognition unsupported) -> Chat Model Voice
+        if ((allowAudioCapture || !Speech) && typeof MediaRecorder !== "undefined") {
+          const startedMedia = await startBrowserMediaRecorderCapture(lang);
+          if (startedMedia) return;
+        }
 
         if (lastMicPermError) {
           showToast(lastMicPermError);
@@ -10427,6 +10440,8 @@
         const next = order[(order.indexOf(cur) + 1) % order.length];
         localStorage.setItem(VOICE_INPUT_LANG_KEY, next);
         renderAloraVoiceCards();
+        const labels = { auto: "Auto (BN / EN)", "bn-BD": "বাংলা (Bangladesh)", "en-US": "English (US)" };
+        showToast(labels[next] || next);
         if (active && !muted && phase === "listening") {
           startVoiceModeListening();
         }

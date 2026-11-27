@@ -449,7 +449,7 @@ const checkRateLimit = async (req, res, next) => {
       }
 
       // 6. Model Access Permission Check (for text chat)
-      const model_id = (req.body && typeof req.body === 'object' && req.body.model) ? String(req.body.model).trim() : 'gemini-3.6-flash';
+      const model_id = (req.body && typeof req.body === 'object' && req.body.model) ? String(req.body.model).trim() : 'openrouter/free';
       const aiModel = await lookupModelCached(model_id);
 
       if (aiModel && !canPlanAccessModel(aiModel, currentPlanName, plan)) {

@@ -99,14 +99,11 @@ async function deleteStoredApiKey(modelId) {
 const getApiKeyFromSupabase = getStoredApiKey;
 
 const MODEL_ALIASES = {
-  'gemini-1.5-flash': 'gemini-3.6-flash',
-  'gemini-2.5-flash': 'gemini-3.6-flash',
-  'gemini-flash': 'gemini-3.6-flash',
   'alo-pro': 'openai/gpt-oss-120b',
   'llama-3.3-70b-versatile': 'openai/gpt-oss-120b',
   'deepseek-r1-distill-llama-70b': 'qwen/qwen3.8-27b',
   'hy3': 'openai/gpt-oss-120b',
-  'mimo-v2.5': 'gemini-3.6-flash'
+  'mimo-v2.5': 'openrouter/free'
 };
 
 function resolveModelAlias(rawId) {
@@ -982,8 +979,8 @@ async function getSystemSettings() {
     image_api_key: '',
     image_size: '1024x1024',
     image_enhance: true,
-    voice_provider: 'gemini_live',
-    voice_live_model: 'gemini-2.5-flash-native-audio-preview-12-2025',
+    voice_provider: 'chat_models',
+    voice_live_model: '',
     voice_live_url: '',
     voice_live_api_key: '',
     voice_stt_url: '',

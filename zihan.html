@@ -1155,7 +1155,7 @@
           <div class="form-row">
             <div class="form-group" style="flex: 1; min-width: 180px;">
               <label>আপস্ট্রিম মডেল আইডি *</label>
-              <input type="text" id="modalApiModel1" placeholder="e.g. gpt-4o-mini / gemini-1.5-flash">
+              <input type="text" id="modalApiModel1" placeholder="e.g. gpt-4o-mini / openrouter/free">
             </div>
             <div class="form-group" style="flex: 1.5; min-width: 220px;">
               <label>API Base URL</label>
@@ -1463,42 +1463,22 @@
       <form id="addModelForm" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 16px; border-radius: 12px; display: flex; flex-direction: column; gap: 14px;">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
           <h4 style="color: var(--text-main); font-size: 0.95rem; font-weight: 600; margin:0;">+ নতুন মডেল যোগ করুন</h4>
-          <button type="button" class="btn btn-ghost" onclick="scanGeminiLiveModels(this)" style="padding:5px 12px; font-size:0.78rem;">
-            Gemini Live স্ক্যান করুন
-          </button>
-        </div>
-
-        <!-- Google AI Studio Live API Quick Presets -->
-        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 12px; display:flex; flex-direction:column; gap:8px;">
-          <div style="font-size:0.76rem; color:var(--text-sub); font-weight:600;">
-            Live Voice প্রিসেট (১-ক্লিকে পূরণ করুন):
-          </div>
-          <div style="display:flex; gap:6px; flex-wrap:wrap;">
-            <button type="button" class="plan-quick-chip" onclick="fillLiveModelPreset('Gemini 3.8 Live', 'ALO Live 3.8')">+ Gemini 3.8 Live</button>
-            <button type="button" class="plan-quick-chip" onclick="fillLiveModelPreset('Gemini 3.8 Live Extended Thinking', 'ALO Live 3.8 Thinking')">+ Gemini 3.8 Live Thinking</button>
-            <button type="button" class="plan-quick-chip" onclick="fillLiveModelPreset('Gemini 3 Flash Live', 'ALO 3 Flash Live')">+ Gemini 3 Flash Live</button>
-            <button type="button" class="plan-quick-chip" onclick="fillLiveModelPreset('Gemini 2.5 Flash Native Audio Dialog', 'ALO 2.5 Native Audio')">+ Gemini 2.5 Native Audio</button>
-            <button type="button" class="plan-quick-chip" onclick="fillLiveModelPreset('Gemini 3.5 Live Translate', 'ALO 3.5 Live Translate')">+ Gemini 3.5 Live Translate</button>
-            <button type="button" class="plan-quick-chip" onclick="fillLiveModelPreset('Gemini 3.5 Transcribe Live', 'ALO 3.5 Transcribe Live')">+ Gemini 3.5 Transcribe Live</button>
-          </div>
-          <div id="discoveredLiveModelsBox" style="display:none; padding-top:6px; border-top:1px solid var(--border-color);"></div>
         </div>
 
         <!-- Basic Info -->
         <div class="form-row">
           <div class="form-group" style="flex: 1; min-width: 180px;">
             <label>মডেল আইডি *</label>
-            <input type="text" id="newModelId" required placeholder="e.g. Gemini 3.8 Live / gpt-4o-mini">
+            <input type="text" id="newModelId" required placeholder="e.g. openai/gpt-4o-mini">
           </div>
           <div class="form-group" style="flex: 1; min-width: 180px;">
             <label>প্রদর্শিত নাম *</label>
-            <input type="text" id="newModelName" required placeholder="e.g. ALO Live 3.8 / ALO 3 Mini">
+            <input type="text" id="newModelName" required placeholder="e.g. ALO 3 Mini">
           </div>
           <div class="form-group" style="min-width: 165px;">
             <label>ক্যাটাগরি</label>
             <select id="newModelCategory">
               <option value="chat">Chat Model</option>
-              <option value="voice">Live Voice Model</option>
               <option value="image">Image Model</option>
             </select>
           </div>
@@ -1528,7 +1508,7 @@
           <div class="form-row">
             <div class="form-group" style="flex: 1; min-width: 160px;">
               <label>আপস্ট্রিম মডেল</label>
-              <input type="text" id="newModelApiModel1" placeholder="e.g. gpt-4o-mini / gemini-2.5-flash">
+              <input type="text" id="newModelApiModel1" placeholder="e.g. gpt-4o-mini / openrouter/free">
             </div>
             <div class="form-group" style="flex: 1.5; min-width: 220px;">
               <label>API Base URL</label>
@@ -1537,7 +1517,7 @@
             <div class="form-group" style="flex: 1; min-width: 150px;">
               <label>API Key</label>
               <div style="display:flex;gap:6px;align-items:center;">
-                <input type="password" id="newModelKey" placeholder="sk-... / AIza..." style="flex:1;">
+                <input type="password" id="newModelKey" placeholder="sk-... / gsk-..." style="flex:1;">
                 <button type="button" class="btn-icon" title="API Key দেখুন" onclick="toggleKeyVisibility(this)"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
               </div>
             </div>
@@ -1766,44 +1746,34 @@
         </div>
       </form>
 
-      <!-- Card 3: Live Voice API -->
+      <!-- Card 3: Chat-Model Voice & STT Settings -->
       <form id="voiceLiveSettingsForm" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 16px; border-radius: 12px; display: flex; flex-direction: column; gap: 14px;">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; flex-wrap: wrap; gap: 8px;">
-          <h4 style="color: var(--text-main); font-size: 0.95rem; font-weight: 600; margin: 0;">Live Voice Engine</h4>
+          <h4 style="color: var(--text-main); font-size: 0.95rem; font-weight: 600; margin: 0;">Voice Engine (Chat Models + TTS)</h4>
         </div>
 
         <div class="form-row">
           <div class="form-group" style="flex: 1.3; min-width: 240px;">
             <label>ভয়েস মোড *</label>
             <select id="settingVoiceProvider">
-              <option value="gemini_live">Gemini Live API</option>
+              <option value="chat_models">Chat Models (ডিফল্ট)</option>
               <option value="custom_api">Custom Voice API</option>
-              <option value="chat_models">Chat Models (TTS)</option>
             </select>
           </div>
 
           <div class="form-group" style="flex: 1.1; min-width: 220px;">
-            <label>লাইভ মডেল আইডি</label>
-            <input type="text" id="settingVoiceModel" list="geminiLiveModelSuggestions" placeholder="gemini-2.5-flash-native-audio-preview-12-2025">
-            <datalist id="geminiLiveModelSuggestions">
-              <option value="gemini-2.5-flash-native-audio-preview-12-2025"></option>
-              <option value="Gemini 3.8 Live"></option>
-              <option value="Gemini 3.8 Live Extended Thinking"></option>
-              <option value="Gemini 3 Flash Live"></option>
-              <option value="Gemini 3.5 Live Translate"></option>
-              <option value="Gemini 3.5 Transcribe Live"></option>
-              <option value="Gemini 2.5 Flash Native Audio Dialog"></option>
-            </datalist>
+            <label>কাস্টম ভয়েস মডেল (ঐচ্ছিক)</label>
+            <input type="text" id="settingVoiceModel" placeholder="খালি রাখলে চ্যাট মডেল চলবে">
           </div>
 
           <div class="form-group" style="flex: 1.2; min-width: 240px;">
             <label style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-              <span>ভয়েস API Key</span>
+              <span>STT / Voice API Key (ঐচ্ছিক)</span>
               <span id="settingVoiceKeySavedBadge" style="display:none;font-size:0.7rem;padding:2px 8px;border-radius:999px;background:rgba(34,197,94,0.14);color:#4ade80;border:1px solid rgba(34,197,94,0.3);">✓ Saved</span>
             </label>
             <div style="display: flex; align-items: center; gap: 6px;">
               <div style="position: relative; display: flex; align-items: center; flex: 1;">
-                <input type="password" id="settingVoiceKey" placeholder="AIza... / Groq Key" style="width: 100%; padding-right: 40px;">
+                <input type="password" id="settingVoiceKey" placeholder="gsk_... (Groq Whisper STT) বা Custom Key" style="width: 100%; padding-right: 40px;">
                 <button type="button" id="toggleSettingVoiceKeyBtn" class="btn-icon" onclick="togglePasswordVisibility('settingVoiceKey')" style="position: absolute; right: 6px; background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px;" title="দেখান / লুকান"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
               </div>
               <button type="button" id="clearSettingVoiceKeyBtn" class="btn btn-danger" style="display:none;padding:8px 10px;font-size:0.75rem;" onclick="clearSavedSystemKey('voice')">✕ ক্লিয়ার</button>
@@ -2607,10 +2577,7 @@
       let trimmed = url.trim();
       if (!trimmed) return '';
       if (
-        trimmed.includes(':streamGenerateContent') ||
-        trimmed.includes(':generateContent') ||
         trimmed.includes('/v1/messages') ||
-        trimmed.includes('generativelanguage.googleapis.com') ||
         trimmed.includes('/models/')
       ) {
         return trimmed.replace(/\/+$/, '');
@@ -2916,9 +2883,8 @@
             <div style="display:flex; flex-direction:column; gap:6px; min-width:185px;">
               <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center; justify-content:space-between;">
                 <select class="model-input-cat" style="padding:3px 7px; font-size:0.74rem; border-radius:6px; background:var(--surface); color:var(--text-primary); border:1px solid var(--border);">
-                  <option value="chat" ${(m.category || 'chat') === 'chat' ? 'selected' : ''}>Chat (চ্যাট)</option>
-                  <option value="voice" ${m.category === 'voice' ? 'selected' : ''}>Live Voice (লাইভ ভয়েস)</option>
-                  <option value="image" ${m.category === 'image' ? 'selected' : ''}>Image (ইমেজ)</option>
+                  <option value="chat" ${(m.category || 'chat') === 'chat' ? 'selected' : ''}>Chat</option>
+                  <option value="image" ${m.category === 'image' ? 'selected' : ''}>Image</option>
                 </select>
                 <span class="model-live-tier-preview" style="font-size:0.66rem; padding:1px 7px; border-radius:999px; background:rgba(255,255,255,0.08); color:var(--text-primary); font-weight:600;"></span>
               </div>
@@ -3173,96 +3139,6 @@
       document.querySelectorAll(".new-model-plan-cb").forEach(cb => {
         cb.checked = set.has(cb.value);
       });
-    }
-
-    function fillLiveModelPreset(modelId, displayName) {
-      const idEl = document.getElementById("newModelId");
-      const nameEl = document.getElementById("newModelName");
-      const catEl = document.getElementById("newModelCategory");
-      const api1El = document.getElementById("newModelApiModel1");
-      const urlEl = document.getElementById("newModelUrl");
-      const keyEl = document.getElementById("newModelKey");
-      if (idEl) idEl.value = modelId;
-      if (nameEl) nameEl.value = displayName;
-      if (catEl) catEl.value = "voice";
-      if (api1El) api1El.value = modelId;
-      if (urlEl) urlEl.value = "";
-      setNewModelPlanPreset(["Plus", "Pro", "Max"]);
-      showToast(`'${displayName}' Live ভয়েস ফর্মে বসানো হয়েছে — Google AI Studio API Key দিয়ে '+ মডেল যোগ করুন' চাপুন`, "info");
-      if (keyEl) keyEl.focus();
-    }
-
-    async function scanGeminiLiveModels(btn) {
-      const box = document.getElementById("discoveredLiveModelsBox");
-      const keyFromForm = document.getElementById("newModelKey")?.value.trim() || document.getElementById("settingVoiceKey")?.value.trim() || "";
-      if (btn) {
-        btn.disabled = true;
-        btn.textContent = "স্ক্যান হচ্ছে...";
-      }
-      try {
-        const res = await authFetch(`${API_BASE}/zihan/models/discover-gemini-live`, {
-          method: "POST",
-          body: JSON.stringify({ api_key: keyFromForm || undefined })
-        });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok || !data.success) {
-          showToast(data.error || "API Key দিয়ে আবার চেষ্টা করুন", "error");
-          return;
-        }
-        const list = Array.isArray(data.models) ? data.models : [];
-        if (!box) return;
-        box.style.display = "block";
-        if (!list.length) {
-          box.innerHTML = `<div style="font-size:0.78rem; color:var(--text-muted);">কোনো Live API মডেল পাওয়া যায়নি।</div>`;
-          return;
-        }
-        box.innerHTML = `<div style="font-size:0.76rem; color:#a7f3d0; margin-bottom:6px;">✓ Google AI Studio থেকে ${list.length}টি Live মডেল পাওয়া গেছে — ক্লিক করে সরাসরি যোগ করুন:</div>` +
-          `<div style="display:flex; gap:6px; flex-wrap:wrap;">` +
-          list.map(m => `<button type="button" class="plan-quick-chip" onclick="quickAddDiscoveredLiveModel('${escapeHtml(m.model_id)}', '${escapeHtml(m.display_name || m.model_id)}')">+ ${escapeHtml(m.display_name || m.model_id)} <span style="opacity:0.65;font-size:0.68rem;">(${escapeHtml(m.model_id)})</span></button>`).join("") +
-          `</div>`;
-      } catch (err) {
-        showToast("সার্ভারে সংযোগ করা যায়নি", "error");
-      } finally {
-        if (btn) {
-          btn.disabled = false;
-          btn.textContent = "Gemini Live স্ক্যান";
-        }
-      }
-    }
-
-    async function quickAddDiscoveredLiveModel(modelId, displayName) {
-      const keyFromForm = document.getElementById("newModelKey")?.value.trim() || document.getElementById("settingVoiceKey")?.value.trim() || "";
-      const allowed_plans = Array.from(document.querySelectorAll(".new-model-plan-cb:checked")).map(cb => cb.value);
-      const effPlans = allowed_plans.length ? allowed_plans : ["Plus", "Pro", "Max"];
-      const flags = deriveLegacyModelFlags(effPlans);
-      try {
-        const res = await authFetch(`${API_BASE}/zihan/models`, {
-          method: "POST",
-          body: JSON.stringify({
-            model_id: modelId,
-            name: displayName,
-            category: "voice",
-            type: "gemini",
-            allowed_plans: effPlans,
-            premium: flags.premium,
-            efficient: flags.efficient,
-            api_model_1: modelId,
-            base_url: "",
-            api_key: keyFromForm
-          })
-        });
-        const data = await res.json().catch(() => ({}));
-        if (res.ok && data.success) {
-          showToast(`'${displayName}' Live মডেল সফলভাবে যুক্ত হয়েছে!`, "success");
-          broadcastAdminSync("models_updated");
-          loadModels();
-        } else {
-          fillLiveModelPreset(modelId, displayName);
-          if (data.error) showToast(data.error, "info");
-        }
-      } catch {
-        fillLiveModelPreset(modelId, displayName);
-      }
     }
 
     async function saveModelConfig(modelId, btn) {
@@ -3735,9 +3611,9 @@
       { name: 'Guest', displayName: 'গেস্ট (Guest)', message_limit: 2, image_limit: 0, voice_limit: 2, voice_mode: 'chat_as_live', voice_model: '', image_model: '', window_hours: 24, price_usd: 0, price_bdt: 0, tagline: 'Try Alora instantly without logging in', allowed_models: ['openrouter/free'], is_active: true },
       { name: 'Free', displayName: 'ফ্রি প্ল্যান (Free)', message_limit: 50, image_limit: 0, voice_limit: 10, voice_mode: 'chat_as_live', voice_model: '', image_model: '', window_hours: 3, price_usd: 0, price_bdt: 0, tagline: 'Intelligence for everyday tasks and quick answers', allowed_models: ['openrouter/free'], is_active: true },
       { name: 'Go', displayName: 'গো প্ল্যান (Go)', message_limit: 100, image_limit: 0, voice_limit: 30, voice_mode: 'chat_as_live', voice_model: '', image_model: '', window_hours: 3, price_usd: 5, price_bdt: 650, tagline: 'More room to write, learn, and create', allowed_models: ['openrouter/free'], is_active: true },
-      { name: 'Plus', displayName: 'প্লাস প্ল্যান (Plus)', message_limit: 500, image_limit: 0, voice_limit: 100, voice_mode: 'live_models', voice_model: '', image_model: '', window_hours: 3, price_usd: 20, price_bdt: 2600, tagline: 'Personalized AI with advanced reasoning models', allowed_models: ['*'], is_active: true },
-      { name: 'Pro', displayName: 'প্রো প্ল্যান (Pro)', message_limit: 3000, image_limit: 0, voice_limit: 300, voice_mode: 'live_models', voice_model: '', image_model: '', window_hours: 1, price_usd: 60, price_bdt: 7800, tagline: 'Higher speed and expanded limits for heavy work', allowed_models: ['*'], is_active: true },
-      { name: 'Max', displayName: 'ম্যাক্স প্ল্যান (Max)', message_limit: 7000, image_limit: 0, voice_limit: 1000, voice_mode: 'both', voice_model: '', image_model: '', window_hours: 1, price_usd: 120, price_bdt: 15600, tagline: 'Full frontier intelligence with our highest usage limits', allowed_models: ['*'], is_active: true }
+      { name: 'Plus', displayName: 'প্লাস প্ল্যান (Plus)', message_limit: 500, image_limit: 0, voice_limit: 100, voice_mode: 'chat_as_live', voice_model: '', image_model: '', window_hours: 3, price_usd: 20, price_bdt: 2600, tagline: 'Personalized AI with advanced reasoning models', allowed_models: ['*'], is_active: true },
+      { name: 'Pro', displayName: 'প্রো প্ল্যান (Pro)', message_limit: 3000, image_limit: 0, voice_limit: 300, voice_mode: 'chat_as_live', voice_model: '', image_model: '', window_hours: 1, price_usd: 60, price_bdt: 7800, tagline: 'Higher speed and expanded limits for heavy work', allowed_models: ['*'], is_active: true },
+      { name: 'Max', displayName: 'ম্যাক্স প্ল্যান (Max)', message_limit: 7000, image_limit: 0, voice_limit: 1000, voice_mode: 'chat_as_live', voice_model: '', image_model: '', window_hours: 1, price_usd: 120, price_bdt: 15600, tagline: 'Full frontier intelligence with our highest usage limits', allowed_models: ['*'], is_active: true }
     ];
 
     let renderedPlanNames = [];
@@ -3860,10 +3736,8 @@
         const msgLimitVal = (p.message_limit !== undefined && p.message_limit !== null && !isNaN(Number(p.message_limit))) ? Number(p.message_limit) : 10;
         const imageLimitVal = (p.image_limit !== undefined && p.image_limit !== null && !isNaN(Number(p.image_limit))) ? Number(p.image_limit) : 0;
         const voiceLimitVal = (p.voice_limit !== undefined && p.voice_limit !== null && !isNaN(Number(p.voice_limit))) ? Number(p.voice_limit) : 0;
-        const curVoiceMode = ['chat_as_live', 'live_models', 'both'].includes(p.voice_mode)
-          ? p.voice_mode
-          : (['Plus', 'Pro'].includes(p.name) ? 'live_models' : (p.name === 'Max' ? 'both' : 'chat_as_live'));
-        const curVoiceMod = String(p.voice_model || '').trim();
+        const curVoiceMode = 'chat_as_live';
+        const curVoiceMod = (typeof p.voice_model === 'string' && (!p.voice_model.trim().startsWith('__') || p.voice_model.trim() === '__chat_models__')) ? p.voice_model.trim() : '';
         const curImgMod = String(p.image_model || '').trim();
         const priceUsdVal = (p.price_usd !== undefined && p.price_usd !== null && !isNaN(Number(p.price_usd))) ? Number(p.price_usd) : 0;
         const priceVal = (p.price_bdt !== undefined && p.price_bdt !== null && !isNaN(Number(p.price_bdt))) ? Number(p.price_bdt) : 0;
@@ -3871,20 +3745,15 @@
         const pendingBadge = p._missingOnBackend ? `<span class="tag" style="background:rgba(245,158,11,0.18);color:#fde68a;border:1px solid rgba(245,158,11,0.35);">সার্ভার আপডেট পেন্ডিং</span>` : '';
 
         const voiceModeOptions = [
-          `<option value="chat_as_live" ${curVoiceMode === 'chat_as_live' ? 'selected' : ''}>Chat-as-Live (চ্যাট মডেলই লাইভ চলবে)</option>`,
-          `<option value="live_models" ${curVoiceMode === 'live_models' ? 'selected' : ''}>Live API Models (শুধু Live ভয়েস মডেল)</option>`,
-          `<option value="both" ${curVoiceMode === 'both' ? 'selected' : ''}>Both (Live ও Chat উভয়ই)</option>`
+          `<option value="chat_as_live" selected>Chat Models Voice (চ্যাট মডেল মুখে বলবে)</option>`
         ].join('');
 
         const voiceModelOptions = [
-          `<option value="" ${curVoiceMod === '' ? 'selected' : ''}>অটো (প্ল্যানের প্রথম Live/Chat মডেল)</option>`,
-          `<option value="__gemini_live__" ${curVoiceMod === '__gemini_live__' ? 'selected' : ''}>Gemini Live API (ফোর্স)</option>`,
-          `<option value="__custom_voice__" ${curVoiceMod === '__custom_voice__' ? 'selected' : ''}>Custom Voice API (ফোর্স)</option>`,
-          `<option value="__chat_models__" ${curVoiceMod === '__chat_models__' ? 'selected' : ''}>Chat Models (ফোর্স)</option>`
-        ].concat((currentModelsList || []).map(m => {
+          `<option value="" ${curVoiceMod === '' ? 'selected' : ''}>অটো (সক্রিয় চ্যাট মডেল)</option>`,
+          `<option value="__chat_models__" ${curVoiceMod === '__chat_models__' ? 'selected' : ''}>Chat Models (ডিফল্ট)</option>`
+        ].concat((currentModelsList || []).filter(m => (m.category || 'chat') === 'chat').map(m => {
           const mid = String(m.id || m.model_id || '').trim();
-          const mlabel = `${m.name || mid} (${m.category === 'voice' ? 'Live Voice' : (m.category || 'chat')})`;
-          return `<option value="${escapeHtml(mid)}" ${curVoiceMod === mid ? 'selected' : ''}>${escapeHtml(mlabel)}</option>`;
+          return `<option value="${escapeHtml(mid)}" ${curVoiceMod === mid ? 'selected' : ''}>${escapeHtml(m.name || mid)}</option>`;
         })).join('');
 
         const imageModelOptions = [
@@ -4428,12 +4297,12 @@
           const customRow = document.getElementById("customSearchUrlRow");
           if (customRow) customRow.style.display = (searchProvider === "custom") ? "flex" : "none";
 
-          // Live Voice Engine Fields
-          const voiceProvider = ["gemini_live", "custom_api", "chat_models"].includes(s.voice_provider) ? s.voice_provider : "gemini_live";
+          // Voice Engine Fields (Chat Models + optional STT/Custom)
+          const voiceProvider = ["custom_api", "chat_models"].includes(s.voice_provider) ? s.voice_provider : "chat_models";
           const selectVoiceProvider = document.getElementById("settingVoiceProvider");
           if (selectVoiceProvider) selectVoiceProvider.value = voiceProvider;
           const inputVoiceModel = document.getElementById("settingVoiceModel");
-          if (inputVoiceModel) inputVoiceModel.value = s.voice_live_model || "gemini-2.5-flash-native-audio-preview-12-2025";
+          if (inputVoiceModel) inputVoiceModel.value = (s.voice_live_model && !/gemini/i.test(s.voice_live_model)) ? s.voice_live_model : "";
           const inputVoiceUrl = document.getElementById("settingVoiceUrl");
           if (inputVoiceUrl) inputVoiceUrl.value = s.voice_live_url || "";
           const inputVoiceSttUrl = document.getElementById("settingVoiceSttUrl");
@@ -4446,7 +4315,7 @@
             "settingVoiceKeySavedBadge",
             "clearSettingVoiceKeyBtn",
             Boolean(s.has_voice_live_api_key),
-            "AIza... বা sk-... (ফাঁকা রাখলে গ্লোবাল Key ব্যবহৃত হবে)"
+            "gsk_... (Groq Whisper STT) বা Custom Key (ফাঁকা রাখলে Models-এর Key চলবে)"
           );
 
           // System Prompt Field
@@ -4641,8 +4510,8 @@
         if (btn) btn.disabled = true;
         const voiceKeyVal = (document.getElementById("settingVoiceKey")?.value || "").trim();
         const payload = {
-          voice_provider: document.getElementById("settingVoiceProvider")?.value || "gemini_live",
-          voice_live_model: (document.getElementById("settingVoiceModel")?.value || "gemini-2.5-flash-native-audio-preview-12-2025").trim(),
+          voice_provider: document.getElementById("settingVoiceProvider")?.value || "chat_models",
+          voice_live_model: (document.getElementById("settingVoiceModel")?.value || "").trim(),
           voice_live_url: (document.getElementById("settingVoiceUrl")?.value || "").trim(),
           voice_stt_url: (document.getElementById("settingVoiceSttUrl")?.value || "").trim(),
           voice_system_prompt: (document.getElementById("settingVoicePrompt")?.value || "").trim()
@@ -4655,7 +4524,7 @@
           });
           const data = await res.json();
           if (data.success) {
-            showToast(voiceKeyVal ? "লাইভ ভয়েস ও API Key সংরক্ষিত হয়েছে (Key এখন লুকানো)" : "লাইভ ভয়েস সেটিংস সফলভাবে সংরক্ষিত হয়েছে", "success");
+            showToast(voiceKeyVal ? "ভয়েস ও API Key সংরক্ষিত হয়েছে (Key এখন লুকানো)" : "ভয়েস সেটিংস সফলভাবে সংরক্ষিত হয়েছে", "success");
             broadcastAdminSync("voice_settings_updated");
             loadSettings();
           } else {
@@ -4678,12 +4547,12 @@
         const box = document.getElementById("voiceTestResultBox");
         const out = document.getElementById("voiceTestOutput");
         if (box) box.style.display = "block";
-        if (out) out.textContent = "লাইভ ভয়েস ইঞ্জিনের সাথে সংযোগ পরীক্ষা করা হচ্ছে...";
+        if (out) out.textContent = "চ্যাট-ভয়েস ইঞ্জিনের সাথে সংযোগ পরীক্ষা করা হচ্ছে...";
         try {
           const res = await authFetch(`${API_BASE}/zihan/settings/test-voice`, {
             method: "POST",
             body: JSON.stringify({
-              provider: document.getElementById("settingVoiceProvider")?.value || "gemini_live",
+              provider: document.getElementById("settingVoiceProvider")?.value || "chat_models",
               model: (document.getElementById("settingVoiceModel")?.value || "").trim(),
               api_url: (document.getElementById("settingVoiceUrl")?.value || "").trim(),
               api_key: (document.getElementById("settingVoiceKey")?.value || "").trim(),

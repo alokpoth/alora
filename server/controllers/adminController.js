@@ -627,10 +627,9 @@ const updatePlanLimits = async (req, res) => {
       validVoiceLimit = n;
     }
 
-    const validVoiceMode = voice_mode !== undefined && ['chat_as_live', 'live_models', 'both'].includes(String(voice_mode || '').trim())
-      ? String(voice_mode).trim()
-      : undefined;
-    const validVoiceModel = voice_model !== undefined ? String(voice_model || '').trim().slice(0, 100) : undefined;
+    const validVoiceMode = voice_mode !== undefined ? 'chat_as_live' : undefined;
+    const rawVoiceModStr = voice_model !== undefined ? String(voice_model || '').trim().slice(0, 100) : undefined;
+    const validVoiceModel = (rawVoiceModStr === '__gemini_live__' || rawVoiceModStr === '__custom_voice__') ? '' : rawVoiceModStr;
     const validImageModel = image_model !== undefined ? String(image_model || '').trim().slice(0, 100) : undefined;
 
     let validPriceUsd = undefined;
@@ -1848,8 +1847,8 @@ const testVoiceLiveSetting = async (req, res) => {
     }
     const { executeVoiceTurn } = require('./voiceController');
     const forcedSettings = {
-      voice_provider: provider || saved.voice_provider || 'gemini_live',
-      voice_live_model: model || saved.voice_live_model || 'gemini-2.5-flash-native-audio-preview-12-2025',
+      voice_provider: provider || saved.voice_provider || 'chat_models',
+      voice_live_model: model || saved.voice_live_model || '',
       voice_live_url: api_url !== undefined ? api_url : (saved.voice_live_url || ''),
       voice_live_api_key: effectiveKey,
       voice_stt_url: stt_url !== undefined ? stt_url : (saved.voice_stt_url || ''),
@@ -1868,7 +1867,7 @@ const testVoiceLiveSetting = async (req, res) => {
 };
 
 
-const SUPPORTED_PROVIDERS = ['openai', 'gemini', 'anthropic', 'deepseek', 'groq', 'openrouter'];
+const SUPPORTED_PROVIDERS = ['openai', 'anthropic', 'deepseek', 'groq', 'openrouter'];
 
 const getApiKeys = async (req, res) => {
   try {
@@ -2304,39 +2303,12 @@ const rejectPaymentOrder = async (req, res) => {
   }
 };
 
-const discoverGeminiLiveModelsAdmin = async (req, res) => {
-  try {
-    const { api_key } = req.body || {};
-    const { getSystemSettings } = require('../../utils/getModelConfig');
-    const { discoverGeminiLiveModels, resolveGeminiVoiceKey } = require('../controllers/voiceController');
-    const settings = await getSystemSettings();
-    const resolvedKey = (typeof api_key === 'string' && api_key.trim())
-      ? api_key.trim()
-      : await resolveGeminiVoiceKey(settings, null);
-    if (!resolvedKey) {
-      return res.status(400).json({
-        success: false,
-        error: 'Google AI Studio API Key প্রদান করুন অথবা ভয়েস সেটিংসে সেভ করুন।'
-      });
-    }
-    const liveModels = await discoverGeminiLiveModels(resolvedKey, true);
-    return res.json({
-      success: true,
-      count: liveModels.length,
-      models: liveModels
-    });
-  } catch (error) {
-    return sendServerError(res, error, 'Google AI Studio Live মডেল লোড করতে সমস্যা হয়েছে।', '[Admin Discover Live Models Error]:');
-  }
-};
-
 module.exports = { 
   getModels, 
   updateModel, 
   addModel,
   deleteModel,
   reorderModels,
-  discoverGeminiLiveModelsAdmin,
   getAdminStats,
   getUsers,
   deleteUser,

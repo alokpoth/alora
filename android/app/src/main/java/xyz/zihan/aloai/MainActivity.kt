@@ -427,11 +427,21 @@ class MainActivity : AppCompatActivity() {
 
     private fun launchNativeSpeechRecognizer(langTag: String?) {
         runOnUiThread {
-            val cleanLang = langTag?.trim()?.takeIf { it.isNotEmpty() && !it.equals("auto", ignoreCase = true) } ?: "bn-BD"
+            val rawTag = langTag?.trim() ?: ""
+            val isAuto = rawTag.isEmpty() || rawTag.equals("auto", ignoreCase = true)
+            val cleanLang = if (isAuto) "bn-BD" else rawTag
             val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
                 putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
                 putExtra(RecognizerIntent.EXTRA_LANGUAGE, cleanLang)
                 putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, cleanLang)
+                putExtra("android.speech.extra.EXTRA_ADDITIONAL_LANGUAGES", arrayOf("bn-BD", "en-US"))
+                if (isAuto && Build.VERSION.SDK_INT >= 33) {
+                    putExtra("android.speech.extra.ENABLE_LANGUAGE_DETECTION", true)
+                    putStringArrayListExtra(
+                        "android.speech.extra.LANGUAGE_DETECTION_ALLOWED_LANGUAGES",
+                        arrayListOf("bn-BD", "en-US")
+                    )
+                }
                 putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
                 putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
                 putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, packageName)

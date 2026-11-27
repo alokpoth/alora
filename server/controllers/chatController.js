@@ -14,7 +14,6 @@ const {
   sanitizePublicErrorMessage
 } = require('../utils/safetyFilter');
 
-const DEFAULT_GEMINI_KEY = process.env.GEMINI_API_KEY || (process.env.GEMINI_API_KEYS ? process.env.GEMINI_API_KEYS.split(',')[0].trim() : '') || '';
 const DEFAULT_GROQ_KEY = process.env.GROQ_API_KEY || '';
 const DEFAULT_OPENROUTER_KEY = process.env.OPENROUTER_API_KEY || '';
 const DEFAULT_BAI_KEY = process.env.BAI_API_KEY || '';
@@ -36,11 +35,6 @@ function extractCompletionTextFromJson(json) {
     if (content || fallback || reasoning) {
       return { text: String(content || fallback || ''), reasoning: String(reasoning || '') };
     }
-  }
-  const candParts = json.candidates?.[0]?.content?.parts;
-  if (Array.isArray(candParts)) {
-    const gText = candParts.map(p => (p && p.text) || '').join('');
-    if (gText) return { text: gText, reasoning: '' };
   }
   if (Array.isArray(json.content)) {
     const aText = json.content.map(c => (c && c.text) || '').join('');
@@ -80,58 +74,34 @@ const resolveModelTarget = async (targetModelId, customUrl, customKey, targetMod
     : ((targetModelConfig && (targetModelConfig.api_model_1 || targetModelConfig.model_id || targetModelConfig.id)) || 'openrouter/free');
   let providerType = 'custom';
 
-  const geminiKey = process.env.GEMINI_API_KEY || (process.env.GEMINI_API_KEYS ? process.env.GEMINI_API_KEYS.split(',')[0].trim() : '') || DEFAULT_GEMINI_KEY;
-
-  // CASE A: Admin explicitly configured a base_url -> 100% honor Admin's URL, API key, and exact model ID without hijacking!
+  // CASE A: Admin explicitly configured a base_url -> honor Admin's URL, API key, and model ID
   if (explicitUrl) {
-    const isNativeGeminiUrl = (explicitUrl.includes(':streamGenerateContent') || explicitUrl.includes(':generateContent') || (explicitUrl.includes('generativelanguage.googleapis.com') && !explicitUrl.includes('/openai/')));
-    if (isNativeGeminiUrl) {
-      providerType = 'gemini';
-      if (!targetKey) targetKey = geminiKey || (await getApiKeyFromSupabase(actualModel)) || (await getApiKeyFromSupabase('__gemini_key__'));
-      if (explicitUrl.includes(':streamGenerateContent') || explicitUrl.includes(':generateContent')) {
-        targetUrl = explicitUrl.includes('key=')
-          ? (targetKey ? explicitUrl.replace(/key=[^&]+/, 'key=' + targetKey) : explicitUrl)
-          : (explicitUrl.includes('?') ? `${explicitUrl}&key=${targetKey || ''}` : `${explicitUrl}?key=${targetKey || ''}&alt=sse`);
-      } else {
-        targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/${actualModel}:streamGenerateContent?key=${targetKey || ''}&alt=sse`;
-      }
+    if (explicitUrl.includes('openrouter.ai')) {
+      providerType = 'openrouter';
+      if (!targetKey) targetKey = (await getApiKeyFromSupabase(actualModel)) || process.env.OPENROUTER_API_KEY || DEFAULT_OPENROUTER_KEY || (await getApiKeyFromSupabase('__openrouter_key__'));
+    } else if (explicitUrl.includes('groq.com')) {
+      providerType = 'groq';
+      if (!targetKey) targetKey = (await getApiKeyFromSupabase(actualModel)) || process.env.GROQ_API_KEY || DEFAULT_GROQ_KEY || (await getApiKeyFromSupabase('__groq_key__'));
+    } else if (explicitUrl.includes('vyceai.com')) {
+      providerType = 'vyce';
+      if (!targetKey) targetKey = (await getApiKeyFromSupabase(actualModel)) || process.env.VYCE_API_KEY || DEFAULT_VYCE_KEY || (await getApiKeyFromSupabase('__vyce_key__'));
     } else {
-      if (explicitUrl.includes('openrouter.ai')) {
-        providerType = 'openrouter';
-        if (!targetKey) targetKey = (await getApiKeyFromSupabase(actualModel)) || process.env.OPENROUTER_API_KEY || DEFAULT_OPENROUTER_KEY || (await getApiKeyFromSupabase('__openrouter_key__'));
-      } else if (explicitUrl.includes('groq.com')) {
-        providerType = 'groq';
-        if (!targetKey) targetKey = (await getApiKeyFromSupabase(actualModel)) || process.env.GROQ_API_KEY || DEFAULT_GROQ_KEY || (await getApiKeyFromSupabase('__groq_key__'));
-      } else if (explicitUrl.includes('vyceai.com')) {
-        providerType = 'vyce';
-        if (!targetKey) targetKey = (await getApiKeyFromSupabase(actualModel)) || process.env.VYCE_API_KEY || DEFAULT_VYCE_KEY || (await getApiKeyFromSupabase('__vyce_key__'));
-      } else {
-        providerType = 'custom';
-        if (!targetKey) {
-          targetKey = await getApiKeyFromSupabase(actualModel);
-          if (!targetKey && targetModelId) targetKey = await getApiKeyFromSupabase(targetModelId);
-        }
+      providerType = 'custom';
+      if (!targetKey) {
+        targetKey = await getApiKeyFromSupabase(actualModel);
+        if (!targetKey && targetModelId) targetKey = await getApiKeyFromSupabase(targetModelId);
       }
-      let bUrl = explicitUrl;
-      if (!bUrl.endsWith('/chat/completions') && !bUrl.endsWith('/completions') && !bUrl.includes('/v1/messages') && !bUrl.includes('GenerateContent')) {
-        bUrl = bUrl.replace(/\/+$/, '') + '/chat/completions';
-      }
-      targetUrl = bUrl;
     }
+    let bUrl = explicitUrl;
+    if (!bUrl.endsWith('/chat/completions') && !bUrl.endsWith('/completions') && !bUrl.includes('/v1/messages')) {
+      bUrl = bUrl.replace(/\/+$/, '') + '/chat/completions';
+    }
+    targetUrl = bUrl;
     return { targetUrl, targetKey, actualModel, providerType };
   }
 
-  // CASE B: No explicit base_url set (built-in default models) -> smart provider inference
-  if (actualModel.startsWith('gemini-') || targetModelConfig?.type === 'gemini') {
-    providerType = 'gemini';
-    let gMod = actualModel;
-    if (gMod === 'gemini-1.5-flash' || gMod === 'gemini-flash' || gMod === 'gemini-3.5-flash-lite' || gMod === 'gemini-3.6-flash') {
-      gMod = 'gemini-2.5-flash';
-    }
-    actualModel = gMod;
-    if (!targetKey) targetKey = geminiKey || (await getApiKeyFromSupabase('__gemini_key__')) || (await getApiKeyFromSupabase(actualModel));
-    targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/${actualModel}:streamGenerateContent?key=${targetKey || ''}&alt=sse`;
-  } else if (targetModelConfig?.type === 'groq' || actualModel === 'openai/gpt-oss-120b' || actualModel === 'llama-3.3-70b-versatile' || actualModel === 'alo-pro' || actualModel === 'openai/gpt-oss-20b') {
+  // CASE B: Built-in default provider inference
+  if (targetModelConfig?.type === 'groq' || actualModel === 'openai/gpt-oss-120b' || actualModel === 'llama-3.3-70b-versatile' || actualModel === 'alo-pro' || actualModel === 'openai/gpt-oss-20b') {
     providerType = 'groq';
     targetUrl = 'https://api.groq.com/openai/v1/chat/completions';
     if (actualModel === 'alo-pro') actualModel = 'openai/gpt-oss-120b';
@@ -179,7 +149,7 @@ function detectRepetitionDegeneracy(text) {
 const streamChatCompletions = async (req, res) => {
   try {
     const { messages } = req.body;
-    const cleanModel = (typeof req.body.model === 'string' && req.body.model.trim()) ? req.body.model.trim() : 'gemini-3.6-flash';
+    const cleanModel = (typeof req.body.model === 'string' && req.body.model.trim()) ? req.body.model.trim() : 'openrouter/free';
     const model = cleanModel;
     const user = req.user;
 
@@ -334,7 +304,7 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
     };
     res.on('close', onClientClose);
 
-    // Helper to attempt completion fetch with timeout (handles both OpenAI & Gemini SSE or non-streaming JSON)
+    // Helper to attempt completion fetch with timeout (OpenAI-compatible SSE or non-streaming JSON)
     const tryFetchTarget = async (pType, url, key, modName, timeoutMs = 12000, useStream = true, includeExtraParams = true) => {
       const fetchController = new AbortController();
       const timeoutId = setTimeout(() => fetchController.abort(), timeoutMs);
@@ -343,116 +313,45 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
       abortController.signal.addEventListener('abort', onAbort);
 
       try {
-        if (pType === 'gemini') {
-          let effectiveGeminiUrl = String(url || '');
-          if (!useStream) {
-            effectiveGeminiUrl = effectiveGeminiUrl
-              .replace(':streamGenerateContent', ':generateContent')
-              .replace(/([?&])alt=sse&?/g, '$1')
-              .replace(/[?&]$/, '');
-          }
-          const geminiContents = [];
-          let systemInstructionText = modelIdentityDirective;
-          for (const m of safeMessages) {
-            if (m.role === 'system') {
-              systemInstructionText += '\n\n' + (typeof m.content === 'string' ? m.content : '');
-            } else {
-              let parts = [];
-              if (typeof m.content === 'string') {
-                parts = [{ text: m.content }];
-              } else if (Array.isArray(m.content)) {
-                for (const item of m.content) {
-                  if (item.type === 'text' && item.text) parts.push({ text: item.text });
-                  else if (item.type === 'image_url' && item.image_url?.url) {
-                    const u = item.image_url.url;
-                    const match = u.match(/^data:([^;]+);base64,(.*)$/);
-                    if (match) {
-                      parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
-                    }
-                  }
-                }
-              }
-              if (parts.length > 0) {
-                geminiContents.push({
-                  role: m.role === 'assistant' ? 'model' : 'user',
-                  parts
-                });
-              }
-            }
-          }
+        const h = { 'Content-Type': 'application/json' };
+        if (key) h['Authorization'] = `Bearer ${key}`;
 
-          if (geminiContents.length === 0) {
-            geminiContents.push({ role: 'user', parts: [{ text: 'Hello' }] });
-          }
-
-          const geminiBody = {
-            contents: geminiContents,
-            ...(systemInstructionText ? { systemInstruction: { parts: [{ text: systemInstructionText }] } } : {}),
-            generationConfig: {
-              temperature: 0.65,
-              topP: 0.90,
-              topK: 64,
-              maxOutputTokens: 8192,
-              ...(includeExtraParams ? { frequencyPenalty: 0.6, presencePenalty: 0.4, thinkingConfig: { thinkingBudget: 0 } } : {})
-            },
-            safetySettings: [
-              { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
-              { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
-              { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
-              { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' }
-            ]
+        const safeMessagesWithIdentity = [...safeMessages];
+        const sysIdx = safeMessagesWithIdentity.findIndex(m => m.role === 'system');
+        if (sysIdx >= 0) {
+          safeMessagesWithIdentity[sysIdx] = {
+            ...safeMessagesWithIdentity[sysIdx],
+            content: modelIdentityDirective + '\n\n' + (typeof safeMessagesWithIdentity[sysIdx].content === 'string' ? safeMessagesWithIdentity[sysIdx].content : '')
           };
-
-          const r = await fetch(effectiveGeminiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(geminiBody),
-            signal: fetchController.signal
-          });
-          clearTimeout(timeoutId);
-          abortController.signal.removeEventListener('abort', onAbort);
-          return r;
         } else {
-          const h = { 'Content-Type': 'application/json' };
-          if (key) h['Authorization'] = `Bearer ${key}`;
-
-          const safeMessagesWithIdentity = [...safeMessages];
-          const sysIdx = safeMessagesWithIdentity.findIndex(m => m.role === 'system');
-          if (sysIdx >= 0) {
-            safeMessagesWithIdentity[sysIdx] = {
-              ...safeMessagesWithIdentity[sysIdx],
-              content: modelIdentityDirective + '\n\n' + (typeof safeMessagesWithIdentity[sysIdx].content === 'string' ? safeMessagesWithIdentity[sysIdx].content : '')
-            };
-          } else {
-            safeMessagesWithIdentity.unshift({ role: 'system', content: modelIdentityDirective });
-          }
-
-          const p = {
-            model: modName,
-            messages: safeMessagesWithIdentity,
-            stream: Boolean(useStream),
-            temperature: 0.65,
-            top_p: 0.90,
-            ...(includeExtraParams ? { frequency_penalty: 0.6, presence_penalty: 0.4, reasoning_effort: 'none' } : {})
-          };
-
-          const lowerMod = modName.toLowerCase();
-          if (lowerMod.includes('gpt')) {
-            p.max_tokens = 4096;
-          } else {
-            p.max_tokens = 8192;
-          }
-
-          const r = await fetch(url, {
-            method: 'POST',
-            headers: h,
-            body: JSON.stringify(p),
-            signal: fetchController.signal
-          });
-          clearTimeout(timeoutId);
-          abortController.signal.removeEventListener('abort', onAbort);
-          return r;
+          safeMessagesWithIdentity.unshift({ role: 'system', content: modelIdentityDirective });
         }
+
+        const p = {
+          model: modName,
+          messages: safeMessagesWithIdentity,
+          stream: Boolean(useStream),
+          temperature: 0.65,
+          top_p: 0.90,
+          ...(includeExtraParams ? { frequency_penalty: 0.6, presence_penalty: 0.4, reasoning_effort: 'none' } : {})
+        };
+
+        const lowerMod = modName.toLowerCase();
+        if (lowerMod.includes('gpt')) {
+          p.max_tokens = 4096;
+        } else {
+          p.max_tokens = 8192;
+        }
+
+        const r = await fetch(url, {
+          method: 'POST',
+          headers: h,
+          body: JSON.stringify(p),
+          signal: fetchController.signal
+        });
+        clearTimeout(timeoutId);
+        abortController.signal.removeEventListener('abort', onAbort);
+        return r;
       } catch (err) {
         clearTimeout(timeoutId);
         abortController.signal.removeEventListener('abort', onAbort);
@@ -497,7 +396,6 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
     let activeRetryTarget = attemptResult.retryTarget;
     let attemptedStream = attemptResult.attemptedStream;
     let effectiveModel = cleanModel || safeDisplayName;
-    let isGeminiStream = (providerType === 'gemini');
 
     // Helper to resolve an internal API tier or reference model
     const resolveTierTarget = async (tierModelId, tierUrl, tierKey) => {
@@ -547,7 +445,6 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
             activeRetryTarget = fb1Res.retryTarget;
             attemptedStream = fb1Res.attemptedStream;
             effectiveModel = cleanModel;
-            isGeminiStream = (fb1.providerType === 'gemini');
           }
         }
       }
@@ -571,7 +468,6 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
             activeRetryTarget = fb2Res.retryTarget;
             attemptedStream = fb2Res.attemptedStream;
             effectiveModel = cleanModel;
-            isGeminiStream = (fb2.providerType === 'gemini');
           }
         }
       }
@@ -596,7 +492,6 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
           activeRetryTarget = fbRes.retryTarget;
           attemptedStream = fbRes.attemptedStream;
           effectiveModel = fb.id;
-          isGeminiStream = false;
           break;
         }
       }
@@ -738,9 +633,7 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
           if (!payload || payload === '[DONE]') continue;
           try {
             const j = JSON.parse(payload);
-            const tok = isGeminiStream
-              ? (j?.candidates?.[0]?.content?.parts || []).map(p => p?.text || '').join('')
-              : (j?.choices?.[0]?.delta?.content ?? j?.choices?.[0]?.message?.content ?? j?.choices?.[0]?.text ?? '');
+            const tok = j?.choices?.[0]?.delta?.content ?? j?.choices?.[0]?.message?.content ?? j?.choices?.[0]?.text ?? '';
             if (tok) parts.push(tok);
           } catch (e) {}
         }
@@ -819,7 +712,6 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
         }
       };
 
-      let geminiLineBuffer = '';
       let openAiLineBuffer = '';
       let accumulatedStreamContent = '';
       const DEFAULT_TAIL_HOLD = 64;
@@ -939,43 +831,6 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
         }
       };
 
-      const processGeminiLine = (line) => {
-        const trimmed = String(line || '').trim();
-        if (!trimmed.startsWith('data:')) return false;
-        const dataStr = trimmed.slice(5).trim();
-        if (!dataStr || dataStr === '[DONE]') return false;
-        try {
-          const json = JSON.parse(dataStr);
-          if (json?.promptFeedback?.blockReason) {
-            const blockNotice = 'দুঃখিত, নিরাপত্তাজনিত কারণে এই অনুরোধটির উত্তর দেওয়া সম্ভব হচ্ছে না। অনুগ্রহ করে অন্যভাবে জিজ্ঞেস করুন।';
-            hasContentTokens = true;
-            pushSanitizedDelta('content', blockNotice);
-          }
-
-          const candidate = json?.candidates?.[0];
-          if (candidate?.finishReason === 'SAFETY' && !hasContentTokens) {
-            const blockNotice = 'দুঃখিত, নিরাপত্তাজনিত কারণে এই অনুরোধটির উত্তর দেওয়া সম্ভব হচ্ছে না। অনুগ্রহ করে প্রম্পটটি পরিবর্তন করে আবার চেষ্টা করুন।';
-            hasContentTokens = true;
-            pushSanitizedDelta('content', blockNotice);
-          }
-
-          const parts = candidate?.content?.parts;
-          if (Array.isArray(parts)) {
-            for (const p of parts) {
-              if (p && p.text) {
-                hasContentTokens = true;
-                accumulatedStreamContent += p.text;
-                if (detectRepetitionDegeneracy(accumulatedStreamContent)) {
-                  return true;
-                }
-                pushSanitizedDelta('content', p.text);
-              }
-            }
-          }
-        } catch (pe) {}
-        return false;
-      };
-
       const processOpenAiLine = (line) => {
         const trimmed = String(line || '').trim();
         if (!trimmed.startsWith('data:')) return false;
@@ -1016,45 +871,23 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
         resetStreamIdleWatchdog();
 
         try {
-          if (isGeminiStream) {
-            geminiLineBuffer += chunk.toString('utf8');
-            const lines = geminiLineBuffer.split('\n');
-            geminiLineBuffer = lines.pop();
+          openAiLineBuffer += chunk.toString('utf8');
+          const lines = openAiLineBuffer.split('\n');
+          openAiLineBuffer = lines.pop();
 
-            for (const line of lines) {
-              if (processGeminiLine(line)) {
-                console.warn('[Stream Watchdog] Repetition loop detected in stream, closing safely.');
-                flushSanitizedTails();
-                try {
-                  if (typeof bodyStream.destroy === 'function') bodyStream.destroy();
-                } catch (e) {}
-                if (!res.writableEnded) {
-                  res.write('data: [DONE]\n\n');
-                  if (typeof res.flush === 'function') res.flush();
-                }
-                safeResolve();
-                return;
+          for (const line of lines) {
+            if (processOpenAiLine(line)) {
+              console.warn('[Stream Watchdog] Repetition loop detected from upstream model, truncating and closing stream safely.');
+              flushSanitizedTails();
+              try {
+                if (typeof bodyStream.destroy === 'function') bodyStream.destroy();
+              } catch (e) {}
+              if (!res.writableEnded) {
+                res.write('data: [DONE]\n\n');
+                if (typeof res.flush === 'function') res.flush();
               }
-            }
-          } else {
-            openAiLineBuffer += chunk.toString('utf8');
-            const lines = openAiLineBuffer.split('\n');
-            openAiLineBuffer = lines.pop();
-
-            for (const line of lines) {
-              if (processOpenAiLine(line)) {
-                console.warn('[Stream Watchdog] Repetition loop detected from upstream model, truncating and closing stream safely.');
-                flushSanitizedTails();
-                try {
-                  if (typeof bodyStream.destroy === 'function') bodyStream.destroy();
-                } catch (e) {}
-                if (!res.writableEnded) {
-                  res.write('data: [DONE]\n\n');
-                  if (typeof res.flush === 'function') res.flush();
-                }
-                safeResolve();
-                return;
-              }
+              safeResolve();
+              return;
             }
           }
         } catch (e) {
@@ -1064,10 +897,7 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
 
       bodyStream.on('end', async () => {
         try {
-          if (isGeminiStream && geminiLineBuffer && geminiLineBuffer.trim()) {
-            processGeminiLine(geminiLineBuffer);
-            geminiLineBuffer = '';
-          } else if (!isGeminiStream && openAiLineBuffer && openAiLineBuffer.trim()) {
+          if (openAiLineBuffer && openAiLineBuffer.trim()) {
             processOpenAiLine(openAiLineBuffer);
             openAiLineBuffer = '';
           }
@@ -1283,51 +1113,26 @@ async function generateImageCompanionText(originalPrompt, chatModelId, userLang 
           const sys = `You are "${safeModelName}" on Alora AI. The user just requested an image to be generated, and the image is being displayed right below your text. Write 1-2 short, warm, helpful sentences in ${langLabel} describing what was created. Never say you cannot generate images and never mention upstream APIs.`;
           const usr = `User image request: "${cleanUserPrompt}"`;
 
-          if (resolved.providerType === 'gemini') {
-            const gUrl = resolved.targetUrl
-              .replace(':streamGenerateContent', ':generateContent')
-              .replace(/([?&])alt=sse&?/g, '$1')
-              .replace(/[?&]$/, '');
-            const gr = await fetch(gUrl, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                systemInstruction: { parts: [{ text: sys }] },
-                contents: [{ role: 'user', parts: [{ text: usr }] }],
-                generationConfig: { temperature: 0.7, maxOutputTokens: 160 }
-              }),
-              signal: controller.signal
-            });
-            clearTimeout(timer);
-            if (gr.ok) {
-              const gd = await gr.json().catch(() => null);
-              const txt = extractCompletionTextFromJson(gd).text;
-              if (txt && txt.trim()) {
-                return { caption: sanitizeModelIdentityText(txt.trim(), safeModelName), modelName: safeModelName };
-              }
-            }
-          } else {
-            const h = { 'Content-Type': 'application/json' };
-            if (resolved.targetKey) h['Authorization'] = `Bearer ${resolved.targetKey}`;
-            const or = await fetch(resolved.targetUrl, {
-              method: 'POST',
-              headers: h,
-              body: JSON.stringify({
-                model: resolved.actualModel,
-                messages: [{ role: 'system', content: sys }, { role: 'user', content: usr }],
-                stream: false,
-                temperature: 0.7,
-                max_tokens: 160
-              }),
-              signal: controller.signal
-            });
-            clearTimeout(timer);
-            if (or.ok) {
-              const od = await or.json().catch(() => null);
-              const txt = extractCompletionTextFromJson(od).text;
-              if (txt && txt.trim()) {
-                return { caption: sanitizeModelIdentityText(txt.trim(), safeModelName), modelName: safeModelName };
-              }
+          const h = { 'Content-Type': 'application/json' };
+          if (resolved.targetKey) h['Authorization'] = `Bearer ${resolved.targetKey}`;
+          const or = await fetch(resolved.targetUrl, {
+            method: 'POST',
+            headers: h,
+            body: JSON.stringify({
+              model: resolved.actualModel,
+              messages: [{ role: 'system', content: sys }, { role: 'user', content: usr }],
+              stream: false,
+              temperature: 0.7,
+              max_tokens: 160
+            }),
+            signal: controller.signal
+          });
+          clearTimeout(timer);
+          if (or.ok) {
+            const od = await or.json().catch(() => null);
+            const txt = extractCompletionTextFromJson(od).text;
+            if (txt && txt.trim()) {
+              return { caption: sanitizeModelIdentityText(txt.trim(), safeModelName), modelName: safeModelName };
             }
           }
         } catch (err) {
@@ -1356,38 +1161,44 @@ const generateImage = async (req, res) => {
     }
 
     let finalPrompt = prompt.trim();
-    
-    // Optionally enhance and translate the prompt to English when enhance is not disabled
+
+    // Optionally enhance & translate the prompt via an active OpenAI-compatible Chat model
     if (enhance !== false) {
       try {
         const persistedModels = await getPersistedModels();
-        const geminiModelCfg = (persistedModels || []).find(m => m && m.is_active !== false && /gemini/i.test(String(m.base_url || '') + String(m.model_id || '')));
-        const geminiKey = (geminiModelCfg && geminiModelCfg.api_key && !geminiModelCfg.api_key.startsWith('sk-placeholder'))
-          ? geminiModelCfg.api_key
-          : (process.env.GEMINI_API_KEY || (process.env.GEMINI_API_KEYS ? process.env.GEMINI_API_KEYS.split(',')[0].trim() : '') || DEFAULT_GEMINI_KEY || (await getApiKeyFromSupabase('__gemini_key__')));
-        if (geminiKey) {
-          const enhModel = (geminiModelCfg && geminiModelCfg.model_id && !geminiModelCfg.model_id.includes('/')) ? geminiModelCfg.model_id : 'gemini-2.0-flash';
-          const enhController = new AbortController();
-          const enhTimeout = setTimeout(() => enhController.abort(), 7000);
-          try {
-            const enhanceRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(enhModel)}:generateContent?key=${geminiKey}`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                contents: [{ parts: [{ text: `You are an expert AI image prompt engineer. The user wants to generate an image based on the following input (it might be in Bengali or English). Translate it to English (if it isn't), and beautifully enhance it into a highly detailed, cinematic, and professional image generation prompt suitable for Midjourney or Flux. Add appropriate descriptors for lighting, camera angle, and atmosphere. Return ONLY the enhanced English prompt without any quotes, conversational text, or explanations. User input: "${finalPrompt}"` }] }]
-              }),
-              signal: enhController.signal
-            });
-            clearTimeout(enhTimeout);
-            if (enhanceRes.ok) {
-              const enhanceData = await enhanceRes.json();
-              const enhancedText = enhanceData?.candidates?.[0]?.content?.parts?.[0]?.text;
-              if (enhancedText && enhancedText.trim()) {
-                finalPrompt = enhancedText.trim();
+        const enhCfg = (persistedModels || []).find(m => m && m.is_active !== false && m.category !== 'voice' && m.category !== 'image' && !/generativelanguage\.googleapis\.com/i.test(String(m.base_url || '')));
+        if (enhCfg) {
+          const enhModel = enhCfg.api_model_1 || enhCfg.model_id || enhCfg.id;
+          const resolvedEnh = await resolveModelTarget(enhModel, enhCfg.base_url || null, enhCfg.api_key || null, enhCfg);
+          if (resolvedEnh && resolvedEnh.targetUrl) {
+            const enhController = new AbortController();
+            const enhTimeout = setTimeout(() => enhController.abort(), 7000);
+            try {
+              const eh = { 'Content-Type': 'application/json' };
+              if (resolvedEnh.targetKey) eh.Authorization = `Bearer ${resolvedEnh.targetKey}`;
+              const enhanceRes = await fetch(resolvedEnh.targetUrl, {
+                method: 'POST',
+                headers: eh,
+                body: JSON.stringify({
+                  model: resolvedEnh.actualModel,
+                  messages: [{ role: 'user', content: `You are an expert AI image prompt engineer. Translate this request to English (if needed) and enhance it into a detailed visual image prompt. Return ONLY the enhanced prompt without quotes or explanations: "${finalPrompt}"` }],
+                  stream: false,
+                  temperature: 0.7,
+                  max_tokens: 200
+                }),
+                signal: enhController.signal
+              });
+              clearTimeout(enhTimeout);
+              if (enhanceRes.ok) {
+                const enhanceData = await enhanceRes.json().catch(() => null);
+                const enhancedText = extractCompletionTextFromJson(enhanceData).text;
+                if (enhancedText && enhancedText.trim()) {
+                  finalPrompt = enhancedText.trim();
+                }
               }
+            } catch (e) {
+              clearTimeout(enhTimeout);
             }
-          } catch (e) {
-            clearTimeout(enhTimeout);
           }
         }
       } catch (err) {}

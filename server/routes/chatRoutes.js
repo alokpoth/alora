@@ -78,6 +78,7 @@ router.get('/models', optionalProtect, async (req, res) => {
     const isActiveAndNotDeleted = (m) => {
       if (!isNotDeleted(m)) return false;
       if (m.is_active === false) return false;
+      if (m.category === 'voice') return false;
       return true;
     };
 
@@ -115,13 +116,22 @@ router.get('/models', optionalProtect, async (req, res) => {
       result = sorted.map(sanitizeModel);
     }
 
+    let voiceSttAvailable = false;
+    try {
+      const { hasConfiguredVoiceStt } = require('../controllers/voiceController');
+      if (typeof hasConfiguredVoiceStt === 'function') {
+        voiceSttAvailable = await hasConfiguredVoiceStt();
+      }
+    } catch {}
+
     res.json({
       success: true,
       current_plan: {
         name: isAdmin ? 'Max' : currentPlanName,
         is_admin: isAdmin,
-        voice_mode: isAdmin ? 'both' : (currentPlanObj.voice_mode || 'chat_as_live'),
+        voice_mode: 'chat_as_live',
         voice_model: currentPlanObj.voice_model || '',
+        voice_stt_available: voiceSttAvailable,
         image_model: currentPlanObj.image_model || '',
         expires_at: expiresAtIso,
         days_remaining: daysRemaining,
@@ -216,9 +226,6 @@ router.get('/ping', async (req, res) => {
       else if (targetUrl.includes('groq.com')) targetKey = process.env.GROQ_API_KEY || (await getApiKeyFromSupabase('__groq_key__'));
       else if (targetUrl.includes('b.ai')) targetKey = process.env.BAI_API_KEY || (await getApiKeyFromSupabase('__bai_key__'));
       else if (targetUrl.includes('vyceai.com')) targetKey = process.env.VYCE_API_KEY || (await getApiKeyFromSupabase('__vyce_key__'));
-      else if (targetUrl.includes('googleapis.com')) {
-        targetKey = process.env.GEMINI_API_KEY || (process.env.GEMINI_API_KEYS ? process.env.GEMINI_API_KEYS.split(',')[0].trim() : '') || (await getApiKeyFromSupabase('__gemini_key__'));
-      }
     }
 
     let pingUrl = targetUrl;
@@ -234,13 +241,6 @@ router.get('/ping', async (req, res) => {
     let headers = {};
     if (targetKey) {
       headers['Authorization'] = 'Bearer ' + targetKey;
-    }
-    
-    // Gemini specific logic (GET models list)
-    if ((aiModelConfig.type === 'gemini' || cleanModel.startsWith('gemini-')) && (targetUrl.includes('generativelanguage.googleapis.com') && !targetUrl.includes('/openai/'))) {
-      const gKey = targetKey || process.env.GEMINI_API_KEY || (process.env.GEMINI_API_KEYS ? process.env.GEMINI_API_KEYS.split(',')[0].trim() : '');
-      pingUrl = "https://generativelanguage.googleapis.com/v1beta/models" + (gKey ? ("?key=" + gKey) : "");
-      delete headers['Authorization'];
     }
 
     const start = performance.now();
@@ -273,7 +273,7 @@ router.get('/ping', async (req, res) => {
       clearTimeout(timeoutId);
       // If we have a verified API key for major providers, avoid false-negative "offline"
       let respData;
-      if (targetKey && (targetUrl.includes('openrouter.ai') || targetUrl.includes('groq.com') || targetUrl.includes('googleapis.com'))) {
+      if (targetKey && (targetUrl.includes('openrouter.ai') || targetUrl.includes('groq.com'))) {
         respData = { success: true, latency: 180, status: 'online' };
       } else {
         respData = { success: true, latency: null, status: 'offline' };

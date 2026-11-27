@@ -395,9 +395,6 @@ const httpServer = app.listen(PORT, () => {
   console.log(`=================================================`);
 });
 
-const { attachVoiceLiveWebSocket } = require('./controllers/voiceController');
-attachVoiceLiveWebSocket(httpServer);
-
 let isShuttingDown = false;
 const gracefulShutdown = (signal) => {
   if (isShuttingDown) return;

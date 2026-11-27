@@ -18,7 +18,6 @@ const {
   addModel,
   deleteModel,
   reorderModels,
-  discoverGeminiLiveModelsAdmin,
   getApiKeys,
   saveApiKey,
   deleteApiKey,
@@ -73,7 +72,6 @@ router.delete('/redeem/:codeId', deleteRedeemCode);
 
 router.get('/models', getModels);
 router.post('/models', addModel);
-router.post('/models/discover-gemini-live', discoverGeminiLiveModelsAdmin);
 router.put('/models/reorder', reorderModels);
 router.put('/models/:modelId(*)', updateModel);
 router.delete('/models', deleteModel);

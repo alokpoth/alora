@@ -1,6 +1,6 @@
 const DEFAULT_MEMORY_MODELS = [
   { id: "openrouter/free", model_id: "openrouter/free", name: "Alo Go", provider: "Alora", type: "openrouter", premium: false, efficient: false, order: 1, api_model_1: "openrouter/free" },
-  { id: "gemini-3.5-flash-lite", model_id: "gemini-3.5-flash-lite", name: "Alo Flash", provider: "Alora", type: "gemini", premium: false, efficient: false, order: 2, api_model_1: "gemini-3.5-flash-lite" },
+  { id: "openai/gpt-oss-20b", model_id: "openai/gpt-oss-20b", name: "Alo Flash", provider: "Alora", type: "groq", premium: false, efficient: false, order: 2, api_model_1: "openai/gpt-oss-20b" },
   { id: "hy3", model_id: "hy3", name: "Alo HY3", provider: "Alora", type: "bai", premium: false, efficient: false, order: 3, api_model_1: "hy3" },
   { id: "mimo-v2.5", model_id: "mimo-v2.5", name: "Alo Mimo", provider: "Alora", type: "bai", premium: false, efficient: false, order: 4, api_model_1: "mimo-v2.5" },
   { id: "openai/gpt-oss-120b", model_id: "openai/gpt-oss-120b", name: "Alo Pro", provider: "Alora", type: "groq", premium: true, efficient: false, order: 5, api_model_1: "openai/gpt-oss-120b" },
