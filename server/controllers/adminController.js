@@ -10,7 +10,7 @@ const { invalidateModelKeyCache, invalidateUsersCache, invalidateUserUsageCache,
 const { invalidateCachedUser, invalidateCachedPlans, invalidateCachedModels } = require('../config/dbCache');
 const { sendServerError, redactSecrets } = require('../utils/safeError');
 const { PLAN_ORDER, USER_PLANS, PAID_PLANS, DEFAULT_PLANS_MAP, ensureAllCanonicalPlans } = require('../utils/planDefaults');
-const { encryptSecret, decryptSecret, hasConfiguredSecret, isPublicHttpUrl, deriveDefaultAllowedPlans, deriveLegacyFlagsFromAllowedPlans } = require('../utils/secretVault');
+const { encryptSecret, decryptSecret, hasConfiguredSecret, isPublicHttpUrl, deriveDefaultAllowedPlans, deriveLegacyFlagsFromAllowedPlans, parseModelLimitCost } = require('../utils/secretVault');
 
 const SUPER_ADMIN_EMAILS = ['zihanfakir@gmail.com', 'x@zihan.uk'];
 const isSuperAdminEmail = (email) => !!email && SUPER_ADMIN_EMAILS.includes(String(email).toLowerCase().trim());
@@ -31,6 +31,7 @@ const redactModelSecretsForAdmin = (m) => {
   copy.has_fallback_key_2 = hasFb2;
   copy.category = ['chat', 'voice', 'image'].includes(copy.category) ? copy.category : 'chat';
   copy.allowed_plans = deriveDefaultAllowedPlans(copy);
+  copy.limit_cost = parseModelLimitCost(copy.limit_cost, 1);
   return copy;
 };
 
@@ -1109,6 +1110,7 @@ const getModels = async (req, res) => {
       m.api_model_3 = m.api_model_3 || m.fallback_model_2 || '';
       m.is_active = m.is_active !== undefined ? Boolean(m.is_active) : true;
       m.context_window = m.context_window !== undefined && !isNaN(Number(m.context_window)) ? Number(m.context_window) : 8192;
+      m.limit_cost = parseModelLimitCost(m.limit_cost, 1);
     }
 
     const sorted = models.sort((a, b) => (a.order || 0) - (b.order || 0)).map(redactModelSecretsForAdmin);
@@ -1144,7 +1146,7 @@ const updateModel = async (req, res) => {
     let { modelId } = req.params;
     try { modelId = decodeURIComponent(modelId); } catch {}
     const {
-      premium, efficient, name, description, provider, type, category, allowed_plans, is_active, context_window, order,
+      premium, efficient, name, description, provider, type, category, allowed_plans, is_active, context_window, order, limit_cost,
       streaming_mode,
       base_url, api_key, clear_api_key, api_model_1,
       fallback_url_1, fallback_key_1, fallback_model_1, api_model_2, clear_fallback_key_1,
@@ -1165,6 +1167,9 @@ const updateModel = async (req, res) => {
     const cleanIsActive = is_active !== undefined ? (is_active === true || is_active === 'true' || is_active === 1 || is_active === '1') : undefined;
     const cleanContext = (context_window !== undefined && !isNaN(Number(context_window)) && Number(context_window) > 0) ? Number(context_window) : undefined;
     const cleanOrder = (order !== undefined && !isNaN(Number(order))) ? Number(order) : undefined;
+    const cleanLimitCost = (limit_cost !== undefined && limit_cost !== null && String(limit_cost).trim() !== '' && Number.isFinite(Number(limit_cost)) && Number(limit_cost) >= 0)
+      ? parseModelLimitCost(limit_cost, 1)
+      : undefined;
     const cleanStreamingMode = ['auto', 'stream', 'non_stream'].includes(String(streaming_mode || '').trim())
       ? String(streaming_mode).trim()
       : undefined;
@@ -1210,6 +1215,7 @@ const updateModel = async (req, res) => {
         if (cleanIsActive !== undefined) mongoModel.is_active = cleanIsActive;
         if (cleanContext !== undefined) mongoModel.context_window = cleanContext;
         if (cleanOrder !== undefined) mongoModel.order = cleanOrder;
+        if (cleanLimitCost !== undefined) mongoModel.limit_cost = cleanLimitCost;
         if (cleanProvider !== undefined) mongoModel.provider = cleanProvider;
         if (cleanType !== undefined) mongoModel.type = cleanType;
         if (cleanCategory !== undefined) mongoModel.category = cleanCategory;
@@ -1265,7 +1271,8 @@ const updateModel = async (req, res) => {
           provider: cleanProvider || 'Alora',
           type: cleanType || 'custom',
           streaming_mode: cleanStreamingMode || 'auto',
-          order: cleanOrder !== undefined ? cleanOrder : (count + 1)
+          order: cleanOrder !== undefined ? cleanOrder : (count + 1),
+          limit_cost: cleanLimitCost !== undefined ? cleanLimitCost : 1
         });
       }
 
@@ -1311,7 +1318,8 @@ const updateModel = async (req, res) => {
         provider: cleanProvider || 'Alora',
         type: cleanType || 'custom',
         streaming_mode: cleanStreamingMode || 'auto',
-        order: cleanOrder !== undefined ? cleanOrder : (models.length + 1)
+        order: cleanOrder !== undefined ? cleanOrder : (models.length + 1),
+        limit_cost: cleanLimitCost !== undefined ? cleanLimitCost : 1
       };
       models.push(model);
     } else {
@@ -1328,6 +1336,7 @@ const updateModel = async (req, res) => {
       if (cleanIsActive !== undefined) model.is_active = cleanIsActive;
       if (cleanContext !== undefined) model.context_window = cleanContext;
       if (cleanOrder !== undefined) model.order = cleanOrder;
+      if (cleanLimitCost !== undefined) model.limit_cost = cleanLimitCost;
       if (cleanProvider !== undefined) model.provider = cleanProvider;
       if (cleanType !== undefined) model.type = cleanType;
       if (cleanStreamingMode !== undefined) model.streaming_mode = cleanStreamingMode;
@@ -1377,8 +1386,9 @@ const addModel = async (req, res) => {
       base_url, api_key, api_model_1,
       fallback_url_1, fallback_key_1, fallback_model_1, api_model_2,
       fallback_url_2, fallback_key_2, fallback_model_2, api_model_3,
-      premium, efficient, provider, type, category, allowed_plans, streaming_mode
+      premium, efficient, provider, type, category, allowed_plans, streaming_mode, limit_cost
     } = req.body;
+    const cleanLimitCost = parseModelLimitCost(limit_cost, 1);
     const cleanDesc = typeof description === 'string' ? description.trim().slice(0, 300) : '';
     const cleanStreamingMode = ['auto', 'stream', 'non_stream'].includes(String(streaming_mode || '').trim())
       ? String(streaming_mode).trim()
@@ -1457,7 +1467,8 @@ const addModel = async (req, res) => {
           provider: provider || 'Alora',
           type: type || 'custom',
           streaming_mode: cleanStreamingMode,
-          order: newOrder
+          order: newOrder,
+          limit_cost: cleanLimitCost
         });
       }
     }
@@ -1486,7 +1497,8 @@ const addModel = async (req, res) => {
       provider: provider || 'Alora',
       type: type || 'custom',
       streaming_mode: cleanStreamingMode,
-      order: newOrder
+      order: newOrder,
+      limit_cost: cleanLimitCost
     };
     models.push(newModel);
     await savePersistedModels(models);

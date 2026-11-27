@@ -4,7 +4,7 @@ const { streamChatCompletions, generateImage } = require('../controllers/chatCon
 const { handleLiveVoiceTurn } = require('../controllers/voiceController');
 const { protect, optionalProtect } = require('../middleware/authMiddleware');
 const { checkRateLimit } = require('../middleware/rateLimitMiddleware');
-const { deriveDefaultAllowedPlans, canPlanAccessModel } = require('../utils/secretVault');
+const { deriveDefaultAllowedPlans, canPlanAccessModel, parseModelLimitCost } = require('../utils/secretVault');
 const { DEFAULT_PLANS_MAP, normalizePlanDoc } = require('../utils/planDefaults');
 const Plan = require('../models/Plan');
 
@@ -98,6 +98,7 @@ router.get('/models', optionalProtect, async (req, res) => {
         premium: !!m.premium,
         efficient: !!m.efficient,
         order: m.order,
+        limit_cost: parseModelLimitCost(m.limit_cost, 1),
         context_window: m.context_window || 8192,
         streaming_mode: m.streaming_mode || 'auto'
       };

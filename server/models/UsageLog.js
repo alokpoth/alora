@@ -10,6 +10,11 @@ const UsageLogSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  cost: {
+    type: Number,
+    default: 1,
+    min: 0
+  },
   timestamp: {
     type: Date,
     default: Date.now

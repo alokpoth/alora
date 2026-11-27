@@ -4,7 +4,7 @@ const UsageLog = require('../models/UsageLog');
 const { getIsMongoConnected } = require('../config/db');
 const { memoryStore, debouncedSave } = require('../config/memoryStore');
 const AiModel = require('../models/AiModel');
-const { getModelConfig, getPersistedModels, getApiKeyFromSupabase, incrementUserUsage, getSystemSettings } = require('../../utils/getModelConfig');
+const { getModelConfig, getPersistedModels, getApiKeyFromSupabase, incrementUserUsage, getSystemSettings, getModelLimitCost } = require('../../utils/getModelConfig');
 const {
   getSafeModelDisplayName,
   inspectPromptSafety,
@@ -566,6 +566,10 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
       });
     }
 
+    const resolvedModelCost = (req.modelLimitCost !== undefined && req.modelLimitCost !== null && Number.isFinite(Number(req.modelLimitCost)))
+      ? Number(req.modelLimitCost)
+      : getModelLimitCost(aiModelConfig);
+
     const recordCompletionUsage = () => {
       const userId = user ? String(user._id || user.id) : req.guestId;
       if (!userId) return;
@@ -573,16 +577,18 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
         UsageLog.create({
           user_id: userId,
           model_id: effectiveModel || cleanModel || safeDisplayName,
+          cost: resolvedModelCost,
           timestamp: new Date()
         }).catch(err => console.error('[UsageLog Write Error]:', err.message));
         if (!req._quotaCacheReserved) {
-          incrementUserUsage(userId, req.currentPlan ? req.currentPlan.window_hours : 3).catch(() => {});
+          incrementUserUsage(userId, req.currentPlan ? req.currentPlan.window_hours : 3, resolvedModelCost).catch(() => {});
         }
       } else {
         memoryStore.usageLogs.push({
           _id: 'log_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
           user_id: userId,
           model_id: effectiveModel || model || safeDisplayName,
+          cost: resolvedModelCost,
           timestamp: new Date()
         });
         if (memoryStore.usageLogs.length > 5000) {
@@ -590,7 +596,7 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
         }
         debouncedSave();
         if (!req._quotaCacheReserved) {
-          incrementUserUsage(userId, req.currentPlan ? req.currentPlan.window_hours : 3).catch(e => {
+          incrementUserUsage(userId, req.currentPlan ? req.currentPlan.window_hours : 3, resolvedModelCost).catch(e => {
             console.error('[Increment User Usage Error]:', e.message);
           });
         }

@@ -16,6 +16,7 @@ const AiModelSchema = new mongoose.Schema({
   context_window: { type: Number, default: 8192 },
   streaming_mode: { type: String, enum: ['auto', 'stream', 'non_stream'], default: 'auto' },
   order: { type: Number, default: 0 },
+  limit_cost: { type: Number, default: 1, min: 0 },
   // Tier 1: Primary API
   api_model_1: { type: String, default: '' },
   // Tier 2: Fallback API 1

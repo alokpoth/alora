@@ -408,13 +408,16 @@ const getMe = async (req, res) => {
       
       if (getIsMongoConnected()) {
         const userQuery = isStrictObjectId(userId) ? { $in: [userId, new mongoose.Types.ObjectId(userId)] } : userId;
-        const [cnt, imgCnt, voiceCnt, oldestLog] = await Promise.all([
-          UsageLog.countDocuments({ user_id: userQuery, model_id: { $nin: ['image-generation', 'voice-live'] }, timestamp: { $gte: windowStart } }),
+        const [aggMsg, imgCnt, voiceCnt, oldestLog] = await Promise.all([
+          UsageLog.aggregate([
+            { $match: { user_id: userQuery, model_id: { $nin: ['image-generation', 'voice-live'] }, timestamp: { $gte: windowStart } } },
+            { $group: { _id: null, totalCost: { $sum: { $ifNull: ['$cost', 1] } } } }
+          ]),
           UsageLog.countDocuments({ user_id: userQuery, model_id: 'image-generation', timestamp: { $gte: windowStart } }),
           UsageLog.countDocuments({ user_id: userQuery, model_id: 'voice-live', timestamp: { $gte: windowStart } }),
           UsageLog.findOne({ user_id: userQuery, model_id: { $nin: ['image-generation', 'voice-live'] }, timestamp: { $gte: windowStart } }).sort({ timestamp: 1 }).select('timestamp').lean()
         ]);
-        messageCount = cnt;
+        messageCount = (aggMsg && aggMsg[0]) ? Math.round((Number(aggMsg[0].totalCost) || 0) * 100) / 100 : 0;
         imageCount = imgCnt;
         voiceCount = voiceCnt;
         if (oldestLog) {
@@ -426,13 +429,14 @@ const getMe = async (req, res) => {
           resetAt = new Date(Date.now() + planWindow * 60 * 60 * 1000).toISOString();
         }
       } else {
-        const { getUserUsageDetails, getUserImageUsageDetails, getUserVoiceUsageDetails } = require('../../utils/getModelConfig');
+        const { getUserUsageDetails, getUserImageUsageDetails, getUserVoiceUsageDetails, sumUsageLogCosts } = require('../../utils/getModelConfig');
         const [usageDetails, imgDetails, voiceDetails] = await Promise.all([
           getUserUsageDetails(userId, planWindow),
           getUserImageUsageDetails(userId, planWindow),
           getUserVoiceUsageDetails(userId, planWindow)
         ]);
-        const memCount = (memoryStore.usageLogs || []).filter(l => String(l.user_id) === userId && l.model_id !== 'image-generation' && l.model_id !== 'voice-live' && new Date(l.timestamp) >= windowStart).length;
+        const memMsgLogs = (memoryStore.usageLogs || []).filter(l => String(l.user_id) === userId && l.model_id !== 'image-generation' && l.model_id !== 'voice-live' && new Date(l.timestamp) >= windowStart);
+        const memCount = sumUsageLogCosts(memMsgLogs);
         const memImgCount = (memoryStore.usageLogs || []).filter(l => String(l.user_id) === userId && l.model_id === 'image-generation' && new Date(l.timestamp) >= windowStart).length;
         const memVoiceCount = (memoryStore.usageLogs || []).filter(l => String(l.user_id) === userId && l.model_id === 'voice-live' && new Date(l.timestamp) >= windowStart).length;
         messageCount = Math.max(usageDetails.count, memCount);

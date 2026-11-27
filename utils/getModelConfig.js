@@ -2,7 +2,7 @@
 // Primary persistence in MongoDB (SystemSetting, AiModel, Plan, RedeemCode, PromoCode, PaymentOrder, User, UsageLog)
 // with fast in-memory caching and local memoryStore fallback. Zero Supabase dependency.
 const { memoryStore, debouncedSave } = require('../server/config/memoryStore');
-const { encryptSecret, decryptSecret } = require('../server/utils/secretVault');
+const { encryptSecret, decryptSecret, parseModelLimitCost } = require('../server/utils/secretVault');
 
 // Cache: avoid repeated DB hits per request cycle (1 min TTL)
 const keyCache = new Map(); // keyId -> { api_key, ts }
@@ -439,6 +439,20 @@ function invalidateUserUsageCache(userId) {
   }
 }
 
+function getModelLimitCost(model) {
+  return parseModelLimitCost(model && model.limit_cost, 1);
+}
+
+function sumUsageLogCosts(logs = []) {
+  const total = (logs || []).reduce((acc, l) => {
+    const c = (l && l.cost !== undefined && l.cost !== null && Number.isFinite(Number(l.cost)) && Number(l.cost) >= 0)
+      ? Number(l.cost)
+      : 1;
+    return acc + c;
+  }, 0);
+  return Math.round(total * 100) / 100;
+}
+
 async function getUserUsageDetails(userId, windowHours) {
   const windowMs = (windowHours || 3) * 60 * 60 * 1000;
   const now = Date.now();
@@ -459,9 +473,9 @@ async function getUserUsageDetails(userId, windowHours) {
           user_id: String(userId),
           model_id: { $nin: ['image-generation', 'voice-live'] },
           timestamp: { $gte: new Date(windowStart) }
-        }).select('timestamp').lean();
+        }).select('timestamp cost').lean();
         if (logs && logs.length > 0) {
-          count = logs.length;
+          count = sumUsageLogCosts(logs);
           start = Math.min(...logs.map(l => new Date(l.timestamp).getTime()));
         }
         userUsageCache.set(String(userId), { count, start, ts: now });
@@ -475,8 +489,9 @@ async function getUserUsageDetails(userId, windowHours) {
     l.model_id !== 'voice-live' &&
     new Date(l.timestamp).getTime() >= windowStart
   );
-  if (memLogs.length > count) {
-    count = memLogs.length;
+  const memCost = sumUsageLogCosts(memLogs);
+  if (memCost > count) {
+    count = memCost;
     start = memLogs.length > 0 ? Math.min(...memLogs.map(l => new Date(l.timestamp).getTime())) : now;
     userUsageCache.set(String(userId), { count, start, ts: now });
   }
@@ -553,14 +568,15 @@ function getUserVoiceUsageDetails(userId, windowHours) {
   return getUserSpecialUsageDetails(userId, windowHours, 'voice-live', userVoiceUsageCache);
 }
 
-function bumpUsageCache(targetCache, userId, windowHours) {
+function bumpUsageCache(targetCache, userId, windowHours, stepCost = 1) {
+  const cost = parseModelLimitCost(stepCost, 1);
   const windowMs = (windowHours || 3) * 60 * 60 * 1000;
   const now = Date.now();
   const cached = targetCache.get(String(userId));
-  let count = 1;
+  let count = cost;
   let start = now;
   if (cached && (now - cached.start) < windowMs) {
-    count = (cached.count || 0) + 1;
+    count = Math.round(((cached.count || 0) + cost) * 100) / 100;
     start = cached.start;
   }
   targetCache.set(String(userId), { count, start, ts: now });
@@ -574,25 +590,27 @@ async function incrementUserVoiceUsage(userId, windowHours) {
   bumpUsageCache(userVoiceUsageCache, userId, windowHours);
 }
 
-async function incrementUserUsage(userId, windowHours) {
-  bumpUsageCache(userUsageCache, userId, windowHours);
+async function incrementUserUsage(userId, windowHours, cost = 1) {
+  bumpUsageCache(userUsageCache, userId, windowHours, cost);
 }
 
-async function recordUsageLogEntry(userId, modelId, windowHours) {
+async function recordUsageLogEntry(userId, modelId, windowHours, cost = 1) {
   if (!userId) return;
   const cleanUid = String(userId);
   const cleanMod = String(modelId || 'openrouter/free');
+  const cleanCost = parseModelLimitCost(cost, 1);
   const { getIsMongoConnected } = require('../server/config/db');
   if (getIsMongoConnected()) {
     try {
       const UsageLog = require('../server/models/UsageLog');
-      await UsageLog.create({ user_id: cleanUid, model_id: cleanMod, timestamp: new Date() });
+      await UsageLog.create({ user_id: cleanUid, model_id: cleanMod, cost: cleanCost, timestamp: new Date() });
     } catch (e) {}
   } else {
     memoryStore.usageLogs.push({
       _id: 'log_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
       user_id: cleanUid,
       model_id: cleanMod,
+      cost: cleanCost,
       timestamp: new Date()
     });
     if (memoryStore.usageLogs.length > 5000) {
@@ -605,7 +623,7 @@ async function recordUsageLogEntry(userId, modelId, windowHours) {
   } else if (cleanMod === 'voice-live') {
     await incrementUserVoiceUsage(cleanUid, windowHours);
   } else {
-    await incrementUserUsage(cleanUid, windowHours);
+    await incrementUserUsage(cleanUid, windowHours, cleanCost);
   }
 }
 
@@ -1136,6 +1154,8 @@ module.exports = {
   invalidatePlansCache,
   getUserUsage,
   getUserUsageDetails,
+  getModelLimitCost,
+  sumUsageLogCosts,
   incrementUserUsage,
   getUserImageUsageDetails,
   incrementUserImageUsage,

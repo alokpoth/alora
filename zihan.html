@@ -1424,6 +1424,10 @@
               <option value="image">Image Model</option>
             </select>
           </div>
+          <div class="form-group" style="width: 148px; min-width: 130px; flex: 0 0 auto;">
+            <label>লিমিট খরচ (প্রতি বার্তা)</label>
+            <input type="number" id="newModelLimitCost" min="0" max="1000" step="any" value="1" placeholder="1">
+          </div>
           <div class="form-group" style="flex: 1.6; min-width: 280px;">
             <label style="display:flex; justify-content:space-between; align-items:center; gap:6px; flex-wrap:wrap;">
               <span>প্ল্যান অ্যাক্সেস</span>
@@ -2573,6 +2577,10 @@
         const fallback_model_1 = original.fallback_model_1 || "";
         const fallback_model_2 = original.fallback_model_2 || "";
         const category = tr.querySelector(".model-input-cat")?.value || "chat";
+        const rawCost = tr.querySelector(".model-input-cost")?.value;
+        const limit_cost = (rawCost !== undefined && rawCost !== "" && !isNaN(Number(rawCost)) && Number(rawCost) >= 0)
+          ? Math.min(1000, Math.round(Number(rawCost) * 100) / 100)
+          : 1;
         const allowed_plans = Array.from(tr.querySelectorAll(".model-plan-cb:checked")).map(cb => cb.value);
         const { premium, efficient } = deriveLegacyModelFlags(allowed_plans);
 
@@ -2587,6 +2595,7 @@
           fallback_model_1,
           fallback_model_2,
           category,
+          limit_cost,
           allowed_plans,
           premium,
           efficient,
@@ -2855,6 +2864,10 @@
                   <option value="chat" ${(m.category || 'chat') === 'chat' ? 'selected' : ''}>Chat</option>
                   <option value="image" ${m.category === 'image' ? 'selected' : ''}>Image</option>
                 </select>
+                <label style="font-size:0.68rem;display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,0.04);padding:2px 6px;border-radius:5px;border:1px solid rgba(255,255,255,0.1);" title="প্রতি বার্তায় কতগুলা লিমিট কাটবে (০ = বিনামূল্যে, ১ = সাধারণ)">
+                  <span style="color:var(--text-sub);">লিমিট:</span>
+                  <input type="number" class="model-input-cost" min="0" max="1000" step="any" value="${m.limit_cost !== undefined && m.limit_cost !== null && !isNaN(Number(m.limit_cost)) ? Number(m.limit_cost) : 1}" style="width:46px; padding:1px 4px; font-size:0.74rem; text-align:center; background:transparent; border:1px solid rgba(255,255,255,0.16); border-radius:4px; color:var(--text-primary);">
+                </label>
                 <label style="font-size:0.68rem;display:inline-flex;align-items:center;gap:3px;cursor:pointer;background:rgba(255,255,255,0.04);padding:2px 6px;border-radius:5px;border:1px solid rgba(255,255,255,0.1);"><input type="checkbox" class="model-active-cb" ${m.is_active !== false ? 'checked' : ''}>চালু</label>
                 <span class="model-live-tier-preview" style="font-size:0.66rem; padding:1px 7px; border-radius:999px; background:rgba(255,255,255,0.08); color:var(--text-primary); font-weight:600;"></span>
               </div>
@@ -3165,6 +3178,10 @@
       if (urlInput && base_url) urlInput.value = base_url;
       const api_key = tr.querySelector(".model-input-key")?.value.trim() || "";
       const category = tr.querySelector(".model-input-cat")?.value || "chat";
+      const rawCost = tr.querySelector(".model-input-cost")?.value;
+      const limit_cost = (rawCost !== undefined && rawCost !== "" && !isNaN(Number(rawCost)) && Number(rawCost) >= 0)
+        ? Math.min(1000, Math.round(Number(rawCost) * 100) / 100)
+        : 1;
       const isActiveCb = tr.querySelector(".model-active-cb");
       const is_active = isActiveCb ? Boolean(isActiveCb.checked) : true;
       const allowed_plans = Array.from(tr.querySelectorAll(".model-plan-cb:checked")).map(cb => cb.value);
@@ -3183,6 +3200,7 @@
         efficient,
         is_active,
         category,
+        limit_cost,
         allowed_plans
       };
       if (api_key) payload.api_key = api_key;
@@ -3225,6 +3243,7 @@
             target.efficient = efficient;
             target.is_active = is_active;
             target.category = category;
+            target.limit_cost = limit_cost;
             target.allowed_plans = allowed_plans;
             if (typeof loadPlans === "function") loadPlans();
           }
@@ -3288,6 +3307,10 @@
       const name = document.getElementById("newModelName").value.trim();
       const description = document.getElementById("newModelDescription")?.value.trim() || "";
       const category = document.getElementById("newModelCategory")?.value || "chat";
+      const rawNewCost = document.getElementById("newModelLimitCost")?.value;
+      const limit_cost = (rawNewCost !== undefined && rawNewCost !== "" && !isNaN(Number(rawNewCost)) && Number(rawNewCost) >= 0)
+        ? Math.min(1000, Math.round(Number(rawNewCost) * 100) / 100)
+        : 1;
       const allowed_plans = Array.from(document.querySelectorAll(".new-model-plan-cb:checked")).map(cb => cb.value);
       if (allowed_plans.length === 0) {
         showToast("অন্তত ১টি প্ল্যান সিলেক্ট করুন", "error");
@@ -3336,6 +3359,7 @@
             premium,
             efficient,
             category,
+            limit_cost,
             allowed_plans,
             api_model_1,
             base_url,

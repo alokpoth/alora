@@ -8,6 +8,8 @@ const { memoryStore, debouncedSave } = require('../config/memoryStore');
 const {
   getModelConfig,
   getUserUsageDetails,
+  getModelLimitCost,
+  sumUsageLogCosts,
   getUserImageUsageDetails,
   getUserVoiceUsageDetails,
   incrementUserUsage,
@@ -17,7 +19,7 @@ const {
 } = require('../../utils/getModelConfig');
 const { getCachedPlan, setCachedPlan, getCachedModel, setCachedModel, invalidateCachedUser } = require('../config/dbCache');
 const { PLAN_HIERARCHY, DEFAULT_PLANS_MAP, normalizePlanDoc } = require('../utils/planDefaults');
-const { canPlanAccessModel } = require('../utils/secretVault');
+const { canPlanAccessModel, parseModelLimitCost } = require('../utils/secretVault');
 
 const guestMessageTracker = new Map();
 const guestImageTracker = new Map();
@@ -115,7 +117,13 @@ const checkRateLimit = async (req, res, next) => {
             error: 'চ্যাট শুরু করতে অনুগ্রহ করে লগইন বা সাইন-আপ করুন।'
           });
         }
-        if (!isLocalTest && guestData.count >= gMsgLimit) {
+        const guestReqModelId = (!isImageRoute && !isVoiceRoute && !isSearchRoute && req.body && typeof req.body === 'object' && req.body.model)
+          ? String(req.body.model).trim()
+          : '';
+        const gModel = guestReqModelId ? await lookupModelCached(guestReqModelId) : null;
+        const gCost = gModel ? getModelLimitCost(gModel) : 1;
+
+        if (!isLocalTest && (isImageRoute || isVoiceRoute || isSearchRoute || gCost > 0) && guestData.count >= gMsgLimit) {
           return res.status(401).json({
             success: false,
             code: 'GUEST_LIMIT_REACHED',
@@ -182,28 +190,37 @@ const checkRateLimit = async (req, res, next) => {
         }
 
         // Enforce model tier & allowed_plans on Guest chat requests
-        const guestReqModelId = (req.body && typeof req.body === 'object' && req.body.model) ? String(req.body.model).trim() : '';
-        if (guestReqModelId) {
-          const gModel = await lookupModelCached(guestReqModelId);
-          if (gModel && !canPlanAccessModel(gModel, 'Guest', guestPlan)) {
-            const reqTier = gModel.efficient ? 'Max' : 'Plus / Pro';
-            return res.status(403).json({
-              success: false,
-              code: 'PLAN_UPGRADE_REQUIRED',
-              error: `'${gModel.name || guestReqModelId}' মডেলটি ব্যবহারের জন্য লগইন এবং ${reqTier} প্ল্যান প্রয়োজন।`
-            });
-          }
+        if (gModel && !canPlanAccessModel(gModel, 'Guest', guestPlan)) {
+          const reqTier = gModel.efficient ? 'Max' : 'Plus / Pro';
+          return res.status(403).json({
+            success: false,
+            code: 'PLAN_UPGRADE_REQUIRED',
+            error: `'${gModel.name || guestReqModelId}' মডেলটি ব্যবহারের জন্য লগইন এবং ${reqTier} প্ল্যান প্রয়োজন।`
+          });
         }
 
         if (isLocalTest) {
           req.guestId = guestId;
+          req.modelLimitCost = gCost;
           req.currentPlan = { ...guestPlan, message_limit: 99999, voice_limit: 99999 };
           return next();
         }
 
-        guestData.count += 1;
+        if (gCost > 0 && (guestData.count + gCost) > gMsgLimit) {
+          const gRem = Math.max(0, Math.round((gMsgLimit - guestData.count) * 100) / 100);
+          return res.status(401).json({
+            success: false,
+            code: 'MODEL_LIMIT_INSUFFICIENT',
+            requiredCost: gCost,
+            remaining: gRem,
+            error: `'${gModel?.name || guestReqModelId || 'এই'}' মডেলের প্রতি বার্তায় ${gCost}টি লিমিট লাগে; আপনার গেস্ট সীমায় ${gRem}টি অবশিষ্ট আছে। কম খরচের মডেল বেছে নিন বা লগইন করুন।`
+          });
+        }
+
+        guestData.count = Math.round((guestData.count + gCost) * 100) / 100;
         guestMessageTracker.set(cleanIp, guestData);
         req.guestId = guestId;
+        req.modelLimitCost = gCost;
         req.currentPlan = guestPlan;
         return next();
       });
@@ -287,11 +304,17 @@ const checkRateLimit = async (req, res, next) => {
       if (getIsMongoConnected()) {
         try {
           const userQuery = isStrictObjectId(userId) ? { $in: [userId, new mongoose.Types.ObjectId(userId)] } : userId;
-          const dbMsgCount = await UsageLog.countDocuments({
-            user_id: userQuery,
-            model_id: { $nin: ['image-generation', 'voice-live'] },
-            timestamp: { $gte: windowStart }
-          });
+          const aggRes = await UsageLog.aggregate([
+            {
+              $match: {
+                user_id: userQuery,
+                model_id: { $nin: ['image-generation', 'voice-live'] },
+                timestamp: { $gte: windowStart }
+              }
+            },
+            { $group: { _id: null, totalCost: { $sum: { $ifNull: ['$cost', 1] } } } }
+          ]);
+          const dbMsgCount = (aggRes && aggRes[0]) ? Math.round((Number(aggRes[0].totalCost) || 0) * 100) / 100 : 0;
           if (dbMsgCount > messageCount) messageCount = dbMsgCount;
           if (messageCount >= plan.message_limit) {
             const oldestLog = await UsageLog.findOne({
@@ -306,7 +329,13 @@ const checkRateLimit = async (req, res, next) => {
         } catch {}
       }
 
-      if (messageCount >= plan.message_limit) {
+      const preChatModelId = (!isImageRoute && !isVoiceRoute && !isSearchRoute && req.body && typeof req.body === 'object' && req.body.model)
+        ? String(req.body.model).trim()
+        : (!isImageRoute && !isVoiceRoute && !isSearchRoute ? 'openrouter/free' : '');
+      const preChatAiModel = preChatModelId ? await lookupModelCached(preChatModelId) : null;
+      const preChatCost = preChatAiModel ? getModelLimitCost(preChatAiModel) : 1;
+
+      if (messageCount >= plan.message_limit && (isImageRoute || isVoiceRoute || isSearchRoute || !(plan.message_limit > 0 && preChatCost === 0))) {
         res.setHeader('Retry-After', Math.max(1, Math.ceil(msgResetMinutes * 60)));
         return res.status(429).json({
           success: false,
@@ -449,8 +478,8 @@ const checkRateLimit = async (req, res, next) => {
       }
 
       // 6. Model Access Permission Check (for text chat)
-      const model_id = (req.body && typeof req.body === 'object' && req.body.model) ? String(req.body.model).trim() : 'openrouter/free';
-      const aiModel = await lookupModelCached(model_id);
+      const model_id = preChatModelId || ((req.body && typeof req.body === 'object' && req.body.model) ? String(req.body.model).trim() : 'openrouter/free');
+      const aiModel = preChatAiModel || await lookupModelCached(model_id);
 
       if (aiModel && !canPlanAccessModel(aiModel, currentPlanName, plan)) {
         const isMaxModel = Boolean(aiModel.efficient);
@@ -481,8 +510,29 @@ const checkRateLimit = async (req, res, next) => {
         }
       }
 
-      await incrementUserUsage(userId, plan.window_hours);
+      const modelCost = getModelLimitCost(aiModel);
+      if (modelCost > 0 && (messageCount + modelCost) > plan.message_limit) {
+        const remainingCredits = Math.max(0, Math.round((plan.message_limit - messageCount) * 100) / 100);
+        res.setHeader('Retry-After', Math.max(1, Math.ceil(msgResetMinutes * 60)));
+        if (messageCount >= plan.message_limit) {
+          return res.status(429).json({
+            success: false,
+            code: 'MESSAGE_LIMIT_REACHED',
+            error: `বার্তা সীমা শেষ! ${plan.displayName}-এ প্রতি ${plan.window_hours} ঘণ্টায় সর্বোচ্চ ${plan.message_limit}টি বার্তা পাঠানো যায়। আবার ${msgResetMinutes} মিনিট পর চেষ্টা করুন বা প্ল্যান আপগ্রেড করুন।`
+          });
+        }
+        return res.status(429).json({
+          success: false,
+          code: 'MODEL_LIMIT_INSUFFICIENT',
+          requiredCost: modelCost,
+          remaining: remainingCredits,
+          error: `'${aiModel?.name || model_id}' মডেলের প্রতি বার্তায় ${modelCost}টি লিমিট লাগে, আপনার ${remainingCredits}টি অবশিষ্ট আছে। কম খরচের মডেল বেছে নিন অথবা প্ল্যান আপগ্রেড করুন।`
+        });
+      }
+
+      await incrementUserUsage(userId, plan.window_hours, modelCost);
       req._quotaCacheReserved = 'message';
+      req.modelLimitCost = modelCost;
       req.currentPlan = plan;
       return next();
     });

@@ -5133,14 +5133,16 @@
     }
 
     function getQuotaLockStatus() {
+      const selCost = (typeof getModelLimitCostClient === "function") ? getModelLimitCostClient(selectedModel) : 1;
       const token = getAuthToken();
       if (!token) {
         const gLim = getGuestMsgLimit();
         const gUsed = typeof getGuestCount === "function" ? getGuestCount() : 0;
         const gVLim = getGuestVoiceLimit();
         const gVUsed = getGuestVoiceCount();
-        const msgLocked = gLim <= 0 || gUsed >= gLim;
-        const voiceLocked = msgLocked || gVLim <= 0 || gVUsed >= gVLim;
+        const quotaExhausted = gLim <= 0 || gUsed >= gLim;
+        const msgLocked = gLim <= 0 || (selCost > 0 && gUsed >= gLim);
+        const voiceLocked = quotaExhausted || gVLim <= 0 || gVUsed >= gVLim;
         return {
           isGuest: true,
           isAdmin: false,
@@ -5149,7 +5151,8 @@
           voiceRemaining: Math.max(0, gVLim - gVUsed),
           voiceLimit: gVLim,
           remaining: Math.max(0, gLim - gUsed),
-          limit: gLim
+          limit: gLim,
+          modelCost: selCost
         };
       }
       let user = null;
@@ -5157,7 +5160,7 @@
       const adminEmails = ["zihanfakir@gmail.com", "x@zihan.uk"];
       const isAdmin = Boolean(user && (user.role === "admin" || (user.email && adminEmails.includes(String(user.email).toLowerCase()))));
       if (isAdmin) {
-        return { isGuest: false, isAdmin: true, msgLocked: false, voiceLocked: false, voiceRemaining: 999999, voiceLimit: 999999, remaining: 999999, limit: 999999 };
+        return { isGuest: false, isAdmin: true, msgLocked: false, voiceLocked: false, voiceRemaining: 999999, voiceLimit: 999999, remaining: 999999, limit: 999999, modelCost: 0 };
       }
       const planName = (user && user.subscription && user.subscription.plan_name) || localStorage.getItem(KEYS.PLAN) || "Free";
       const pInfo = cachedPlanLimits[planName] || cachedPlanLimits.Free;
@@ -5169,9 +5172,10 @@
       const rem = resetExpired ? limit : (rl.remaining !== undefined ? Number(rl.remaining) : Math.max(0, limit - Number(rl.used ?? rl.count ?? 0)));
       const vLim = rl.voiceLimit !== undefined ? Number(rl.voiceLimit) : Number(rl.voice_limit ?? rawPlanVoice);
       const vRem = resetExpired ? vLim : (rl.voiceRemaining !== undefined ? Number(rl.voiceRemaining) : Math.max(0, vLim - Number(rl.voiceUsed ?? rl.voice_used ?? 0)));
-      const msgLocked = rem <= 0;
-      const voiceLocked = msgLocked || vLim <= 0 || vRem <= 0;
-      return { isGuest: false, isAdmin: false, msgLocked, voiceLocked, voiceRemaining: vRem, voiceLimit: vLim, remaining: rem, limit };
+      const quotaExhausted = limit <= 0 || rem <= 0;
+      const msgLocked = limit <= 0 || (selCost > 0 && rem <= 0);
+      const voiceLocked = quotaExhausted || vLim <= 0 || vRem <= 0;
+      return { isGuest: false, isAdmin: false, msgLocked, voiceLocked, voiceRemaining: vRem, voiceLimit: vLim, remaining: rem, limit, modelCost: selCost };
     }
 
     let quotaUnlockTimer = null;
@@ -5397,7 +5401,7 @@
     let contextTargetSessionId = null;
     let currentSettingsTab = "general";
 
-    const CURRENT_SW_CACHE = "alora-ai-v1.0.0.24-6";
+    const CURRENT_SW_CACHE = "alora-ai-v1.0.0.24-7";
 
     // Safely migrate & clean legacy stale storage keys and obsolete browser caches on startup
     // while keeping 100% of active user data (tokens, chats, theme, lang, models, settings, voice prefs).
@@ -5518,11 +5522,23 @@
       });
     }
 
-    function getGuestCount() {
-      return parseInt(localStorage.getItem(KEYS.GUEST_COUNT) || "0", 10);
+    function getModelLimitCostClient(modelOrId) {
+      let m = modelOrId;
+      if (typeof modelOrId === "string") {
+        m = (Array.isArray(cachedDynamicModels) ? cachedDynamicModels : []).find(x => x.id === modelOrId || x.model_id === modelOrId);
+      }
+      if (!m || m.limit_cost === undefined || m.limit_cost === null) return 1;
+      const n = Number(m.limit_cost);
+      return (Number.isFinite(n) && n >= 0) ? Math.min(1000, Math.round(n * 100) / 100) : 1;
     }
-    function incrementGuestCount() {
-      const c = getGuestCount() + 1;
+
+    function getGuestCount() {
+      const n = parseFloat(localStorage.getItem(KEYS.GUEST_COUNT) || "0");
+      return Number.isFinite(n) && n >= 0 ? n : 0;
+    }
+    function incrementGuestCount(stepCost = 1) {
+      const step = (Number.isFinite(Number(stepCost)) && Number(stepCost) >= 0) ? Number(stepCost) : 1;
+      const c = Math.round((getGuestCount() + step) * 100) / 100;
       localStorage.setItem(KEYS.GUEST_COUNT, String(c));
       return c;
     }
@@ -7951,6 +7967,13 @@
         }
         return;
       }
+      if (!qLock.isAdmin && isAppOnline() && !isImageGenActive && qLock.modelCost > 0 && qLock.remaining < qLock.modelCost) {
+        const remC = Math.max(0, Math.round(qLock.remaining * 100) / 100);
+        showToast(currentLanguage === "bn"
+          ? `এই মডেলে প্রতি বার্তায় ${qLock.modelCost}টি লিমিট লাগে; আপনার ${remC}টি বাকি আছে। কম খরচের মডেল বেছে নিন।`
+          : `This model costs ${qLock.modelCost} credits per message; ${remC} remaining. Choose a lighter model or upgrade.`);
+        return;
+      }
 
       const input = document.getElementById("messageInput");
       const rawText = input ? input.value.trim() : "";
@@ -8035,13 +8058,24 @@
         return await runImageGenerationTurn(text, aIdx, content, toolbar, row);
       }
 
-      // Guest message tracking (dynamic limit from Admin Plan settings)
+      // Guest message tracking (dynamic limit from Admin Plan settings + per-model limit_cost)
       const activeGuestLimit = getGuestMsgLimit();
+      const activeModelCost = getModelLimitCostClient(selectedModel);
       if (!token) {
         const guestCount = getGuestCount();
-        if (guestCount >= activeGuestLimit) {
+        if (activeGuestLimit <= 0 || (activeModelCost > 0 && guestCount >= activeGuestLimit)) {
           showToast(getGuestLimitMessage());
           window.location.href = "/auth/signup";
+          isSending = false;
+          if (input) input.readOnly = false;
+          updateSendButtonState();
+          return;
+        }
+        if (activeModelCost > 0 && (guestCount + activeModelCost) > activeGuestLimit) {
+          const gRem = Math.max(0, Math.round((activeGuestLimit - guestCount) * 100) / 100);
+          showToast(currentLanguage === "bn"
+            ? `এই মডেলে প্রতি বার্তায় ${activeModelCost}টি লিমিট লাগে; আপনার ${gRem}টি বাকি আছে।`
+            : `This model uses ${activeModelCost} credits per message; ${gRem} remaining.`);
           isSending = false;
           if (input) input.readOnly = false;
           updateSendButtonState();
@@ -8086,7 +8120,7 @@
         updateComposerPosition();
 
         if (!token) {
-          const c = incrementGuestCount();
+          const c = incrementGuestCount(activeModelCost);
           if (c >= activeGuestLimit) {
             showToast(getGuestLimitMessage());
           }
@@ -8179,6 +8213,19 @@
             throw disabledErr;
           }
           if (res.status === 403 || errData.code === "PLAN_UPGRADE_REQUIRED") {
+            renderUpgradeCard(content, errData.error);
+            return;
+          }
+          if (res.status === 429 && errData.code === "MODEL_LIMIT_INSUFFICIENT") {
+            try {
+              const u = JSON.parse(localStorage.getItem(KEYS.USER) || "null");
+              if (u && typeof errData.remaining === "number") {
+                u.rateLimit = { ...(u.rateLimit || {}), remaining: errData.remaining };
+                localStorage.setItem(KEYS.USER, JSON.stringify(u));
+              }
+            } catch {}
+            applyGlobalQuotaLockUI();
+            refreshUserFromServer();
             renderUpgradeCard(content, errData.error);
             return;
           }
@@ -9411,6 +9458,10 @@
 
         let { badgeText, badgeStyle, defaultDesc } = getModelPlanBadgeInfo(m);
         if (isLocked) badgeText = `🔒 ${badgeText}`;
+        const mCost = getModelLimitCostClient(m);
+        const costBadgeHtml = mCost !== 1
+          ? `<span class="model-opt-cost" style="font-size:0.66rem; padding:2px 6px; border-radius:999px; background:rgba(128,128,128,0.14); border:1px solid var(--border-color); color:var(--text-muted); font-weight:600;">${escapeHtml(mCost === 0 ? (currentLanguage === "bn" ? "০ লিমিট" : "0 cost") : (currentLanguage === "bn" ? `${mCost}x লিমিট` : `${mCost}x`))}</span>`
+          : "";
 
         const desc = (typeof m.description === "string" && m.description.trim()) ? m.description.trim() : defaultDesc;
         const item = document.createElement("div");
@@ -9420,9 +9471,10 @@
         item.setAttribute("data-label", name);
         item.innerHTML = `
           <div style="flex:1;">
-            <div style="display:flex; align-items:center; gap:8px;">
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
               <span class="model-opt-title">${escapeHtml(name)}</span>
               <span class="model-opt-badge" style="${badgeStyle}">${escapeHtml(badgeText)}</span>
+              ${costBadgeHtml}
             </div>
             <div class="model-opt-desc">${escapeHtml(desc)}</div>
           </div>
@@ -9449,6 +9501,7 @@
           const activeChk = item.querySelector(".model-opt-check");
           if (activeChk) activeChk.style.display = "block";
           updateHeaderActionsVisibility();
+          applyGlobalQuotaLockUI();
           modelMenu?.classList.remove("open");
           showToast(`${name} selected`);
         });
@@ -9457,6 +9510,7 @@
       });
 
       updateHeaderActionsVisibility();
+      if (typeof applyGlobalQuotaLockUI === "function") applyGlobalQuotaLockUI();
       renderLiveVoiceModelPickers();
     }
 

@@ -183,6 +183,13 @@ function getAlternateChatEndpointUrl(rawUrl) {
   return null;
 }
 
+function parseModelLimitCost(val, fallback = 1) {
+  if (val === undefined || val === null || val === '') return fallback;
+  const num = Number(val);
+  if (!Number.isFinite(num) || num < 0) return fallback;
+  return Math.min(1000, Math.round(num * 100) / 100);
+}
+
 module.exports = {
   encryptSecret,
   decryptSecret,
@@ -191,6 +198,7 @@ module.exports = {
   deriveDefaultAllowedPlans,
   deriveLegacyFlagsFromAllowedPlans,
   canPlanAccessModel,
+  parseModelLimitCost,
   resolveChatCompletionUrl,
   getAlternateChatEndpointUrl
 };
