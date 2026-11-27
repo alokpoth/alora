@@ -327,21 +327,24 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
           safeMessagesWithIdentity.unshift({ role: 'system', content: modelIdentityDirective });
         }
 
-        const p = {
-          model: modName,
-          messages: safeMessagesWithIdentity,
-          stream: Boolean(useStream),
-          temperature: 0.65,
-          top_p: 0.90,
-          ...(includeExtraParams ? { frequency_penalty: 0.6, presence_penalty: 0.4, reasoning_effort: 'none' } : {})
-        };
-
         const lowerMod = modName.toLowerCase();
-        if (lowerMod.includes('gpt')) {
-          p.max_tokens = 4096;
-        } else {
-          p.max_tokens = 8192;
-        }
+        const p = includeExtraParams
+          ? {
+              model: modName,
+              messages: safeMessagesWithIdentity,
+              stream: Boolean(useStream),
+              temperature: 0.65,
+              top_p: 0.90,
+              frequency_penalty: 0.6,
+              presence_penalty: 0.4,
+              reasoning_effort: 'none',
+              max_tokens: lowerMod.includes('gpt') ? 4096 : 8192
+            }
+          : {
+              model: modName,
+              messages: safeMessagesWithIdentity,
+              stream: Boolean(useStream)
+            };
 
         const r = await fetch(url, {
           method: 'POST',

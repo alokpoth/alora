@@ -185,6 +185,9 @@ const serverHealthHandler = (req, res) => {
     success: true,
     status: 'ok',
     server: 'Alora AI Backend Running',
+    version: '1.0.0.24',
+    build: '1.0.0.24-mobile-voice',
+    commit: process.env.RENDER_GIT_COMMIT || '',
     mongo: getIsMongoConnected(),
     timestamp: new Date().toISOString()
   });

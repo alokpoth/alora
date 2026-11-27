@@ -247,7 +247,7 @@ class MainActivity : AppCompatActivity() {
         var recorder: AudioRecord? = null
         try {
             recorder = AudioRecord(
-                MediaRecorder.AudioSource.VOICE_RECOGNITION,
+                MediaRecorder.AudioSource.MIC,
                 sampleRate,
                 AudioFormat.CHANNEL_IN_MONO,
                 AudioFormat.ENCODING_PCM_16BIT,
@@ -256,7 +256,7 @@ class MainActivity : AppCompatActivity() {
             if (recorder.state != AudioRecord.STATE_INITIALIZED) {
                 recorder.release()
                 recorder = AudioRecord(
-                    MediaRecorder.AudioSource.MIC,
+                    MediaRecorder.AudioSource.VOICE_RECOGNITION,
                     sampleRate,
                     AudioFormat.CHANNEL_IN_MONO,
                     AudioFormat.ENCODING_PCM_16BIT,
@@ -322,7 +322,7 @@ class MainActivity : AppCompatActivity() {
                         ambientFrames++
                         ambientRms = ambientAccum / ambientFrames
                     }
-                    val voiceThresh = maxOf(175.0, ambientRms * 2.4).coerceIn(175.0, 480.0)
+                    val voiceThresh = maxOf(110.0, ambientRms * 2.2).coerceIn(110.0, 420.0)
 
                     if (now - lastVolPushMs >= 55L) {
                         lastVolPushMs = now
@@ -425,22 +425,28 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun launchNativeSpeechRecognizer(langTag: String?) {
+    private fun launchNativeSpeechRecognizer(langTag: String?, simpleFallback: Boolean = false) {
         runOnUiThread {
             val rawTag = langTag?.trim() ?: ""
             val isAuto = rawTag.isEmpty() || rawTag.equals("auto", ignoreCase = true)
-            val cleanLang = if (isAuto) "bn-BD" else rawTag
+            val cleanLang = when {
+                simpleFallback -> if (isAuto) Locale.getDefault().toLanguageTag().ifBlank { "en-US" } else rawTag
+                isAuto -> "bn-BD"
+                else -> rawTag
+            }
             val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
                 putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
                 putExtra(RecognizerIntent.EXTRA_LANGUAGE, cleanLang)
                 putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, cleanLang)
-                putExtra("android.speech.extra.EXTRA_ADDITIONAL_LANGUAGES", arrayOf("bn-BD", "en-US"))
-                if (isAuto && Build.VERSION.SDK_INT >= 33) {
-                    putExtra("android.speech.extra.ENABLE_LANGUAGE_DETECTION", true)
-                    putStringArrayListExtra(
-                        "android.speech.extra.LANGUAGE_DETECTION_ALLOWED_LANGUAGES",
-                        arrayListOf("bn-BD", "en-US")
-                    )
+                if (!simpleFallback) {
+                    putExtra("android.speech.extra.EXTRA_ADDITIONAL_LANGUAGES", arrayOf("bn-BD", "en-US"))
+                    if (isAuto && Build.VERSION.SDK_INT >= 33) {
+                        putExtra("android.speech.extra.ENABLE_LANGUAGE_DETECTION", true)
+                        putStringArrayListExtra(
+                            "android.speech.extra.LANGUAGE_DETECTION_ALLOWED_LANGUAGES",
+                            arrayListOf("bn-BD", "en-US")
+                        )
+                    }
                 }
                 putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
                 putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
@@ -476,14 +482,18 @@ class MainActivity : AppCompatActivity() {
                         override fun onError(error: Int) {
                             isSpeechListening = false
                             destroySpeechRecognizer()
-                            if (error == SpeechRecognizer.ERROR_CLIENT || error == SpeechRecognizer.ERROR_RECOGNIZER_BUSY) {
+                            if (!simpleFallback && (error == 12 || error == 13 || error == 14 || error == SpeechRecognizer.ERROR_SERVER || error == SpeechRecognizer.ERROR_AUDIO)) {
+                                // Device speech engine may reject multi-language detection extras -> retry cleanly with standard locale
+                                launchNativeSpeechRecognizer(langTag, simpleFallback = true)
+                                return
+                            }
+                            if (error == SpeechRecognizer.ERROR_CLIENT || error == SpeechRecognizer.ERROR_RECOGNIZER_BUSY || error == 12 || error == 13 || error == 14 || error == SpeechRecognizer.ERROR_AUDIO) {
                                 // Never open Google UI popup; fall back seamlessly to custom AudioRecord capture
-                                launchCustomAudioRecord("dictation")
+                                launchCustomAudioRecord("live")
                                 return
                             }
                             val errMsg = when (error) {
                                 SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Microphone permission required."
-                                SpeechRecognizer.ERROR_AUDIO -> "Audio recording error."
                                 SpeechRecognizer.ERROR_NETWORK, SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "Network needed for speech recognition."
                                 else -> null
                             }
@@ -882,28 +892,30 @@ class MainActivity : AppCompatActivity() {
 
         webView.webChromeClient = object : WebChromeClient() {
             override fun onPermissionRequest(request: PermissionRequest) {
-                pendingPermissionRequest = request
-                val requiredPermissions = mutableListOf<String>()
+                runOnUiThread {
+                    pendingPermissionRequest = request
+                    val requiredPermissions = mutableListOf<String>()
 
-                for (resource in request.resources) {
-                    when (resource) {
-                        PermissionRequest.RESOURCE_AUDIO_CAPTURE -> {
-                            if (ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-                                requiredPermissions.add(Manifest.permission.RECORD_AUDIO)
+                    for (resource in request.resources) {
+                        when (resource) {
+                            PermissionRequest.RESOURCE_AUDIO_CAPTURE -> {
+                                if (ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                                    requiredPermissions.add(Manifest.permission.RECORD_AUDIO)
+                                }
                             }
-                        }
-                        PermissionRequest.RESOURCE_VIDEO_CAPTURE -> {
-                            if (ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                                requiredPermissions.add(Manifest.permission.CAMERA)
+                            PermissionRequest.RESOURCE_VIDEO_CAPTURE -> {
+                                if (ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                                    requiredPermissions.add(Manifest.permission.CAMERA)
+                                }
                             }
                         }
                     }
-                }
 
-                if (requiredPermissions.isNotEmpty()) {
-                    permissionLauncher.launch(requiredPermissions.toTypedArray())
-                } else {
-                    request.grant(request.resources)
+                    if (requiredPermissions.isNotEmpty()) {
+                        permissionLauncher.launch(requiredPermissions.toTypedArray())
+                    } else {
+                        request.grant(request.resources)
+                    }
                 }
             }
 
@@ -1023,6 +1035,13 @@ class MainActivity : AppCompatActivity() {
                         it.isNotEmpty() && !it.contains("..") && !it.startsWith("server/")
                     }
                 } ?: return null
+
+                // True Hybrid Live-Sync: when online, fetch HTML pages live from Netlify so web fixes & UI updates
+                // reach users immediately without re-releasing APK; serve static assets instantly and HTML offline from www/.
+                val isHtmlPage = assetRel.endsWith(".html", ignoreCase = true)
+                if (isHtmlPage && isNetworkAvailable()) {
+                    return null
+                }
 
                 return try {
                     val stream = assets.open("www/$assetRel")

@@ -8636,13 +8636,15 @@
           try {
             if (window.speechSynthesis.paused) window.speechSynthesis.resume();
             window.speechSynthesis.speak(u);
-            ttsWatchdogTimer = setTimeout(advanceChunk, Math.max(9000, piece.length * 140));
+            ttsWatchdogTimer = setTimeout(advanceChunk, Math.max(7000, piece.length * 130));
           } catch (e) {
             advanceChunk();
           }
         }, 35);
       } else {
+        const doneCb = ttsOnCompleteCallback;
         stopReadAloud();
+        if (typeof doneCb === "function") doneCb();
       }
     }
 
@@ -8977,7 +8979,7 @@
       };
 
       window.onNativeAudioCaptured = async (base64Wav, capMode) => {
-        if (window.__voiceModeHooks && window.__voiceModeHooks.active && capMode !== "dictation" && typeof window.__voiceModeHooks.onAudioCaptured === "function") {
+        if (window.__voiceModeHooks && window.__voiceModeHooks.active && typeof window.__voiceModeHooks.onAudioCaptured === "function") {
           window.__voiceModeHooks.onAudioCaptured(base64Wav);
           return;
         }
@@ -9818,7 +9820,8 @@
         if (enforceVoiceQuotaOrLock()) return;
         if (!muted) {
           setOrbState("listening");
-          setTimeout(() => startVoiceModeListening(), 280);
+          const delay = getNativeAndroidBridge() ? 380 : 280;
+          setTimeout(() => startVoiceModeListening(), delay);
         } else {
           setOrbState("paused");
         }
@@ -10136,6 +10139,10 @@
           const startTs = Date.now();
           let lastVoiceTs = startTs;
 
+          const vadMinAmp = isMobileBrowser ? 0.005 : 0.012;
+          const vadKeepAmp = isMobileBrowser ? 0.0045 : 0.011;
+          let mrStoppedNoCtxFallback = false;
+
           mr.ondataavailable = (ev) => {
             if (ev.data && ev.data.size > 0) mediaChunks.push(ev.data);
           };
@@ -10149,7 +10156,8 @@
             if (!active || muted || phase !== "listening") return;
             const blob = new Blob(mediaChunks, { type: mr.mimeType || chosenMime || "audio/webm" });
             mediaChunks = [];
-            const hasEnoughAudio = speechStarted || interimTranscript.length > 0 || (wasManualFlush && blob.size > 1200) || (peakAmp > 0.015 && blob.size > 4000);
+            const analyserRunning = Boolean(analyserNode && audioCtx && audioCtx.state === "running");
+            const hasEnoughAudio = speechStarted || interimTranscript.length > 0 || (wasManualFlush && blob.size > 1200) || (peakAmp > (isMobileBrowser ? 0.006 : 0.015) && blob.size > 3000) || (!analyserRunning && blob.size > 4500 && mrStoppedNoCtxFallback);
             if (!hasEnoughAudio || (blob.size < 900 && !interimTranscript)) {
               scheduleListeningRestart(240);
               return;
@@ -10199,11 +10207,11 @@
               if (amp > peakAmp) peakAmp = amp;
             }
             const now = Date.now();
-            if (amp > 0.012 || interimTranscript.length > 0) {
+            if (amp > vadMinAmp || interimTranscript.length > 0) {
               speechFrames++;
               if (speechFrames >= 2 || interimTranscript.length > 0) {
                 speechStarted = true;
-                if (amp > 0.011 || interimTranscript.length > 0) lastVoiceTs = now;
+                if (amp > vadKeepAmp || interimTranscript.length > 0) lastVoiceTs = now;
               }
             } else {
               speechFrames = 0;
@@ -10213,7 +10221,8 @@
               webVadTimer = null;
               mediaRecorder = null;
               try { if (mr.state !== "inactive") mr.stop(); } catch {}
-            } else if (!speechStarted && (now - startTs >= 9000)) {
+            } else if (!speechStarted && (now - startTs >= (analyserNode && audioCtx?.state === "running" ? 9000 : 4200))) {
+              mrStoppedNoCtxFallback = !(analyserNode && audioCtx?.state === "running");
               clearInterval(webVadTimer);
               webVadTimer = null;
               mediaRecorder = null;
@@ -10316,7 +10325,13 @@
           return;
         }
 
-        startDesktopMicMeter();
+        const isMobileWeb = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
+        if (isMobileWeb) {
+          // On mobile Chrome/Safari, keeping a getUserMedia stream open locks the hardware mic and blocks SpeechRecognition!
+          stopMicMeter();
+        } else {
+          startDesktopMicMeter();
+        }
         try {
           webRec = new Speech();
           webRec.lang = lang;
@@ -10324,6 +10339,7 @@
           webRec.interimResults = true;
           let heardText = "";
           let permDenied = false;
+          let recHadError = false;
           webRec.onresult = (ev) => {
             let tStr = "";
             for (let i = 0; i < (ev?.results?.length || 0); i++) {
@@ -10334,6 +10350,7 @@
           };
           webRec.onerror = (ev) => {
             const code = ev?.error || "";
+            recHadError = true;
             if (!active) return;
             if (code === "not-allowed" || code === "service-not-allowed") {
               permDenied = true;
@@ -10352,7 +10369,7 @@
             if (heardText) {
               handleSpokenQuery(heardText);
             } else {
-              scheduleListeningRestart(280);
+              scheduleListeningRestart(recHadError && isMobileWeb ? 650 : 280);
             }
           };
           webRec.start();
@@ -10502,6 +10519,14 @@
           }
           if (audioCtx && audioCtx.state === "suspended") {
             audioCtx.resume().catch(() => {});
+          }
+        } catch {}
+        try {
+          const bridge = getNativeAndroidBridge();
+          if (!bridge && "speechSynthesis" in window && typeof SpeechSynthesisUtterance !== "undefined") {
+            const unlockUtter = new SpeechSynthesisUtterance("");
+            unlockUtter.volume = 0;
+            window.speechSynthesis.speak(unlockUtter);
           }
         } catch {}
         startDotAnimator();

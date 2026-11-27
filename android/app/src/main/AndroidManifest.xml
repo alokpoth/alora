@@ -35,6 +35,19 @@
         android:name="android.hardware.microphone"
         android:required="false" />
 
+    <!-- Package visibility required on Android 11+ (API 30+) for SpeechRecognizer & TextToSpeech -->
+    <queries>
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
+        <intent>
+            <action android:name="android.speech.action.RECOGNIZE_SPEECH" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
+    </queries>
+
     <application
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"

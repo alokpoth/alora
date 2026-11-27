@@ -73,17 +73,23 @@ class WebAppInterface(private val activity: MainActivity) : TextToSpeech.OnInitL
             .replace(Regex("\\s+"), " ")
             .trim()
         if (stripped.isBlank()) return false
-        val engine = tts ?: return false
-        if (!isTtsInitialized) return false
+        var engine = tts
+        if (engine == null) {
+            try {
+                engine = TextToSpeech(activity.applicationContext, this)
+                tts = engine
+            } catch (_: Exception) {}
+        }
+        if (engine == null || !isTtsInitialized) return false
         return try {
             val hasBengaliScript = Regex("[\\u0980-\\u09FF]").containsMatchIn(stripped)
             val hasDevanagari = Regex("[\\u0900-\\u097F]").containsMatchIn(stripped)
             val hasArabic = Regex("[\\u0600-\\u06FF]").containsMatchIn(stripped)
             val cleanLang = lang?.trim()?.lowercase(Locale.US) ?: ""
             val candidates = when {
-                hasBengaliScript || cleanLang.startsWith("bn") -> listOf(Locale("bn", "BD"), Locale("bn", "IN"), Locale("bn"))
-                hasDevanagari || cleanLang.startsWith("hi") -> listOf(Locale("hi", "IN"), Locale("hi"))
-                hasArabic || cleanLang.startsWith("ar") -> listOf(Locale("ar", "SA"), Locale("ar"))
+                hasBengaliScript || cleanLang.startsWith("bn") -> listOf(Locale("bn", "BD"), Locale("bn", "IN"), Locale("bn"), Locale.US, Locale.ENGLISH)
+                hasDevanagari || cleanLang.startsWith("hi") -> listOf(Locale("hi", "IN"), Locale("hi"), Locale.US, Locale.ENGLISH)
+                hasArabic || cleanLang.startsWith("ar") -> listOf(Locale("ar", "SA"), Locale("ar"), Locale.US, Locale.ENGLISH)
                 cleanLang.contains("-") -> {
                     val parts = cleanLang.split("-", limit = 2)
                     listOf(Locale(parts[0], parts[1].uppercase(Locale.US)), Locale.US, Locale.ENGLISH)
@@ -99,13 +105,16 @@ class WebAppInterface(private val activity: MainActivity) : TextToSpeech.OnInitL
                     break
                 }
             }
-            if (chosenLocale == null) return false
+            if (chosenLocale == null) {
+                engine.setLanguage(Locale.getDefault())
+            }
+            val finalLocale: Locale = chosenLocale ?: Locale.getDefault()
 
             try {
                 engine.setPitch(pitch.coerceIn(0.65f, 1.45f))
                 engine.setSpeechRate(rate.coerceIn(0.7f, 1.4f))
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && !voiceGender.isNullOrBlank() && voiceGender != "auto") {
-                    val wantedLang = chosenLocale.language.lowercase(Locale.US)
+                    val wantedLang = finalLocale.language.lowercase(Locale.US)
                     val matchingVoices = engine.voices?.filter {
                         it.locale != null && it.locale.language.equals(wantedLang, ignoreCase = true)
                     }.orEmpty()

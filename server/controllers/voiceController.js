@@ -96,12 +96,16 @@ async function hasConfiguredVoiceStt() {
     const allModels = (await getPersistedModels().catch(() => [])) || [];
     for (const m of allModels) {
       if (!m || m.is_active === false || m.category === 'voice') continue;
-      const hint = `${m.base_url || ''} ${m.type || ''} ${m.fallback_url_1 || ''} ${m.fallback_url_2 || ''}`.toLowerCase();
-      if (hint.includes('groq')) return true;
-      for (const slKey of [m.api_key, m.fallback_key_1, m.fallback_key_2]) {
-        for (const k of splitApiKeys(slKey)) {
-          if (k.startsWith('gsk_')) return true;
-        }
+      const slots = [
+        { url: m.base_url || '', type: m.type || '', key: m.api_key },
+        { url: m.fallback_url_1 || m.base_url || '', type: '', key: m.fallback_key_1 },
+        { url: m.fallback_url_2 || m.base_url || '', type: '', key: m.fallback_key_2 }
+      ];
+      for (const sl of slots) {
+        const hint = `${sl.url} ${sl.type}`.toLowerCase();
+        const keys = splitApiKeys(sl.key);
+        if (!keys.length) continue;
+        if (hint.includes('groq') || keys.some(k => k.startsWith('gsk_'))) return true;
       }
     }
   } catch {}
