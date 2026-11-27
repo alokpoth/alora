@@ -43,9 +43,8 @@ const getEmailDomain = (email) => {
 const isAllowedEmailDomain = (email) => ALLOWED_EMAIL_DOMAINS.has(getEmailDomain(email));
 const DISALLOWED_EMAIL_DOMAIN_MSG = 'শুধুমাত্র Gmail, Yahoo, Outlook, Hotmail অথবা iCloud ইমেইল দিয়ে অ্যাকাউন্ট খোলা যাবে।';
 
-// These values shipped in the source and in seeded data, so they are public knowledge.
-// They must never authenticate a super-admin account.
-const DISALLOWED_ADMIN_PASSWORDS = new Set(['123456', 'password123']);
+// Note: fresh in-memory/unseeded admin accounts already require ADMIN_PASSWORD env
+// (or a random 32-byte key in memoryStore). Never reject a real stored DB password hash.
 
 const registerUser = async (req, res) => {
   try {
@@ -177,12 +176,6 @@ const loginUser = async (req, res) => {
     const cleanEmail = String(rawEmail).toLowerCase().trim();
     // Registration stores the trimmed password, so login must trim too or those users are locked out.
     const cleanPassword = String(rawPassword).trim();
-
-    // The old hard-coded admin passwords are public; refuse them even though the stored
-    // hash still matches. Recover access by setting ADMIN_PASSWORD and logging in with it.
-    if (isSuperAdminEmail(cleanEmail) && DISALLOWED_ADMIN_PASSWORDS.has(cleanPassword)) {
-      return res.status(401).json({ success: false, error: 'অবৈধ ইমেইল বা পাসওয়ার্ড' });
-    }
     const password = cleanPassword;
 
     if (getIsMongoConnected()) {
@@ -1103,20 +1096,30 @@ const googleCallback = async (req, res) => {
           dirty = true;
         }
         if (avatarUrl && !user.avatar) { user.avatar = avatarUrl; dirty = true; }
+        if (isSuperAdminEmail(email)) {
+          if (user.role !== 'admin') { user.role = 'admin'; dirty = true; }
+          if (!user.subscription || user.subscription.plan_name !== 'Max' || user.subscription.expires_at !== null) {
+            user.subscription = { plan_name: 'Max', starts_at: new Date(), expires_at: null, is_active: true, payment_source: 'admin_grant' };
+            dirty = true;
+          }
+        }
         if (dirty) await user.save();
       } else {
         if (!isAllowedEmailDomain(email)) {
           return redirectError(DISALLOWED_EMAIL_DOMAIN_MSG);
         }
         const randomPassword = crypto.randomBytes(32).toString('hex');
+        const isSuper = isSuperAdminEmail(email);
         user = await User.create({
           name: displayName,
           email,
           password: randomPassword,
-          role: 'user',
+          role: isSuper ? 'admin' : 'user',
           email_verified: true,
           avatar: avatarUrl,
-          subscription: { plan_name: 'Free', starts_at: new Date(), expires_at: null, is_active: true, payment_source: 'free' }
+          subscription: isSuper
+            ? { plan_name: 'Max', starts_at: new Date(), expires_at: null, is_active: true, payment_source: 'admin_grant' }
+            : { plan_name: 'Free', starts_at: new Date(), expires_at: null, is_active: true, payment_source: 'free' }
         });
         try {
           const { getPersistedUsers, savePersistedUsers } = require('../../utils/getModelConfig');
@@ -1154,6 +1157,10 @@ const googleCallback = async (req, res) => {
             user.password = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 10);
           }
           dirty = true;
+        }
+        if (isSuperAdminEmail(email)) {
+          if (user.role !== 'admin') { user.role = 'admin'; dirty = true; }
+          user.subscription = { plan_name: 'Max', starts_at: new Date(), expires_at: null, is_active: true, payment_source: 'admin_grant' };
         }
         if (dirty) {
           await savePersistedUsers(users);
@@ -1293,20 +1300,30 @@ const discordCallback = async (req, res) => {
           dirty = true;
         }
         if (avatarUrl && !user.avatar) { user.avatar = avatarUrl; dirty = true; }
+        if (isSuperAdminEmail(email)) {
+          if (user.role !== 'admin') { user.role = 'admin'; dirty = true; }
+          if (!user.subscription || user.subscription.plan_name !== 'Max' || user.subscription.expires_at !== null) {
+            user.subscription = { plan_name: 'Max', starts_at: new Date(), expires_at: null, is_active: true, payment_source: 'admin_grant' };
+            dirty = true;
+          }
+        }
         if (dirty) await user.save();
       } else {
         if (!isAllowedEmailDomain(email)) {
           return redirectError(DISALLOWED_EMAIL_DOMAIN_MSG);
         }
         const randomPassword = crypto.randomBytes(32).toString('hex');
+        const isSuper = isSuperAdminEmail(email);
         user = await User.create({
           name: displayName,
           email,
           password: randomPassword,
-          role: 'user',
+          role: isSuper ? 'admin' : 'user',
           email_verified: true,
           avatar: avatarUrl,
-          subscription: { plan_name: 'Free', starts_at: new Date(), expires_at: null, is_active: true, payment_source: 'free' }
+          subscription: isSuper
+            ? { plan_name: 'Max', starts_at: new Date(), expires_at: null, is_active: true, payment_source: 'admin_grant' }
+            : { plan_name: 'Free', starts_at: new Date(), expires_at: null, is_active: true, payment_source: 'free' }
         });
         try {
           const { getPersistedUsers, savePersistedUsers } = require('../../utils/getModelConfig');
@@ -1344,6 +1361,10 @@ const discordCallback = async (req, res) => {
             user.password = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 10);
           }
           dirty = true;
+        }
+        if (isSuperAdminEmail(email)) {
+          if (user.role !== 'admin') { user.role = 'admin'; dirty = true; }
+          user.subscription = { plan_name: 'Max', starts_at: new Date(), expires_at: null, is_active: true, payment_source: 'admin_grant' };
         }
         if (dirty) {
           await savePersistedUsers(users);

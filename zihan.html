@@ -1220,13 +1220,17 @@
       <h2 style="font-size: 1.4rem; text-align: center;">অ্যাডমিন লগইন</h2>
       <div class="form-group">
         <label for="adminEmail">ইমেইল</label>
-        <input type="email" id="adminEmail" required placeholder="admin@example.com">
+        <input type="email" id="adminEmail" required placeholder="admin@example.com" autocomplete="username">
       </div>
       <div class="form-group">
         <label for="adminPassword">পাসওয়ার্ড</label>
-        <input type="password" id="adminPassword" required placeholder="••••••••">
+        <div style="position:relative; display:flex; align-items:center;">
+          <input type="password" id="adminPassword" required placeholder="••••••••" autocomplete="current-password" style="width:100%; padding-right:42px;">
+          <button type="button" id="toggleAdminPwdBtn" aria-label="পাসওয়ার্ড দেখুন" style="position:absolute; right:8px; background:none; border:none; color:#a1a1aa; cursor:pointer; padding:4px 6px; font-size:0.8rem;">দেখুন</button>
+        </div>
       </div>
-      <button type="submit" class="btn btn-primary" style="padding: 12px; font-size: 1rem;">প্রবেশ করুন</button>
+      <button type="submit" class="btn btn-primary" id="adminLoginSubmitBtn" style="padding: 12px; font-size: 1rem;">প্রবেশ করুন</button>
+      <a href="/auth/login?redirect=%2Fzihan" class="btn btn-ghost" style="padding: 10px 12px; font-size: 0.88rem; text-align:center; justify-content:center; text-decoration:none;">Google বা Discord দিয়ে অ্যাডমিন লগইন করুন</a>
       <div id="loginError" style="color: var(--danger); font-size: 0.85rem; text-align: center;"></div>
     </form>
   </div>
@@ -2296,15 +2300,27 @@
             headers: { "Authorization": `Bearer ${token}` }
           });
           if (res.ok) {
+            localStorage.setItem("alokpoth_admin_token", token);
+            if (!storedName) {
+              try {
+                const u = JSON.parse(localStorage.getItem("alokpoth_user") || "null");
+                if (u && u.name) {
+                  document.getElementById('adminName').textContent = u.name;
+                  localStorage.setItem("alokpoth_admin_name", u.name);
+                }
+              } catch {}
+            }
             loginOverlay.style.display = "none";
             loadAllData();
             return;
           } else if (res.status === 401 || res.status === 403) {
-            // Token is explicitly expired or invalid
-            token = null;
+            // Invalid or non-admin token: clear admin token cleanly without nuking regular SSO session on 403
             localStorage.removeItem("alokpoth_admin_token");
-      localStorage.removeItem("alokpoth_token");
             localStorage.removeItem("alokpoth_admin_name");
+            if (res.status === 401 && token === localStorage.getItem("alokpoth_token")) {
+              localStorage.removeItem("alokpoth_token");
+            }
+            token = null;
             loginOverlay.style.display = "flex";
             return;
           } else {
@@ -2479,11 +2495,24 @@
     applyAdminI18n();
 
 
+    const toggleAdminPwdBtn = document.getElementById("toggleAdminPwdBtn");
+    if (toggleAdminPwdBtn) {
+      toggleAdminPwdBtn.addEventListener("click", () => {
+        const inp = document.getElementById("adminPassword");
+        if (!inp) return;
+        const show = inp.type === "password";
+        inp.type = show ? "text" : "password";
+        toggleAdminPwdBtn.textContent = show ? "লুকান" : "দেখুন";
+      });
+    }
+
     adminLoginForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       loginError.textContent = "";
-      const email = document.getElementById("adminEmail").value;
-      const password = document.getElementById("adminPassword").value;
+      const email = (document.getElementById("adminEmail").value || "").trim();
+      const password = (document.getElementById("adminPassword").value || "").trim();
+      const submitBtn = document.getElementById("adminLoginSubmitBtn");
+      if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "যাচাই হচ্ছে..."; }
 
       try {
         const res = await fetch(`${API_BASE}/auth/login`, {
@@ -2510,10 +2539,12 @@
           showToast("সফলভাবে লগইন হয়েছে!", "success");
           loadAllData();
         } else {
-          loginError.textContent = data.error || "অ্যাডমিন এক্সেস অনুমতি নেই";
+          loginError.textContent = data.error || "অবৈধ ইমেইল বা পাসওয়ার্ড";
         }
       } catch (err) {
         loginError.textContent = "সার্ভারে সংযোগ করা সম্ভব হয়নি";
+      } finally {
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "প্রবেশ করুন"; }
       }
     });
 

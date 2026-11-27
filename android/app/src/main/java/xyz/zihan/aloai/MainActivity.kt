@@ -292,6 +292,9 @@ class MainActivity : AppCompatActivity() {
             val capturedStream = ByteArrayOutputStream()
             var speechDetected = false
             var speechConfirmFrames = 0
+            var ambientAccum = 0.0
+            var ambientFrames = 0
+            var ambientRms = 80.0
             val startedMs = android.os.SystemClock.elapsedRealtime()
             var lastVoiceMs = startedMs
             var lastVolPushMs = 0L
@@ -314,9 +317,16 @@ class MainActivity : AppCompatActivity() {
                     val rms = sqrt(sumSq / readCount)
                     val now = android.os.SystemClock.elapsedRealtime()
 
+                    if (!speechDetected && ambientFrames < 5) {
+                        ambientAccum += rms
+                        ambientFrames++
+                        ambientRms = ambientAccum / ambientFrames
+                    }
+                    val voiceThresh = maxOf(175.0, ambientRms * 2.4).coerceIn(175.0, 480.0)
+
                     if (now - lastVolPushMs >= 55L) {
                         lastVolPushMs = now
-                        val norm = ((rms - 120.0) / 3800.0).toFloat().coerceIn(0f, 1f)
+                        val norm = ((rms - 80.0) / 3000.0).toFloat().coerceIn(0f, 1f)
                         webView.post {
                             if (isCustomAudioRecording) {
                                 webView.evaluateJavascript("if (typeof window.onNativeSpeechVolume === 'function') window.onNativeSpeechVolume($norm);", null)
@@ -324,7 +334,7 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
 
-                    if (rms > 360.0) {
+                    if (rms > voiceThresh) {
                         speechConfirmFrames++
                         if (speechConfirmFrames >= 2) {
                             if (!speechDetected) {

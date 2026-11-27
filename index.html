@@ -5122,9 +5122,11 @@
       const pInfo = cachedPlanLimits[planName] || cachedPlanLimits.Free;
       const rl = (user && (user.rateLimit || user.usage)) || {};
       const resetExpired = rl.resetAt ? (Date.now() >= new Date(rl.resetAt).getTime()) : false;
+      const defaultVoiceLimits = { Guest: 2, Free: 10, Go: 30, Plus: 100, Pro: 300, Max: 1000 };
+      const rawPlanVoice = pInfo && pInfo.voice_limit !== undefined ? pInfo.voice_limit : (defaultVoiceLimits[planName] ?? 10);
       const limit = rl.limit !== undefined ? Number(rl.limit) : Number(pInfo.limit ?? 50);
       const rem = resetExpired ? limit : (rl.remaining !== undefined ? Number(rl.remaining) : Math.max(0, limit - Number(rl.used ?? rl.count ?? 0)));
-      const vLim = rl.voiceLimit !== undefined ? Number(rl.voiceLimit) : Number(rl.voice_limit ?? pInfo.voice_limit ?? 0);
+      const vLim = rl.voiceLimit !== undefined ? Number(rl.voiceLimit) : Number(rl.voice_limit ?? rawPlanVoice);
       const vRem = resetExpired ? vLim : (rl.voiceRemaining !== undefined ? Number(rl.voiceRemaining) : Math.max(0, vLim - Number(rl.voiceUsed ?? rl.voice_used ?? 0)));
       const msgLocked = rem <= 0;
       const voiceLocked = msgLocked || vLim <= 0 || vRem <= 0;
@@ -8522,8 +8524,16 @@
     let ttsChunksQueue = [];
     let ttsChunkIndex = 0;
     let ttsOnCompleteCallback = null;
+    let ttsWatchdogTimer = null;
+    let ttsSpeakDelayTimer = null;
+
+    function clearTtsTimers() {
+      if (ttsWatchdogTimer) { clearTimeout(ttsWatchdogTimer); ttsWatchdogTimer = null; }
+      if (ttsSpeakDelayTimer) { clearTimeout(ttsSpeakDelayTimer); ttsSpeakDelayTimer = null; }
+    }
 
     function stopReadAloud() {
+      clearTtsTimers();
       ttsChunksQueue = [];
       ttsChunkIndex = 0;
       ttsOnCompleteCallback = null;
@@ -8573,6 +8583,7 @@
       }
 
       if ("speechSynthesis" in window) {
+        clearTtsTimers();
         const voices = window.speechSynthesis.getVoices() || [];
         const chosenVoice = pickWebVoiceForSegment(voices, segLang, preset);
         const u = new SpeechSynthesisUtterance(piece);
@@ -8584,8 +8595,11 @@
         }
         u.pitch = preset.pitch;
         u.rate = preset.rate;
-        u.onend = playNextTtsChunk;
-        u.onerror = () => {
+        let finishedChunk = false;
+        const advanceChunk = () => {
+          if (finishedChunk) return;
+          finishedChunk = true;
+          clearTtsTimers();
           if (isSpeaking && ttsChunkIndex < ttsChunksQueue.length) playNextTtsChunk();
           else {
             const doneCb = ttsOnCompleteCallback;
@@ -8593,7 +8607,19 @@
             if (typeof doneCb === "function") doneCb();
           }
         };
-        try { window.speechSynthesis.speak(u); } catch (e) { stopReadAloud(); }
+        u.onend = advanceChunk;
+        u.onerror = advanceChunk;
+        ttsSpeakDelayTimer = setTimeout(() => {
+          ttsSpeakDelayTimer = null;
+          if (!isSpeaking) return;
+          try {
+            if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+            window.speechSynthesis.speak(u);
+            ttsWatchdogTimer = setTimeout(advanceChunk, Math.max(9000, piece.length * 140));
+          } catch (e) {
+            advanceChunk();
+          }
+        }, 35);
       } else {
         stopReadAloud();
       }
@@ -9486,6 +9512,8 @@
       let audioCtx = null;
       let analyserNode = null;
       let analyserData = null;
+      let lastMicPermError = "";
+      let forceFlushCapture = false;
 
       function clearRestartTimer() {
         if (restartTimer) {
@@ -9519,20 +9547,36 @@
       }
 
       async function startDesktopMicMeter() {
-        if (analyserNode || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+        lastMicPermError = "";
         const bridge = getNativeAndroidBridge();
         if (bridge && typeof bridge.startNativeVoice === "function") return;
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
         try {
-          micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          if (!micStream || micStream.getAudioTracks().every(t => t.readyState !== "live")) {
+            micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          }
           const AudioCtor = window.AudioContext || window.webkitAudioContext;
           if (!AudioCtor || !active) { stopMicMeter(); return; }
-          audioCtx = new AudioCtor();
-          const src = audioCtx.createMediaStreamSource(micStream);
-          analyserNode = audioCtx.createAnalyser();
-          analyserNode.fftSize = 256;
-          analyserData = new Uint8Array(analyserNode.fftSize);
-          src.connect(analyserNode);
+          if (!audioCtx || audioCtx.state === "closed") {
+            audioCtx = new AudioCtor();
+          }
+          if (audioCtx.state === "suspended") {
+            try { await audioCtx.resume(); } catch {}
+          }
+          if (!analyserNode) {
+            const src = audioCtx.createMediaStreamSource(micStream);
+            analyserNode = audioCtx.createAnalyser();
+            analyserNode.fftSize = 256;
+            analyserData = new Uint8Array(analyserNode.fftSize);
+            src.connect(analyserNode);
+          }
         } catch (e) {
+          const nm = e && e.name ? String(e.name) : "";
+          if (/NotAllowedError|PermissionDeniedError/i.test(nm)) {
+            lastMicPermError = currentLanguage === "bn" ? "মাইক্রোফোনের অনুমতি দিন।" : "Please allow microphone permission.";
+          } else if (/NotFoundError|DevicesNotFoundError/i.test(nm)) {
+            lastMicPermError = currentLanguage === "bn" ? "কোনো মাইক্রোফোন পাওয়া যায়নি।" : "No microphone device found.";
+          }
           stopMicMeter();
         }
       }
@@ -9979,10 +10023,13 @@
         }
         try {
           mediaChunks = [];
+          forceFlushCapture = false;
           const mr = chosenMime ? new MediaRecorder(micStream, { mimeType: chosenMime }) : new MediaRecorder(micStream);
           mediaRecorder = mr;
           let interimTranscript = "";
-          if (Speech) {
+          const isMobileBrowser = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
+          // Avoid concurrent SpeechRecognition + getUserMedia mic collision on mobile browsers
+          if (Speech && !isMobileBrowser) {
             try {
               webRec = new Speech();
               webRec.lang = lang;
@@ -10003,6 +10050,7 @@
 
           let speechStarted = false;
           let speechFrames = 0;
+          let peakAmp = 0;
           const startTs = Date.now();
           let lastVoiceTs = startTs;
 
@@ -10010,18 +10058,17 @@
             if (ev.data && ev.data.size > 0) mediaChunks.push(ev.data);
           };
           mr.onstop = () => {
+            const wasManualFlush = forceFlushCapture;
+            forceFlushCapture = false;
             if (webRec) {
               try { webRec.abort(); } catch {}
               webRec = null;
             }
             if (!active || muted || phase !== "listening") return;
-            if (!speechStarted && !interimTranscript) {
-              scheduleListeningRestart(240);
-              return;
-            }
             const blob = new Blob(mediaChunks, { type: mr.mimeType || chosenMime || "audio/webm" });
             mediaChunks = [];
-            if (blob.size < 900 && !interimTranscript) {
+            const hasEnoughAudio = speechStarted || interimTranscript.length > 0 || (wasManualFlush && blob.size > 1200) || (peakAmp > 0.015 && blob.size > 4000);
+            if (!hasEnoughAudio || (blob.size < 900 && !interimTranscript)) {
               scheduleListeningRestart(240);
               return;
             }
@@ -10046,6 +10093,9 @@
             }
             let amp = 0;
             if (analyserNode && analyserData) {
+              if (audioCtx && audioCtx.state === "suspended") {
+                try { audioCtx.resume(); } catch {}
+              }
               analyserNode.getByteTimeDomainData(analyserData);
               let sum = 0;
               for (let i = 0; i < analyserData.length; i++) {
@@ -10053,23 +10103,24 @@
                 sum += v * v;
               }
               amp = Math.sqrt(sum / analyserData.length);
+              if (amp > peakAmp) peakAmp = amp;
             }
             const now = Date.now();
-            if (amp > 0.028 || interimTranscript.length > 0) {
+            if (amp > 0.012 || interimTranscript.length > 0) {
               speechFrames++;
               if (speechFrames >= 2 || interimTranscript.length > 0) {
                 speechStarted = true;
-                if (amp > 0.024) lastVoiceTs = now;
+                if (amp > 0.011 || interimTranscript.length > 0) lastVoiceTs = now;
               }
             } else {
               speechFrames = 0;
             }
-            if (speechStarted && (now - lastVoiceTs >= 1350 || now - startTs >= 22000)) {
+            if (forceFlushCapture || (speechStarted && (now - lastVoiceTs >= 1350 || now - startTs >= 22000))) {
               clearInterval(webVadTimer);
               webVadTimer = null;
               mediaRecorder = null;
               try { if (mr.state !== "inactive") mr.stop(); } catch {}
-            } else if (!speechStarted && (now - startTs >= 8500)) {
+            } else if (!speechStarted && (now - startTs >= 9000)) {
               clearInterval(webVadTimer);
               webVadTimer = null;
               mediaRecorder = null;
@@ -10081,6 +10132,25 @@
           stopWebMediaRecorder(true);
           return false;
         }
+      }
+
+      function flushCurrentVoiceRecording() {
+        if (!active || phase !== "listening") return false;
+        const bridge = getNativeAndroidBridge();
+        if (usingNative && bridge && typeof bridge.stopCustomAudio === "function") {
+          try { bridge.stopCustomAudio(true); return true; } catch {}
+        }
+        if (mediaRecorder && mediaRecorder.state !== "inactive") {
+          forceFlushCapture = true;
+          if (webVadTimer) { clearInterval(webVadTimer); webVadTimer = null; }
+          const mr = mediaRecorder;
+          mediaRecorder = null;
+          try { mr.stop(); return true; } catch {}
+        }
+        if (webRec) {
+          try { webRec.stop(); return true; } catch {}
+        }
+        return false;
       }
 
       async function startVoiceModeListening() {
@@ -10126,6 +10196,14 @@
         // Browser MediaRecorder + VAD -> Gemini Live / Voice API
         const startedMedia = await startBrowserMediaRecorderCapture(lang);
         if (startedMedia) return;
+
+        if (lastMicPermError) {
+          showToast(lastMicPermError);
+          if (transcriptEl) transcriptEl.textContent = lastMicPermError;
+          muted = true;
+          setOrbState("paused", lastMicPermError);
+          return;
+        }
 
         if (!Speech) {
           showToast(currentLanguage === "bn" ? "এই ডিভাইসে ভয়েস ইনপুট সমর্থিত নয়।" : "Voice input is not supported on this device.");
@@ -10310,8 +10388,32 @@
         }
         backdrop.classList.add("open");
         backdrop.setAttribute("aria-hidden", "false");
+        try {
+          const AudioCtor = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtor && (!audioCtx || audioCtx.state === "closed")) {
+            audioCtx = new AudioCtor();
+          }
+          if (audioCtx && audioCtx.state === "suspended") {
+            audioCtx.resume().catch(() => {});
+          }
+        } catch {}
         startDotAnimator();
         startVoiceModeListening();
+      });
+
+      orbEl?.addEventListener("click", () => {
+        if (!active) return;
+        if (phase === "listening" && !muted) {
+          flushCurrentVoiceRecording();
+        } else if (phase === "speaking") {
+          stopLiveAudioPlayback();
+          stopReadAloud();
+          muted = false;
+          startVoiceModeListening();
+        } else if (phase === "paused") {
+          muted = false;
+          startVoiceModeListening();
+        }
       });
 
       micToggleBtn?.addEventListener("click", () => {

@@ -502,68 +502,113 @@ async function runGeminiMultimodalRestTurn({ apiKey, modelName, audioBase64, mim
 }
 
 async function transcribeAudioFallback({ audioBase64, mimeType, sttUrl, apiKey, language }) {
-  if (!audioBase64) return '';
+  if (!audioBase64) return { text: '', status: 'silence' };
   const audioBuf = Buffer.from(audioBase64, 'base64');
   const cleanMime = String(mimeType || 'audio/wav').split(';')[0].trim() || 'audio/wav';
   const ext = cleanMime.includes('webm') ? 'webm' : (cleanMime.includes('mp4') ? 'm4a' : (cleanMime.includes('ogg') ? 'ogg' : 'wav'));
 
-  // 1. Custom STT URL or Groq Whisper if key available
-  const groqKey = process.env.GROQ_API_KEY || (await getApiKeyFromSupabase('__groq_key__')) || '';
-  const targetSttUrl = (sttUrl && isPublicHttpUrl(sttUrl))
-    ? sttUrl.trim()
-    : (groqKey ? 'https://api.groq.com/openai/v1/audio/transcriptions' : '');
-  const targetKey = (sttUrl && apiKey) ? apiKey : groqKey;
+  let hadWorkingProvider = false;
+  let lastErrMsg = '';
+  const allModels = (await getPersistedModels().catch(() => [])) || [];
 
-  if (targetSttUrl && targetKey && typeof FormData === 'function' && typeof Blob === 'function') {
-    try {
-      const form = new FormData();
-      form.append('file', new Blob([audioBuf], { type: cleanMime }), `speech.${ext}`);
-      form.append('model', targetSttUrl.includes('groq.com') ? 'whisper-large-v3-turbo' : 'whisper-1');
-      if (language === 'bn-BD') form.append('language', 'bn');
-      else if (language === 'en-US') form.append('language', 'en');
+  // 1. Collect Custom STT, Groq Whisper & OpenAI Whisper candidates (env + vault + DB models)
+  const sttCandidates = [];
+  const groqEnv = process.env.GROQ_API_KEY || (await getApiKeyFromSupabase('__groq_key__')) || '';
+  if (sttUrl && isPublicHttpUrl(sttUrl) && apiKey) {
+    sttCandidates.push({ url: sttUrl.trim(), key: apiKey.trim(), model: sttUrl.includes('groq.com') ? 'whisper-large-v3-turbo' : 'whisper-1' });
+  }
+  for (const gk of splitApiKeys(groqEnv)) {
+    sttCandidates.push({ url: 'https://api.groq.com/openai/v1/audio/transcriptions', key: gk, model: 'whisper-large-v3-turbo' });
+  }
+  for (const m of allModels) {
+    if (!m || m.is_active === false) continue;
+    const rawKeys = [m.api_key, m.fallback_key_1, m.fallback_key_2].filter(Boolean).join(',');
+    const urlStr = `${m.base_url || ''} ${m.fallback_url_1 || ''} ${m.type || ''}`.toLowerCase();
+    if (urlStr.includes('groq')) {
+      for (const gk of splitApiKeys(rawKeys)) {
+        sttCandidates.push({ url: 'https://api.groq.com/openai/v1/audio/transcriptions', key: gk, model: 'whisper-large-v3-turbo' });
+      }
+    }
+  }
 
-      const sttRes = await fetch(targetSttUrl, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${targetKey}` },
-        body: form,
-        signal: AbortSignal.timeout(12000)
-      });
-      if (sttRes.ok) {
-        const sttJson = await sttRes.json();
-        if (sttJson && typeof sttJson.text === 'string' && sttJson.text.trim()) {
-          return sttJson.text.trim();
+  if (typeof FormData === 'function' && typeof Blob === 'function') {
+    const seenStt = new Set();
+    for (const cand of sttCandidates) {
+      const ck = `${cand.url}|${cand.key}`;
+      if (!cand.key || seenStt.has(ck)) continue;
+      seenStt.add(ck);
+      try {
+        const form = new FormData();
+        form.append('file', new Blob([audioBuf], { type: cleanMime }), `speech.${ext}`);
+        form.append('model', cand.model);
+        if (language === 'bn-BD') form.append('language', 'bn');
+        else if (language === 'en-US') form.append('language', 'en');
+
+        const sttRes = await fetch(cand.url, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${cand.key}` },
+          body: form,
+          signal: AbortSignal.timeout(12000)
+        });
+        if (sttRes.ok) {
+          hadWorkingProvider = true;
+          const sttJson = await sttRes.json();
+          if (sttJson && typeof sttJson.text === 'string' && sttJson.text.trim()) {
+            return { text: sttJson.text.trim(), status: 'ok' };
+          }
+        } else {
+          lastErrMsg = `STT HTTP ${sttRes.status}`;
         }
+      } catch (e) {
+        lastErrMsg = e && e.message ? e.message : 'STT network error';
       }
-    } catch {}
+    }
   }
 
-  // 2. Gemini Multimodal STT fallback if Gemini key exists
-  const gKey = await resolveGeminiVoiceKey(null, null);
-  if (gKey) {
-    try {
-      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(gKey)}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{
-            role: 'user',
-            parts: [
-              { inlineData: { mimeType: cleanMime, data: audioBase64 } },
-              { text: 'Transcribe the exact spoken words from this audio (in Bengali script if Bengali, English if English). Return ONLY the transcript text and nothing else. If silent, return empty string.' }
-            ]
-          }]
-        }),
-        signal: AbortSignal.timeout(12000)
-      });
-      if (r.ok) {
-        const d = await r.json();
-        const t = d?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-        return t.trim();
+  // 2. Gemini Multimodal STT fallback across rotated keys (env + settings + DB Gemini models)
+  const settings = await getSystemSettings().catch(() => ({}));
+  const gKeys = await resolveGeminiVoiceKeyList(settings, null, '');
+  const gemModels = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.5-flash-lite'];
+  for (const gKey of gKeys.slice(0, 4)) {
+    for (const gm of gemModels) {
+      try {
+        const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${gm}:generateContent?key=${encodeURIComponent(gKey)}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{
+              role: 'user',
+              parts: [
+                { inlineData: { mimeType: cleanMime, data: audioBase64 } },
+                { text: 'Transcribe the exact spoken words from this audio (in Bengali script if Bengali, English if English). Return ONLY the transcript text and nothing else. If completely silent or noise only, return empty string.' }
+              ]
+            }]
+          }),
+          signal: AbortSignal.timeout(12000)
+        });
+        if (r.ok) {
+          hadWorkingProvider = true;
+          const d = await r.json();
+          const t = (d?.candidates?.[0]?.content?.parts?.[0]?.text || '').trim();
+          if (t) return { text: t, status: 'ok' };
+          break; // model confirmed audio was empty/silence
+        } else {
+          lastErrMsg = `Gemini STT HTTP ${r.status}`;
+        }
+      } catch (e) {
+        lastErrMsg = e && e.message ? e.message : 'Gemini STT error';
       }
-    } catch {}
+    }
   }
 
-  return '';
+  if (hadWorkingProvider) {
+    return { text: '', status: 'silence' };
+  }
+  return {
+    text: '',
+    status: 'error',
+    error: lastErrMsg || 'ভয়েস অডিও ট্রান্সক্রাইব করতে Gemini বা Groq STT API কনফিগার করা নেই।'
+  };
 }
 
 async function runCustomVoiceApiTurn({ apiUrl, apiKey, modelName, audioBase64, mimeType, textPrompt, voicePreset, systemInstruction, sttUrl, language, history = [] }) {
@@ -624,7 +669,11 @@ async function runCustomVoiceApiTurn({ apiUrl, apiKey, modelName, audioBase64, m
 
   let spokenText = String(textPrompt || '').trim();
   if (!spokenText && audioBase64) {
-    spokenText = await transcribeAudioFallback({ audioBase64, mimeType, sttUrl, apiKey, language });
+    const sttOut = await transcribeAudioFallback({ audioBase64, mimeType, sttUrl, apiKey, language });
+    spokenText = (sttOut && typeof sttOut === 'object') ? (sttOut.text || '') : String(sttOut || '');
+    if (!spokenText && sttOut && sttOut.status === 'error' && audioBase64.length > 2000) {
+      throw new Error(sttOut.error || 'ভয়েস অডিও ট্রান্সক্রিপশন পাওয়া যায়নি।');
+    }
   }
   if (!spokenText) {
     return { transcript: '', reply: '', audio_base64: null, audio_mime: null, empty_audio: true, provider: 'custom_api' };
@@ -658,7 +707,11 @@ async function runCustomVoiceApiTurn({ apiUrl, apiKey, modelName, audioBase64, m
 async function runChatModelVoiceTurn({ targetModelId, audioBase64, mimeType, textPrompt, systemInstruction, sttUrl, language, history = [] }) {
   let spokenText = String(textPrompt || '').trim();
   if (!spokenText && audioBase64) {
-    spokenText = await transcribeAudioFallback({ audioBase64, mimeType, sttUrl, apiKey: '', language });
+    const sttOut = await transcribeAudioFallback({ audioBase64, mimeType, sttUrl, apiKey: '', language });
+    spokenText = (sttOut && typeof sttOut === 'object') ? (sttOut.text || '') : String(sttOut || '');
+    if (!spokenText && sttOut && sttOut.status === 'error' && audioBase64.length > 2000) {
+      throw new Error('ভয়েস অডিও প্রসেস করতে সার্ভারে Gemini বা Groq STT API সক্রিয় নেই। ব্রাউজার স্পিচ বা Admin প্যানেলে Live/Groq API কী যুক্ত করুন।');
+    }
   }
   if (!spokenText) {
     return { transcript: '', reply: '', audio_base64: null, audio_mime: null, empty_audio: true, provider: 'chat_models' };
