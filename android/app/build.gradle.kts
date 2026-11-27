@@ -130,11 +130,9 @@ val syncWebAssets = tasks.register<Sync>("syncWebAssets") {
             "favicon-16x16.png",
             "apple-touch-icon.png",
             "app_logo.png",
-            "app_logo_*.png",
-            "logo_*.png",
-            "alokpath_*.png",
-            "alokpath_*.svg",
-            "logo/**",
+            "logo_icon_white.png",
+            "logo_icon_black.png",
+            "logo_wordmark_white.png",
             "avatars/**",
             "vendor/**"
         )

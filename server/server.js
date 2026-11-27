@@ -256,7 +256,6 @@ app.get('/api/plans', async (req, res) => {
 
 const ROOT_DIR = path.join(__dirname, '..');
 app.use('/avatars', express.static(path.join(ROOT_DIR, 'avatars'), { maxAge: '7d' }));
-app.use('/logo', express.static(path.join(ROOT_DIR, 'logo'), { maxAge: '7d' }));
 app.use('/.well-known', express.static(path.join(ROOT_DIR, '.well-known'), { dotfiles: 'allow', maxAge: '1h' }));
 app.get('/.well-known/assetlinks.json', (req, res) => {
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -273,14 +272,10 @@ function sendHtmlPage(res, fileName, extraHeaders = {}) {
 // Serve logo images, app icons, favicons, and mobile packages safely
 const STATIC_ASSETS = [
   'favicon.ico', 'favicon.svg', 'favicon.png', 'favicon-32x32.png', 'favicon-16x16.png',
-  'apple-touch-icon.png', 'app_logo.png', 'app logo.png',
-  'alokpath_icon_dark.png', 'alokpath_icon_light.png',
-  'alokpath_logo.svg', 'alokpath_logo_dark.png', 'alokpath_logo_light.png',
+  'apple-touch-icon.png', 'app_logo.png',
   'logo_icon_white.png', 'logo_icon_black.png',
-  'logo_wordmark_white.png', 'logo_wordmark_black.png',
-  'app_logo_transparent.png', 'app_logo_transparent_black.png',
-  'app_logo.svg', 'app_logo_transparent.svg',
-  'Alora.apk', 'Alora.ipa', 'AloAI.apk', 'Alokpoth.ipa'
+  'logo_wordmark_white.png',
+  'Alora.apk', 'Alora.ipa', 'AloAI.apk'
 ];
 
 STATIC_ASSETS.forEach(file => {

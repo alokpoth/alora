@@ -7,9 +7,12 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.view.HapticFeedbackConstants
 import android.view.WindowManager
 import android.net.ConnectivityManager
 import android.net.Network
@@ -20,6 +23,7 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
@@ -31,6 +35,7 @@ import android.util.Log
 import android.view.View
 import android.webkit.*
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
@@ -42,16 +47,24 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.json.JSONObject
+import java.io.BufferedInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.security.MessageDigest
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.sqrt
 
 class MainActivity : AppCompatActivity() {
@@ -72,17 +85,59 @@ class MainActivity : AppCompatActivity() {
         private const val EDGE_LOAD_TIMEOUT_MS = 7000L
         private const val RENDER_LOAD_TIMEOUT_MS = 55000L
         private const val BACK_PRESS_INTERVAL = 2000L
+
+        private const val LIVE_WWW_DIR_NAME = "live_www"
+        private const val LIVE_WWW_PREFS = "AloLiveWwwPrefs"
+        private const val KEY_LIVE_VERSION_CODE = "cached_version_code"
+        private const val VERSION_MARKER_PREFIX = ".ver_"
+        private const val LIVE_SYNC_INTERVAL_MS = 5 * 60 * 1000L
+        private const val COLD_LAUNCH_APPLY_WINDOW_MS = 3000L
+        private val LIVE_HTML_PAGES = listOf(
+            "index.html",
+            "login.html",
+            "plans.html",
+            "account.html",
+            "checkout.html",
+            "profile.html",
+            "security.html",
+            "personalization.html",
+            "help.html",
+            "redeem.html",
+            "download.html",
+            "404.html"
+        )
+        private val LIVE_HTML_PAGE_SET = LIVE_HTML_PAGES.toSet()
     }
 
     private lateinit var webView: WebView
     private lateinit var swipeRefresh: SwipeRefreshLayout
+    private lateinit var launchVeil: View
+    private var ivLaunchLogo: ImageView? = null
     private lateinit var offlineView: View
+    private var isLaunchVeilDismissing = false
     private var hasLoadedPageSuccessfully = false
     private var activeBaseOrigin: String = PRIMARY_ORIGIN
     private var currentLoadHadMainFrameError = false
     private val attemptedOriginsInLoad = mutableSetOf<Int>()
     private val mainHandler = Handler(Looper.getMainLooper())
     private var pendingLoadTimeoutRunnable: Runnable? = null
+
+    private val liveWwwDir: File by lazy { File(filesDir, LIVE_WWW_DIR_NAME) }
+    private val liveSyncExecutor = Executors.newSingleThreadExecutor()
+    private val isLiveSyncRunning = AtomicBoolean(false)
+    @Volatile private var lastLiveSyncElapsedMs = 0L
+    @Volatile private var hasSyncedOnLaunch = false
+    @Volatile private var hasInitialPaintCommitted = false
+    @Volatile private var hasPendingIndexUpdate = false
+    private var appLaunchElapsedMs = 0L
+    private var shouldClearWebViewCacheOnVersionChange = false
+    private val liveSyncHttpClient: OkHttpClient by lazy {
+        OkHttpClient.Builder()
+            .connectTimeout(8, TimeUnit.SECONDS)
+            .readTimeout(10, TimeUnit.SECONDS)
+            .followRedirects(true)
+            .build()
+    }
 
     private var filePathCallback: ValueCallback<Array<Uri>>? = null
     private var cameraPhotoUri: Uri? = null
@@ -580,7 +635,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        appLaunchElapsedMs = SystemClock.elapsedRealtime()
         createNotificationChannel()
+        ensureLiveWwwCacheReady()
         WindowCompat.setDecorFitsSystemWindows(window, false)
         window.setFlags(
             WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
@@ -588,12 +645,16 @@ class MainActivity : AppCompatActivity() {
         )
         enableHighRefreshRate()
         setContentView(R.layout.activity_main)
+        initViews()
         val isSysDark = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
         applySystemBarsTheme(!isSysDark, if (isSysDark) "#000000" else "#FFFFFF")
 
-        initViews()
         setupEdgeToEdgeInsets()
         setupWebView()
+        if (shouldClearWebViewCacheOnVersionChange) {
+            shouldClearWebViewCacheOnVersionChange = false
+            try { webView.clearCache(true) } catch (_: Exception) {}
+        }
         setupSwipeRefresh()
         setupBackNavigation()
 
@@ -797,6 +858,11 @@ class MainActivity : AppCompatActivity() {
                 if (::webView.isInitialized) {
                     webView.setBackgroundColor(parsed)
                 }
+                if (::launchVeil.isInitialized && launchVeil.visibility == View.VISIBLE) {
+                    launchVeil.setBackgroundColor(parsed)
+                    val markColor = if (isLight) Color.parseColor("#0D0D0D") else Color.parseColor("#ECECEC")
+                    ivLaunchLogo?.imageTintList = ColorStateList.valueOf(markColor)
+                }
                 @Suppress("DEPRECATION")
                 window.statusBarColor = parsed
                 @Suppress("DEPRECATION")
@@ -818,7 +884,16 @@ class MainActivity : AppCompatActivity() {
                 @Suppress("DEPRECATION")
                 windowManager.defaultDisplay
             }
-            val maxMode = currentDisplay?.supportedModes?.maxByOrNull { it.refreshRate }
+            val activeMode = currentDisplay?.mode
+            val maxMode = currentDisplay?.supportedModes
+                ?.filter {
+                    activeMode == null || (
+                        it.physicalWidth == activeMode.physicalWidth &&
+                        it.physicalHeight == activeMode.physicalHeight
+                    )
+                }
+                ?.maxByOrNull { it.refreshRate }
+                ?: currentDisplay?.supportedModes?.maxByOrNull { it.refreshRate }
             maxMode?.let {
                 window.attributes = window.attributes.apply {
                     preferredDisplayModeId = it.modeId
@@ -831,9 +906,14 @@ class MainActivity : AppCompatActivity() {
     private fun initViews() {
         webView = findViewById(R.id.webView)
         swipeRefresh = findViewById(R.id.swipeRefreshLayout)
+        launchVeil = findViewById(R.id.launchVeil)
+        ivLaunchLogo = findViewById(R.id.ivLaunchLogo)
         offlineView = findViewById(R.id.offlineView)
 
-        findViewById<Button>(R.id.btnRetry).setOnClickListener { retryLoading() }
+        findViewById<Button>(R.id.btnRetry).setOnClickListener {
+            triggerCrispHaptic("light")
+            retryLoading()
+        }
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -875,6 +955,7 @@ class MainActivity : AppCompatActivity() {
             isVerticalScrollBarEnabled = false
             isHorizontalScrollBarEnabled = false
             isHapticFeedbackEnabled = true
+            isSoundEffectsEnabled = false
             setOnLongClickListener {
                 val res = hitTestResult
                 val t = res.type
@@ -1020,8 +1101,9 @@ class MainActivity : AppCompatActivity() {
 
                 val assetRel = when {
                     rawPath == "/" || rawPath == "/index" || rawPath == "/index.html" ||
-                        rawPath.startsWith("/c/") || rawPath == "/settings" || rawPath.startsWith("/settings/") -> "index.html"
-                    rawPath == "/auth/login" || rawPath == "/auth/signup" || rawPath == "/login" || rawPath == "/login.html" -> "login.html"
+                        rawPath.startsWith("/c/") || rawPath.startsWith("/g/") || rawPath.startsWith("/share/") ||
+                        rawPath == "/settings" || rawPath.startsWith("/settings/") -> "index.html"
+                    rawPath == "/auth/login" || rawPath == "/auth/signup" || rawPath == "/login" || rawPath == "/signup" || rawPath == "/login.html" -> "login.html"
                     rawPath == "/pricing" || rawPath == "/plans" || rawPath == "/plans.html" -> "plans.html"
                     rawPath == "/checkout" || rawPath == "/checkout.html" -> "checkout.html"
                     rawPath == "/account" || rawPath == "/account.html" -> "account.html"
@@ -1031,38 +1113,68 @@ class MainActivity : AppCompatActivity() {
                     rawPath == "/help" || rawPath == "/help.html" -> "help.html"
                     rawPath == "/redeem" || rawPath == "/redeem.html" -> "redeem.html"
                     rawPath == "/download" || rawPath == "/download.html" -> "download.html"
+                    rawPath == "/404" || rawPath == "/404.html" -> "404.html"
                     else -> rawPath.trimStart('/').takeIf {
                         it.isNotEmpty() && !it.contains("..") && !it.startsWith("server/")
                     }
                 } ?: return null
 
-                // True Hybrid Live-Sync: when online, fetch HTML pages live from Netlify so web fixes & UI updates
-                // reach users immediately without re-releasing APK; serve static assets instantly and HTML offline from www/.
-                val isHtmlPage = assetRel.endsWith(".html", ignoreCase = true)
-                if (isHtmlPage && isNetworkAvailable()) {
-                    return null
+                val lower = assetRel.lowercase(Locale.US)
+                val isHtmlPage = lower.endsWith(".html")
+                val mime = when {
+                    isHtmlPage -> "text/html"
+                    lower.endsWith(".json") -> "application/json"
+                    lower.endsWith(".png") -> "image/png"
+                    lower.endsWith(".svg") -> "image/svg+xml"
+                    lower.endsWith(".ico") -> "image/x-icon"
+                    lower.endsWith(".jpg") || lower.endsWith(".jpeg") -> "image/jpeg"
+                    lower.endsWith(".webp") -> "image/webp"
+                    lower.endsWith(".js") -> "application/javascript"
+                    lower.endsWith(".css") -> "text/css"
+                    else -> "application/octet-stream"
+                }
+                val encoding = if (mime.startsWith("text/") || mime == "application/json" || mime == "application/javascript" || mime == "image/svg+xml") {
+                    "UTF-8"
+                } else {
+                    null
+                }
+
+                // Zero-Gap Stale-While-Revalidate: ALWAYS serve HTML immediately (<1ms) from live_www/
+                // when valid, falling back instantaneously to bundled assets/www/. Never block UI on network.
+                if (isHtmlPage && LIVE_HTML_PAGE_SET.contains(assetRel)) {
+                    val liveFile = File(liveWwwDir, assetRel)
+                    if (isValidCachedHtmlFile(liveFile)) {
+                        try {
+                            val stream = BufferedInputStream(FileInputStream(liveFile))
+                            return WebResourceResponse(
+                                mime,
+                                encoding,
+                                200,
+                                "OK",
+                                mapOf("Cache-Control" to "no-store"),
+                                stream
+                            )
+                        } catch (_: Exception) {
+                            // Fall through to bundled asset below
+                        }
+                    }
+                    return try {
+                        val stream = assets.open("www/$assetRel")
+                        WebResourceResponse(
+                            mime,
+                            encoding,
+                            200,
+                            "OK",
+                            mapOf("Cache-Control" to "no-store"),
+                            stream
+                        )
+                    } catch (_: Exception) {
+                        null
+                    }
                 }
 
                 return try {
                     val stream = assets.open("www/$assetRel")
-                    val lower = assetRel.lowercase(Locale.US)
-                    val mime = when {
-                        lower.endsWith(".html") -> "text/html"
-                        lower.endsWith(".json") -> "application/json"
-                        lower.endsWith(".png") -> "image/png"
-                        lower.endsWith(".svg") -> "image/svg+xml"
-                        lower.endsWith(".ico") -> "image/x-icon"
-                        lower.endsWith(".jpg") || lower.endsWith(".jpeg") -> "image/jpeg"
-                        lower.endsWith(".webp") -> "image/webp"
-                        lower.endsWith(".js") -> "application/javascript"
-                        lower.endsWith(".css") -> "text/css"
-                        else -> "application/octet-stream"
-                    }
-                    val encoding = if (mime.startsWith("text/") || mime == "application/json" || mime == "application/javascript" || mime == "image/svg+xml") {
-                        "UTF-8"
-                    } else {
-                        null
-                    }
                     WebResourceResponse(mime, encoding, stream)
                 } catch (_: Exception) {
                     null
@@ -1135,6 +1247,11 @@ class MainActivity : AppCompatActivity() {
             override fun onPageCommitVisible(view: WebView, url: String?) {
                 super.onPageCommitVisible(view, url)
                 cancelPendingLoadTimeout()
+                if (!url.isNullOrBlank() && url != "about:blank" && !url.startsWith("data:") && !url.startsWith("chrome-error:")) {
+                    hasInitialPaintCommitted = true
+                    dismissLaunchVeil()
+                    scheduleLiveHtmlSync(force = false)
+                }
             }
 
             override fun onPageFinished(view: WebView, url: String?) {
@@ -1159,7 +1276,8 @@ class MainActivity : AppCompatActivity() {
                         try {
                             var meta = document.querySelector('meta[name="theme-color"]');
                             var eff = document.documentElement ? document.documentElement.getAttribute('data-theme') : 'dark';
-                            var bg = (meta && meta.content) || '#212121';
+                            var fallbackBg = eff === 'light' ? '#ffffff' : (eff === 'eyecare' ? '#f5eedc' : '#000000');
+                            var bg = (meta && meta.content) || fallbackBg;
                             if (window.AloAI && window.AloAI.setSystemBarsTheme) {
                                 window.AloAI.setSystemBarsTheme(eff === 'light' || eff === 'eyecare', bg);
                             }
@@ -1228,6 +1346,7 @@ class MainActivity : AppCompatActivity() {
                 attemptedOriginsInLoad.clear()
                 hasLoadedPageSuccessfully = true
                 showOfflineView(false)
+                dismissLaunchVeil()
             }
 
             override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
@@ -1284,11 +1403,15 @@ class MainActivity : AppCompatActivity() {
         swipeRefresh.setColorSchemeResources(R.color.primary)
         swipeRefresh.setProgressBackgroundColorSchemeResource(R.color.surface)
         swipeRefresh.isEnabled = false
+        swipeRefresh.setOnChildScrollUpCallback { _, _ ->
+            !::webView.isInitialized || webView.canScrollVertically(-1) || webView.scrollY > 0
+        }
 
         swipeRefresh.setOnRefreshListener {
             if (isNetworkAvailable()) {
                 webView.settings.cacheMode = WebSettings.LOAD_DEFAULT
                 webView.reload()
+                scheduleLiveHtmlSync(force = true)
             } else {
                 webView.settings.cacheMode = WebSettings.LOAD_CACHE_ELSE_NETWORK
                 webView.reload()
@@ -1305,6 +1428,7 @@ class MainActivity : AppCompatActivity() {
             WebSettings.LOAD_CACHE_ELSE_NETWORK
         }
         webView.reload()
+        scheduleLiveHtmlSync(force = true)
     }
 
     private fun setupBackNavigation() {
@@ -1316,6 +1440,7 @@ class MainActivity : AppCompatActivity() {
                     val handled = result?.trim()?.equals("true", ignoreCase = true) == true
                     if (!handled) {
                         if (webView.canGoBack()) {
+                            triggerCrispHaptic("light")
                             webView.goBack()
                         } else {
                             val currentTime = System.currentTimeMillis()
@@ -1323,9 +1448,12 @@ class MainActivity : AppCompatActivity() {
                                 finish()
                             } else {
                                 lastBackPressTime = currentTime
+                                triggerCrispHaptic("light")
                                 Toast.makeText(this@MainActivity, getString(R.string.exit_prompt), Toast.LENGTH_SHORT).show()
                             }
                         }
+                    } else {
+                        triggerCrispHaptic("light")
                     }
                 }
             }
@@ -1347,6 +1475,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showOfflineView(show: Boolean) {
+        if (show && ::launchVeil.isInitialized) {
+            launchVeil.animate().cancel()
+            launchVeil.visibility = View.GONE
+            launchVeil.alpha = 1f
+            isLaunchVeilDismissing = false
+        }
         offlineView.visibility = if (show) View.VISIBLE else View.GONE
         webView.visibility = if (show) View.GONE else View.VISIBLE
         swipeRefresh.isEnabled = false
@@ -1491,6 +1625,9 @@ class MainActivity : AppCompatActivity() {
                             webView.settings.cacheMode = WebSettings.LOAD_DEFAULT
                             webView.evaluateJavascript("if (typeof window.onNativeNetworkChanged === 'function') window.onNativeNetworkChanged(true);", null)
                         }
+                        if (hasInitialPaintCommitted) {
+                            scheduleLiveHtmlSync(force = false)
+                        }
                     }
                 }
                 override fun onLost(network: Network) {
@@ -1525,6 +1662,9 @@ class MainActivity : AppCompatActivity() {
         if (::webView.isInitialized) {
             val online = isNetworkAvailable()
             webView.evaluateJavascript("if (typeof window.onNativeNotificationPermissionChanged === 'function') window.onNativeNotificationPermissionChanged(); if (typeof window.onNativeNetworkChanged === 'function') window.onNativeNetworkChanged($online);", null)
+            if (online && hasInitialPaintCommitted) {
+                scheduleLiveHtmlSync(force = false)
+            }
         }
     }
 
@@ -1559,8 +1699,385 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun dismissLaunchVeil() {
+        if (!::launchVeil.isInitialized) return
+        if (launchVeil.visibility != View.VISIBLE || isLaunchVeilDismissing) return
+        isLaunchVeilDismissing = true
+        launchVeil.animate()
+            .alpha(0f)
+            .setDuration(140L)
+            .withEndAction {
+                launchVeil.visibility = View.GONE
+                launchVeil.alpha = 1f
+                isLaunchVeilDismissing = false
+            }
+            .start()
+    }
+
+    fun triggerCrispHaptic(type: String = "light") {
+        try {
+            if (::webView.isInitialized) {
+                val constant = when (type.lowercase(Locale.US)) {
+                    "heavy" -> HapticFeedbackConstants.LONG_PRESS
+                    "medium", "confirm" -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                        HapticFeedbackConstants.CONFIRM
+                    } else {
+                        HapticFeedbackConstants.CONTEXT_CLICK
+                    }
+                    else -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+                        HapticFeedbackConstants.TEXT_HANDLE_MOVE
+                    } else {
+                        HapticFeedbackConstants.KEYBOARD_TAP
+                    }
+                }
+                if (webView.performHapticFeedback(constant)) {
+                    return
+                }
+            }
+            webAppInterface?.haptic(type)
+        } catch (_: Exception) {}
+    }
+
+    private fun ensureLiveWwwCacheReady() {
+        try {
+            val dir = liveWwwDir
+            if (!dir.exists()) {
+                dir.mkdirs()
+            }
+            val prefs = getSharedPreferences(LIVE_WWW_PREFS, Context.MODE_PRIVATE)
+            val cachedVer = prefs.getInt(KEY_LIVE_VERSION_CODE, -1)
+            val verMarker = File(dir, "$VERSION_MARKER_PREFIX${BuildConfig.VERSION_CODE}")
+            val versionChanged = cachedVer != BuildConfig.VERSION_CODE || !verMarker.exists()
+
+            if (versionChanged) {
+                dir.listFiles()?.forEach { f ->
+                    try {
+                        if (f.isDirectory) f.deleteRecursively() else f.delete()
+                    } catch (_: Exception) {}
+                }
+                prefs.edit()
+                    .clear()
+                    .putInt(KEY_LIVE_VERSION_CODE, BuildConfig.VERSION_CODE)
+                    .apply()
+                try { verMarker.createNewFile() } catch (_: Exception) {}
+                shouldClearWebViewCacheOnVersionChange = true
+            } else {
+                dir.listFiles()?.forEach { f ->
+                    val name = f.name
+                    val keep = name == verMarker.name || (f.isFile && LIVE_HTML_PAGE_SET.contains(name))
+                    if (!keep) {
+                        try {
+                            if (f.isDirectory) f.deleteRecursively() else f.delete()
+                        } catch (_: Exception) {}
+                    }
+                }
+            }
+
+            cacheDir.listFiles()?.forEach { f ->
+                if (f.isFile && f.name.endsWith(".tmp", ignoreCase = true)) {
+                    try { f.delete() } catch (_: Exception) {}
+                }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to initialize live_www cache", e)
+        }
+    }
+
+    private fun isValidCachedHtmlFile(file: File): Boolean {
+        if (!file.exists() || !file.isFile) return false
+        val len = file.length()
+        if (len <= 512L) return false
+        return try {
+            val headSize = minOf(len, 4096L).toInt()
+            val buf = ByteArray(headSize)
+            var readTotal = 0
+            FileInputStream(file).use { fis ->
+                while (readTotal < headSize) {
+                    val n = fis.read(buf, readTotal, headSize - readTotal)
+                    if (n <= 0) break
+                    readTotal += n
+                }
+            }
+            if (readTotal <= 0) return false
+            val head = String(buf, 0, readTotal, Charsets.UTF_8)
+            head.contains("<html", ignoreCase = true) || head.contains("<!doctype", ignoreCase = true)
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    private fun isValidDownloadedHtml(bytes: ByteArray): Boolean {
+        if (bytes.size <= 512 || bytes.size > 10 * 1024 * 1024) return false
+        val headLen = minOf(bytes.size, 4096)
+        val head = String(bytes, 0, headLen, Charsets.UTF_8)
+        if (!head.contains("<html", ignoreCase = true) && !head.contains("<!doctype", ignoreCase = true)) {
+            return false
+        }
+        val tailStart = maxOf(0, bytes.size - 2048)
+        val tail = String(bytes, tailStart, bytes.size - tailStart, Charsets.UTF_8)
+        return tail.contains("</html>", ignoreCase = true) || String(bytes, Charsets.UTF_8).contains("</html>", ignoreCase = true)
+    }
+
+    private fun digestToHex(digest: ByteArray): String {
+        val hex = StringBuilder(digest.size * 2)
+        for (b in digest) {
+            val v = b.toInt() and 0xFF
+            if (v < 16) hex.append('0')
+            hex.append(Integer.toHexString(v))
+        }
+        return hex.toString()
+    }
+
+    private fun sha256Bytes(bytes: ByteArray): String {
+        return digestToHex(MessageDigest.getInstance("SHA-256").digest(bytes))
+    }
+
+    private fun sha256File(file: File): String? {
+        return try {
+            val md = MessageDigest.getInstance("SHA-256")
+            val buf = ByteArray(8192)
+            FileInputStream(file).use { fis ->
+                while (true) {
+                    val n = fis.read(buf)
+                    if (n <= 0) break
+                    md.update(buf, 0, n)
+                }
+            }
+            digestToHex(md.digest())
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun getOrComputeBundledSha256(prefs: SharedPreferences, assetRel: String): String? {
+        val key = "v${BuildConfig.VERSION_CODE}_bundled_sha_$assetRel"
+        prefs.getString(key, null)?.let { return it }
+        return try {
+            val bytes = assets.open("www/$assetRel").use { it.readBytes() }
+            val sha = sha256Bytes(bytes)
+            prefs.edit().putString(key, sha).apply()
+            sha
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun writeFileAtomically(dir: File, targetName: String, bytes: ByteArray): Boolean {
+        if (!dir.exists()) dir.mkdirs()
+        val tmpFile = File(dir, "$targetName.tmp")
+        val targetFile = File(dir, targetName)
+        return try {
+            FileOutputStream(tmpFile).use { fos ->
+                fos.write(bytes)
+                fos.flush()
+                try { fos.fd.sync() } catch (_: Exception) {}
+            }
+            if (tmpFile.renameTo(targetFile)) {
+                true
+            } else {
+                targetFile.delete()
+                if (tmpFile.renameTo(targetFile)) {
+                    true
+                } else {
+                    tmpFile.copyTo(targetFile, overwrite = true)
+                    tmpFile.delete()
+                    true
+                }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Atomic write failed for $targetName", e)
+            try { tmpFile.delete() } catch (_: Exception) {}
+            false
+        }
+    }
+
+    private fun scheduleLiveHtmlSync(force: Boolean = false) {
+        if (isFinishing || isDestroyed) return
+        if (!isNetworkAvailable()) return
+        val now = SystemClock.elapsedRealtime()
+        if (!force && hasSyncedOnLaunch && (now - lastLiveSyncElapsedMs) < LIVE_SYNC_INTERVAL_MS) {
+            return
+        }
+        if (!isLiveSyncRunning.compareAndSet(false, true)) {
+            return
+        }
+        hasSyncedOnLaunch = true
+        lastLiveSyncElapsedMs = now
+        try {
+            liveSyncExecutor.execute {
+                try {
+                    syncLiveHtmlCacheInBackground()
+                } finally {
+                    isLiveSyncRunning.set(false)
+                }
+            }
+        } catch (_: Exception) {
+            isLiveSyncRunning.set(false)
+        }
+    }
+
+    private fun syncLiveHtmlCacheInBackground() {
+        val prefs = getSharedPreferences(LIVE_WWW_PREFS, Context.MODE_PRIVATE)
+        val candidates = mutableListOf<String>()
+        val currentOrigin = activeBaseOrigin.takeIf { it.startsWith("https://") } ?: PRIMARY_ORIGIN
+        candidates.add(currentOrigin)
+        if (currentOrigin != PRIMARY_ORIGIN) candidates.add(PRIMARY_ORIGIN)
+        if (!candidates.contains(SECONDARY_ORIGIN)) candidates.add(SECONDARY_ORIGIN)
+
+        var chosenOrigin: String? = null
+        var latestIndexRemoteSha: String? = null
+        var anyHttpSuccess = false
+
+        for (assetRel in LIVE_HTML_PAGES) {
+            if (isFinishing || isDestroyed || !isNetworkAvailable()) break
+            if (assetRel != "index.html" && chosenOrigin == null) break
+
+            val originsToTry = if (chosenOrigin != null) listOf(chosenOrigin) else candidates
+            val currentFile = File(liveWwwDir, assetRel)
+            val liveValid = isValidCachedHtmlFile(currentFile)
+            val currentSha = if (liveValid) sha256File(currentFile) else getOrComputeBundledSha256(prefs, assetRel)
+            val shaKey = "v${BuildConfig.VERSION_CODE}_sha256_$assetRel"
+            val etagKey = "v${BuildConfig.VERSION_CODE}_etag_$assetRel"
+            val savedSha = prefs.getString(shaKey, null)
+            val savedEtag = prefs.getString(etagKey, null)
+            val canSendEtag = !savedEtag.isNullOrBlank() && currentSha != null && savedSha == currentSha
+
+            for (origin in originsToTry) {
+                try {
+                    val reqBuilder = Request.Builder()
+                        .url("$origin/$assetRel")
+                        .header("Cache-Control", "no-cache")
+                        .header("User-Agent", "AloraAndroid/${BuildConfig.VERSION_NAME}")
+                    if (canSendEtag) {
+                        reqBuilder.header("If-None-Match", savedEtag!!)
+                    }
+
+                    val pageDone = liveSyncHttpClient.newCall(reqBuilder.build()).execute().use { resp ->
+                        if (resp.code == 304) {
+                            anyHttpSuccess = true
+                            chosenOrigin = origin
+                            return@use true
+                        }
+                        if (!resp.isSuccessful) {
+                            return@use false
+                        }
+                        val ct = resp.header("Content-Type")?.lowercase(Locale.US)
+                        if (ct != null && !ct.contains("text/html")) {
+                            return@use false
+                        }
+                        val bytes = resp.body?.bytes() ?: return@use false
+                        if (!isValidDownloadedHtml(bytes)) {
+                            return@use false
+                        }
+
+                        anyHttpSuccess = true
+                        chosenOrigin = origin
+                        val remoteSha = sha256Bytes(bytes)
+                        if (assetRel == "index.html") {
+                            latestIndexRemoteSha = remoteSha
+                        } else if (latestIndexRemoteSha != null && remoteSha == latestIndexRemoteSha) {
+                            // Guard against SPA fallback returning index.html for secondary routes
+                            return@use true
+                        }
+
+                        val newEtag = resp.header("ETag")?.trim()
+                        val changed = remoteSha != currentSha
+                        val persisted = !changed || writeFileAtomically(liveWwwDir, assetRel, bytes)
+                        if (persisted) {
+                            prefs.edit()
+                                .putString(shaKey, remoteSha)
+                                .apply {
+                                    if (!newEtag.isNullOrBlank()) putString(etagKey, newEtag)
+                                    else remove(etagKey)
+                                }
+                                .apply()
+                            if (changed && assetRel == "index.html") {
+                                onLiveIndexHtmlUpdated()
+                            }
+                        }
+                        true
+                    }
+                    if (pageDone) break
+                } catch (_: Exception) {
+                    // Try fallback edge origin if available
+                }
+            }
+        }
+
+        if (!anyHttpSuccess) {
+            hasSyncedOnLaunch = false
+            lastLiveSyncElapsedMs = SystemClock.elapsedRealtime() - LIVE_SYNC_INTERVAL_MS + 30_000L
+        }
+    }
+
+    private fun onLiveIndexHtmlUpdated() {
+        hasPendingIndexUpdate = true
+        val arrivedWithinColdWindow = (SystemClock.elapsedRealtime() - appLaunchElapsedMs) <= COLD_LAUNCH_APPLY_WINDOW_MS
+        mainHandler.post {
+            if (isFinishing || isDestroyed || !::webView.isInitialized) return@post
+            webView.evaluateJavascript(
+                "if (typeof window.onNativeLiveUpdateReady === 'function') window.onNativeLiveUpdateReady();",
+                null
+            )
+            if (arrivedWithinColdWindow) {
+                applyPendingUpdateIfIdleInternal()
+            }
+        }
+    }
+
+    fun hasPendingLiveUpdate(): Boolean = hasPendingIndexUpdate
+
+    fun applyPendingUpdateIfIdleFromJs(): Boolean {
+        if (!hasPendingIndexUpdate || isFinishing || isDestroyed) return false
+        if (isSpeechListening || isCustomAudioRecording) return false
+        mainHandler.post { applyPendingUpdateIfIdleInternal() }
+        return true
+    }
+
+    private fun applyPendingUpdateIfIdleInternal() {
+        if (!hasPendingIndexUpdate || isFinishing || isDestroyed || !::webView.isInitialized) return
+        if (isSpeechListening || isCustomAudioRecording) return
+        val currentUrl = webView.url ?: return
+        val path = try { Uri.parse(currentUrl).path ?: "/" } catch (_: Exception) { return }
+        if (path != "/" && path != "/index" && path != "/index.html") return
+
+        val idleCheckJs = """
+            (function(){
+                try {
+                    if (typeof isGenerating !== 'undefined' && isGenerating) return false;
+                    if (typeof isSending !== 'undefined' && isSending) return false;
+                    if (typeof currentSessionId !== 'undefined' && currentSessionId) return false;
+                    if (typeof messagesHistory !== 'undefined' && Array.isArray(messagesHistory) && messagesHistory.length > 0) return false;
+                    var feed = document.getElementById('chatFeed');
+                    if (feed && feed.children && feed.children.length > 0) return false;
+                    var inp = document.getElementById('messageInput');
+                    if (inp && ((inp.value && inp.value.trim().length > 0) || document.activeElement === inp)) return false;
+                    var vm = document.getElementById('voiceModeBackdrop');
+                    if (vm && vm.classList && vm.classList.contains('open')) return false;
+                    if (document.querySelector('.modal-overlay.open, .chatgpt-modal-backdrop.open, .chatgpt-dialog-backdrop.open, #sidebar.open')) return false;
+                    return true;
+                } catch(e) { return false; }
+            })()
+        """.trimIndent()
+
+        webView.evaluateJavascript(idleCheckJs) { result ->
+            if (isFinishing || isDestroyed || !hasPendingIndexUpdate) return@evaluateJavascript
+            if (isSpeechListening || isCustomAudioRecording) return@evaluateJavascript
+            val isIdle = result?.trim()?.equals("true", ignoreCase = true) == true
+            if (isIdle) {
+                hasPendingIndexUpdate = false
+                attemptedOriginsInLoad.clear()
+                webView.reload()
+            }
+        }
+    }
+
     override fun onDestroy() {
         cancelPendingLoadTimeout()
+        if (::launchVeil.isInitialized) {
+            launchVeil.animate().cancel()
+        }
+        try { liveSyncExecutor.shutdownNow() } catch (_: Exception) {}
         stopCustomAudioInternal(deliverCapture = false)
         destroySpeechRecognizer()
         webAppInterface?.destroy()

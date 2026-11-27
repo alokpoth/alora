@@ -36,6 +36,10 @@
         var raw = localStorage.getItem("alokpoth_theme") || localStorage.getItem("alokpoth-theme") || "system";
         if (raw === "oled") { raw = "dark"; localStorage.setItem("alokpoth_theme", "dark"); }
         else if (raw === "sapphire") { raw = "system"; localStorage.setItem("alokpoth_theme", "system"); }
+        else if (!localStorage.getItem("alokpoth_theme") && localStorage.getItem("alokpoth-theme")) {
+          localStorage.setItem("alokpoth_theme", raw);
+        }
+        try { localStorage.removeItem("alokpoth-theme"); } catch (e) {}
         var t = raw;
         if (raw === "system") {
           t = (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
@@ -76,7 +80,8 @@
       --radius-xl: 34px;
       --radius-pill: 32px;
       --radius-full: 9999px;
-      --transition-fast: 0.15s ease;
+      --transition-fast: 0.16s cubic-bezier(0.22, 1, 0.36, 1);
+      --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     /* Alora OLED Dark Theme (True Pure Black) */
@@ -182,6 +187,10 @@
       -webkit-tap-highlight-color: transparent;
     }
 
+    html {
+      scroll-behavior: smooth;
+    }
+
     html, body {
       width: 100%;
       height: 100%;
@@ -199,7 +208,7 @@
       user-select: none;
     }
 
-    input, textarea, .user-bubble-text, .assistant-markdown-body, pre, code {
+    input, textarea, .chatgpt-user-bubble, .assistant-markdown, pre, code {
       -webkit-user-select: text;
       user-select: text;
       -webkit-touch-callout: default;
@@ -218,9 +227,14 @@
       background: none;
     }
 
+    button, a, summary, input, select, textarea, [role="button"],
+    .chatgpt-history-item, .mset-row, .alora-voice-card, .theme-opt-chip,
+    .model-option-item, .attach-item-btn, .user-popover-item, .ctx-menu-item {
+      touch-action: manipulation;
+    }
+
     button {
       cursor: pointer;
-      touch-action: manipulation;
     }
 
     /* Scrollbars */
@@ -264,7 +278,7 @@
       display: flex;
       flex-direction: column;
       z-index: 50;
-      transition: width var(--transition-fast), min-width var(--transition-fast), transform var(--transition-fast);
+      transition: width var(--transition-fast), min-width var(--transition-fast), transform 0.26s var(--ease-spring);
       position: relative;
       flex-shrink: 0;
     }
@@ -395,6 +409,8 @@
     .sidebar-history-scroll {
       flex: 1;
       overflow-y: auto;
+      overscroll-behavior-y: contain;
+      -webkit-overflow-scrolling: touch;
       padding: 6px 8px 12px;
       display: flex;
       flex-direction: column;
@@ -559,9 +575,12 @@
       background: rgba(0, 0, 0, 0.6);
       backdrop-filter: none;
       z-index: 45;
-      display: none;
+      display: block;
+      visibility: hidden;
+      pointer-events: none;
       opacity: 0;
-      transition: opacity var(--transition-fast);
+      will-change: opacity;
+      transition: opacity 0.24s var(--ease-spring), visibility 0.24s var(--ease-spring);
     }
 
     /* ==========================================================================
@@ -810,6 +829,7 @@
       display: flex;
       gap: 14px;
       overflow-anchor: auto;
+      contain: layout style;
     }
 
     .chatgpt-row.user {
@@ -1173,6 +1193,7 @@
       border: 1px solid var(--border);
       position: relative;
       overflow: hidden;
+      contain: layout paint;
       background: var(--card-bg);
       display: flex;
       align-items: center;
@@ -1199,7 +1220,7 @@
       z-index: 2;
       padding: 8px 16px;
       border-radius: 9999px;
-      background: rgba(0, 0, 0, 0.55);
+      background: rgba(12, 12, 14, 0.84);
       border: 1px solid rgba(255, 255, 255, 0.16);
       color: #ffffff;
       font-size: 0.82rem;
@@ -1207,11 +1228,10 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      backdrop-filter: blur(10px);
     }
     [data-theme="light"] .image-gen-status-pill,
     [data-theme="eyecare"] .image-gen-status-pill {
-      background: rgba(255, 255, 255, 0.78);
+      background: rgba(255, 255, 255, 0.9);
       border-color: rgba(0, 0, 0, 0.12);
       color: #0d0d0d;
     }
@@ -1413,12 +1433,14 @@
       max-width: min(320px, 86vw);
       max-height: 290px;
       overflow-y: auto;
+      overscroll-behavior-y: contain;
+      -webkit-overflow-scrolling: touch;
       background: #14171c;
       color: #f8fafc;
       border: 1px solid rgba(255, 255, 255, 0.14);
       border-radius: 14px;
       padding: 6px;
-      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.48);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.42);
       display: none;
       flex-direction: column;
       gap: 2px;
@@ -1428,7 +1450,7 @@
       background: #ffffff;
       color: #0d0d0d;
       border-color: rgba(0, 0, 0, 0.12);
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.14);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
     }
     [data-theme="eyecare"] .voice-model-dropdown {
       background: #fbf4e2;
@@ -1437,6 +1459,7 @@
     }
     .voice-model-dropdown.open {
       display: flex;
+      animation: popoverSpringIn 0.18s var(--ease-spring) both;
     }
     .voice-model-opt {
       display: flex;
@@ -1763,6 +1786,8 @@
       width: min(320px, calc(100vw - 32px));
       max-height: min(55vh, 360px);
       overflow-y: auto;
+      overscroll-behavior-y: contain;
+      -webkit-overflow-scrolling: touch;
     }
     .chatgpt-main.empty-state .chatgpt-attach-menu {
       top: calc(100% + 8px);
@@ -1770,6 +1795,7 @@
     }
     .chatgpt-attach-menu.open {
       display: flex;
+      animation: popoverSpringIn 0.18s var(--ease-spring) both;
     }
     .attach-item-btn {
       display: flex;
@@ -1830,6 +1856,7 @@
     }
     .chatgpt-user-popover.open {
       display: flex;
+      animation: popoverSpringIn 0.18s var(--ease-spring) both;
     }
     @media (min-width: 769px) {
       .chatgpt-sidebar.collapsed .chatgpt-user-popover {
@@ -1913,9 +1940,12 @@
       max-width: calc(100vw - 28px);
       max-height: min(65vh, 420px);
       overflow-y: auto;
+      overscroll-behavior-y: contain;
+      -webkit-overflow-scrolling: touch;
     }
     .model-dropdown-menu.open {
       display: flex;
+      animation: popoverSpringIn 0.18s var(--ease-spring) both;
     }
     .model-option-item {
       display: flex;
@@ -1945,6 +1975,27 @@
     /* ==========================================================================
        8. CHATGPT IN-PAGE SETTINGS MODAL (NO EXTERNAL REDIRECTS)
        ========================================================================== */
+    @keyframes modalBackdropIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes modalCardIn {
+      from { opacity: 0; transform: translate3d(0, 12px, 0) scale(0.97); }
+      to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+    }
+    @keyframes mobileSheetIn {
+      from { opacity: 0; transform: translate3d(0, 22px, 0); }
+      to { opacity: 1; transform: translate3d(0, 0, 0); }
+    }
+    @keyframes popoverSpringIn {
+      from { opacity: 0; transform: translate3d(0, 6px, 0) scale(0.97); }
+      to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+    }
+    @keyframes toastPopIn {
+      from { opacity: 0; transform: translate3d(0, -10px, 0) scale(0.96); }
+      to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+    }
+
     .chatgpt-dialog-backdrop {
       position: fixed;
       inset: 0;
@@ -1958,6 +2009,11 @@
     }
     .chatgpt-dialog-backdrop.open {
       display: flex;
+      animation: modalBackdropIn 0.2s var(--ease-spring) both;
+    }
+    .chatgpt-dialog-backdrop.open > * {
+      animation: modalCardIn 0.24s var(--ease-spring) both;
+      will-change: transform, opacity;
     }
 
     .chatgpt-settings-dialog {
@@ -1968,7 +2024,7 @@
       background: var(--modal-bg);
       border: 1px solid var(--border);
       border-radius: 24px;
-      box-shadow: 0 24px 72px rgba(0, 0, 0, 0.45);
+      box-shadow: 0 20px 56px rgba(0, 0, 0, 0.4);
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -2029,6 +2085,8 @@
       flex: 1;
       padding: 24px 28px;
       overflow-y: auto;
+      overscroll-behavior-y: contain;
+      -webkit-overflow-scrolling: touch;
       display: flex;
       flex-direction: column;
       gap: 20px;
@@ -2123,19 +2181,6 @@
       text-align: center;
       margin-top: -8px;
     }
-    .auth-input {
-      width: 100%;
-      padding: 12px 18px;
-      border-radius: var(--radius-pill);
-      background: var(--composer-bg);
-      border: 1px solid var(--border);
-      color: var(--text-main);
-      font-size: 0.94rem;
-    }
-    .auth-input:focus {
-      border-color: var(--send-btn-active);
-      box-shadow: none;
-    }
     .auth-submit-btn {
       width: 100%;
       padding: 12px;
@@ -2144,134 +2189,11 @@
       color: var(--send-btn-active-icon);
       font-weight: 600;
       font-size: 0.94rem;
-      transition: opacity var(--transition-fast), transform 0.1s ease;
+      transition: opacity var(--transition-fast), transform 0.12s var(--ease-spring);
     }
     .auth-submit-btn:hover {
       opacity: 0.9;
       transform: scale(1.01);
-    }
-
-    /* Upgrade Plan Dialog (Alora 1:1) */
-    .chatgpt-upgrade-dialog {
-      width: 100%;
-      max-width: 780px;
-      background: var(--modal-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 24px;
-      box-shadow: none;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      max-height: 90vh;
-      overflow-y: auto;
-      position: relative;
-    }
-    .upgrade-plans-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
-    @media (max-width: 640px) {
-      .upgrade-plans-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-    .upgrade-plan-card {
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      padding: 22px 20px;
-      background: var(--composer-bg);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: 14px;
-    }
-    .upgrade-plan-card.featured {
-      border-color: rgba(255, 255, 255, 0.3);
-      background: var(--card-bg);
-    }
-    .upgrade-plan-badge {
-      align-self: flex-start;
-      font-size: 0.72rem;
-      font-weight: 700;
-      color: var(--text-main);
-      background: rgba(255, 255, 255, 0.12);
-      padding: 3px 8px;
-      border-radius: var(--radius-full);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    .upgrade-plan-title {
-      font-size: 1.35rem;
-      font-weight: 700;
-      color: var(--text-main);
-    }
-    .upgrade-plan-price {
-      font-size: 1.05rem;
-      font-weight: 600;
-      color: var(--text-sub);
-    }
-    .upgrade-plan-features {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      font-size: 0.88rem;
-      color: var(--text-main);
-      margin: 8px 0;
-    }
-    .upgrade-plan-features li {
-      display: flex;
-      align-items: flex-start;
-      gap: 8px;
-      line-height: 1.4;
-    }
-    .upgrade-plan-features svg {
-      flex-shrink: 0;
-      margin-top: 3px;
-      color: var(--text-main);
-    }
-    .redeem-code-box {
-      margin-top: 8px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .redeem-input-row {
-      display: flex;
-      gap: 8px;
-    }
-    .redeem-code-input {
-      flex: 1;
-      padding: 10px 16px;
-      border-radius: var(--radius-pill);
-      background: var(--canvas-bg);
-      border: 1px solid var(--border);
-      color: var(--text-main);
-      font-size: 0.9rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    .redeem-code-input:focus {
-      border-color: var(--send-btn-active);
-      box-shadow: none;
-    }
-    .redeem-claim-btn {
-      padding: 10px 20px;
-      border-radius: var(--radius-full);
-      background: var(--send-btn-active);
-      color: var(--send-btn-active-icon);
-      font-weight: 600;
-      font-size: 0.88rem;
-      white-space: nowrap;
-      cursor: pointer;
-      border: none;
-      transition: opacity var(--transition-fast), transform 0.1s ease;
-    }
-    .redeem-claim-btn:hover {
-      opacity: 0.9;
-      transform: scale(1.02);
     }
 
     /* Toast Pill */
@@ -2296,10 +2218,97 @@
       font-size: 0.86rem;
       font-weight: 500;
       box-shadow: none;
+      animation: toastPopIn 0.22s var(--ease-spring) both;
     }
 
     /* Responsive */
     @media (max-width: 768px) {
+      .chatgpt-scroll-area::-webkit-scrollbar,
+      .sidebar-history-scroll::-webkit-scrollbar {
+        display: none;
+        width: 0;
+        height: 0;
+      }
+      .chatgpt-scroll-area,
+      .sidebar-history-scroll {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+      /* Native Android tactile press response */
+      .header-icon-action:active,
+      .icon-btn:active,
+      .toolbar-icon-btn:active,
+      .composer-tool-btn:active,
+      .chatgpt-send-btn:active,
+      .header-pill-btn:active,
+      .header-offer-btn:active,
+      .model-selector-btn:active,
+      .sidebar-action-btn:active,
+      .chatgpt-history-item:active,
+      .mset-row:active,
+      .model-option-item:active,
+      .attach-item-btn:active,
+      .user-popover-item:active,
+      .ctx-menu-item:active,
+      .theme-opt-chip:active,
+      .voice-ctrl-btn:active {
+        transform: scale(0.968) translateZ(0);
+        transition: transform 0.09s var(--ease-spring), background 0.1s ease;
+      }
+      .chatgpt-header:has(.model-dropdown-menu.open) {
+        z-index: 960;
+      }
+      .composer-wrapper:has(.chatgpt-attach-menu.open),
+      .chatgpt-welcome-screen:has(.chatgpt-attach-menu.open) {
+        z-index: 960;
+      }
+      /* Native Android Bottom Sheets on mobile */
+      .model-dropdown-menu,
+      .chatgpt-attach-menu,
+      .chatgpt-main.empty-state .chatgpt-attach-menu,
+      .history-context-menu,
+      .voice-model-dropdown {
+        position: fixed !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        top: auto !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        max-height: 74vh !important;
+        border-radius: 22px 22px 0 0 !important;
+        padding: 20px 12px max(22px, env(safe-area-inset-bottom, 20px)) !important;
+        border-left: none !important;
+        border-right: none !important;
+        border-bottom: none !important;
+        box-shadow: 0 -10px 36px rgba(0, 0, 0, 0.45), 0 0 0 100vmax rgba(0, 0, 0, 0.42) !important;
+        z-index: 990 !important;
+        will-change: transform, opacity;
+      }
+      .model-dropdown-menu::before,
+      .chatgpt-attach-menu::before,
+      .history-context-menu::before,
+      .voice-model-dropdown::before {
+        content: "";
+        position: absolute;
+        top: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 38px;
+        height: 4px;
+        border-radius: 9999px;
+        background: rgba(128, 128, 128, 0.42);
+      }
+      .model-dropdown-menu.open,
+      .chatgpt-attach-menu.open,
+      .history-context-menu.open,
+      .voice-model-dropdown.open {
+        animation: mobileSheetIn 0.24s var(--ease-spring) both !important;
+      }
+      .voice-model-dropdown {
+        box-shadow: 0 -10px 36px rgba(0, 0, 0, 0.48), 0 0 0 100vmax rgba(0, 0, 0, 0.48) !important;
+      }
       .chatgpt-sidebar {
         position: fixed;
         left: 0;
@@ -2310,16 +2319,17 @@
         padding-top: env(safe-area-inset-top, 0px);
         padding-bottom: env(safe-area-inset-bottom, 0px);
         overscroll-behavior-y: contain;
-        transform: translateX(-100%);
+        transform: translate3d(-100%, 0, 0);
         margin-left: 0 !important;
         box-shadow: none;
         will-change: transform;
       }
       .chatgpt-sidebar.open {
-        transform: translateX(0);
+        transform: translate3d(0, 0, 0);
       }
       .mobile-backdrop.active {
-        display: block;
+        visibility: visible;
+        pointer-events: auto;
         opacity: 1;
       }
       .chatgpt-scroll-area {
@@ -2387,6 +2397,9 @@
       #settingsDialogBackdrop.chatgpt-dialog-backdrop {
         padding: 0;
       }
+      #settingsDialogBackdrop.open .chatgpt-settings-dialog {
+        animation: mobileSheetIn 0.26s var(--ease-spring) both;
+      }
       .chatgpt-settings-dialog {
         width: 100%;
         max-width: 100%;
@@ -2396,6 +2409,7 @@
         padding-bottom: env(safe-area-inset-bottom, 0px);
         border-radius: 0;
         border: none;
+        box-shadow: none;
       }
     }
 
@@ -2470,24 +2484,24 @@
       }
     }
     html.is-android-app,
-    body.is-android-app {
+    html.is-android-app body {
       overscroll-behavior-y: contain;
       -webkit-tap-highlight-color: transparent;
     }
-    body.is-android-app .chatgpt-header,
-    body.is-android-app .chatgpt-sidebar,
-    body.is-android-app .mset-row,
-    body.is-android-app .setting-row,
-    body.is-android-app button,
-    body.is-android-app a {
+    html.is-android-app .chatgpt-header,
+    html.is-android-app .chatgpt-sidebar,
+    html.is-android-app .mset-row,
+    html.is-android-app .setting-row,
+    html.is-android-app button,
+    html.is-android-app a {
       -webkit-user-select: none;
       user-select: none;
       -webkit-touch-callout: none;
     }
-    body.is-android-app .markdown-body,
-    body.is-android-app .chatgpt-user-bubble,
-    body.is-android-app textarea,
-    body.is-android-app input {
+    html.is-android-app .assistant-markdown,
+    html.is-android-app .chatgpt-user-bubble,
+    html.is-android-app textarea,
+    html.is-android-app input {
       -webkit-user-select: text;
       user-select: text;
     }
@@ -2533,7 +2547,7 @@
       top: 3px;
       border-radius: 50%;
       background: #ffffff;
-      transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: transform 0.2s var(--ease-spring);
     }
     .alora-switch input:checked + .alora-switch-slider {
       background: var(--send-btn-active);
@@ -2937,6 +2951,7 @@
     }
     .history-context-menu.open {
       display: flex;
+      animation: popoverSpringIn 0.18s var(--ease-spring) both;
     }
     .ctx-menu-item {
       display: flex;
@@ -3172,6 +3187,7 @@
     }
     .model-retry-popover.open {
       display: flex;
+      animation: popoverSpringIn 0.18s var(--ease-spring) both;
     }
     .model-retry-opt {
       display: flex;
@@ -3223,7 +3239,7 @@
     .scroll-to-bottom-btn {
       position: absolute;
       left: 50%;
-      transform: translateX(-50%);
+      transform: translate3d(-50%, 0, 0);
       bottom: 126px;
       width: 34px;
       height: 34px;
@@ -3237,7 +3253,7 @@
       box-shadow: none;
       z-index: 40;
       cursor: pointer;
-      transition: transform 0.15s ease, background 0.15s ease;
+      transition: transform 0.18s var(--ease-spring), background 0.16s ease;
     }
     .scroll-to-bottom-btn.visible {
       display: inline-flex;
@@ -3347,6 +3363,8 @@
     .search-results-scroll {
       flex: 1;
       overflow-y: auto;
+      overscroll-behavior-y: contain;
+      -webkit-overflow-scrolling: touch;
       padding: 8px;
       display: flex;
       flex-direction: column;
@@ -3429,6 +3447,33 @@
       }
       .scroll-to-bottom-btn {
         bottom: 120px;
+      }
+    }
+
+    @view-transition {
+      navigation: auto;
+    }
+    ::view-transition-old(root) {
+      animation: 0.16s cubic-bezier(0.22, 1, 0.36, 1) both vtFadeOut;
+    }
+    ::view-transition-new(root) {
+      animation: 0.2s cubic-bezier(0.22, 1, 0.36, 1) both vtSlideIn;
+    }
+    @keyframes vtFadeOut {
+      from { opacity: 1; transform: translate3d(0, 0, 0); }
+      to { opacity: 0.92; transform: translate3d(-10px, 0, 0); }
+    }
+    @keyframes vtSlideIn {
+      from { opacity: 0; transform: translate3d(14px, 0, 0); }
+      to { opacity: 1; transform: translate3d(0, 0, 0); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
       }
     }
   </style>
@@ -3702,7 +3747,7 @@
               <span id="tempChatBannerText">Temporary Chat — This conversation won't appear in history</span>
             </div>
             <div class="welcome-hero-top">
-              <img src="/logo_icon_white.png" alt="Alokpath" class="chatgpt-brand-emblem" id="brandEmblemImg">
+              <img src="/logo_icon_white.png" alt="Alora" class="chatgpt-brand-emblem" id="brandEmblemImg">
               <h1 class="chatgpt-welcome-title" id="welcomeHeadline">What can I help with?</h1>
             </div>
 
@@ -4123,11 +4168,10 @@
 
           <div class="setting-row">
             <div>
-              <div class="setting-label-title" data-i18n="soundTitle">Sound effects</div>
-              <div class="setting-label-sub" data-i18n="soundSub">Play subtle tones on send and receive</div>
+              <div class="setting-label-title" data-i18n="soundTitle">Voice &amp; Speech</div>
+              <div class="setting-label-sub" data-i18n="soundSub">Customize voice language and speed</div>
             </div>
             <div style="display:flex; gap:8px;">
-              <button type="button" class="theme-opt-chip" id="soundToggleChip">Mute Audio</button>
               <button type="button" class="theme-opt-chip" id="customizeSpeechShortcutBtn" data-i18n="customizeBtn">Customize</button>
             </div>
           </div>
@@ -4665,10 +4709,8 @@
         themeEyecare: "Eye Care",
         langTitle: "Language",
         langSub: "Interface & dictation language",
-        soundTitle: "Sound effects",
-        soundSub: "Play subtle tones on send and receive",
-        soundMute: "Mute Audio",
-        soundEnable: "Enable Audio",
+        soundTitle: "Voice & Speech",
+        soundSub: "Customize voice language and speed",
         customizeBtn: "Customize",
         currentPlanTitle: "Current Plan",
         managePlanBtn: "Plan Details",
@@ -4869,10 +4911,8 @@
         themeEyecare: "আই কেয়ার",
         langTitle: "ভাষা",
         langSub: "ইন্টারফেস ও ভয়েস ভাষা",
-        soundTitle: "সাউন্ড এফেক্ট",
-        soundSub: "বার্তা পাঠানো ও পাওয়ার সময় হালকা শব্দ",
-        soundMute: "শব্দ বন্ধ করুন",
-        soundEnable: "শব্দ চালু করুন",
+        soundTitle: "ভয়েস ও স্পিচ",
+        soundSub: "ভয়েসের ভাষা ও গতি পরিবর্তন করুন",
         customizeBtn: "কাস্টমাইজ",
         currentPlanTitle: "বর্তমান প্ল্যান",
         managePlanBtn: "প্ল্যানের মেয়াদ ও বিবরণ",
@@ -4987,7 +5027,8 @@
     };
 
     let currentLanguage = localStorage.getItem(KEYS.LANG) || "en";
-    let isSoundMuted = localStorage.getItem(KEYS.SOUND) === "false";
+    const isSoundMuted = true;
+    try { localStorage.setItem(KEYS.SOUND, "false"); } catch (e) {}
     let selectedModel = localStorage.getItem(KEYS.SELECTED_MODEL) || "";
     let selectedVoiceModel = localStorage.getItem(KEYS.SELECTED_VOICE_MODEL) || "";
     let pendingRouteModel = null;
@@ -5356,10 +5397,82 @@
     let contextTargetSessionId = null;
     let currentSettingsTab = "general";
 
+    const CURRENT_SW_CACHE = "alora-ai-v1.0.0.24-5";
+
+    // Safely migrate & clean legacy stale storage keys and obsolete browser caches on startup
+    // while keeping 100% of active user data (tokens, chats, theme, lang, models, settings, voice prefs).
+    (function cleanupLegacyCachesAndStorage() {
+      try {
+        // Migrate legacy bare model key if present without overwriting active selection
+        const legacyModel = localStorage.getItem("alokpoth_model");
+        if (legacyModel) {
+          if (!localStorage.getItem(KEYS.SELECTED_MODEL)) {
+            localStorage.setItem(KEYS.SELECTED_MODEL, legacyModel);
+          }
+          localStorage.removeItem("alokpoth_model");
+        }
+
+        // Remove known obsolete/removed feature keys only
+        const staleExactKeys = new Set([
+          "alokpoth-theme",
+          "alokpoth_message_count",
+          "alokpoth_daily_usage",
+          "alokpoth_current_session_id",
+          "alokpoth_gemini_live_key",
+          "alokpoth_gemini_model",
+          "alora_gemini_live_model",
+          "alora_live_voice_mode",
+          "alokpath-theme-logo-dark",
+          "alokpath-theme-logo-light",
+          "alokpoth_legacy_models"
+        ]);
+        const keysToDelete = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (!k) continue;
+          if (
+            staleExactKeys.has(k) ||
+            /^(alokpoth|alora)_(gemini|live_voice_discover|legacy_)/i.test(k) ||
+            /^gemini_live_/i.test(k) ||
+            /^alokpath[-_]/i.test(k)
+          ) {
+            keysToDelete.push(k);
+          }
+        }
+        keysToDelete.forEach((k) => localStorage.removeItem(k));
+
+        // Prune stale sync ping older than 24h
+        const pingRaw = localStorage.getItem("alora_sync_ping");
+        if (pingRaw) {
+          try {
+            const pingObj = JSON.parse(pingRaw);
+            if (!pingObj || (Date.now() - Number(pingObj.ts || 0)) > 86400000) {
+              localStorage.removeItem("alora_sync_ping");
+            }
+          } catch {
+            localStorage.removeItem("alora_sync_ping");
+          }
+        }
+      } catch (e) {}
+
+      // Purge obsolete SW caches (alokpoth-* and older alora-* versions)
+      try {
+        if ("caches" in window) {
+          caches.keys().then((keys) => Promise.all(
+            keys
+              .filter((k) => k !== CURRENT_SW_CACHE && (/^alokpoth-/i.test(k) || /^alora-(?:ai-)?/i.test(k)))
+              .map((k) => caches.delete(k))
+          )).catch(() => {});
+        }
+      } catch (e) {}
+    })();
+
     // Register Service Worker cleanly (browser PWA only; native Android bundles assets locally)
     if ("serviceWorker" in navigator && !getNativeAndroidBridge()) {
       window.addEventListener("load", () => {
-        navigator.serviceWorker.register("/sw.js").catch(() => {});
+        navigator.serviceWorker.register("/sw.js", { updateViaCache: "none" })
+          .then((reg) => { try { reg.update().catch(() => {}); } catch (e) {} })
+          .catch(() => {});
       });
     }
 
@@ -5414,45 +5527,14 @@
       return c;
     }
 
-    // Sound Synthesizer
+    // UI sound effects disabled cleanly to keep interactions silent & native
     const soundEngine = {
-      _ctx: null,
-      getCtx() {
-        if (isSoundMuted) return null;
-        if (!this._ctx && (window.AudioContext || window.webkitAudioContext)) {
-          const AC = window.AudioContext || window.webkitAudioContext;
-          this._ctx = new AC();
-        }
-        if (this._ctx && this._ctx.state === "suspended") {
-          this._ctx.resume().catch(() => {});
-        }
-        return this._ctx;
-      },
-      play(freqStart, freqEnd, duration, type = "sine") {
-        if (isSoundMuted) return;
-        try {
-          const ctx = this.getCtx();
-          if (!ctx) return;
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.type = type;
-          const now = ctx.currentTime;
-          osc.frequency.setValueAtTime(freqStart, now);
-          if (freqEnd && freqEnd !== freqStart) {
-            osc.frequency.exponentialRampToValueAtTime(freqEnd, now + duration * 0.7);
-          }
-          gain.gain.setValueAtTime(0.12, now);
-          gain.gain.exponentialRampToValueAtTime(0.005, now + duration);
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.start(now);
-          osc.stop(now + duration);
-        } catch(e) {}
-      },
-      send() { this.play(440, 660, 0.08); },
-      receive() { this.play(800, 400, 0.08); },
-      click() { this.play(600, 300, 0.03); },
-      error() { this.play(260, 180, 0.16, "sawtooth"); }
+      getCtx() { return null; },
+      play() {},
+      send() {},
+      receive() {},
+      click() {},
+      error() {}
     };
 
     function showToast(msg) {
@@ -5491,7 +5573,7 @@
       document.documentElement.setAttribute("data-theme-mode", chosen);
       document.documentElement.setAttribute("data-theme", eff);
       localStorage.setItem(KEYS.THEME, chosen);
-      localStorage.setItem("alokpoth-theme", chosen);
+      try { localStorage.removeItem("alokpoth-theme"); } catch(e) {}
 
       let bgHex = "#000000";
       if (eff === "light") bgHex = "#ffffff";
@@ -5585,9 +5667,6 @@
         const key = el.getAttribute("data-i18n-placeholder");
         if (key) el.placeholder = t(key);
       });
-
-      const soundChip = document.getElementById("soundToggleChip");
-      if (soundChip) soundChip.textContent = isSoundMuted ? t("soundEnable") : t("soundMute");
 
       const loadEl = document.getElementById("modelLoadingPlaceholder");
       if (loadEl) loadEl.textContent = t("loadingModels");
@@ -7724,7 +7803,6 @@
         if (res.status === 403 || res.status === 429 || data.code === "PLAN_UPGRADE_REQUIRED" || data.code === "IMAGE_LIMIT_REACHED" || data.code === "MESSAGE_LIMIT_REACHED") {
           refreshUserFromServer();
           renderUpgradeCard(contentEl, data.error);
-          soundEngine.error();
           return null;
         }
         if (!res.ok || !data.success || !data.url) {
@@ -7743,14 +7821,12 @@
         messagesHistory.push(assistantMsg);
         persistSession();
         wireAssistantToolbar(toolbarEl, rowEl, assistantMsg, messagesHistory.length - 1);
-        soundEngine.receive();
         if (document.hidden && isNotifMasterEnabled() && isNotifResponseEnabled()) {
           sendAppNotification("Alora", currentLanguage === "bn" ? "আপনার তৈরি করা ছবি প্রস্তুত!" : "Your generated image is ready.", false);
         }
         return assistantMsg;
       } catch(err) {
         renderModelBusyCard(contentEl, t("busyTitle"), localizeServerError(err.message, "busyDesc"));
-        soundEngine.error();
         return null;
       } finally {
         isSending = false;
@@ -7953,7 +8029,6 @@
         isUserScrolledUp = false;
         scrollToBottom(true);
         updateComposerPosition();
-        soundEngine.send();
 
         const aIdx = messagesHistory.length;
         const { content, toolbar, row } = createAssistantRow(aIdx);
@@ -8009,7 +8084,6 @@
         isUserScrolledUp = false;
         scrollToBottom(true);
         updateComposerPosition();
-        soundEngine.send();
 
         if (!token) {
           const c = incrementGuestCount();
@@ -8106,7 +8180,6 @@
           }
           if (res.status === 403 || errData.code === "PLAN_UPGRADE_REQUIRED") {
             renderUpgradeCard(content, errData.error);
-            soundEngine.error();
             return;
           }
           if (res.status === 429 && (errData.code === "MESSAGE_LIMIT_REACHED" || errData.code === "IMAGE_LIMIT_REACHED" || errData.code === "VOICE_LIMIT_REACHED" || (errData.error && /সীমা শেষ|limit reached/i.test(errData.error)))) {
@@ -8120,7 +8193,6 @@
             applyGlobalQuotaLockUI();
             refreshUserFromServer();
             renderUpgradeCard(content, errData.error);
-            soundEngine.error();
             return;
           }
           const busyErr = new Error(localizeServerError(errData.error, "busyDesc") || `Server error (${res.status})`);
@@ -8230,7 +8302,6 @@
 
         persistSession();
         wireAssistantToolbar(toolbar, row, assistantMsg, finalIdx);
-        soundEngine.receive();
         if (document.hidden && isNotifMasterEnabled() && isNotifResponseEnabled()) {
           sendAppNotification("Alora", currentLanguage === "bn" ? "আপনার প্রশ্নের উত্তর প্রস্তুত!" : "Your response is ready.", false);
         }
@@ -8268,7 +8339,6 @@
             t("busyTitle"),
             isBusy ? t("busyDesc") : localizeServerError(err.message, "busyDesc")
           );
-          soundEngine.error();
         }
       } finally {
         isSending = false;
@@ -8851,15 +8921,6 @@
         if (!recording) {
           try { micBtn.blur(); } catch (e) {}
         }
-      }
-
-      function appendVoiceText(txt) {
-        const clean = String(txt || "").trim();
-        if (!clean || !input) return;
-        input.value += (input.value && !/\s$/.test(input.value) ? " " : "") + clean;
-        input.style.height = "auto";
-        input.style.height = `${Math.min(input.scrollHeight, 180)}px`;
-        updateSendButtonState();
       }
 
       let speechBaseText = "";
@@ -11007,17 +11068,6 @@
         showToast("Language changed to English");
       });
 
-      const soundChip = document.getElementById("soundToggleChip");
-      if (soundChip) {
-        soundChip.textContent = isSoundMuted ? t("soundEnable") : t("soundMute");
-        soundChip.addEventListener("click", () => {
-          isSoundMuted = !isSoundMuted;
-          localStorage.setItem(KEYS.SOUND, isSoundMuted ? "false" : "true");
-          soundChip.textContent = isSoundMuted ? t("soundEnable") : t("soundMute");
-          showToast(currentLanguage === "bn" ? (isSoundMuted ? "শব্দ বন্ধ করা হয়েছে" : "শব্দ চালু করা হয়েছে") : (isSoundMuted ? "Audio muted" : "Audio enabled"));
-        });
-      }
-
       document.getElementById("settingsSaveNameBtn")?.addEventListener("click", async () => {
         const token = getAuthToken();
         const inp = document.getElementById("settingsNameInput");
@@ -11417,42 +11467,118 @@
         }
       });
 
-      // Native-feel mobile edge-swipe drawer & soft keyboard viewport sync
+      // Native-feel 1:1 finger-tracking mobile drawer & soft keyboard viewport sync
       if ("ontouchstart" in window || navigator.maxTouchPoints > 0) {
-        let touchStartX = 0, touchStartY = 0, touchOriginOpen = false, edgeSwipeActive = false;
+        let touchStartX = 0, touchStartY = 0, lastDeltaX = 0;
+        let touchOriginOpen = false, edgeSwipeActive = false, horizontalLocked = false, isDragging = false;
+        let sbWidth = 278;
+
+        const resetDragStyles = (sb, bd) => {
+          if (sb) { sb.style.transition = ""; sb.style.transform = ""; }
+          if (bd) { bd.style.transition = ""; bd.style.opacity = ""; bd.style.visibility = ""; bd.style.pointerEvents = ""; }
+        };
+
         document.addEventListener("touchstart", (e) => {
           if (window.innerWidth > 768 || e.touches.length !== 1) return;
           const t = e.touches[0];
           touchStartX = t.clientX;
           touchStartY = t.clientY;
+          lastDeltaX = 0;
+          horizontalLocked = false;
+          isDragging = false;
           const sb = document.getElementById("sidebar");
+          sbWidth = sb ? Math.max(220, sb.getBoundingClientRect().width || 278) : 278;
           touchOriginOpen = !!(sb && sb.classList.contains("open"));
-          const anyModalOpen = document.querySelector(".chatgpt-dialog-backdrop.open");
+          const anyModalOpen = document.querySelector(".chatgpt-dialog-backdrop.open, .voice-mode-backdrop.open");
           if (anyModalOpen) { edgeSwipeActive = false; return; }
-          edgeSwipeActive = touchOriginOpen || (touchStartX <= 30 && !e.target.closest("pre, code, .chatgpt-composer-pill"));
+          edgeSwipeActive = touchOriginOpen || (touchStartX <= 32 && !e.target.closest("pre, code, .chatgpt-composer-pill"));
         }, { passive: true });
 
-        document.addEventListener("touchend", (e) => {
-          if (!edgeSwipeActive || window.innerWidth > 768 || e.changedTouches.length !== 1) return;
-          edgeSwipeActive = false;
-          const t = e.changedTouches[0];
+        document.addEventListener("touchmove", (e) => {
+          if (!edgeSwipeActive || window.innerWidth > 768 || e.touches.length !== 1) return;
+          const t = e.touches[0];
           const dx = t.clientX - touchStartX;
           const dy = Math.abs(t.clientY - touchStartY);
-          if (dy > 64) return;
-          if (!touchOriginOpen && dx > 58) {
+          if (!horizontalLocked) {
+            if (Math.abs(dx) < 10 && dy < 10) return;
+            if (dy > Math.abs(dx) * 1.15 || (!touchOriginOpen && dx < 0) || (touchOriginOpen && dx > 0)) {
+              edgeSwipeActive = false;
+              return;
+            }
+            horizontalLocked = true;
+            isDragging = true;
             const sb = document.getElementById("sidebar");
             const bd = document.getElementById("mobileBackdrop");
+            if (sb) sb.style.transition = "none";
+            if (bd) {
+              bd.style.transition = "none";
+              bd.style.visibility = "visible";
+              bd.style.pointerEvents = "auto";
+            }
+          }
+          lastDeltaX = dx;
+          const offsetPx = touchOriginOpen
+            ? Math.max(-sbWidth, Math.min(0, dx))
+            : Math.max(-sbWidth, Math.min(0, -sbWidth + dx));
+          const progress = Math.max(0, Math.min(1, 1 + offsetPx / sbWidth));
+          const sb = document.getElementById("sidebar");
+          const bd = document.getElementById("mobileBackdrop");
+          if (sb) sb.style.transform = `translate3d(${offsetPx.toFixed(1)}px, 0, 0)`;
+          if (bd) bd.style.opacity = progress.toFixed(3);
+        }, { passive: true });
+
+        const finishSwipe = (cancelled) => {
+          if (!edgeSwipeActive) return;
+          edgeSwipeActive = false;
+          const sb = document.getElementById("sidebar");
+          const bd = document.getElementById("mobileBackdrop");
+          if (!isDragging) { resetDragStyles(sb, bd); return; }
+          isDragging = false;
+          resetDragStyles(sb, bd);
+          if (cancelled) return;
+          const threshold = Math.min(72, sbWidth * 0.28);
+          if (!touchOriginOpen && lastDeltaX > threshold) {
             if (sb && !sb.classList.contains("open")) {
               sb.classList.add("open");
               bd?.classList.add("active");
               triggerHaptic("light");
             }
-          } else if (touchOriginOpen && dx < -54) {
+          } else if (touchOriginOpen && lastDeltaX < -threshold) {
             closeSidebar();
             triggerHaptic("light");
           }
-        }, { passive: true });
+        };
+
+        document.addEventListener("touchend", () => finishSwipe(false), { passive: true });
+        document.addEventListener("touchcancel", () => finishSwipe(true), { passive: true });
       }
+
+      // Global subtle tactile haptics across native interactive controls (silent, no audio)
+      let lastHapticAt = 0;
+      document.addEventListener("click", (e) => {
+        const now = Date.now();
+        if (now - lastHapticAt < 45) return;
+        const target = e.target && e.target.closest
+          ? e.target.closest("button, [role='button'], .mset-row, .chatgpt-history-item, .theme-opt-chip, .model-option-item, .attach-item-btn, .user-popover-item, .ctx-menu-item, .alora-voice-card, .alora-switch")
+          : null;
+        if (!target || target.disabled) return;
+        lastHapticAt = now;
+        triggerHaptic("light");
+      }, { passive: true });
+
+      // Apply downloaded background HTML update seamlessly if user is idle on new chat
+      window.onNativeLiveUpdateReady = function() {
+        try {
+          if (window.AloAI && typeof window.AloAI.applyPendingUpdateIfIdle === "function") {
+            window.AloAI.applyPendingUpdateIfIdle();
+          }
+        } catch (e) {}
+      };
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible" && window.AloAI && typeof window.AloAI.hasPendingUpdate === "function" && window.AloAI.hasPendingUpdate()) {
+          try { window.AloAI.applyPendingUpdateIfIdle(); } catch (e) {}
+        }
+      });
 
       if (window.visualViewport) {
         let lastHeight = window.visualViewport.height;

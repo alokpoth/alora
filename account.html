@@ -663,7 +663,31 @@
       .setting-row, .action-row, .flex-row { flex-wrap: wrap; gap: 10px; }
       .toast { white-space: normal; max-width: calc(100vw - 24px); text-align: center; }
     }
-</style>
+
+    /* alora-native-polish */
+    @view-transition { navigation: auto; }
+    ::view-transition-old(root) { animation: 0.16s cubic-bezier(0.22, 1, 0.36, 1) both aloraVtOut; }
+    ::view-transition-new(root) { animation: 0.2s cubic-bezier(0.22, 1, 0.36, 1) both aloraVtIn; }
+    @keyframes aloraVtOut { from { opacity: 1; transform: translate3d(0,0,0); } to { opacity: 0.92; transform: translate3d(-10px,0,0); } }
+    @keyframes aloraVtIn { from { opacity: 0; transform: translate3d(14px,0,0); } to { opacity: 1; transform: translate3d(0,0,0); } }
+    @keyframes aloraPageReveal { from { opacity: 0; transform: translate3d(0,6px,0); } to { opacity: 1; transform: translate3d(0,0,0); } }
+    html, body { overscroll-behavior-y: contain; -webkit-tap-highlight-color: transparent; }
+    body { animation: aloraPageReveal 0.18s cubic-bezier(0.22, 1, 0.36, 1) both; }
+    button, a, summary, input, select, textarea, [role="button"], .settings-row, .plan-card, .option-card, .pill-btn { touch-action: manipulation; }
+    html.is-android-app button, html.is-android-app a, html.is-android-app .settings-row, html.is-android-app label, html.is-android-app h1, html.is-android-app h2, html.is-android-app h3 { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+    html.is-android-app input, html.is-android-app textarea { -webkit-user-select: text; user-select: text; }
+    button:active, .settings-row:active, .option-card:active, .pill-btn:active, .back-btn:active, .page-back-btn:active, .plan-cta-btn:active {
+      transform: scale(0.972) translateZ(0);
+      transition: transform 0.1s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    @media (max-width: 768px) {
+      ::-webkit-scrollbar { display: none; width: 0; height: 0; }
+      * { scrollbar-width: none; -ms-overflow-style: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
 <script>
   (function() {
     if (window.location.pathname.endsWith('.html')) {
@@ -916,197 +940,6 @@
 
   </main>
 
-
-
-  <!-- MODAL: Account & Security -->
-  <div class="settings-modal-overlay" id="modalAccount">
-    <div class="settings-modal-card">
-      <div class="modal-head">
-        <span class="modal-title" id="accountModalTitle">Account & Security</span>
-        <button type="button" class="modal-close-btn" data-close="modalAccount">&times;</button>
-      </div>
-      <div style="margin-bottom: 18px; padding: 12px 14px; background: rgba(255,255,255,0.03); border-radius: 18px; border: 1px solid rgba(255,255,255,0.06);">
-        <div style="font-size: 0.82rem; color: var(--text-sub);">Signed in as</div>
-        <div style="font-size: 0.95rem; font-weight: 600; color: #fff; margin-top: 2px;" id="modalEmailDisplay">user@example.com</div>
-        <div style="display: flex; gap: 8px; margin-top: 8px;">
-          <span id="profileRoleBadge" style="font-size: 0.75rem; background: rgba(255,255,255,0.12); color: var(--text-main); padding: 2px 8px; border-radius: 999px; font-weight: 600;">Member</span>
-          <span id="profilePlanBadge" style="font-size: 0.75rem; background: rgba(255,255,255,0.1); color: #e4e4e7; padding: 2px 8px; border-radius: 999px; font-weight: 600;">Free Plan</span>
-        </div>
-      </div>
-      <div class="modal-title" style="font-size: 1rem; margin-bottom: 12px;" id="changePassTitle">Change Password</div>
-      <form id="changePassForm">
-        <div class="form-group">
-          <label class="form-label" id="curPassLabel" for="curPassInput">Current Password</label>
-          <input type="password" class="form-input" id="curPassInput" placeholder="Your current password" required autocomplete="current-password">
-        </div>
-        <div class="form-group">
-          <label class="form-label" id="newPassLabel" for="newPassInput">New Password</label>
-          <input type="password" class="form-input" id="newPassInput" placeholder="At least 6 characters" required autocomplete="new-password">
-        </div>
-        <div class="form-group">
-          <label class="form-label" id="cnfPassLabel" for="cnfPassInput">Confirm Password</label>
-          <input type="password" class="form-input" id="cnfPassInput" placeholder="Re-enter new password" required autocomplete="new-password">
-        </div>
-        <button type="submit" class="btn-submit" id="changePassSubmitBtn">Update Password</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- MODAL: Subscription Info -->
-  <div class="settings-modal-overlay" id="modalSubscription">
-    <div class="settings-modal-card">
-      <div class="modal-head">
-        <span class="modal-title" id="subscriptionModalTitle">Subscription</span>
-        <button type="button" class="modal-close-btn" data-close="modalSubscription">&times;</button>
-      </div>
-      <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 18px; text-align: center;">
-        <div style="font-size: 0.85rem; color: var(--text-sub);" id="currentPlanLabel">Active Subscription</div>
-        <div style="font-size: 1.8rem; font-weight: 800; color: #fff; margin: 4px 0 2px;" id="currentPlanTitleModal">Free Plan</div>
-        <div style="font-size: 0.88rem; color: var(--accent-blue);" id="currentPlanExpiry">Validity: Lifetime / No Expiry</div>
-      </div>
-      <button type="button" class="btn-submit" onclick="window.location.href='/pricing'">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-        <span>View All Plans & Upgrade</span>
-      </button>
-    </div>
-  </div>
-
-  <!-- MODAL: Usage & Quota -->
-  <div class="settings-modal-overlay" id="modalUsage">
-    <div class="settings-modal-card">
-      <div class="modal-head">
-        <span class="modal-title" id="usageModalTitle">Usage & Quota</span>
-        <button type="button" class="modal-close-btn" data-close="modalUsage">&times;</button>
-      </div>
-      <div class="quota-meter-box" id="accountQuotaCard">
-        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
-          <span style="font-weight: 600;" id="quotaCardTitle">Message Quota</span>
-          <span id="quotaCountDisplay"><strong id="quotaRemainingDigits">10</strong> / <span id="quotaTotalDigits">10</span> left</span>
-        </div>
-        <div class="account-quota-track" id="accountQuotaTrack">
-          <div class="account-quota-fill" id="accountQuotaFill"></div>
-        </div>
-        <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--text-sub);">
-          <span id="quotaResetLabel">Reset in:</span>
-          <span id="quotaLiveCountdown" style="font-weight: 600; color: #fff;">3h 00m</span>
-        </div>
-      </div>
-      <div class="quota-meter-box" id="accountImageQuotaCard" style="margin-top: 10px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
-          <span style="font-weight: 600; display: flex; align-items: center; gap: 6px;" id="imageQuotaCardTitle">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #71717a;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            <span id="imageQuotaTitleText">Image Generation Quota</span>
-          </span>
-          <span id="imageQuotaCountDisplay"><strong id="imageQuotaRemainingDigits">--</strong> / <span id="imageQuotaTotalDigits">--</span> left</span>
-        </div>
-        <div class="account-quota-track" id="accountImageQuotaTrack">
-          <div class="account-quota-fill" id="accountImageQuotaFill" style="background: var(--accent-blue);"></div>
-        </div>
-        <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--text-sub);">
-          <span id="imageQuotaResetLabel">Reset in:</span>
-          <span id="imageQuotaLiveCountdown" style="font-weight: 600; color: #fff;">Full quota available</span>
-        </div>
-      </div>
-      <div class="stats-2col">
-        <div class="stat-pill">
-          <div class="stat-val-num" id="usageCountVal">0</div>
-          <div class="stat-val-label" id="labelUsageSent">Sent this window</div>
-        </div>
-        <div class="stat-pill">
-          <div class="stat-val-num" id="usageRemainingVal">--</div>
-          <div class="stat-val-label" id="labelUsageRemaining">Messages left</div>
-        </div>
-        <div class="stat-pill">
-          <div class="stat-val-num" id="usageResetVal">3h</div>
-          <div class="stat-val-label" id="labelUsageReset">Refresh cycle</div>
-        </div>
-        <div class="stat-pill">
-          <div class="stat-val-num" id="totalMessagesSent">1</div>
-          <div class="stat-val-label" id="labelUsageSessions">Total sessions</div>
-        </div>
-      </div>
-      <div style="font-size: 0.8rem; color: var(--text-sub); margin-top: 14px; line-height: 1.5;" id="quotaWindowSubtext">
-        Fair usage quota automatically refreshes every cycle.
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL: Redeem Code -->
-  <div class="settings-modal-overlay" id="modalRedeem">
-    <div class="settings-modal-card">
-      <div class="modal-head">
-        <span class="modal-title" id="redeemCardTitle">Redeem Code</span>
-        <button type="button" class="modal-close-btn" data-close="modalRedeem">&times;</button>
-      </div>
-      <p style="font-size: 0.88rem; color: var(--text-sub); margin-bottom: 14px; line-height: 1.5;" id="redeemCardDesc">
-        Enter your promo voucher or redeem code to unlock Pro or Max plan privileges.
-      </p>
-      <div class="form-group">
-        <input type="text" class="form-input" id="redeemCodeInput" placeholder="e.g. ALO-PRO-XXXXXX or code" maxlength="50" style="text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">
-      </div>
-      <button type="button" class="btn-submit" id="claimRedeemBtn">Claim Code</button>
-    </div>
-  </div>
-
-  <!-- MODAL: Help Center -->
-  <div class="settings-modal-overlay" id="modalHelp">
-    <div class="settings-modal-card">
-      <div class="modal-head">
-        <span class="modal-title" id="helpModalTitle">Help & Support</span>
-        <button type="button" class="modal-close-btn" data-close="modalHelp">&times;</button>
-      </div>
-      <div style="display: flex; flex-direction: column; gap: 12px; font-size: 0.92rem; color: var(--text-dim); line-height: 1.6;">
-        <div>
-          <strong style="color: #fff;">Alora Platform</strong><br>
-          Native, intelligent AI assistant designed with privacy, multi-model failover, and high speed.
-        </div>
-        <div style="padding: 10px; background: rgba(255,255,255,0.03); border-radius: 18px;">
-          <div style="font-size: 0.82rem; color: var(--text-sub);">Support Contact</div>
-          <div style="color: var(--text-main); font-weight: 600;">x@zihan.uk</div>
-        </div>
-        <div style="padding: 10px; background: rgba(255,255,255,0.03); border-radius: 18px;">
-          <div style="font-size: 0.82rem; color: var(--text-sub);">Official Portal</div>
-          <div style="color: var(--text-main); font-weight: 600;">https://alora.zdots.net</div>
-        </div>
-        <div style="font-size: 0.8rem; color: var(--text-sub); text-align: center; margin-top: 8px;">
-          Version 2.0.0 (Native AMOLED Edition)
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL: Personalization -->
-  <div class="settings-modal-overlay" id="modalPersonalization">
-    <div class="settings-modal-card">
-      <div class="modal-head">
-        <span class="modal-title" id="personalizationModalTitle">Personalization</span>
-        <button type="button" class="modal-close-btn" data-close="modalPersonalization">&times;</button>
-      </div>
-      <p style="font-size: 0.9rem; color: var(--text-sub); line-height: 1.6;">
-        Alora remembers your preferred language (Bengali or English), model selection, sound effects, and haptic feedback across sessions.
-      </p>
-    </div>
-  </div>
-
-  <!-- Hidden cards container to satisfy plan checks if needed -->
-  <div class="hidden-state">
-    <div id="cardPlanFree"><button type="button"></button></div>
-    <div id="cardPlanPro"><button type="button"></button></div>
-    <div id="cardPlanMax"><button type="button"></button></div>
-    <div id="policyTitle"></div>
-    <div id="policyDesc"></div>
-    <div id="pageTitle"></div>
-    <div id="pageSubtitle"></div>
-    <div id="unlockCodeBtnText"></div>
-    <div id="topDownloadText"></div>
-    <div id="downloadAppTopBtn"></div>
-    <div id="themeToggleBtn"></div>
-    <div id="tabBtnProfile"><span></span></div>
-    <div id="tabBtnPlan"><span></span></div>
-    <div id="tabBtnUsage"><span></span></div>
-    <div id="tabBtnSecurity"><span></span></div>
-  </div>
-
   <script>
     // Handle URL tab redirects immediately (legacy support)
     (function handleTabRedirect() {
@@ -1131,7 +964,7 @@
             return;
           }
         }
-      } catch(e) { console.error('[Alokpoth]', e); }
+      } catch(e) { console.error('[Alora]', e); }
     })();
 
     // i18n Dictionary for Settings Page
@@ -1307,87 +1140,7 @@
 
       const langValText = document.getElementById("langValText");
       if (langValText) langValText.textContent = isEn ? "English" : "বাংলা";
-
-      // Form text updates
-      const changeNameTitle = document.getElementById("changeNameTitle");
-      if (changeNameTitle) changeNameTitle.textContent = d.changeNameTitle;
-      const editNameLabel = document.getElementById("editNameLabel");
-      if (editNameLabel) editNameLabel.textContent = d.editNameLabel;
-      const editNameInput = document.getElementById("editNameInput");
-      if (editNameInput) editNameInput.placeholder = d.editNamePlaceholder;
-      const saveNameBtn = document.getElementById("saveNameBtn");
-      if (saveNameBtn && !saveNameBtn.disabled) saveNameBtn.textContent = d.saveNameBtn;
-
-      const redeemCardTitle = document.getElementById("redeemCardTitle");
-      if (redeemCardTitle) redeemCardTitle.textContent = d.redeemCardTitle;
-      const redeemCardDesc = document.getElementById("redeemCardDesc");
-      if (redeemCardDesc) redeemCardDesc.textContent = d.redeemCardDesc;
-      const redeemCodeInput = document.getElementById("redeemCodeInput");
-      if (redeemCodeInput) redeemCodeInput.placeholder = d.redeemPlaceholder;
-      const claimRedeemBtn = document.getElementById("claimRedeemBtn");
-      if (claimRedeemBtn && !claimRedeemBtn.disabled) claimRedeemBtn.textContent = d.claimBtn;
-
-      const changePassTitle = document.getElementById("changePassTitle");
-      if (changePassTitle) changePassTitle.textContent = d.changePassTitle;
-      const curPassLabel = document.getElementById("curPassLabel");
-      if (curPassLabel) curPassLabel.textContent = d.curPassLabel;
-      const curPassInput = document.getElementById("curPassInput");
-      if (curPassInput) curPassInput.placeholder = d.curPassPlaceholder;
-      const newPassLabel = document.getElementById("newPassLabel");
-      if (newPassLabel) newPassLabel.textContent = d.newPassLabel;
-      const newPassInput = document.getElementById("newPassInput");
-      if (newPassInput) newPassInput.placeholder = d.newPassPlaceholder;
-      const cnfPassLabel = document.getElementById("cnfPassLabel");
-      if (cnfPassLabel) cnfPassLabel.textContent = d.cnfPassLabel;
-      const cnfPassInput = document.getElementById("cnfPassInput");
-      if (cnfPassInput) cnfPassInput.placeholder = d.cnfPassPlaceholder;
-      const changePassSubmitBtn = document.getElementById("changePassSubmitBtn");
-      if (changePassSubmitBtn && !changePassSubmitBtn.disabled) changePassSubmitBtn.textContent = d.changePassSubmitBtn;
-
-      // Usage modal labels
-      const usageModalTitle = document.getElementById("usageModalTitle");
-      if (usageModalTitle) usageModalTitle.textContent = d.usageModalTitle || (isEn ? "Usage & Quota" : "ব্যবহার ও কোটা");
-      const quotaCardTitle = document.getElementById("quotaCardTitle");
-      if (quotaCardTitle) quotaCardTitle.textContent = d.quotaCardTitle;
-      const imageQuotaTitleText = document.getElementById("imageQuotaTitleText");
-      if (imageQuotaTitleText) imageQuotaTitleText.textContent = isEn ? "Image Generation Quota" : "ছবি তৈরির কোটা";
-      const quotaResetLabel = document.getElementById("quotaResetLabel");
-      if (quotaResetLabel) quotaResetLabel.textContent = d.quotaResetLabel;
-      const imageQuotaResetLabel = document.getElementById("imageQuotaResetLabel");
-      if (imageQuotaResetLabel) imageQuotaResetLabel.textContent = d.quotaResetLabel;
-      const labelUsageSent = document.getElementById("labelUsageSent");
-      if (labelUsageSent) labelUsageSent.textContent = d.labelUsageSent;
-      const labelUsageRemaining = document.getElementById("labelUsageRemaining");
-      if (labelUsageRemaining) labelUsageRemaining.textContent = d.labelUsageRemaining;
-      const labelUsageReset = document.getElementById("labelUsageReset");
-      if (labelUsageReset) labelUsageReset.textContent = d.labelUsageReset;
-      const labelUsageSessions = document.getElementById("labelUsageSessions");
-      if (labelUsageSessions) labelUsageSessions.textContent = d.labelUsageSessions;
     }
-
-    // Modal Control Helpers
-    function openModal(id) {
-      const el = document.getElementById(id);
-      if (el) el.classList.add("open");
-    }
-
-    function closeModal(id) {
-      const el = document.getElementById(id);
-      if (el) el.classList.remove("open");
-    }
-
-    document.querySelectorAll(".settings-modal-overlay").forEach(overlay => {
-      overlay.addEventListener("click", (e) => {
-        if (e.target === overlay) overlay.classList.remove("open");
-      });
-    });
-
-    document.querySelectorAll(".modal-close-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const targetId = btn.getAttribute("data-close");
-        if (targetId) closeModal(targetId);
-      });
-    });
 
     // Row Click Listeners
     document.getElementById("rowEditProfile")?.addEventListener("click", () => { window.location.href = "/profile"; });
@@ -1407,7 +1160,7 @@
     // Language Toggle
     const toggleLanguage = () => {
       currentLanguage = (currentLanguage === "en" ? "bn" : "en");
-      try { localStorage.setItem("alokpoth_lang", currentLanguage); } catch(e) { console.error('[Alokpoth]', e); }
+      try { localStorage.setItem("alokpoth_lang", currentLanguage); } catch(e) { console.error('[Alora]', e); }
       applyAccountI18n();
       renderUserData();
       syncDynamicPlans();
@@ -1428,18 +1181,18 @@
         "alokpoth_window_usage", "alokpoth_image_window_usage", "alokpoth_usage_window"
       ];
       keysToPurge.forEach(k => {
-        try { localStorage.removeItem(k); } catch(e) { console.error('[Alokpoth]', e); }
+        try { localStorage.removeItem(k); } catch(e) { console.error('[Alora]', e); }
       });
       try {
         localStorage.setItem("alokpoth_current_plan", "Free");
         localStorage.setItem("alokpoth_plan", "Free");
         localStorage.setItem("alokpoth_user_plan", "Free");
-      } catch(e) { console.error('[Alokpoth]', e); }
+      } catch(e) { console.error('[Alora]', e); }
       if (window.AloAndroid && typeof window.AloAndroid.logout === "function") {
-        try { window.AloAndroid.logout(); return; } catch(e) { console.error('[Alokpoth]', e); }
+        try { window.AloAndroid.logout(); return; } catch(e) { console.error('[Alora]', e); }
       }
       if (window.AloAI && typeof window.AloAI.logout === "function") {
-        try { window.AloAI.logout(); return; } catch(e) { console.error('[Alokpoth]', e); }
+        try { window.AloAI.logout(); return; } catch(e) { console.error('[Alora]', e); }
       }
       showToast(d.logoutSuccess, "success");
       setTimeout(() => { window.location.href = "/"; }, 400);
@@ -1569,7 +1322,7 @@
           try { localStorage.setItem("alora_cached_plans", JSON.stringify(cacheObj)); } catch (e) {}
           renderUserData();
         }
-      } catch(e) { console.error('[Alokpoth]', e); }
+      } catch(e) { console.error('[Alora]', e); }
     }
 
     // User Data Server Sync
@@ -1608,11 +1361,11 @@
             try {
               localStorage.setItem("alokpoth_window_usage", JSON.stringify(data.usage));
               localStorage.setItem("alokpoth_usage_window", JSON.stringify(data.usage));
-            } catch(e) { console.error('[Alokpoth]', e); }
+            } catch(e) { console.error('[Alora]', e); }
           }
           renderUserData();
         }
-      } catch(e) { console.error('[Alokpoth]', e); }
+      } catch(e) { console.error('[Alora]', e); }
     }
 
     // Render User Data in UI
@@ -1729,7 +1482,7 @@
         try {
           usage = JSON.parse(localStorage.getItem("alokpoth_window_usage") || localStorage.getItem("alokpoth_usage_window") || "null");
           if (usage && usage.count) used = Number(usage.count) || 0;
-        } catch(e) { console.error('[Alokpoth]', e); }
+        } catch(e) { console.error('[Alora]', e); }
 
         const remaining = Math.max(0, limit - used);
 
@@ -1827,7 +1580,7 @@
         try {
           imgUsage = JSON.parse(localStorage.getItem("alokpoth_image_window_usage") || "null");
           if (imgUsage && imgUsage.count !== undefined) imgUsed = Number(imgUsage.count) || 0;
-        } catch(e) { console.error('[Alokpoth]', e); }
+        } catch(e) { console.error('[Alora]', e); }
 
         let imgMsRemaining = 0;
         if (imgUsage && imgUsage.resetAt) {
@@ -1896,7 +1649,7 @@
         const allSessions = localStorage.getItem("alokpoth_chat_sessions");
         let sessionCount = 1;
         if (allSessions) {
-          try { sessionCount = JSON.parse(allSessions).length || 1; } catch(e) { console.error('[Alokpoth]', e); }
+          try { sessionCount = JSON.parse(allSessions).length || 1; } catch(e) { console.error('[Alora]', e); }
         }
         const totalMsgEl = document.getElementById("totalMessagesSent");
         if (totalMsgEl) totalMsgEl.textContent = formatDigits(sessionCount);
@@ -1914,178 +1667,43 @@
     if (accountLiveTimerInterval) clearInterval(accountLiveTimerInterval);
     accountLiveTimerInterval = setInterval(() => {
       renderUserData();
-    }, 1000);
+    }, 60000);
+  </script>
 
-    // Profile Name Save (fallback)
-    document.getElementById("profileUpdateForm")?.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const d = I18N_ACCOUNT[currentLanguage] || I18N_ACCOUNT.en;
-      const editInp = document.getElementById("editNameInput");
-      const newName = editInp ? editInp.value.trim() : "";
-      if (!newName) {
-        showToast(d.nameEmpty, "error");
-        return;
-      }
-      const saveBtn = document.getElementById("saveNameBtn");
-      if (saveBtn) {
-        saveBtn.disabled = true;
-        saveBtn.textContent = d.savingName;
-      }
-
+  <script data-alora-native-bridge="1">
+    (function() {
       try {
-        const res = await fetch(`${API_BASE}/auth/profile`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-          },
-          body: JSON.stringify({ name: newName })
-        });
-        const data = await res.json();
-        if (res.ok && data.success) {
-          if (data.token) localStorage.setItem("alokpoth_token", data.token);
-          const userStr = localStorage.getItem("alokpoth_user");
-          if (userStr) {
-            try {
-              const user = JSON.parse(userStr);
-              user.name = newName;
-              localStorage.setItem("alokpoth_user", JSON.stringify(user));
-            } catch(e) { console.error('[Alokpoth]', e); }
-          }
-          renderUserData();
-          closeModal("modalEditProfile");
-          showToast(d.nameUpdated, "success");
-        } else {
-          showToast(data.error || "Failed to update profile", "error");
+        var isNative = !!(window.AloAI || window.AloAndroid || /AloraAndroid/i.test(navigator.userAgent || ""));
+        if (isNative) document.documentElement.classList.add("is-android-app");
+        function syncNativeBars() {
+          try {
+            var eff = document.documentElement.getAttribute("data-theme") || "dark";
+            var bgHex = eff === "light" ? "#ffffff" : (eff === "eyecare" ? "#f5eedc" : "#000000");
+            var meta = document.querySelector('meta[name="theme-color"]');
+            if (meta) meta.content = bgHex;
+            if (window.AloAI && typeof window.AloAI.setSystemBarsTheme === "function") {
+              window.AloAI.setSystemBarsTheme(eff === "light" || eff === "eyecare", bgHex);
+            }
+          } catch (e) {}
         }
-      } catch {
-        showToast(d.serverErr, "error");
-      } finally {
-        if (saveBtn) {
-          saveBtn.disabled = false;
-          saveBtn.textContent = d.saveNameBtn;
-        }
-      }
-    });
-
-    // Redeem Code Claim
-    document.getElementById("claimRedeemBtn")?.addEventListener("click", async () => {
-      const d = I18N_ACCOUNT[currentLanguage] || I18N_ACCOUNT.en;
-      const codeInput = document.getElementById("redeemCodeInput");
-      if (!codeInput) return;
-      const rawCode = codeInput.value.trim().toUpperCase();
-      if (!rawCode) {
-        showToast(d.codeEmpty, "error");
-        codeInput.focus();
-        return;
-      }
-
-      const claimBtn = document.getElementById("claimRedeemBtn");
-      claimBtn.disabled = true;
-      claimBtn.textContent = d.claimVerifying;
-
-      try {
-        const res = await fetch(`${API_BASE}/redeem/claim`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-          },
-          body: JSON.stringify({ code: rawCode })
-        });
-        const data = await res.json();
-        if (res.ok && data.success) {
-          const newPlan = data.plan_name || (data.subscription && data.subscription.plan_name) || "Pro";
-          const expiresAt = data.expires_at || (data.subscription && data.subscription.expires_at);
-
-          localStorage.setItem("alokpoth_current_plan", newPlan);
-          localStorage.setItem("alokpoth_user_plan", newPlan);
-          localStorage.setItem("alokpoth_plan", newPlan);
-          if (expiresAt) {
-            localStorage.setItem("alokpoth_plan_expiry", expiresAt);
-            localStorage.setItem("alokpoth_plan_expires_at", expiresAt);
-          }
-          if (data.token) localStorage.setItem("alokpoth_token", data.token);
-
-          const userStr = localStorage.getItem("alokpoth_user");
-          if (userStr) {
-            try {
-              const u = JSON.parse(userStr);
-              if (!u.subscription) u.subscription = {};
-              u.subscription.plan_name = newPlan;
-              u.subscription.expires_at = expiresAt;
-              u.plan = newPlan;
-              localStorage.setItem("alokpoth_user", JSON.stringify(u));
-            } catch(e) { console.error('[Alokpoth]', e); }
-          }
-
-          codeInput.value = "";
-          closeModal("modalRedeem");
-          renderUserData();
-          syncUserDataFromServer();
-          showToast(currentLanguage === "en" ? `Congratulations! '${newPlan}' plan is active.` : `অভিনন্দন! '${newPlan}' প্ল্যান সক্রিয় হয়েছে।`, "success");
-        } else {
-          showToast(data.error || "Invalid code", "error");
-        }
-      } catch {
-        showToast(d.serverErr, "error");
-      } finally {
-        claimBtn.disabled = false;
-        claimBtn.textContent = d.claimBtn;
-      }
-    });
-
-    // Password Change
-    document.getElementById("changePassForm")?.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const d = I18N_ACCOUNT[currentLanguage] || I18N_ACCOUNT.en;
-      const current_password = document.getElementById("curPassInput").value;
-      const new_password = document.getElementById("newPassInput").value;
-      const confirm_password = document.getElementById("cnfPassInput").value;
-
-      if (!current_password || !new_password || !confirm_password) {
-        showToast(d.passEmpty, "error");
-        return;
-      }
-      if (new_password !== confirm_password) {
-        showToast(d.passMismatch, "error");
-        return;
-      }
-      if (new_password.length < 6) {
-        showToast(d.passShort, "error");
-        return;
-      }
-
-      const submitBtn = document.getElementById("changePassSubmitBtn");
-      submitBtn.disabled = true;
-      submitBtn.textContent = d.passUpdating;
-
-      try {
-        const res = await fetch(`${API_BASE}/auth/change-password`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-          },
-          body: JSON.stringify({ current_password, new_password, confirm_password })
-        });
-        const data = await res.json();
-        if (res.ok && data.success) {
-          document.getElementById("curPassInput").value = "";
-          document.getElementById("newPassInput").value = "";
-          document.getElementById("cnfPassInput").value = "";
-          closeModal("modalAccount");
-          showToast(data.message || d.passSuccess, "success");
-        } else {
-          showToast(data.error || "Password update failed", "error");
-        }
-      } catch {
-        showToast(d.serverErr, "error");
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = d.changePassSubmitBtn;
-      }
-    });
+        syncNativeBars();
+        try {
+          new MutationObserver(syncNativeBars).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+        } catch (e) {}
+        var lastHaptic = 0;
+        document.addEventListener("click", function(ev) {
+          var now = Date.now();
+          if (now - lastHaptic < 45) return;
+          var target = ev.target && ev.target.closest ? ev.target.closest("button, a, [role='button'], .settings-row, .option-card, .pill-btn, .theme-btn, .avatar-item") : null;
+          if (!target || target.disabled) return;
+          lastHaptic = now;
+          try {
+            if (window.AloAI && typeof window.AloAI.haptic === "function") window.AloAI.haptic("light");
+            else if (navigator.vibrate) navigator.vibrate(8);
+          } catch (e) {}
+        }, { passive: true });
+      } catch (e) {}
+    })();
   </script>
 </body>
 </html>

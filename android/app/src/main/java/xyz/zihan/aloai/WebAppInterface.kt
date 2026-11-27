@@ -170,21 +170,31 @@ class WebAppInterface(private val activity: MainActivity) : TextToSpeech.OnInitL
 
     @JavascriptInterface
     fun vibrate(milliseconds: Long) {
+        val clampedMs = milliseconds.coerceIn(5L, 250L)
         try {
             val vibrator = getVibratorService()
             if (vibrator != null && vibrator.hasVibrator()) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    val effect = when {
-                        milliseconds <= 15 -> VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK)
-                        milliseconds <= 40 -> VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK)
-                        else -> VibrationEffect.createPredefined(VibrationEffect.EFFECT_HEAVY_CLICK)
+                when {
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> {
+                        val effectId = when {
+                            clampedMs <= 15L -> VibrationEffect.EFFECT_TICK
+                            clampedMs <= 40L -> VibrationEffect.EFFECT_CLICK
+                            else -> VibrationEffect.EFFECT_HEAVY_CLICK
+                        }
+                        val amp = when {
+                            clampedMs <= 15L -> 95
+                            clampedMs <= 40L -> 160
+                            else -> 220
+                        }
+                        vibratePredefinedOrOneShot(vibrator, effectId, clampedMs, amp)
                     }
-                    vibrator.vibrate(effect)
-                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    vibrator.vibrate(VibrationEffect.createOneShot(milliseconds, VibrationEffect.DEFAULT_AMPLITUDE))
-                } else {
-                    @Suppress("DEPRECATION")
-                    vibrator.vibrate(milliseconds)
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.O -> {
+                        vibrator.vibrate(VibrationEffect.createOneShot(clampedMs, VibrationEffect.DEFAULT_AMPLITUDE))
+                    }
+                    else -> {
+                        @Suppress("DEPRECATION")
+                        vibrator.vibrate(clampedMs)
+                    }
                 }
             }
         } catch (_: Exception) {}
@@ -195,22 +205,50 @@ class WebAppInterface(private val activity: MainActivity) : TextToSpeech.OnInitL
         try {
             val vibrator = getVibratorService() ?: return
             if (!vibrator.hasVibrator()) return
+            val kind = type?.trim()?.lowercase(Locale.US) ?: "light"
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                val effect = when (type?.lowercase()) {
-                    "light", "tick" -> VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK)
-                    "heavy" -> VibrationEffect.createPredefined(VibrationEffect.EFFECT_HEAVY_CLICK)
-                    else -> VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK)
+            when {
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> {
+                    val (effectId, fallbackMs, fallbackAmp) = when (kind) {
+                        "light", "tick", "selection" -> Triple(VibrationEffect.EFFECT_TICK, 10L, 95)
+                        "heavy", "error" -> Triple(VibrationEffect.EFFECT_HEAVY_CLICK, 28L, 220)
+                        "medium", "confirm", "success" -> Triple(VibrationEffect.EFFECT_CLICK, 18L, 160)
+                        else -> Triple(VibrationEffect.EFFECT_CLICK, 14L, 130)
+                    }
+                    vibratePredefinedOrOneShot(vibrator, effectId, fallbackMs, fallbackAmp)
                 }
-                vibrator.vibrate(effect)
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                val ms = if (type == "heavy") 50L else 20L
-                vibrator.vibrate(VibrationEffect.createOneShot(ms, VibrationEffect.DEFAULT_AMPLITUDE))
-            } else {
-                @Suppress("DEPRECATION")
-                vibrator.vibrate(25L)
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.O -> {
+                    val ms = when (kind) {
+                        "light", "tick", "selection" -> 10L
+                        "heavy", "error" -> 28L
+                        else -> 18L
+                    }
+                    vibrator.vibrate(VibrationEffect.createOneShot(ms, VibrationEffect.DEFAULT_AMPLITUDE))
+                }
+                else -> {
+                    val ms = if (kind == "heavy" || kind == "error") 28L else 14L
+                    @Suppress("DEPRECATION")
+                    vibrator.vibrate(ms)
+                }
             }
         } catch (_: Exception) {}
+    }
+
+    private fun vibratePredefinedOrOneShot(vibrator: Vibrator, effectId: Int, fallbackMs: Long, fallbackAmp: Int) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val supported = try {
+                vibrator.areAllEffectsSupported(effectId) == Vibrator.VIBRATION_EFFECT_SUPPORT_YES
+            } catch (_: Exception) {
+                false
+            }
+            if (supported) {
+                vibrator.vibrate(VibrationEffect.createPredefined(effectId))
+            } else {
+                vibrator.vibrate(VibrationEffect.createOneShot(fallbackMs, fallbackAmp.coerceIn(1, 255)))
+            }
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            vibrator.vibrate(VibrationEffect.createPredefined(effectId))
+        }
     }
 
     private fun getVibratorService(): Vibrator? {
@@ -411,4 +449,10 @@ class WebAppInterface(private val activity: MainActivity) : TextToSpeech.OnInitL
 
     @JavascriptInterface
     fun getAppVersion(): String = BuildConfig.VERSION_NAME
+
+    @JavascriptInterface
+    fun applyPendingUpdateIfIdle(): Boolean = activity.applyPendingUpdateIfIdleFromJs()
+
+    @JavascriptInterface
+    fun hasPendingUpdate(): Boolean = activity.hasPendingLiveUpdate()
 }

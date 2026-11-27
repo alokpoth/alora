@@ -63,21 +63,15 @@ index_recovered.html
 account_limits_view_*.png
 
 # Whitelist App Logo, Favicons, iOS & Android Res Icons
-!app logo.png
 !app_logo.png
-!app_logo_*.png
-!logo_*.png
+!logo_icon_white.png
+!logo_icon_black.png
+!logo_wordmark_white.png
 !favicon.png
 !favicon-*.png
 !apple-touch-icon.png
-!logo/
-!logo/**
-!alokpath*
-!alokpath_*.png
-!alokpath_*.svg
 !android/app/src/main/res/**/*.png
 !ios/**/*.png
-!Alokpoth.ipa
 !AloAI.apk
 !Alora.apk
 !Alora.ipa

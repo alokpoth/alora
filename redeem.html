@@ -458,7 +458,31 @@
       .code-input-wrap { flex-direction: column; align-items: stretch; gap: 8px; }
       .toast { white-space: normal; max-width: calc(100vw - 24px); text-align: center; }
     }
-</style>
+
+    /* alora-native-polish */
+    @view-transition { navigation: auto; }
+    ::view-transition-old(root) { animation: 0.16s cubic-bezier(0.22, 1, 0.36, 1) both aloraVtOut; }
+    ::view-transition-new(root) { animation: 0.2s cubic-bezier(0.22, 1, 0.36, 1) both aloraVtIn; }
+    @keyframes aloraVtOut { from { opacity: 1; transform: translate3d(0,0,0); } to { opacity: 0.92; transform: translate3d(-10px,0,0); } }
+    @keyframes aloraVtIn { from { opacity: 0; transform: translate3d(14px,0,0); } to { opacity: 1; transform: translate3d(0,0,0); } }
+    @keyframes aloraPageReveal { from { opacity: 0; transform: translate3d(0,6px,0); } to { opacity: 1; transform: translate3d(0,0,0); } }
+    html, body { overscroll-behavior-y: contain; -webkit-tap-highlight-color: transparent; }
+    body { animation: aloraPageReveal 0.18s cubic-bezier(0.22, 1, 0.36, 1) both; }
+    button, a, summary, input, select, textarea, [role="button"], .settings-row, .plan-card, .option-card, .pill-btn { touch-action: manipulation; }
+    html.is-android-app button, html.is-android-app a, html.is-android-app .settings-row, html.is-android-app label, html.is-android-app h1, html.is-android-app h2, html.is-android-app h3 { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+    html.is-android-app input, html.is-android-app textarea { -webkit-user-select: text; user-select: text; }
+    button:active, .settings-row:active, .option-card:active, .pill-btn:active, .back-btn:active, .page-back-btn:active, .plan-cta-btn:active {
+      transform: scale(0.972) translateZ(0);
+      transition: transform 0.1s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    @media (max-width: 768px) {
+      ::-webkit-scrollbar { display: none; width: 0; height: 0; }
+      * { scrollbar-width: none; -ms-overflow-style: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
 <script>
   (function() {
     if (window.location.pathname.endsWith('.html')) {
@@ -805,6 +829,42 @@
     });
 
     applyI18n();
+  </script>
+
+  <script data-alora-native-bridge="1">
+    (function() {
+      try {
+        var isNative = !!(window.AloAI || window.AloAndroid || /AloraAndroid/i.test(navigator.userAgent || ""));
+        if (isNative) document.documentElement.classList.add("is-android-app");
+        function syncNativeBars() {
+          try {
+            var eff = document.documentElement.getAttribute("data-theme") || "dark";
+            var bgHex = eff === "light" ? "#ffffff" : (eff === "eyecare" ? "#f5eedc" : "#000000");
+            var meta = document.querySelector('meta[name="theme-color"]');
+            if (meta) meta.content = bgHex;
+            if (window.AloAI && typeof window.AloAI.setSystemBarsTheme === "function") {
+              window.AloAI.setSystemBarsTheme(eff === "light" || eff === "eyecare", bgHex);
+            }
+          } catch (e) {}
+        }
+        syncNativeBars();
+        try {
+          new MutationObserver(syncNativeBars).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+        } catch (e) {}
+        var lastHaptic = 0;
+        document.addEventListener("click", function(ev) {
+          var now = Date.now();
+          if (now - lastHaptic < 45) return;
+          var target = ev.target && ev.target.closest ? ev.target.closest("button, a, [role='button'], .settings-row, .option-card, .pill-btn, .theme-btn, .avatar-item") : null;
+          if (!target || target.disabled) return;
+          lastHaptic = now;
+          try {
+            if (window.AloAI && typeof window.AloAI.haptic === "function") window.AloAI.haptic("light");
+            else if (navigator.vibrate) navigator.vibrate(8);
+          } catch (e) {}
+        }, { passive: true });
+      } catch (e) {}
+    })();
   </script>
 </body>
 </html>

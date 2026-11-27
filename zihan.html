@@ -27,6 +27,7 @@
       color-scheme: dark;
       --bg-main: #07080a;
       --bg-card: #0f1015;
+      --card-bg: #13141b;
       --bg-card-hover: #14151c;
       --bg-surface: #121319;
       --bg-surface-elevated: #161720;
@@ -35,9 +36,9 @@
       --border-focus: rgba(96, 165, 250, 0.55);
       --border-hover: rgba(255, 255, 255, 0.12);
       --surface: var(--bg-card);
-      --bg-surface: var(--bg-card);
       --text-main: #f4f4f6;
       --text-sub: #71717a;
+      --text-secondary: var(--text-sub);
       --text-muted: #52525b;
       --text-primary: var(--text-main);
       --accent: #3b82f6;
@@ -89,12 +90,12 @@
       background: rgba(255, 255, 255, 0.25) !important;
       color: inherit !important;
     }
-    button, input, select, textarea, .btn, .tab-btn, .btn-icon {
+    button, input, select, textarea, summary, .btn, .tab-btn, .btn-icon, .preset-chip, .plan-quick-chip, .plan-model-chip {
       touch-action: manipulation;
     }
     button:active, .btn:active, .tab-btn:active, .btn-icon:active {
-      transform: scale(0.968) !important;
-      transition: transform 0.1s cubic-bezier(0.16, 1, 0.3, 1) !important;
+      transform: scale(0.97) translateZ(0);
+      transition: transform 0.1s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     ::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -139,6 +140,11 @@
     }
     details.minimal-collapse[open] > summary::after { content: "−"; }
     details.minimal-collapse[open] > summary { margin-bottom: 12px; color: #e4e4e7; }
+    .minimal-collapse-body {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
 
     /* Modern Frosted Header */
     .navbar {
@@ -149,9 +155,9 @@
       gap: 10px;
       padding: 14px 28px;
       border-bottom: 1px solid var(--border-color);
-      background: rgba(7, 8, 10, 0.78);
-      backdrop-filter: blur(28px) saturate(190%);
-      -webkit-backdrop-filter: blur(28px) saturate(190%);
+      background: rgba(7, 8, 10, 0.88);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       position: sticky;
       top: 0;
       z-index: 100;
@@ -167,30 +173,6 @@
       gap: 9px;
       text-decoration: none;
       color: #fff;
-    }
-    .logo-icon-box {
-      width: 32px;
-      height: 32px;
-      border-radius: 9px;
-      background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-    }
-    .logo-icon-box svg {
-      width: 17px;
-      height: 17px;
-      color: #60a5fa;
-    }
-    .logo-text {
-      font-weight: 700;
-      font-size: 1.05rem;
-      letter-spacing: -0.02em;
-      background: linear-gradient(180deg, #ffffff 40%, #a1a1aa 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
     }
     .admin-badge {
       display: inline-flex;
@@ -247,12 +229,11 @@
       box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05), 0 4px 20px -2px rgba(0, 0, 0, 0.5);
       position: relative;
       overflow: hidden;
-      transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: border-color 0.2s ease, transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
     }
     .stat-card:hover {
       border-color: var(--border-hover);
       transform: translateY(-2px);
-      box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.08), 0 8px 28px -4px rgba(0, 0, 0, 0.65);
     }
     .stat-top-bar {
       display: flex;
@@ -265,11 +246,6 @@
       letter-spacing: 0.06em;
       color: var(--text-sub);
       font-weight: 600;
-    }
-    .stat-pill-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
     }
     .stat-val {
       font-size: 2.1rem;
@@ -308,7 +284,7 @@
       cursor: pointer;
       font-weight: 500;
       font-size: 0.81rem;
-      transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: color 0.16s ease, background-color 0.16s ease, border-color 0.16s ease, transform 0.1s cubic-bezier(0.22, 1, 0.36, 1);
       white-space: nowrap;
       display: inline-flex;
       align-items: center;
@@ -339,11 +315,11 @@
       display: flex;
       flex-direction: column;
       gap: 22px;
-      animation: sectionFade 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      animation: sectionFade 0.24s cubic-bezier(0.22, 1, 0.36, 1);
     }
     @keyframes sectionFade {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; transform: translate3d(0, 6px, 0); }
+      to { opacity: 1; transform: translate3d(0, 0, 0); }
     }
     .section-header-wrap {
       display: flex;
@@ -359,10 +335,6 @@
       align-items: center;
       gap: 8px;
     }
-    .section-subtitle {
-      font-size: 0.82rem;
-      color: var(--text-sub);
-    }
 
     /* Tables */
     .table-container {
@@ -370,6 +342,8 @@
       border-radius: var(--radius-md);
       background: rgba(0, 0, 0, 0.25);
       overflow-x: auto;
+      overscroll-behavior-y: contain;
+      -webkit-overflow-scrolling: touch;
     }
     table {
       width: 100%;
@@ -405,7 +379,7 @@
       font-size: 0.84rem;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease, transform 0.12s cubic-bezier(0.22, 1, 0.36, 1);
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -419,8 +393,6 @@
     }
     .btn-primary:hover {
       background: #e4e4e7;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 14px rgba(255, 255, 255, 0.22);
     }
     .btn-danger {
       background: var(--danger-bg);
@@ -598,9 +570,9 @@
     .login-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(7, 8, 10, 0.88);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
+      background: rgba(7, 8, 10, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       z-index: 1000;
       display: flex;
       align-items: center;
@@ -637,23 +609,22 @@
       max-width: 400px;
       padding: 13px 18px;
       border-radius: 14px;
-      background: rgba(15, 16, 21, 0.95);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
+      background: rgba(15, 16, 21, 0.96);
       border: 1px solid var(--border-color);
       color: #fff;
       font-size: 0.88rem;
       display: flex;
       align-items: center;
       gap: 12px;
-      box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.08), 0 14px 34px rgba(0, 0, 0, 0.7);
-      animation: toastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-      transition: all 0.3s ease;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
+      will-change: transform, opacity;
+      animation: toastSlideIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+      transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.25s ease;
     }
-    .toast.hide { opacity: 0; transform: translateX(40px); }
-    .toast-success { border-color: rgba(16, 185, 129, 0.4); background: rgba(6, 78, 59, 0.92); }
-    .toast-error { border-color: rgba(239, 68, 68, 0.4); background: rgba(127, 29, 29, 0.92); }
-    .toast-info { border-color: rgba(59, 130, 246, 0.4); background: rgba(30, 58, 138, 0.92); }
+    .toast.hide { opacity: 0; transform: translate3d(40px, 0, 0); }
+    .toast-success { border-color: rgba(16, 185, 129, 0.4); background: rgba(6, 78, 59, 0.95); }
+    .toast-error { border-color: rgba(239, 68, 68, 0.4); background: rgba(127, 29, 29, 0.95); }
+    .toast-info { border-color: rgba(59, 130, 246, 0.4); background: rgba(30, 58, 138, 0.95); }
     .toast-icon {
       font-size: 1.1rem;
       display: flex;
@@ -663,20 +634,21 @@
       height: 24px;
       border-radius: 50%;
       background: rgba(255, 255, 255, 0.15);
+      flex-shrink: 0;
     }
     .toast-msg { flex: 1; line-height: 1.4; }
     @keyframes toastSlideIn {
-      from { opacity: 0; transform: translateY(-15px) scale(0.95); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
+      from { opacity: 0; transform: translate3d(0, -14px, 0) scale(0.96); }
+      to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
     }
 
     /* Modal Dialogs (Confirm, Prompt, API Slot) */
     .custom-modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.8);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
+      background: rgba(0, 0, 0, 0.82);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       z-index: 99990;
       display: none;
       align-items: center;
@@ -685,7 +657,7 @@
     }
     .custom-modal-overlay.open {
       display: flex;
-      animation: modalFadeIn 0.22s ease-out;
+      animation: modalFadeIn 0.2s cubic-bezier(0.22, 1, 0.36, 1);
     }
     .custom-modal-card {
       background: var(--bg-surface-elevated);
@@ -697,8 +669,9 @@
       display: flex;
       flex-direction: column;
       gap: 16px;
-      box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.08), 0 24px 60px rgba(0, 0, 0, 0.85);
-      animation: modalPop 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.08), 0 20px 50px rgba(0, 0, 0, 0.78);
+      will-change: transform, opacity;
+      animation: modalPop 0.24s cubic-bezier(0.22, 1, 0.36, 1);
     }
     .custom-modal-header {
       display: flex;
@@ -718,6 +691,8 @@
       display: flex;
       flex-direction: column;
       gap: 12px;
+      overscroll-behavior-y: contain;
+      -webkit-overflow-scrolling: touch;
     }
     .custom-modal-footer {
       display: flex;
@@ -739,7 +714,7 @@
       font-size: 0.78rem;
       font-weight: 500;
       cursor: pointer;
-      transition: all 0.15s ease;
+      transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
     }
     .preset-chip:hover {
       background: rgba(255, 255, 255, 0.14);
@@ -748,8 +723,8 @@
     }
     @keyframes modalFadeIn { from { opacity: 0; } to { opacity: 1; } }
     @keyframes modalPop {
-      from { transform: scale(0.94); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
+      from { transform: translate3d(0, 8px, 0) scale(0.95); opacity: 0; }
+      to { transform: translate3d(0, 0, 0) scale(1); opacity: 1; }
     }
 
     /* ==========================================================================
@@ -763,7 +738,7 @@
       padding-right: env(safe-area-inset-right, 0px);
     }
 
-    html, body { max-width: 100%; overflow-x: hidden; }
+    html, body { max-width: 100%; overflow-x: hidden; overscroll-behavior-y: contain; }
 
     /* Clickable Plan Model Chips & Diagnostics */
     .plan-toolbar {
@@ -844,12 +819,21 @@
 
     @media (max-width: 768px) {
       .navbar {
+        background: rgba(7, 8, 10, 0.96);
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
         padding-top: max(14px, calc(env(safe-area-inset-top, 0px) + 8px));
         padding-bottom: 12px;
         padding-left: max(12px, env(safe-area-inset-left, 12px));
         padding-right: max(12px, env(safe-area-inset-right, 12px));
         flex-wrap: wrap;
         gap: 10px;
+      }
+      .login-overlay,
+      .custom-modal-overlay {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        background: rgba(7, 8, 10, 0.94);
       }
       .navbar > div:last-child {
         flex-wrap: wrap;
@@ -993,45 +977,9 @@
       .tab-btn { padding: 8px 10px; font-size: 0.78rem; }
     }
 
-    div[style*="overflow-x: auto"]::-webkit-scrollbar,
-    .tabs::-webkit-scrollbar,
-    .tabs-wrap::-webkit-scrollbar {
-      height: 4px;
-    }
-    div[style*="overflow-x: auto"]::-webkit-scrollbar-thumb,
-    .tabs::-webkit-scrollbar-thumb,
-    .tabs-wrap::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.15);
-      border-radius: 4px;
-    }
     /* Admin dashboard stays in OLED dark palette so header wordmark remains visible */
     .theme-wordmark {
       filter: none !important;
-    }
-
-  
-    
-    /* Clean Modern Controls (Vercel/Linear Design System) */
-    button, .btn, .btn-primary, .btn-secondary, .page-back-btn, .option-card, .btn-test-sound, .auth-btn, .download-btn, .plan-cta-btn, .plan-toggle-btn, .pill-btn, .tab-btn, .cta-btn, .submit-btn, .back-btn, .settings-back-link {
-      border-radius: 9px !important;
-      transform: none !important;
-      transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease !important;
-    }
-    button:hover, .btn:hover, .btn-primary:hover, .btn-secondary:hover, .page-back-btn:hover, .option-card:hover, .btn-test-sound:hover, .auth-btn:hover, .download-btn:hover {
-      transform: none !important;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18) !important;
-    }
-    button:active, .btn:active, .btn-primary:active, .btn-secondary:active, .page-back-btn:active, .option-card:active, .btn-test-sound:active, .auth-btn:active, .download-btn:active {
-      transform: scale(0.975) !important;
-    }
-    input, .auth-input, .custom-dialog-input, .search-input {
-      border-radius: 10px !important;
-    }
-    .card, .auth-card, .plan-card, .profile-card, .settings-group, .settings-card, .help-card, .modal-sheet, .custom-dialog-box, .content-card, .feature-card, .modal-box, .glass-panel, .info-box, .account-card {
-      border-radius: 14px !important;
-    }
-    .badge, .status-pill, .role-pill, .filter-chip {
-      border-radius: 6px !important;
     }
 
 </style>
@@ -1042,14 +990,6 @@
       if (clean === '/index') clean = '/';
       window.history.replaceState(null, '', clean + window.location.search + window.location.hash);
     }
-  })();
-</script>
-<script>
-  (function() {
-    try {
-      document.documentElement.setAttribute("data-theme-mode", "dark");
-      document.documentElement.setAttribute("data-theme", "dark");
-    } catch(e) {}
   })();
 </script>
 </head>
@@ -1134,9 +1074,9 @@
       <div class="custom-modal-header" style="display: flex; justify-content: space-between; align-items: center;">
         <div>
           <h3 class="custom-modal-title" id="modalModelTitle">৩টি API কনফিগারেশন</h3>
-          <p id="modalModelSubtitle" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">মডেলের অভ্যন্তরীণ ৩টি API স্লট সেট বা ক্লিয়ার করুন</p>
+          <p id="modalModelSubtitle" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">৩টি API স্লট সেট বা ক্লিয়ার করুন</p>
         </div>
-        <button type="button" class="btn-icon" id="modelApiModalCloseX" title="বন্ধ করুন" style="font-size: 1rem; width: 32px; height: 32px;">✕</button>
+        <button type="button" class="btn-icon" id="modelApiModalCloseX" title="বন্ধ করুন" style="font-size: 1.15rem; width: 32px; height: 32px;">&times;</button>
       </div>
       <div class="custom-modal-body" style="display: flex; flex-direction: column; gap: 16px; max-height: 70vh; overflow-y: auto; padding-right: 4px;">
         <input type="hidden" id="modalTargetModelId">
@@ -1145,11 +1085,11 @@
         <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px;">
           <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
             <div style="font-weight: 700; font-size: 0.9rem; color: #60a5fa; display: flex; align-items: center; gap: 6px;">
-              <span>API ১ (প্রধান / Primary API)</span>
+              <span>API ১ (Primary)</span>
             </div>
             <div style="display: flex; align-items: center; gap: 6px;">
-              <span class="tag" style="background: rgba(59,130,246,0.2); color: #93c5fd; border: 1px solid rgba(59,130,246,0.3); font-size: 0.7rem;">প্রথম অগ্রাধিকার</span>
-              <button type="button" class="btn btn-danger" style="padding: 4px 10px; font-size: 0.75rem;" onclick="clearModelModalSlot(1)">✕ Key ক্লিয়ার</button>
+              <span class="tag" style="background: rgba(59,130,246,0.2); color: #93c5fd; border: 1px solid rgba(59,130,246,0.3); font-size: 0.7rem;">Primary</span>
+              <button type="button" class="btn btn-danger" style="padding: 4px 10px; font-size: 0.75rem;" onclick="clearModelModalSlot(1)">&times; Key ক্লিয়ার</button>
             </div>
           </div>
           <div class="form-row">
@@ -1163,7 +1103,7 @@
             </div>
           </div>
           <div class="form-group">
-            <label style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span>API Key</span><span id="modalApiKey1SavedBadge" style="display:none;font-size:0.7rem;padding:2px 8px;border-radius:999px;background:rgba(34,197,94,0.14);color:#4ade80;border:1px solid rgba(34,197,94,0.3);">✓ Key সংরক্ষিত (লুকানো)</span></label>
+            <label style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span>API Key</span><span id="modalApiKey1SavedBadge" style="display:none;font-size:0.7rem;padding:2px 8px;border-radius:999px;background:rgba(34,197,94,0.14);color:#4ade80;border:1px solid rgba(34,197,94,0.3);">Saved</span></label>
             <div style="display: flex; gap: 6px;">
               <input type="password" id="modalApiKey1" placeholder="sk-..." style="flex: 1;">
               <button type="button" id="toggleModalApiKey1" class="btn-icon" title="API Key দেখুন" onclick="toggleKeyVisibility(this)"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
@@ -1175,11 +1115,10 @@
         <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div style="font-weight: 700; font-size: 0.9rem; color: #fbbf24; display: flex; align-items: center; gap: 6px;">
-              <span>API ২ (প্রথম ফলব্যাক / Fallback API 1)</span>
+              <span>API ২ (Fallback 1)</span>
             </div>
-            <button type="button" class="btn btn-danger" style="padding: 4px 10px; font-size: 0.75rem;" onclick="clearModelModalSlot(2)">✕ মুছুন / ক্লিয়ার</button>
+            <button type="button" class="btn btn-danger" style="padding: 4px 10px; font-size: 0.75rem;" onclick="clearModelModalSlot(2)">&times; ক্লিয়ার</button>
           </div>
-          <p style="font-size: 0.74rem; color: var(--text-muted); margin: -4px 0 2px 0;">API ১ ফেইল হলে মডেলটি স্বয়ংক্রিয়ভাবে এই API ব্যবহার করবে। URL/Key ফাঁকা রাখলে প্রধান API-এর সেটিংস বজায় থাকবে।</p>
           <div class="form-row">
             <div class="form-group" style="flex: 1; min-width: 180px;">
               <label>ফলব্যাক মডেল আইডি</label>
@@ -1191,7 +1130,7 @@
             </div>
           </div>
           <div class="form-group">
-            <label style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span>ফলব্যাক API Key (ঐচ্ছিক)</span><span id="modalApiKey2SavedBadge" style="display:none;font-size:0.7rem;padding:2px 8px;border-radius:999px;background:rgba(34,197,94,0.14);color:#4ade80;border:1px solid rgba(34,197,94,0.3);">✓ Key সংরক্ষিত (লুকানো)</span></label>
+            <label style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span>ফলব্যাক API Key (ঐচ্ছিক)</span><span id="modalApiKey2SavedBadge" style="display:none;font-size:0.7rem;padding:2px 8px;border-radius:999px;background:rgba(34,197,94,0.14);color:#4ade80;border:1px solid rgba(34,197,94,0.3);">Saved</span></label>
             <div style="display: flex; gap: 6px;">
               <input type="password" id="modalApiKey2" placeholder="gsk-... বা ফাঁকা রাখুন" style="flex: 1;">
               <button type="button" id="toggleModalApiKey2" class="btn-icon" title="API Key দেখুন" onclick="toggleKeyVisibility(this)"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
@@ -1203,11 +1142,10 @@
         <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div style="font-weight: 700; font-size: 0.9rem; color: #34d399; display: flex; align-items: center; gap: 6px;">
-              <span>API ৩ (দ্বিতীয় ফলব্যাক / Fallback API 2)</span>
+              <span>API ৩ (Fallback 2)</span>
             </div>
-            <button type="button" class="btn btn-danger" style="padding: 4px 10px; font-size: 0.75rem;" onclick="clearModelModalSlot(3)">✕ মুছুন / ক্লিয়ার</button>
+            <button type="button" class="btn btn-danger" style="padding: 4px 10px; font-size: 0.75rem;" onclick="clearModelModalSlot(3)">&times; ক্লিয়ার</button>
           </div>
-          <p style="font-size: 0.74rem; color: var(--text-muted); margin: -4px 0 2px 0;">API ১ এবং API ২ উভয়ই ব্যর্থ হলে এই API ৩ সক্রিয় হবে।</p>
           <div class="form-row">
             <div class="form-group" style="flex: 1; min-width: 180px;">
               <label>ফলব্যাক মডেল আইডি</label>
@@ -1219,7 +1157,7 @@
             </div>
           </div>
           <div class="form-group">
-            <label style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span>ফলব্যাক API Key (ঐচ্ছিক)</span><span id="modalApiKey3SavedBadge" style="display:none;font-size:0.7rem;padding:2px 8px;border-radius:999px;background:rgba(34,197,94,0.14);color:#4ade80;border:1px solid rgba(34,197,94,0.3);">✓ Key সংরক্ষিত (লুকানো)</span></label>
+            <label style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span>ফলব্যাক API Key (ঐচ্ছিক)</span><span id="modalApiKey3SavedBadge" style="display:none;font-size:0.7rem;padding:2px 8px;border-radius:999px;background:rgba(34,197,94,0.14);color:#4ade80;border:1px solid rgba(34,197,94,0.3);">Saved</span></label>
             <div style="display: flex; gap: 6px;">
               <input type="password" id="modalApiKey3" placeholder="sk-or-... বা ফাঁকা রাখুন" style="flex: 1;">
               <button type="button" id="toggleModalApiKey3" class="btn-icon" title="API Key দেখুন" onclick="toggleKeyVisibility(this)"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
@@ -1364,7 +1302,7 @@
     <!-- Section 3: Redeem Code Generator -->
     <div class="section" id="secRedeem">
       <div class="section-header-wrap">
-        <h3>রিডিম কোড</h3>
+        <h3 id="redeemSectionHeader">রিডিম কোড</h3>
       </div>
       <form id="generateCodeForm" class="form-row" style="background: var(--card-bg); padding: 16px; border-radius: 12px; border: 1px solid var(--border-color);">
         <div class="form-group">
@@ -1401,7 +1339,7 @@
           <form id="customCodeForm" class="form-row">
             <div class="form-group">
               <label>কাস্টম কোড</label>
-              <input type="text" id="customCodeWord" placeholder="ALOAI2026" maxlength="50" style="text-transform: uppercase;">
+              <input type="text" id="customCodeWord" placeholder="PRO30" maxlength="50" style="text-transform: uppercase;">
             </div>
             <div class="form-group">
               <label>প্ল্যান</label>
@@ -1456,7 +1394,7 @@
     <!-- Section 4: Model Settings -->
     <div class="section" id="secModels">
       <div class="section-header-wrap">
-        <h3>AI মডেল</h3>
+        <h3 id="modelsSectionHeader">AI মডেল</h3>
       </div>
 
       <!-- Add New Model Form -->
@@ -1658,14 +1596,14 @@
           <div class="form-group" style="flex: 1.2; min-width: 220px;">
             <label style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
               <span>API Key</span>
-              <span id="settingImageKeySavedBadge" style="display:none;font-size:0.7rem;padding:2px 8px;border-radius:999px;background:rgba(34,197,94,0.14);color:#4ade80;border:1px solid rgba(34,197,94,0.3);">✓ Saved</span>
+              <span id="settingImageKeySavedBadge" style="display:none;font-size:0.7rem;padding:2px 8px;border-radius:999px;background:rgba(34,197,94,0.14);color:#4ade80;border:1px solid rgba(34,197,94,0.3);">Saved</span>
             </label>
             <div style="display: flex; align-items: center; gap: 6px;">
               <div style="position: relative; display: flex; align-items: center; flex: 1;">
                 <input type="password" id="settingImageKey" placeholder="sk-... / vyce key" style="width: 100%; padding-right: 40px;">
                 <button type="button" id="toggleSettingImageKeyBtn" class="btn-icon" onclick="togglePasswordVisibility('settingImageKey')" style="position: absolute; right: 6px; background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px;" title="দেখান / লুকান"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
               </div>
-              <button type="button" id="clearSettingImageKeyBtn" class="btn btn-danger" style="display:none;padding:8px 10px;font-size:0.75rem;" onclick="clearSavedSystemKey('image')">✕ ক্লিয়ার</button>
+              <button type="button" id="clearSettingImageKeyBtn" class="btn btn-danger" style="display:none;padding:8px 10px;font-size:0.75rem;" onclick="clearSavedSystemKey('image')">&times; ক্লিয়ার</button>
             </div>
           </div>
         </div>
@@ -1706,14 +1644,14 @@
           <div class="form-group" style="flex: 1.3; min-width: 240px;">
             <label style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
               <span>API Key</span>
-              <span id="settingSearchKeySavedBadge" style="display:none;font-size:0.7rem;padding:2px 8px;border-radius:999px;background:rgba(34,197,94,0.14);color:#4ade80;border:1px solid rgba(34,197,94,0.3);">✓ Saved</span>
+              <span id="settingSearchKeySavedBadge" style="display:none;font-size:0.7rem;padding:2px 8px;border-radius:999px;background:rgba(34,197,94,0.14);color:#4ade80;border:1px solid rgba(34,197,94,0.3);">Saved</span>
             </label>
             <div style="display: flex; align-items: center; gap: 6px;">
               <div style="position: relative; display: flex; align-items: center; flex: 1;">
                 <input type="password" id="settingSearchKey" placeholder="tvly-... / serper key" style="width: 100%; padding-right: 40px;">
                 <button type="button" id="toggleSettingSearchKeyBtn" class="btn-icon" onclick="togglePasswordVisibility('settingSearchKey')" style="position: absolute; right: 6px; background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px;" title="দেখান / লুকান"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
               </div>
-              <button type="button" id="clearSettingSearchKeyBtn" class="btn btn-danger" style="display:none;padding:8px 10px;font-size:0.75rem;" onclick="clearSavedSystemKey('search')">✕ ক্লিয়ার</button>
+              <button type="button" id="clearSettingSearchKeyBtn" class="btn btn-danger" style="display:none;padding:8px 10px;font-size:0.75rem;" onclick="clearSavedSystemKey('search')">&times; ক্লিয়ার</button>
             </div>
           </div>
 
@@ -1769,14 +1707,14 @@
           <div class="form-group" style="flex: 1.2; min-width: 240px;">
             <label style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
               <span>STT / Voice API Key (ঐচ্ছিক)</span>
-              <span id="settingVoiceKeySavedBadge" style="display:none;font-size:0.7rem;padding:2px 8px;border-radius:999px;background:rgba(34,197,94,0.14);color:#4ade80;border:1px solid rgba(34,197,94,0.3);">✓ Saved</span>
+              <span id="settingVoiceKeySavedBadge" style="display:none;font-size:0.7rem;padding:2px 8px;border-radius:999px;background:rgba(34,197,94,0.14);color:#4ade80;border:1px solid rgba(34,197,94,0.3);">Saved</span>
             </label>
             <div style="display: flex; align-items: center; gap: 6px;">
               <div style="position: relative; display: flex; align-items: center; flex: 1;">
                 <input type="password" id="settingVoiceKey" placeholder="gsk_... (Groq Whisper STT) বা Custom Key" style="width: 100%; padding-right: 40px;">
                 <button type="button" id="toggleSettingVoiceKeyBtn" class="btn-icon" onclick="togglePasswordVisibility('settingVoiceKey')" style="position: absolute; right: 6px; background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px;" title="দেখান / লুকান"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
               </div>
-              <button type="button" id="clearSettingVoiceKeyBtn" class="btn btn-danger" style="display:none;padding:8px 10px;font-size:0.75rem;" onclick="clearSavedSystemKey('voice')">✕ ক্লিয়ার</button>
+              <button type="button" id="clearSettingVoiceKeyBtn" class="btn btn-danger" style="display:none;padding:8px 10px;font-size:0.75rem;" onclick="clearSavedSystemKey('voice')">&times; ক্লিয়ার</button>
             </div>
           </div>
         </div>
@@ -2119,9 +2057,13 @@
       const toast = document.createElement("div");
       toast.className = `toast toast-${type}`;
       
-      const icon = type === "success" ? "✓" : (type === "error" ? "✕" : "");
+      const iconSvg = type === "success"
+        ? `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
+        : (type === "error"
+          ? `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`
+          : `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`);
       toast.innerHTML = `
-        <div class="toast-icon">${icon}</div>
+        <div class="toast-icon">${iconSvg}</div>
         <div class="toast-msg">${escapeHtml(message)}</div>
       `;
       container.appendChild(toast);
@@ -2406,6 +2348,10 @@
       if (uHead) uHead.textContent = d.usersHeader;
       const pHead = document.getElementById("plansSectionHeader");
       if (pHead) pHead.textContent = d.plansHeader;
+      const rHead = document.getElementById("redeemSectionHeader");
+      if (rHead) rHead.textContent = d.redeemHeader;
+      const mHead = document.getElementById("modelsSectionHeader");
+      if (mHead) mHead.textContent = d.modelsHeader;
       const sHead = document.getElementById("settingsSectionHeader");
       if (sHead) sHead.textContent = d.settingsHeader;
       const spHead = document.getElementById("systemPromptSectionHeader");
@@ -2425,7 +2371,7 @@
     if (adminLangBtn) {
       adminLangBtn.addEventListener("click", () => {
         currentAdminLang = (currentAdminLang === "en" ? "bn" : "en");
-        try { localStorage.setItem("alokpoth_lang", currentAdminLang); } catch(e) { console.error('[Alokpoth]', e); }
+        try { localStorage.setItem("alokpoth_lang", currentAdminLang); } catch(e) { console.error('[Alora Admin]', e); }
         applyAdminI18n();
       });
     }
@@ -2618,13 +2564,13 @@
         const raw_url = tr.querySelector(".model-input-url")?.value.trim() || "";
         const base_url = normalizeApiUrl(raw_url);
         const api_key = tr.querySelector(".model-input-key")?.value.trim() || "";
-        const fallback_model_1 = tr.querySelector(".model-input-fb1")?.value || "";
-        const fallback_model_2 = tr.querySelector(".model-input-fb2")?.value || "";
+        const original = currentModelsList.find(m => (m.id === mId || m.model_id === mId)) || {};
+        const fallback_model_1 = original.fallback_model_1 || "";
+        const fallback_model_2 = original.fallback_model_2 || "";
         const category = tr.querySelector(".model-input-cat")?.value || "chat";
         const allowed_plans = Array.from(tr.querySelectorAll(".model-plan-cb:checked")).map(cb => cb.value);
         const { premium, efficient } = deriveLegacyModelFlags(allowed_plans);
 
-        const original = currentModelsList.find(m => (m.id === mId || m.model_id === mId)) || {};
         list.push({
           ...original,
           id: mId,
@@ -2651,7 +2597,7 @@
       inputEl.value = "";
       inputEl.type = "password";
       inputEl.dataset.keySaved = isSaved ? "true" : "false";
-      inputEl.placeholder = isSaved ? "✓ Key সেভড (লুকানো) — নতুন লিখলে আপডেট হবে" : (emptyPlaceholder || "sk-...");
+      inputEl.placeholder = isSaved ? "Key সেভড (লুকানো) — নতুন লিখলে আপডেট হবে" : (emptyPlaceholder || "sk-...");
       if (badgeEl) badgeEl.style.display = isSaved ? "inline-block" : "none";
       if (toggleBtn) toggleBtn.style.display = isSaved ? "none" : "inline-flex";
       if (!inputEl.dataset.writeOnlyBound) {
@@ -2846,7 +2792,7 @@
       tbody.innerHTML = "";
       currentModelsList = models || [];
       if (!models || models.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 36px 16px; color: var(--text-muted); font-size: 0.88rem;">কোনো AI মডেল যোগ করা নেই। উপরের "+ নতুন AI মডেল যোগ করুন" ফর্ম ব্যবহার করে মডেল যুক্ত করুন।</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 36px 16px; color: var(--text-muted); font-size: 0.88rem;">কোনো মডেল যোগ করা নেই।</td></tr>`;
         return;
       }
       models.forEach((m, idx) => {
@@ -2867,8 +2813,8 @@
             <div style="display: flex; align-items: center; justify-content: center; gap: 6px;">
               <span class="tag" style="font-weight: 700; font-size: 0.75rem; min-width: 32px; text-align: center; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; padding: 2px 5px;">#${idx + 1}</span>
               <div style="display: flex; gap: 2px;">
-                <button type="button" class="btn-icon btn-move" title="উপরে নিন" onclick="moveModel('${escapeHtml(mId)}', 'up')" ${isFirst ? 'disabled style="opacity: 0.25; cursor: not-allowed;"' : ''}>▲</button>
-                <button type="button" class="btn-icon btn-move" title="নিচে নিন" onclick="moveModel('${escapeHtml(mId)}', 'down')" ${isLast ? 'disabled style="opacity: 0.25; cursor: not-allowed;"' : ''}>▼</button>
+                <button type="button" class="btn-icon btn-move" title="উপরে নিন" onclick="moveModel('${escapeHtml(mId)}', 'up')" ${isFirst ? 'disabled style="opacity: 0.25; cursor: not-allowed;"' : ''}><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg></button>
+                <button type="button" class="btn-icon btn-move" title="নিচে নিন" onclick="moveModel('${escapeHtml(mId)}', 'down')" ${isLast ? 'disabled style="opacity: 0.25; cursor: not-allowed;"' : ''}><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
               </div>
             </div>
           </td>
@@ -2877,7 +2823,7 @@
           <td data-label="API URL" class="td-stack"><input type="text" class="model-input-url" value="${escapeHtml(m.base_url || '')}" placeholder="API Base URL" onblur="if(this.value.trim()) this.value = normalizeApiUrl(this.value)" style="width: 140px; padding: 6px 8px; font-size: 0.82rem;"></td>
           <td data-label="API Key" class="td-stack">
             <div style="display: flex; align-items: center; gap: 4px; width: 100%;">
-              <input type="password" class="model-input-key" value="" data-key-saved="${m.has_api_key ? 'true' : 'false'}" placeholder="${m.has_api_key ? '✓ সেভড (লুকানো)' : 'API Key'}" style="width: 105px; padding: 6px 8px; font-size: 0.82rem; flex: 1;">
+              <input type="password" class="model-input-key" value="" data-key-saved="${m.has_api_key ? 'true' : 'false'}" placeholder="${m.has_api_key ? 'সেভড (লুকানো)' : 'API Key'}" style="width: 105px; padding: 6px 8px; font-size: 0.82rem; flex: 1;">
               <button type="button" class="btn-icon model-key-eye-btn" style="padding: 4px 6px; font-size: 0.75rem; display: ${m.has_api_key ? 'none' : 'inline-flex'}; align-items: center; justify-content: center;" title="API Key দেখুন" onclick="toggleKeyVisibility(this)"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
             </div>
           </td>
@@ -3272,7 +3218,7 @@
             keyEl.value = "";
             keyEl.type = "password";
             keyEl.dataset.keySaved = "true";
-            keyEl.placeholder = "✓ সেভড (লুকানো)";
+            keyEl.placeholder = "সেভড (লুকানো)";
             if (eyeEl) eyeEl.style.display = "none";
           }
         } else {
@@ -3417,8 +3363,6 @@
       });
     }
 
-    // Legacy PRO/MAX checkboxes replaced by explicit 6-plan allowed_plans checkboxes above.
-
     let allLoadedUsers = [];
 
     function renderUserTable(users) {
@@ -3440,7 +3384,7 @@
         const safePlanTag = escapeHtml(plan).toLowerCase();
         const paySrc = u.subscription?.payment_source || '';
         const sourceBadge = paySrc === 'direct_payment'
-          ? ' <span class="tag" style="background:rgba(34,197,94,0.16);color:#4ade80;border:1px solid rgba(34,197,94,0.35);font-size:0.68rem;" title="Verified Direct Payment">✓ Paid</span>'
+          ? ' <span class="tag" style="background:rgba(34,197,94,0.16);color:#4ade80;border:1px solid rgba(34,197,94,0.35);font-size:0.68rem;" title="Verified Direct Payment">Paid</span>'
           : (paySrc === 'redeem_code'
             ? ' <span class="tag" style="background:rgba(139,92,246,0.14);color:#c084fc;border:1px solid rgba(139,92,246,0.3);font-size:0.66rem;">Voucher</span>'
             : (paySrc === 'trial' ? ' <span class="tag" style="background:rgba(59,130,246,0.14);color:#93c5fd;border:1px solid rgba(59,130,246,0.3);font-size:0.66rem;">Trial</span>' : ''));
@@ -3500,7 +3444,7 @@
 
       if (users.length > 200) {
         const tr = document.createElement("tr");
-        tr.innerHTML = `<td colspan="6" style="text-align: center; color: var(--text-secondary); font-size: 0.9rem;">আরো ${users.length - 200} জন ইউজার আছে। দেখতে সার্চ ব্যবহার করুন।</td>`;
+        tr.innerHTML = `<td colspan="6" style="text-align: center; color: var(--text-sub); font-size: 0.9rem;">আরো ${users.length - 200} জন ইউজার আছে। দেখতে সার্চ ব্যবহার করুন।</td>`;
         tbody.appendChild(tr);
       }
 
@@ -3752,14 +3696,14 @@
         noticeEl.style.display = 'block';
         if (fetchFailed) {
           noticeEl.className = 'plan-sync-notice';
-          noticeEl.textContent = `সার্ভার (${BACKEND_URL}) থেকে প্ল্যান লোড করা যায়নি (${errText})। নিচে ডিফল্ট ৬-টিয়ার প্রিভিউ দেখানো হচ্ছে — আগে লগইন ও সার্ভার সংযোগ নিশ্চিত করুন।`;
+          noticeEl.textContent = `সার্ভার থেকে প্ল্যান লোড হয়নি (${errText}) — ডিফল্ট প্রিভিউ দেখাচ্ছে।`;
         } else if (!hasAll6) {
           const gotNames = serverPlans.map(p => p.name).join(', ') || 'None';
           noticeEl.className = 'plan-sync-notice';
-          noticeEl.textContent = `লাইভ ব্যাকএন্ড (${BACKEND_URL}) এখনো পুরনো প্ল্যান তালিকা (${gotNames}) পাঠাচ্ছে। নতুন Guest/Go/Plus সেভ ও সিঙ্ক করতে Render সার্ভিসটি GitHub master ব্রাঞ্চ থেকে Deploy/Restart করুন।`;
+          noticeEl.textContent = `ব্যাকএন্ড প্ল্যান অসম্পূর্ণ (${gotNames})।`;
         } else {
           noticeEl.className = 'plan-sync-notice ok';
-          noticeEl.textContent = `সংযুক্ত ব্যাকএন্ড: ${BACKEND_URL} — সব ৬টি প্ল্যান টায়ার (Guest, Free, Go, Plus, Pro, Max) সম্পূর্ণ সিঙ্ক অবস্থায় আছে।`;
+          noticeEl.textContent = `সংযুক্ত (${BACKEND_URL}) — ৬টি প্ল্যান সিঙ্ক আছে।`;
         }
       }
 
@@ -3788,7 +3732,6 @@
         const msgLimitVal = (p.message_limit !== undefined && p.message_limit !== null && !isNaN(Number(p.message_limit))) ? Number(p.message_limit) : 10;
         const imageLimitVal = (p.image_limit !== undefined && p.image_limit !== null && !isNaN(Number(p.image_limit))) ? Number(p.image_limit) : 0;
         const voiceLimitVal = (p.voice_limit !== undefined && p.voice_limit !== null && !isNaN(Number(p.voice_limit))) ? Number(p.voice_limit) : 0;
-        const curVoiceMode = 'chat_as_live';
         const curVoiceMod = (typeof p.voice_model === 'string' && (!p.voice_model.trim().startsWith('__') || p.voice_model.trim() === '__chat_models__')) ? p.voice_model.trim() : '';
         const curImgMod = String(p.image_model || '').trim();
         const priceUsdVal = (p.price_usd !== undefined && p.price_usd !== null && !isNaN(Number(p.price_usd))) ? Number(p.price_usd) : 0;
@@ -3993,6 +3936,7 @@
 
     async function saveAllPlans(btn) {
       const names = renderedPlanNames.length ? renderedPlanNames : ADMIN_CANONICAL_PLANS.map(p => p.name);
+      const origText = btn ? btn.textContent : "";
       if (btn) {
         btn.disabled = true;
         btn.textContent = "সব সেভ হচ্ছে...";
@@ -4006,7 +3950,7 @@
       }
       if (btn) {
         btn.disabled = false;
-        btn.textContent = "সব প্ল্যান সেভ করুন";
+        btn.textContent = origText || "সব সেভ করুন";
       }
       if (failCount === 0) {
         showToast(`সবগুলো (${okCount}টি) প্ল্যান সফলভাবে আপডেট হয়েছে!`, "success");
@@ -4022,6 +3966,7 @@
       generateCodeFormEl.addEventListener("submit", async (e) => {
         e.preventDefault();
         const submitBtn = e.target.querySelector("button[type='submit']");
+        const origText = submitBtn ? submitBtn.textContent : "";
         const plan_name = document.getElementById("codePlan").value;
         const duration_days = document.getElementById("codeDuration").value;
         const count = document.getElementById("codeCount").value;
@@ -4049,7 +3994,7 @@
         } finally {
           if (submitBtn) {
             submitBtn.disabled = false;
-            submitBtn.textContent = "কোড জেনারেট করুন";
+            submitBtn.textContent = origText || "কোড বানান";
           }
         }
       });
@@ -4060,6 +4005,7 @@
       customCodeFormEl.addEventListener("submit", async function(e) {
         e.preventDefault();
         const submitBtn = e.target.querySelector("button[type='submit']");
+        const origText = submitBtn ? submitBtn.textContent : "";
         const custom_code = document.getElementById("customCodeWord").value;
         const plan_name = document.getElementById("customCodePlan").value;
         const duration_days = document.getElementById("customCodeDuration").value;
@@ -4094,7 +4040,7 @@
         } finally {
           if (submitBtn) {
             submitBtn.disabled = false;
-            submitBtn.textContent = "কাস্টম কোড তৈরি করুন";
+            submitBtn.textContent = origText || "তৈরি করুন";
           }
         }
       });
@@ -4245,7 +4191,7 @@
       el.value = "";
       el.type = "password";
       el.dataset.keySaved = isSaved ? "true" : "false";
-      el.placeholder = isSaved ? "✓ Key সংরক্ষিত (লুকানো) — নতুন লিখলে আপডেট" : emptyPlaceholder;
+      el.placeholder = isSaved ? "Key সংরক্ষিত (লুকানো) — নতুন লিখলে আপডেট" : emptyPlaceholder;
       if (badgeEl) badgeEl.style.display = isSaved ? "inline-block" : "none";
       if (clearBtn) clearBtn.style.display = isSaved ? "inline-flex" : "none";
       if (toggleBtn) toggleBtn.style.display = isSaved ? "none" : "inline-flex";
@@ -4744,6 +4690,7 @@
     const btnTestImageGen = document.getElementById("btnTestImageGen");
     if (btnTestImageGen) {
       btnTestImageGen.addEventListener("click", async () => {
+        const origText = btnTestImageGen.textContent;
         btnTestImageGen.disabled = true;
         btnTestImageGen.textContent = "ছবি তৈরি হচ্ছে...";
         const box = document.getElementById("imageTestResultBox");
@@ -4771,21 +4718,21 @@
               out.innerHTML = `
                 <div style="display:flex;flex-direction:column;gap:8px;">
                   <img src="${escapeHtml(data.url)}" alt="Test Image" style="max-width:240px;max-height:240px;border-radius:10px;object-fit:cover;border:1px solid rgba(255,255,255,0.15);box-shadow:0 4px 15px rgba(0,0,0,0.4);">
-                  <span style="font-size:0.75rem;color:#34d399;">✓ মডেল: ${escapeHtml(data.model || payload.model)}</span>
+                  <span style="font-size:0.75rem;color:#34d399;">মডেল: ${escapeHtml(data.model || payload.model)}</span>
                   <a href="${escapeHtml(data.url)}" target="_blank" rel="noopener noreferrer" style="font-size:0.78rem;color:#60a5fa;text-decoration:underline;">নতুন ট্যাবে বড় করে দেখুন</a>
                 </div>
               `;
             }
           } else {
             showToast(data.error || "টেস্ট ছবি তৈরিতে ত্রুটি", "error");
-            if (out) out.innerHTML = `<span style="color:#ef4444;font-size:0.85rem;">✕ ত্রুটি: ${escapeHtml(data.error || 'ছবি তৈরি ব্যর্থ হয়েছে')}</span>`;
+            if (out) out.innerHTML = `<span style="color:#ef4444;font-size:0.85rem;">ত্রুটি: ${escapeHtml(data.error || 'ছবি তৈরি ব্যর্থ হয়েছে')}</span>`;
           }
         } catch (err) {
           showToast("সার্ভার ত্রুটি", "error");
-          if (out) out.innerHTML = `<span style="color:#ef4444;font-size:0.85rem;">✕ ত্রুটি: ${escapeHtml(err.message)}</span>`;
+          if (out) out.innerHTML = `<span style="color:#ef4444;font-size:0.85rem;">ত্রুটি: ${escapeHtml(err.message)}</span>`;
         } finally {
           btnTestImageGen.disabled = false;
-          btnTestImageGen.textContent = "টেস্ট ছবি তৈরি করুন";
+          btnTestImageGen.textContent = origText || "টেস্ট";
         }
       });
     }
@@ -4794,6 +4741,7 @@
     const btnTestWebSearch = document.getElementById("btnTestWebSearch");
     if (btnTestWebSearch) {
       btnTestWebSearch.addEventListener("click", async () => {
+        const origText = btnTestWebSearch.textContent;
         btnTestWebSearch.disabled = true;
         btnTestWebSearch.textContent = "সার্চ হচ্ছে...";
         const box = document.getElementById("searchTestResultBox");
@@ -4820,14 +4768,14 @@
             if (out) out.textContent = `[প্রোভাইডার: ${data.provider || payload.provider}]\n\n${data.results}`;
           } else {
             showToast(data.error || "সার্চ করতে ত্রুটি হয়েছে", "error");
-            if (out) out.textContent = `✕ ত্রুটি: ${data.error || "ফলাফল পাওয়া যায়নি"}`;
+            if (out) out.textContent = `ত্রুটি: ${data.error || "ফলাফল পাওয়া যায়নি"}`;
           }
         } catch (err) {
           showToast("সার্ভার ত্রুটি", "error");
-          if (out) out.textContent = `✕ ত্রুটি: ${err.message}`;
+          if (out) out.textContent = `ত্রুটি: ${err.message}`;
         } finally {
           btnTestWebSearch.disabled = false;
-          btnTestWebSearch.textContent = "টেস্ট সার্চ করুন";
+          btnTestWebSearch.textContent = origText || "টেস্ট";
         }
       });
     }
@@ -4977,14 +4925,14 @@
             ? `৳${Number(o.payable_amount).toLocaleString("en-US")} BDT`
             : `${Number(o.payable_amount).toFixed(2)} USDT`;
           const statusPill = o.status === "approved"
-            ? `<span class="status-pill status-pill-active">✓ Approved</span>`
+            ? `<span class="status-pill status-pill-active">Approved</span>`
             : (o.status === "rejected"
-              ? `<span class="status-pill status-pill-blocked">✕ Rejected</span>`
+              ? `<span class="status-pill status-pill-blocked">Rejected</span>`
               : `<span class="status-pill" style="background:rgba(245,158,11,0.16);color:#fbbf24;border:1px solid rgba(245,158,11,0.35);">Pending</span>`);
           const actionBtns = o.status === "pending"
             ? `<div style="display:flex; gap:6px; flex-wrap:wrap;">
-                 <button type="button" class="btn btn-success" onclick="approvePaymentOrder('${escapeHtml(o.order_id)}', this)" style="padding:5px 10px;font-size:0.78rem;">✓ অনুমোদন</button>
-                 <button type="button" class="btn btn-danger" onclick="rejectPaymentOrder('${escapeHtml(o.order_id)}', this)" style="padding:5px 10px;font-size:0.78rem;">✕ বাতিল</button>
+                 <button type="button" class="btn btn-success" onclick="approvePaymentOrder('${escapeHtml(o.order_id)}', this)" style="padding:5px 10px;font-size:0.78rem;">অনুমোদন</button>
+                 <button type="button" class="btn btn-danger" onclick="rejectPaymentOrder('${escapeHtml(o.order_id)}', this)" style="padding:5px 10px;font-size:0.78rem;">বাতিল</button>
                </div>`
             : `<span style="font-size:0.76rem; color:var(--text-muted);">${escapeHtml(o.reviewed_by || "Reviewed")}</span>`;
           const tr = document.createElement("tr");
@@ -5005,7 +4953,7 @@
     }
 
     async function approvePaymentOrder(orderId, btn) {
-      const confirmed = await customConfirm(`অর্ডার ${orderId} অনুমোদন করে ইউজারের প্ল্যান + ✓ Paid ব্যাজ চালু করতে চান?`, "পেমেন্ট অনুমোদন");
+      const confirmed = await customConfirm(`অর্ডার ${orderId} অনুমোদন করে ইউজারের প্ল্যান ও Paid ব্যাজ চালু করতে চান?`, "পেমেন্ট অনুমোদন");
       if (!confirmed) return;
       if (btn) btn.disabled = true;
       try {

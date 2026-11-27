@@ -1,5 +1,5 @@
-/* Alora AI - Progressive Web App Service Worker (v1.0.0.24) */
-const CACHE_NAME = 'alora-ai-v1.0.0.24-4';
+/* Alora AI - Progressive Web App Service Worker (v1.0.0.24-5) */
+const CACHE_NAME = 'alora-ai-v1.0.0.24-5';
 
 // Core assets to pre-cache on service worker install
 const CORE_ASSETS = [
@@ -27,13 +27,7 @@ const CORE_ASSETS = [
   '/app_logo.png',
   '/logo_icon_white.png',
   '/logo_icon_black.png',
-  '/logo_wordmark_white.png',
-  '/logo_wordmark_black.png',
-  '/alokpath_logo_dark.png',
-  '/alokpath_logo_light.png',
-  '/alokpath_icon_dark.png',
-  '/alokpath_icon_light.png',
-  '/alokpath_logo.svg'
+  '/logo_wordmark_white.png'
 ];
 
 /**
@@ -65,20 +59,22 @@ self.addEventListener('install', (event) => {
 
 /**
  * Service Worker Activation
- * Cleans up previous cache versions and takes immediate control
+ * Purges all obsolete caches (alokpoth-* and older alora-* versions) and takes immediate control
  */
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((name) => {
-          if (name !== CACHE_NAME) {
-            console.log('[SW] Removing outdated cache:', name);
-            return caches.delete(name);
-          }
-        })
-      );
-    }).then(() => self.clients.claim())
+    caches.keys()
+      .then((cacheNames) =>
+        Promise.all(
+          cacheNames
+            .filter((name) => name !== CACHE_NAME)
+            .map((name) => {
+              console.log('[SW] Removing outdated cache:', name);
+              return caches.delete(name);
+            })
+        )
+      )
+      .then(() => self.clients.claim())
   );
 });
 
@@ -174,8 +170,6 @@ function isDynamicOrApiRequest(url, req) {
     path.startsWith('/payments/') ||
     path === '/search' ||
     path.startsWith('/search/') ||
-    path === '/admin' ||
-    path.startsWith('/admin/') ||
     path === '/zihan' ||
     path.startsWith('/zihan/') ||
     path === '/zihan.html' ||
@@ -262,7 +256,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   // 1. Dynamic & Non-GET Requests: Strictly Network-Only (NEVER CACHED)
-  // Page navigations are NOT API calls: routes like /redeem and /admin are real pages
+  // Page navigations are NOT API calls: routes like /redeem are real pages
   // (see vercel.json) and must reach the navigation branch below, even offline.
   const isPageNavigation = req.mode === 'navigate' ||
     req.destination === 'document' ||
@@ -283,7 +277,12 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(req)
         .then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
+          if (
+            networkResponse &&
+            networkResponse.ok &&
+            networkResponse.status === 200 &&
+            (networkResponse.type === 'basic' || networkResponse.type === 'default')
+          ) {
             const clone = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
           }

@@ -16,7 +16,7 @@
       ]
     },
     {
-      "source": "/(Alora\\.apk|AloAI\\.apk|Alora\\.ipa|Alokpoth\\.ipa)",
+      "source": "/(Alora\\.apk|AloAI\\.apk|Alora\\.ipa)",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=300, must-revalidate" }
       ]
