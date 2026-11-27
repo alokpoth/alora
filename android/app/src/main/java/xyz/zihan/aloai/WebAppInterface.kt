@@ -67,12 +67,18 @@ class WebAppInterface(private val activity: MainActivity) : TextToSpeech.OnInitL
     @JavascriptInterface
     fun speakTextWithStyle(text: String?, lang: String?, pitch: Float, rate: Float, voiceGender: String?): Boolean {
         if (text.isNullOrBlank()) return false
+        val stripped = text
+            .replace(Regex("[\\x{1F000}-\\x{1FAFF}\\x{2600}-\\x{27BF}\\x{2300}-\\x{23FF}\\x{2B00}-\\x{2BFF}\\uFE0E\\uFE0F\\u200D\\u20E3]+"), " ")
+            .replace(Regex("[\\uD83C-\\uDBFF][\\uDC00-\\uDFFF]"), " ")
+            .replace(Regex("\\s+"), " ")
+            .trim()
+        if (stripped.isBlank()) return false
         val engine = tts ?: return false
         if (!isTtsInitialized) return false
         return try {
-            val hasBengaliScript = Regex("[\\u0980-\\u09FF]").containsMatchIn(text)
-            val hasDevanagari = Regex("[\\u0900-\\u097F]").containsMatchIn(text)
-            val hasArabic = Regex("[\\u0600-\\u06FF]").containsMatchIn(text)
+            val hasBengaliScript = Regex("[\\u0980-\\u09FF]").containsMatchIn(stripped)
+            val hasDevanagari = Regex("[\\u0900-\\u097F]").containsMatchIn(stripped)
+            val hasArabic = Regex("[\\u0600-\\u06FF]").containsMatchIn(stripped)
             val cleanLang = lang?.trim()?.lowercase(Locale.US) ?: ""
             val candidates = when {
                 hasBengaliScript || cleanLang.startsWith("bn") -> listOf(Locale("bn", "BD"), Locale("bn", "IN"), Locale("bn"))
@@ -117,10 +123,10 @@ class WebAppInterface(private val activity: MainActivity) : TextToSpeech.OnInitL
             } catch (_: Exception) {}
 
             val speakResult = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                engine.speak(text, TextToSpeech.QUEUE_FLUSH, null, "AloAiTts_${System.currentTimeMillis()}")
+                engine.speak(stripped, TextToSpeech.QUEUE_FLUSH, null, "AloAiTts_${System.currentTimeMillis()}")
             } else {
                 @Suppress("DEPRECATION")
-                engine.speak(text, TextToSpeech.QUEUE_FLUSH, null)
+                engine.speak(stripped, TextToSpeech.QUEUE_FLUSH, null)
             }
             speakResult == TextToSpeech.SUCCESS
         } catch (_: Exception) {

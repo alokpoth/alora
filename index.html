@@ -8629,8 +8629,25 @@
       if (isSpeaking) playNextTtsChunk();
     };
 
+    function stripEmojisForSpeech(raw) {
+      let s = String(raw || "");
+      try {
+        s = s.replace(/[\u{1F1E6}-\u{1F1FF}]{2}/gu, " ")
+             .replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2300}-\u{23FF}\u{2B00}-\u{2BFF}\uFE0E\uFE0F\u200D\u20E3]/gu, " ");
+        s = s.replace(/\p{Extended_Pictographic}/gu, " ");
+      } catch (e) {
+        s = s.replace(/[\uD83C-\uDBFF][\uDC00-\uDFFF]/g, " ");
+      }
+      return s
+        .replace(/\*(?:smiles?|smiling|laughs?|laughing|chuckles?|waves?|winks?|nods?|sighs?|cries?|happy|sad|wink|emoji)\*/gi, " ")
+        .replace(/\[(?:emoji|smile|laugh|grin|heart|thumbs\s*up|clap|fire|rocket|wave|wink|sparkles?)[^\]]*\]/gi, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
     function splitMultilingualTtsChunks(cleanText) {
-      const rawSentences = String(cleanText || "")
+      const noEmojiText = stripEmojisForSpeech(cleanText);
+      const rawSentences = String(noEmojiText || "")
         .split(/(?<=[।.!?])\s+|\n+/)
         .map(s => s.trim())
         .filter(Boolean);
@@ -8655,13 +8672,13 @@
         return false;
       }
       stopReadAloud();
-      const clean = String(rawText || "")
-        .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
-        .replace(/```[\s\S]*?```/g, " code block ")
-        .replace(/https?:\/\/\S+/g, " ")
-        .replace(/[*_#>`~$]/g, " ")
-        .replace(/\s+/g, " ")
-        .trim();
+      const clean = stripEmojisForSpeech(
+        String(rawText || "")
+          .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
+          .replace(/```[\s\S]*?```/g, " code block ")
+          .replace(/https?:\/\/\S+/g, " ")
+          .replace(/[*_#>`~$]/g, " ")
+      );
       if (!clean) {
         if (typeof onFinished === "function") onFinished();
         return false;
@@ -9945,8 +9962,8 @@
           }
           applyGlobalQuotaLockUI();
 
-          const userSpoken = String(data.transcript || cleanPrompt || "").trim();
-          const finalReply = extractThoughts(String(data.reply || "")).cleanText.trim();
+          const userSpoken = stripEmojisForSpeech(String(data.transcript || cleanPrompt || ""));
+          const finalReply = stripEmojisForSpeech(extractThoughts(String(data.reply || "")).cleanText);
 
           if (userSpoken) {
             const userMsg = { role: "user", content: userSpoken, displayText: userSpoken };
@@ -10010,6 +10027,56 @@
         return handleVoiceTurnPayload({ rawText });
       }
 
+      async function convertBlobToWav16kBase64(blob) {
+        try {
+          const ab = await blob.arrayBuffer();
+          const AudioCtor = window.AudioContext || window.webkitAudioContext;
+          const OfflineCtor = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+          if (!AudioCtor || !OfflineCtor) return null;
+          const decCtx = audioCtx && audioCtx.state !== "closed" ? audioCtx : new AudioCtor();
+          const decoded = await decCtx.decodeAudioData(ab.slice(0));
+          const targetRate = 16000;
+          const targetLen = Math.max(1, Math.ceil(decoded.duration * targetRate));
+          const off = new OfflineCtor(1, targetLen, targetRate);
+          const src = off.createBufferSource();
+          src.buffer = decoded;
+          src.connect(off.destination);
+          src.start(0);
+          const rendered = await off.startRendering();
+          const ch = rendered.getChannelData(0);
+          const wavBuf = new ArrayBuffer(44 + ch.length * 2);
+          const view = new DataView(wavBuf);
+          const writeAscii = (offPos, str) => { for (let i = 0; i < str.length; i++) view.setUint8(offPos + i, str.charCodeAt(i)); };
+          writeAscii(0, "RIFF");
+          view.setUint32(4, 36 + ch.length * 2, true);
+          writeAscii(8, "WAVE");
+          writeAscii(12, "fmt ");
+          view.setUint32(16, 16, true);
+          view.setUint16(20, 1, true);
+          view.setUint16(22, 1, true);
+          view.setUint32(24, targetRate, true);
+          view.setUint32(28, targetRate * 2, true);
+          view.setUint16(32, 2, true);
+          view.setUint16(34, 16, true);
+          writeAscii(36, "data");
+          view.setUint32(40, ch.length * 2, true);
+          let pos = 44;
+          for (let i = 0; i < ch.length; i++) {
+            const sample = Math.max(-1, Math.min(1, ch[i]));
+            view.setInt16(pos, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+            pos += 2;
+          }
+          const bytes = new Uint8Array(wavBuf);
+          let bin = "";
+          for (let i = 0; i < bytes.length; i += 8192) {
+            bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 8192));
+          }
+          return btoa(bin);
+        } catch {
+          return null;
+        }
+      }
+
       async function startBrowserMediaRecorderCapture(lang) {
         await startDesktopMicMeter();
         if (!micStream || typeof MediaRecorder === "undefined") return false;
@@ -10027,9 +10094,10 @@
           const mr = chosenMime ? new MediaRecorder(micStream, { mimeType: chosenMime }) : new MediaRecorder(micStream);
           mediaRecorder = mr;
           let interimTranscript = "";
+          const langPrefMode = getVoiceInputLanguageSetting();
           const isMobileBrowser = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
-          // Avoid concurrent SpeechRecognition + getUserMedia mic collision on mobile browsers
-          if (Speech && !isMobileBrowser) {
+          // Run Web Speech interim preview only when explicit single language is selected on desktop
+          if (Speech && !isMobileBrowser && langPrefMode !== "auto") {
             try {
               webRec = new Speech();
               webRec.lang = lang;
@@ -10057,7 +10125,7 @@
           mr.ondataavailable = (ev) => {
             if (ev.data && ev.data.size > 0) mediaChunks.push(ev.data);
           };
-          mr.onstop = () => {
+          mr.onstop = async () => {
             const wasManualFlush = forceFlushCapture;
             forceFlushCapture = false;
             if (webRec) {
@@ -10072,6 +10140,15 @@
               scheduleListeningRestart(240);
               return;
             }
+            const wavB64 = await convertBlobToWav16kBase64(blob);
+            if (wavB64) {
+              handleVoiceTurnPayload({
+                audioBase64: wavB64,
+                mimeType: "audio/wav",
+                rawText: langPrefMode === "auto" ? "" : interimTranscript
+              });
+              return;
+            }
             const reader = new FileReader();
             reader.onloadend = () => {
               const resStr = typeof reader.result === "string" ? reader.result : "";
@@ -10079,7 +10156,7 @@
               handleVoiceTurnPayload({
                 audioBase64: b64,
                 mimeType: blob.type || "audio/webm",
-                rawText: interimTranscript
+                rawText: langPrefMode === "auto" ? "" : interimTranscript
               });
             };
             reader.readAsDataURL(blob);

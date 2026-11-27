@@ -82,9 +82,24 @@ function stripWavHeaderIfPresent(audioBuf) {
   return null;
 }
 
+function stripVoiceEmojis(raw) {
+  if (!raw || typeof raw !== 'string') return '';
+  let text = raw
+    .replace(/[\u{1F1E6}-\u{1F1FF}]{2}/gu, ' ')
+    .replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2300}-\u{23FF}\u{2B00}-\u{2BFF}\uFE0E\uFE0F\u200D\u20E3]/gu, ' ');
+  try {
+    text = text.replace(/\p{Extended_Pictographic}/gu, ' ');
+  } catch {}
+  return text
+    .replace(/(?:^|\s)[:;xX8=][-~']?[)DdpP(\/|\\*oO3<>]+(?=\s|$)/g, ' ')
+    .replace(/<3+|:\)+|;\)+|:\(+/g, ' ')
+    .replace(/\*(?:smiles?|smiling|laughs?|laughing|chuckles?|waves?|winks?|nods?|sighs?|cries?|happy|sad|wink|emoji)\*/gi, ' ')
+    .replace(/\[(?:emoji|smile|laugh|grin|heart|thumbs\s*up|clap|fire|rocket|wave|wink|sparkles?)[^\]]*\]/gi, ' ');
+}
+
 function cleanSpokenText(raw) {
   if (!raw || typeof raw !== 'string') return '';
-  return raw
+  return stripVoiceEmojis(raw)
     .replace(/<think>[\s\S]*?(?:<\/think>|$)/gi, '')
     .replace(/```[\s\S]*?```/g, ' ')
     .replace(/[*_#`~>]+/g, '')
@@ -94,11 +109,11 @@ function cleanSpokenText(raw) {
 
 function buildVoiceSystemInstruction(language, customPrompt = '') {
   const langRule = language === 'bn-BD'
-    ? 'Respond primarily in natural, warm conversational Bengali (বাংলা), smoothly mixing English terms only when natural.'
+    ? 'Respond in natural, warm conversational Bengali (বাংলা), mixing common English technical words only when natural.'
     : language === 'en-US'
-      ? 'Respond primarily in natural conversational English unless the user explicitly asks for Bengali or translation.'
-      : 'Detect the user\'s spoken language automatically (especially Bengali বাংলা and English). Reply naturally in the same language, and translate smoothly between Bengali and English whenever asked.';
-  const base = `You are Alora, a warm, intelligent, real-time bilingual voice assistant created by Alokpath. Keep spoken answers concise (1 to 4 natural sentences), clear, expressive, and free of markdown symbols, bullet lists, or code blocks unless specifically requested. ${langRule}`;
+      ? 'Respond in natural conversational English unless the user explicitly asks for Bengali or translation.'
+      : 'Automatically detect the user\'s spoken language (prioritizing Bengali বাংলা and English, including mixed Bengali-English). Reply in Bengali (বাংলা) whenever the user speaks Bengali or Banglish/mixed Bengali, and reply in English whenever the user speaks English. Translate smoothly whenever requested.';
+  const base = `You are Alora, a warm, intelligent, real-time bilingual voice assistant created by Alokpath. Keep spoken answers concise (1 to 4 natural sentences) and conversational. STRICT RULES: Never output any emojis, emoticons, symbols, or pictographs. Never mention, acknowledge, read aloud, or describe any emojis, facial icons, or sound tags. Write clean plain words only (no markdown, bullets, asterisks, or brackets). ${langRule}`;
   return customPrompt && String(customPrompt).trim() ? `${base}\n${String(customPrompt).trim()}` : base;
 }
 
@@ -258,6 +273,8 @@ async function resolveGeminiLiveModelCandidates(rawModelInput, apiKey) {
     .forEach(d => addCand(d.model_id));
 
   addCand('gemini-2.5-flash-native-audio-preview-12-2025');
+  addCand('gemini-2.5-flash-native-audio-preview-09-2025');
+  addCand('gemini-live-2.5-flash-preview');
   addCand('gemini-2.0-flash-live-001');
   return candidates;
 }
@@ -348,14 +365,18 @@ async function runGeminiLiveWebSocketTurn({ apiKey, modelName, audioBase64, mime
               if (priorTurns.length > 0) {
                 ws.send(JSON.stringify({ clientContent: { turns: priorTurns, turnComplete: false } }));
               }
+              const sRate = wavInfo.sampleRate || 16000;
+              const trailingSilence = Buffer.alloc(Math.round(sRate * 0.35) * 2, 0);
+              const paddedPcm = Buffer.concat([wavInfo.pcm, trailingSilence]);
               ws.send(JSON.stringify({
                 realtimeInput: {
                   mediaChunks: [{
-                    mimeType: `audio/pcm;rate=${wavInfo.sampleRate || 16000}`,
-                    data: wavInfo.pcm.toString('base64')
+                    mimeType: `audio/pcm;rate=${sRate}`,
+                    data: paddedPcm.toString('base64')
                   }]
                 }
               }));
+              ws.send(JSON.stringify({ realtimeInput: { audioStreamEnd: true } }));
               ws.send(JSON.stringify({ clientContent: { turnComplete: true } }));
               return;
             }
@@ -363,12 +384,13 @@ async function runGeminiLiveWebSocketTurn({ apiKey, modelName, audioBase64, mime
 
           const currentParts = [];
           if (audioBase64) {
-            currentParts.push({ inlineData: { mimeType: mimeType || 'audio/webm', data: audioBase64 } });
+            const cleanWsMime = String(mimeType || 'audio/webm').split(';')[0].trim() || 'audio/webm';
+            currentParts.push({ inlineData: { mimeType: cleanWsMime, data: audioBase64 } });
           }
           if (textPrompt) {
             currentParts.push({ text: textPrompt });
           } else if (audioBase64) {
-            currentParts.push({ text: 'Listen carefully to the user audio and reply naturally.' });
+            currentParts.push({ text: 'Listen to the Bengali or English speech and reply directly in plain spoken words without any emojis.' });
           }
           ws.send(JSON.stringify({
             clientContent: {
@@ -398,8 +420,9 @@ async function runGeminiLiveWebSocketTurn({ apiKey, modelName, audioBase64, mime
           if (sc.turnComplete) {
             const wavB64 = pcmChunks.length > 0 ? wrapPcm16ToWavBase64(Buffer.concat(pcmChunks), 24000, 1) : '';
             const finalReply = cleanSpokenText(outputTranscript || modelText);
+            const cleanIn = cleanSpokenText(inputTranscript) || cleanSpokenText(textPrompt || '');
             return finish(null, {
-              transcript: inputTranscript.trim() || textPrompt || '',
+              transcript: cleanIn,
               reply: finalReply || (wavB64 ? ' ' : ''),
               audio_base64: wavB64 || null,
               audio_mime: wavB64 ? 'audio/wav' : null,
@@ -421,7 +444,7 @@ async function runGeminiLiveWebSocketTurn({ apiKey, modelName, audioBase64, mime
         if (pcmChunks.length > 0 || outputTranscript || modelText) {
           const wavB64 = pcmChunks.length > 0 ? wrapPcm16ToWavBase64(Buffer.concat(pcmChunks), 24000, 1) : '';
           finish(null, {
-            transcript: inputTranscript.trim() || textPrompt || '',
+            transcript: cleanSpokenText(inputTranscript) || cleanSpokenText(textPrompt || ''),
             reply: cleanSpokenText(outputTranscript || modelText),
             audio_base64: wavB64 || null,
             audio_mime: wavB64 ? 'audio/wav' : null,
@@ -455,8 +478,8 @@ async function runGeminiMultimodalRestTurn({ apiKey, modelName, audioBase64, mim
     userParts.push({ inlineData: { mimeType: cleanMime, data: audioBase64 } });
     userParts.push({
       text: textPrompt
-        ? `User said: "${textPrompt}". Return JSON: {"transcript": "...", "reply": "..."} where reply is your spoken answer.`
-        : 'Transcribe what the user spoke in the audio accurately (preserving Bengali script if Bengali, English if English) and generate your spoken reply. Return strictly valid JSON: {"transcript": "<what user said>", "reply": "<your concise spoken response>"}'
+        ? `User said: "${textPrompt}". Return strictly valid JSON: {"transcript": "...", "reply": "..."} where reply is concise spoken plain text in the user's language (Bengali বাংলা or English) with ZERO emojis or emoji descriptions.`
+        : 'Transcribe what the user spoke in the audio accurately (detect Bengali বাংলা and English automatically, writing Bengali in Bengali Unicode script and English in Latin script; never output Hindi/Devanagari for Bengali speech) and generate your concise spoken reply in that same language. STRICT: Include ZERO emojis, emoticons, or descriptions of emojis/sounds. Return strictly valid JSON: {"transcript": "<what user said>", "reply": "<your concise spoken response>"}'
     });
   } else {
     userParts.push({ text: textPrompt });
@@ -488,7 +511,7 @@ async function runGeminiMultimodalRestTurn({ apiKey, modelName, audioBase64, mim
         try {
           const parsed = JSON.parse(rawText);
           return {
-            transcript: String(parsed.transcript || textPrompt || '').trim(),
+            transcript: cleanSpokenText(String(parsed.transcript || textPrompt || '')),
             reply: cleanSpokenText(parsed.reply || ''),
             audio_base64: null,
             audio_mime: null,
@@ -496,7 +519,7 @@ async function runGeminiMultimodalRestTurn({ apiKey, modelName, audioBase64, mim
           };
         } catch {
           return {
-            transcript: textPrompt || '',
+            transcript: cleanSpokenText(textPrompt || ''),
             reply: cleanSpokenText(rawText),
             audio_base64: null,
             audio_mime: null,
@@ -505,7 +528,7 @@ async function runGeminiMultimodalRestTurn({ apiKey, modelName, audioBase64, mim
         }
       }
       return {
-        transcript: textPrompt || '',
+        transcript: cleanSpokenText(textPrompt || ''),
         reply: cleanSpokenText(rawText),
         audio_base64: null,
         audio_mime: null,
@@ -570,8 +593,15 @@ async function transcribeAudioFallback({ audioBase64, mimeType, sttUrl, apiKey, 
         const form = new FormData();
         form.append('file', new Blob([audioBuf], { type: cleanMime }), `speech.${ext}`);
         form.append('model', cand.model);
-        if (language === 'bn-BD') form.append('language', 'bn');
-        else if (language === 'en-US') form.append('language', 'en');
+        if (language === 'bn-BD') {
+          form.append('language', 'bn');
+          form.append('prompt', 'বাংলা ভাষায় কথোপকথন। ইংরেজি শব্দ বাংলা বা ইংরেজি অক্ষরে। কোনো ইমোজি নয়।');
+        } else if (language === 'en-US') {
+          form.append('language', 'en');
+          form.append('prompt', 'Natural English conversation without emojis.');
+        } else {
+          form.append('prompt', 'বাংলা এবং ইংরেজি দ্বিভাষিক কথোপকথন। Bengali and English bilingual speech. No emojis.');
+        }
 
         const sttRes = await fetch(cand.url, {
           method: 'POST',
@@ -582,8 +612,9 @@ async function transcribeAudioFallback({ audioBase64, mimeType, sttUrl, apiKey, 
         if (sttRes.ok) {
           hadWorkingProvider = true;
           const sttJson = await sttRes.json();
-          if (sttJson && typeof sttJson.text === 'string' && sttJson.text.trim()) {
-            return { text: sttJson.text.trim(), status: 'ok' };
+          const sttClean = cleanSpokenText(sttJson && typeof sttJson.text === 'string' ? sttJson.text : '');
+          if (sttClean) {
+            return { text: sttClean, status: 'ok' };
           }
         } else {
           lastErrMsg = `STT HTTP ${sttRes.status}`;
@@ -608,7 +639,7 @@ async function transcribeAudioFallback({ audioBase64, mimeType, sttUrl, apiKey, 
               role: 'user',
               parts: [
                 { inlineData: { mimeType: cleanMime, data: audioBase64 } },
-                { text: 'Transcribe the exact spoken words from this audio (in Bengali script if Bengali, English if English). Return ONLY the transcript text and nothing else. If completely silent or noise only, return empty string.' }
+                { text: 'Transcribe the exact spoken words from this audio. Detect Bengali (বাংলা) and English automatically (including mixed Bengali-English sentences): write Bengali speech in Bengali Unicode script (বাংলা লিপি) and English words in Latin script. Never output Devanagari/Hindi for Bengali speech. STRICT: Output ONLY the plain spoken words — zero emojis, zero emoticons, zero descriptions of emojis or background sounds. If silent or noise only, return empty string.' }
               ]
             }]
           }),
@@ -617,7 +648,7 @@ async function transcribeAudioFallback({ audioBase64, mimeType, sttUrl, apiKey, 
         if (r.ok) {
           hadWorkingProvider = true;
           const d = await r.json();
-          const t = (d?.candidates?.[0]?.content?.parts?.[0]?.text || '').trim();
+          const t = cleanSpokenText(d?.candidates?.[0]?.content?.parts?.[0]?.text || '');
           if (t) return { text: t, status: 'ok' };
           break; // model confirmed audio was empty/silence
         } else {
@@ -919,7 +950,7 @@ async function executeVoiceTurn(payload = {}, forcedSettings = null, planObj = n
     let lastErr = null;
     for (const gKey of keys.slice(0, 3)) {
       const modCandidates = await resolveGeminiLiveModelCandidates(rawModelName, gKey);
-      for (const modCand of modCandidates.slice(0, 3)) {
+      for (const modCand of modCandidates.slice(0, 5)) {
         try {
           const wsResult = await runGeminiLiveWebSocketTurn({
             apiKey: gKey,
@@ -1444,12 +1475,21 @@ function attachVoiceLiveWebSocket(httpServer) {
           }
           const sc = msg.serverContent;
           if (sc) {
-            if (sc.inputTranscription?.text) sendClientJson({ type: 'input_transcript', text: sc.inputTranscription.text });
-            if (sc.outputTranscription?.text) sendClientJson({ type: 'output_transcript', text: sc.outputTranscription.text });
+            if (sc.inputTranscription?.text) {
+              const ctIn = cleanSpokenText(sc.inputTranscription.text);
+              if (ctIn) sendClientJson({ type: 'input_transcript', text: ctIn });
+            }
+            if (sc.outputTranscription?.text) {
+              const ctOut = cleanSpokenText(sc.outputTranscription.text);
+              if (ctOut) sendClientJson({ type: 'output_transcript', text: ctOut });
+            }
             if (sc.modelTurn?.parts) {
               for (const p of sc.modelTurn.parts) {
                 if (p.inlineData?.data) pcmTurnChunks.push(Buffer.from(p.inlineData.data, 'base64'));
-                if (p.text) sendClientJson({ type: 'text', text: p.text });
+                if (p.text) {
+                  const ctTxt = cleanSpokenText(p.text);
+                  if (ctTxt) sendClientJson({ type: 'text', text: ctTxt });
+                }
               }
             }
             if (sc.turnComplete) {
@@ -1553,5 +1593,7 @@ module.exports = {
   attachVoiceLiveWebSocket,
   wrapPcm16ToWavBase64,
   discoverGeminiLiveModels,
-  resolveGeminiVoiceKey
+  resolveGeminiVoiceKey,
+  cleanSpokenText,
+  buildVoiceSystemInstruction
 };

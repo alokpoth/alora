@@ -108,16 +108,37 @@
     ::-webkit-scrollbar-thumb:hover { background: rgba(160, 160, 160, 0.45) !important; }
 
     body {
-      background-color: var(--bg-main);
-      background-image: 
-        radial-gradient(ellipse 90% 55% at 50% -10%, rgba(59, 130, 246, 0.07), transparent 75%),
-        radial-gradient(circle at 10% 20%, rgba(139, 92, 246, 0.03), transparent 40%);
-      background-attachment: fixed;
+      background-color: #08090c;
       color: var(--text-main);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
+
+    details.minimal-collapse {
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.015);
+      padding: 10px 14px;
+    }
+    details.minimal-collapse > summary {
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #a1a1aa;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    details.minimal-collapse > summary::-webkit-details-marker { display: none; }
+    details.minimal-collapse > summary::after {
+      content: "+";
+      font-size: 1rem;
+      color: #71717a;
+    }
+    details.minimal-collapse[open] > summary::after { content: "−"; }
+    details.minimal-collapse[open] > summary { margin-bottom: 12px; color: #e4e4e7; }
 
     /* Modern Frosted Header */
     .navbar {
@@ -1255,39 +1276,24 @@
   <div class="container">
     <!-- Top Stats -->
     <div class="stats-grid">
-      <div class="stat-card" style="border-top: 2px solid #3b82f6;">
-        <div class="stat-top-bar">
-          <span class="stat-lbl">মোট ইউজার</span>
-          <span class="stat-pill-dot" style="background:#3b82f6; box-shadow:0 0 8px rgba(59,130,246,0.6);"></span>
-        </div>
+      <div class="stat-card">
+        <div class="stat-top-bar"><span class="stat-lbl">মোট ইউজার</span></div>
         <span class="stat-val" id="statTotalUsers">0</span>
       </div>
-      <div class="stat-card" style="border-top: 2px solid #8b5cf6;">
-        <div class="stat-top-bar">
-          <span class="stat-lbl">Pro সাবস্ক্রাইবার</span>
-          <span class="stat-pill-dot" style="background:#8b5cf6; box-shadow:0 0 8px rgba(139,92,246,0.6);"></span>
-        </div>
+      <div class="stat-card">
+        <div class="stat-top-bar"><span class="stat-lbl">Pro</span></div>
         <span class="stat-val" id="statProUsers">0</span>
       </div>
-      <div class="stat-card" style="border-top: 2px solid #f59e0b;">
-        <div class="stat-top-bar">
-          <span class="stat-lbl">Max সাবস্ক্রাইবার</span>
-          <span class="stat-pill-dot" style="background:#f59e0b; box-shadow:0 0 8px rgba(245,158,11,0.6);"></span>
-        </div>
+      <div class="stat-card">
+        <div class="stat-top-bar"><span class="stat-lbl">Max</span></div>
         <span class="stat-val" id="statMaxUsers">0</span>
       </div>
-      <div class="stat-card" style="border-top: 2px solid #10b981;">
-        <div class="stat-top-bar">
-          <span class="stat-lbl">রিডিম কোড (ব্যবহৃত / মোট)</span>
-          <span class="stat-pill-dot" style="background:#10b981; box-shadow:0 0 8px rgba(16,185,129,0.6);"></span>
-        </div>
+      <div class="stat-card">
+        <div class="stat-top-bar"><span class="stat-lbl">রিডিম কোড</span></div>
         <span class="stat-val" id="statRedeemCodes">0</span>
       </div>
-      <div class="stat-card" style="border-top: 2px solid #06b6d4;">
-        <div class="stat-top-bar">
-          <span class="stat-lbl">মোট মেসেজ হিস্ট্রি</span>
-          <span class="stat-pill-dot" style="background:#06b6d4; box-shadow:0 0 8px rgba(6,182,212,0.6);"></span>
-        </div>
+      <div class="stat-card">
+        <div class="stat-top-bar"><span class="stat-lbl">মোট মেসেজ</span></div>
         <span class="stat-val" id="statMessages">0</span>
       </div>
     </div>
@@ -1295,26 +1301,25 @@
     <!-- Navigation Tabs -->
     <div class="tabs-wrap">
       <div class="tabs">
-        <button type="button" class="tab-btn active" data-target="secUsers">ইউজার ম্যানেজমেন্ট</button>
-        <button type="button" class="tab-btn" data-target="secPlans">ডাইনামিক প্ল্যান সেটিংস</button>
+        <button type="button" class="tab-btn active" data-target="secUsers">ইউজার</button>
+        <button type="button" class="tab-btn" data-target="secPlans">প্ল্যান</button>
         <button type="button" class="tab-btn" data-target="secRedeem">রিডিম কোড</button>
-        <button type="button" class="tab-btn" data-target="secModels">মডেল সেটিংস</button>
-        <button type="button" class="tab-btn" data-target="secSettings">ইমেজ ও সার্চ API</button>
+        <button type="button" class="tab-btn" data-target="secModels">মডেল</button>
+        <button type="button" class="tab-btn" data-target="secSettings">API ও ভয়েস</button>
         <button type="button" class="tab-btn" data-target="secSystemPrompt">সিস্টেম প্রম্পট</button>
-        <button type="button" class="tab-btn" data-target="secFreeTrial">ফ্রি ট্রায়াল অফার</button>
-        <button type="button" class="tab-btn" data-target="secAppNotifyAds">নোটিফিকেশন ও অ্যাডস</button>
-        <button type="button" class="tab-btn" data-target="secBilling">পেমেন্ট, রেট ও অর্ডার</button>
+        <button type="button" class="tab-btn" data-target="secFreeTrial">ফ্রি ট্রায়াল</button>
+        <button type="button" class="tab-btn" data-target="secAppNotifyAds">নোটিফিকেশন</button>
+        <button type="button" class="tab-btn" data-target="secBilling">পেমেন্ট</button>
       </div>
     </div>
 
     <!-- Section 1: User Management -->
     <div class="section active" id="secUsers">
       <div class="section-header-wrap">
-        <h3 id="usersSectionHeader">ইউজার তালিকা ও অ্যাকাউন্ট নিয়ন্ত্রণ</h3>
-        <span class="section-subtitle">সকল ইউজারের তথ্য, সাবস্ক্রিপশন প্ল্যান ও অ্যাকাউন্টের অ্যাক্টিভ স্ট্যাটাস পরিচালনা করুন</span>
+        <h3 id="usersSectionHeader">ইউজার</h3>
       </div>
       <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-        <input type="text" id="userSearchInput" placeholder="ইউজার খুঁজুন (নাম, ইমেইল বা প্ল্যান)..." style="flex: 1; max-width: 360px;">
+        <input type="text" id="userSearchInput" placeholder="নাম, ইমেইল বা প্ল্যান দিয়ে খুঁজুন..." style="flex: 1; max-width: 340px;">
         <span id="userCountBadge" style="font-size: 0.8rem; color: var(--text-muted);"></span>
       </div>
       <div class="table-container">
@@ -1323,10 +1328,10 @@
             <tr>
               <th>নাম</th>
               <th>ইমেইল</th>
-              <th>বর্তমান প্ল্যান</th>
-              <th>সাবস্ক্রিপশন মেয়াদ</th>
+              <th>প্ল্যান</th>
+              <th>মেয়াদ</th>
               <th>স্ট্যাটাস</th>
-              <th>অ্যাকশন (প্ল্যান পরিবর্তন ও ব্লক)</th>
+              <th>অ্যাকশন</th>
             </tr>
           </thead>
           <tbody id="userTableBody">
@@ -1339,8 +1344,7 @@
     <!-- Section 2: Dynamic Plan Editing -->
     <div class="section" id="secPlans">
       <div class="section-header-wrap">
-        <h3 id="plansSectionHeader">ডাইনামিক সাবস্ক্রিপশন লিমিট ও রেট-লিমিটিং</h3>
-        <span class="section-subtitle">Guest, Free, Go, Plus, Pro এবং Max টায়ারের জন্য উইন্ডো লিমিট, মেসেজ, ইমেজ, মূল্য ও মডেল পরিবর্তন করুন</span>
+        <h3 id="plansSectionHeader">প্ল্যান সেটিংস</h3>
       </div>
       <div class="plan-toolbar">
         <div class="plan-quick-chips" id="planQuickChips">
@@ -1348,11 +1352,11 @@
         </div>
         <div class="plan-toolbar-actions" style="display:flex; gap:8px; flex-wrap:wrap;">
           <button type="button" class="btn btn-ghost" id="btnReloadPlans" onclick="loadPlans()">রিফ্রেশ</button>
-          <button type="button" class="btn btn-primary" id="btnSaveAllPlans" onclick="saveAllPlans(this)">সব প্ল্যান সেভ করুন</button>
+          <button type="button" class="btn btn-primary" id="btnSaveAllPlans" onclick="saveAllPlans(this)">সব সেভ করুন</button>
         </div>
       </div>
       <div id="plansSyncNotice" class="plan-sync-notice"></div>
-      <div id="planCardsContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+      <div id="planCardsContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
         <!-- Dynamically rendered -->
       </div>
     </div>
@@ -1360,17 +1364,16 @@
     <!-- Section 3: Redeem Code Generator -->
     <div class="section" id="secRedeem">
       <div class="section-header-wrap">
-        <h3>️ রিডিম কোড জেনারেটর (Single & Bulk)</h3>
-        <span class="section-subtitle">একক বা বাল্ক রিডিম ভাউচার তৈরি করুন যা ইউজাররা ব্যবহার করে তাৎক্ষণিক আপগ্রেড করতে পারবে</span>
+        <h3>রিডিম কোড</h3>
       </div>
-      <form id="generateCodeForm" class="form-row" style="background: rgba(255,255,255,0.02); padding: 18px; border-radius: 14px; border: 1px solid var(--border-color);">
+      <form id="generateCodeForm" class="form-row" style="background: var(--card-bg); padding: 16px; border-radius: 12px; border: 1px solid var(--border-color);">
         <div class="form-group">
-          <label>প্ল্যান বেছে নিন</label>
+          <label>প্ল্যান</label>
           <select id="codePlan">
-            <option value="Go">Go Plan</option>
-            <option value="Plus">Plus Plan</option>
-            <option value="Pro" selected>Pro Plan</option>
-            <option value="Max">Max Plan</option>
+            <option value="Go">Go</option>
+            <option value="Plus">Plus</option>
+            <option value="Pro" selected>Pro</option>
+            <option value="Max">Max</option>
           </select>
         </div>
         <div class="form-group">
@@ -1379,54 +1382,57 @@
             <option value="1">1 দিন</option>
             <option value="3">3 দিন</option>
             <option value="7">7 দিন</option>
-            <option value="30" selected>1 মাস (30 দিন)</option>
-            <option value="90">3 মাস (90 দিন)</option>
-            <option value="180">6 মাস (180 দিন)</option>
-            <option value="365">1 বছর (365 দিন)</option>
+            <option value="30" selected>30 দিন</option>
+            <option value="90">90 দিন</option>
+            <option value="180">180 দিন</option>
+            <option value="365">365 দিন</option>
           </select>
         </div>
         <div class="form-group">
-          <label>সংখ্যা (কয়টি কোড বানাবেন)</label>
+          <label>সংখ্যা</label>
           <input type="number" id="codeCount" value="1" min="1" max="100">
         </div>
-        <button type="submit" class="btn btn-primary" style="height: 40px;">কোড জেনারেট করুন</button>
+        <button type="submit" class="btn btn-primary" style="height: 38px;">কোড বানান</button>
       </form>
 
-      <h4 style="margin-top: 14px; font-size: 0.95rem; color: #cbd5e1;">কাস্টম রিডিম কোড তৈরি করুন (Multi-Use)</h4>
-      <form id="customCodeForm" class="form-row" style="background: rgba(255,255,255,0.02); padding: 18px; border-radius: 14px; border: 1px dashed rgba(255,255,255,0.12);">
-        <div class="form-group">
-          <label>কাস্টম কোড (আপনার পছন্দের শব্দ)</label>
-          <input type="text" id="customCodeWord" placeholder="যেমন: ALOAI2026" maxlength="50" style="text-transform: uppercase;">
+      <details class="minimal-collapse">
+        <summary>কাস্টম কোড তৈরি করুন (Multi-Use)</summary>
+        <div class="minimal-collapse-body">
+          <form id="customCodeForm" class="form-row">
+            <div class="form-group">
+              <label>কাস্টম কোড</label>
+              <input type="text" id="customCodeWord" placeholder="ALOAI2026" maxlength="50" style="text-transform: uppercase;">
+            </div>
+            <div class="form-group">
+              <label>প্ল্যান</label>
+              <select id="customCodePlan">
+                <option value="Go">Go</option>
+                <option value="Plus">Plus</option>
+                <option value="Pro" selected>Pro</option>
+                <option value="Max">Max</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>মেয়াদ</label>
+              <select id="customCodeDuration">
+                <option value="1">1 দিন</option>
+                <option value="3">3 দিন</option>
+                <option value="7">7 দিন</option>
+                <option value="30" selected>30 দিন</option>
+                <option value="90">90 দিন</option>
+                <option value="180">180 দিন</option>
+                <option value="365">365 দিন</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>সর্বোচ্চ ব্যবহার</label>
+              <input type="number" id="customMaxUses" value="10" min="1" max="100000">
+            </div>
+            <button type="submit" class="btn btn-primary" style="height: 38px;">তৈরি করুন</button>
+          </form>
         </div>
-        <div class="form-group">
-          <label>প্ল্যান বেছে নিন</label>
-          <select id="customCodePlan">
-            <option value="Go">Go Plan</option>
-            <option value="Plus">Plus Plan</option>
-            <option value="Pro" selected>Pro Plan</option>
-            <option value="Max">Max Plan</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>মেয়াদ</label>
-          <select id="customCodeDuration">
-            <option value="1">1 দিন</option>
-            <option value="3">3 দিন</option>
-            <option value="7">7 দিন</option>
-            <option value="30" selected>1 মাস (30 দিন)</option>
-            <option value="90">3 মাস (90 দিন)</option>
-            <option value="180">6 মাস (180 দিন)</option>
-            <option value="365">1 বছর (365 দিন)</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>সর্বোচ্চ কতজন ব্যবহার করতে পারবে</label>
-          <input type="number" id="customMaxUses" value="10" min="1" max="100000">
-        </div>
-        <button type="submit" class="btn btn-primary" style="height: 40px; background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: #fff;">কাস্টম কোড তৈরি করুন</button>
-      </form>
+      </details>
 
-      <h4 style="margin-top: 12px; font-size: 0.95rem; color: #cbd5e1;">বিদ্যমান রিডিম কোডসমূহ</h4>
       <div class="table-container" style="max-height: 420px;">
         <table class="responsive-cards-table">
           <thead>
@@ -1450,23 +1456,22 @@
     <!-- Section 4: Model Settings -->
     <div class="section" id="secModels">
       <div class="section-header-wrap">
-        <h3>AI মডেল সেটিংস ও ট্রিপল-ফলব্যাক কনফিগারেশন</h3>
-        <span class="section-subtitle">সিস্টেমের সমস্ত AI মডেলের অগ্রাধিকার, আপস্ট্রিম API এবং ৩টি অভ্যন্তরীণ স্লট পরিচালনা করুন</span>
+        <h3>AI মডেল</h3>
       </div>
 
       <!-- Add New Model Form -->
-      <form id="addModelForm" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); padding: 18px; border-radius: 14px; display: flex; flex-direction: column; gap: 14px;">
+      <form id="addModelForm" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 16px; border-radius: 12px; display: flex; flex-direction: column; gap: 14px;">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-          <h4 style="color: var(--accent); font-size: 1rem; margin:0;">+ নতুন AI মডেল যোগ করুন (Chat / Live Voice / Image)</h4>
-          <button type="button" class="btn" onclick="scanGeminiLiveModels(this)" style="padding:5px 12px; font-size:0.78rem; background:rgba(139,92,246,0.16); border:1px solid rgba(139,92,246,0.38); color:#ddd6fe;">
-            ⚡ Google AI Studio থেকে Live মডেল স্ক্যান করুন
+          <h4 style="color: var(--text-main); font-size: 0.95rem; font-weight: 600; margin:0;">+ নতুন মডেল যোগ করুন</h4>
+          <button type="button" class="btn btn-ghost" onclick="scanGeminiLiveModels(this)" style="padding:5px 12px; font-size:0.78rem;">
+            Gemini Live স্ক্যান করুন
           </button>
         </div>
 
-        <!-- Google AI Studio Live API Quick Presets (1-Click Fill) -->
-        <div style="background: rgba(139,92,246,0.07); border: 1px solid rgba(139,92,246,0.24); border-radius: 10px; padding: 10px 12px; display:flex; flex-direction:column; gap:8px;">
-          <div style="font-size:0.78rem; color:#ddd6fe; font-weight:600;">
-            🎙️ Google AI Studio Live API প্রিসেট (১-ক্লিকে ফর্ম পূরণ করুন — চ্যাট মডেলের মতোই যতগুলো খুশি Live মডেল যোগ করতে পারবেন):
+        <!-- Google AI Studio Live API Quick Presets -->
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 12px; display:flex; flex-direction:column; gap:8px;">
+          <div style="font-size:0.76rem; color:var(--text-sub); font-weight:600;">
+            Live Voice প্রিসেট (১-ক্লিকে পূরণ করুন):
           </div>
           <div style="display:flex; gap:6px; flex-wrap:wrap;">
             <button type="button" class="plan-quick-chip" onclick="fillLiveModelPreset('Gemini 3.8 Live', 'ALO Live 3.8')">+ Gemini 3.8 Live</button>
@@ -1476,34 +1481,34 @@
             <button type="button" class="plan-quick-chip" onclick="fillLiveModelPreset('Gemini 3.5 Live Translate', 'ALO 3.5 Live Translate')">+ Gemini 3.5 Live Translate</button>
             <button type="button" class="plan-quick-chip" onclick="fillLiveModelPreset('Gemini 3.5 Transcribe Live', 'ALO 3.5 Transcribe Live')">+ Gemini 3.5 Transcribe Live</button>
           </div>
-          <div id="discoveredLiveModelsBox" style="display:none; padding-top:6px; border-top:1px solid rgba(255,255,255,0.08);"></div>
+          <div id="discoveredLiveModelsBox" style="display:none; padding-top:6px; border-top:1px solid var(--border-color);"></div>
         </div>
-        
+
         <!-- Basic Info -->
         <div class="form-row">
           <div class="form-group" style="flex: 1; min-width: 180px;">
-            <label>মডেল আইডি (Model ID) *</label>
+            <label>মডেল আইডি *</label>
             <input type="text" id="newModelId" required placeholder="e.g. Gemini 3.8 Live / gpt-4o-mini">
           </div>
           <div class="form-group" style="flex: 1; min-width: 180px;">
-            <label>প্রদর্শিত নাম (Display Name) *</label>
+            <label>প্রদর্শিত নাম *</label>
             <input type="text" id="newModelName" required placeholder="e.g. ALO Live 3.8 / ALO 3 Mini">
           </div>
           <div class="form-group" style="min-width: 165px;">
-            <label>মডেল ক্যাটাগরি (Type)</label>
-            <select id="newModelCategory" style="padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text-primary); font-size: 0.85rem;">
-              <option value="chat">Chat Model (চ্যাট)</option>
-              <option value="voice">Live Voice Model (লাইভ ভয়েস)</option>
-              <option value="image">Image Model (ইমেজ)</option>
+            <label>ক্যাটাগরি</label>
+            <select id="newModelCategory">
+              <option value="chat">Chat Model</option>
+              <option value="voice">Live Voice Model</option>
+              <option value="image">Image Model</option>
             </select>
           </div>
           <div class="form-group" style="flex: 1.6; min-width: 280px;">
             <label style="display:flex; justify-content:space-between; align-items:center; gap:6px; flex-wrap:wrap;">
-              <span>কোন কোন প্ল্যানে চলবে (Allowed Plans)</span>
+              <span>প্ল্যান অ্যাক্সেস</span>
               <span style="display:inline-flex; gap:4px;">
-                <button type="button" onclick="setNewModelPlanPreset(['Guest','Free','Go','Plus','Pro','Max'])" style="font-size:0.68rem;padding:1px 6px;border-radius:4px;border:1px solid var(--border);background:var(--surface);color:var(--text-sub);cursor:pointer;">All</button>
-                <button type="button" onclick="setNewModelPlanPreset(['Plus','Pro','Max'])" style="font-size:0.68rem;padding:1px 6px;border-radius:4px;border:1px solid var(--border);background:var(--surface);color:var(--text-sub);cursor:pointer;">Plus+</button>
-                <button type="button" onclick="setNewModelPlanPreset(['Max'])" style="font-size:0.68rem;padding:1px 6px;border-radius:4px;border:1px solid var(--border);background:var(--surface);color:var(--text-sub);cursor:pointer;">Max</button>
+                <button type="button" onclick="setNewModelPlanPreset(['Guest','Free','Go','Plus','Pro','Max'])" style="font-size:0.68rem;padding:1px 6px;border-radius:4px;border:1px solid var(--border-color);background:var(--surface);color:var(--text-sub);cursor:pointer;">All</button>
+                <button type="button" onclick="setNewModelPlanPreset(['Plus','Pro','Max'])" style="font-size:0.68rem;padding:1px 6px;border-radius:4px;border:1px solid var(--border-color);background:var(--surface);color:var(--text-sub);cursor:pointer;">Plus+</button>
+                <button type="button" onclick="setNewModelPlanPreset(['Max'])" style="font-size:0.68rem;padding:1px 6px;border-radius:4px;border:1px solid var(--border-color);background:var(--surface);color:var(--text-sub);cursor:pointer;">Max</button>
               </span>
             </label>
             <div id="newModelPlansWrap" style="display:flex; gap:8px; flex-wrap:wrap; padding-top:6px;">
@@ -1517,93 +1522,91 @@
           </div>
         </div>
 
-        <!-- 3 Internal APIs Container -->
-        <div style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 12px;">
-          <div style="font-size: 0.85rem; font-weight: 600; color: #93c5fd;">️ মডেলের অভ্যন্তরীণ ৩টি API স্লট কনফিগারেশন:</div>
-          
-          <!-- API 1: Primary -->
-          <div style="background: rgba(59,130,246,0.05); border: 1px solid rgba(59,130,246,0.2); border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 8px;">
-            <span style="font-size: 0.8rem; font-weight: 700; color: #60a5fa;">API ১ (প্রধান / Primary)</span>
-            <div class="form-row">
-              <div class="form-group" style="flex: 1; min-width: 160px;">
-                <label>আপস্ট্রিম মডেল আইডি</label>
-                <input type="text" id="newModelApiModel1" placeholder="e.g. gpt-4o-mini / gemini-1.5-flash">
-              </div>
-              <div class="form-group" style="flex: 1.5; min-width: 220px;">
-                <label>API Base URL</label>
-                <input type="text" id="newModelUrl" placeholder="https://api.openai.com/v1/chat/completions">
-              </div>
-              <div class="form-group" style="flex: 1; min-width: 150px;">
-                <label>API Key</label>
-                <div style="display:flex;gap:6px;align-items:center;">
-                  <input type="password" id="newModelKey" placeholder="sk-..." style="flex:1;">
-                  <button type="button" class="btn-icon" title="API Key দেখুন" onclick="toggleKeyVisibility(this)"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
-                </div>
+        <!-- Primary API -->
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
+          <span style="font-size: 0.78rem; font-weight: 600; color: var(--text-sub);">Primary API (স্লট ১)</span>
+          <div class="form-row">
+            <div class="form-group" style="flex: 1; min-width: 160px;">
+              <label>আপস্ট্রিম মডেল</label>
+              <input type="text" id="newModelApiModel1" placeholder="e.g. gpt-4o-mini / gemini-2.5-flash">
+            </div>
+            <div class="form-group" style="flex: 1.5; min-width: 220px;">
+              <label>API Base URL</label>
+              <input type="text" id="newModelUrl" placeholder="https://api.openai.com/v1/chat/completions">
+            </div>
+            <div class="form-group" style="flex: 1; min-width: 150px;">
+              <label>API Key</label>
+              <div style="display:flex;gap:6px;align-items:center;">
+                <input type="password" id="newModelKey" placeholder="sk-... / AIza..." style="flex:1;">
+                <button type="button" class="btn-icon" title="API Key দেখুন" onclick="toggleKeyVisibility(this)"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
               </div>
             </div>
           </div>
 
-          <!-- API 2: Fallback 1 -->
-          <div style="background: rgba(245,158,11,0.05); border: 1px solid rgba(245,158,11,0.2); border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 8px;">
-            <span style="font-size: 0.8rem; font-weight: 700; color: #fbbf24;">API ২ (প্রথম ব্যাকআপ / Fallback 1 - ঐচ্ছিক)</span>
-            <div class="form-row">
-              <div class="form-group" style="flex: 1; min-width: 160px;">
-                <label>ফলব্যাক মডেল আইডি</label>
-                <input type="text" id="newModelFb1" placeholder="e.g. llama-3.3-70b-versatile">
-              </div>
-              <div class="form-group" style="flex: 1.5; min-width: 220px;">
-                <label>ফলব্যাক Base URL (ঐচ্ছিক)</label>
-                <input type="text" id="newModelFbUrl1" placeholder="e.g. https://api.groq.com/openai/v1/chat/completions">
-              </div>
-              <div class="form-group" style="flex: 1; min-width: 150px;">
-                <label>ফলব্যাক API Key (ঐচ্ছিক)</label>
-                <div style="display:flex;gap:6px;align-items:center;">
-                  <input type="password" id="newModelFbKey1" placeholder="gsk-... বা ফাঁকা রাখুন" style="flex:1;">
-                  <button type="button" class="btn-icon" title="API Key দেখুন" onclick="toggleKeyVisibility(this)"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <details class="minimal-collapse">
+            <summary>ব্যাকআপ API স্লট ২ ও ৩ (ঐচ্ছিক)</summary>
+            <div class="minimal-collapse-body">
+              <div style="display: flex; flex-direction: column; gap: 8px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color);">
+                <span style="font-size: 0.76rem; font-weight: 600; color: var(--text-sub);">Fallback 1 (স্লট ২)</span>
+                <div class="form-row">
+                  <div class="form-group" style="flex: 1; min-width: 160px;">
+                    <label>মডেল আইডি</label>
+                    <input type="text" id="newModelFb1" placeholder="e.g. llama-3.3-70b-versatile">
+                  </div>
+                  <div class="form-group" style="flex: 1.5; min-width: 220px;">
+                    <label>Base URL</label>
+                    <input type="text" id="newModelFbUrl1" placeholder="https://api.groq.com/openai/v1/chat/completions">
+                  </div>
+                  <div class="form-group" style="flex: 1; min-width: 150px;">
+                    <label>API Key</label>
+                    <div style="display:flex;gap:6px;align-items:center;">
+                      <input type="password" id="newModelFbKey1" placeholder="gsk-... (ঐচ্ছিক)" style="flex:1;">
+                      <button type="button" class="btn-icon" title="API Key দেখুন" onclick="toggleKeyVisibility(this)"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <!-- API 3: Fallback 2 -->
-          <div style="background: rgba(16,185,129,0.05); border: 1px solid rgba(16,185,129,0.2); border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 8px;">
-            <span style="font-size: 0.8rem; font-weight: 700; color: #34d399;">API ৩ (দ্বিতীয় ব্যাকআপ / Fallback 2 - ঐচ্ছিক)</span>
-            <div class="form-row">
-              <div class="form-group" style="flex: 1; min-width: 160px;">
-                <label>ফলব্যাক মডেল আইডি</label>
-                <input type="text" id="newModelFb2" placeholder="e.g. openrouter/free">
-              </div>
-              <div class="form-group" style="flex: 1.5; min-width: 220px;">
-                <label>ফলব্যাক Base URL (ঐচ্ছিক)</label>
-                <input type="text" id="newModelFbUrl2" placeholder="e.g. https://openrouter.ai/api/v1/chat/completions">
-              </div>
-              <div class="form-group" style="flex: 1; min-width: 150px;">
-                <label>ফলব্যাক API Key (ঐচ্ছিক)</label>
-                <div style="display:flex;gap:6px;align-items:center;">
-                  <input type="password" id="newModelFbKey2" placeholder="sk-or-... বা ফাঁকা রাখুন" style="flex:1;">
-                  <button type="button" class="btn-icon" title="API Key দেখুন" onclick="toggleKeyVisibility(this)"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+              <div style="display: flex; flex-direction: column; gap: 8px; padding-top: 4px;">
+                <span style="font-size: 0.76rem; font-weight: 600; color: var(--text-sub);">Fallback 2 (স্লট ৩)</span>
+                <div class="form-row">
+                  <div class="form-group" style="flex: 1; min-width: 160px;">
+                    <label>মডেল আইডি</label>
+                    <input type="text" id="newModelFb2" placeholder="e.g. openrouter/free">
+                  </div>
+                  <div class="form-group" style="flex: 1.5; min-width: 220px;">
+                    <label>Base URL</label>
+                    <input type="text" id="newModelFbUrl2" placeholder="https://openrouter.ai/api/v1/chat/completions">
+                  </div>
+                  <div class="form-group" style="flex: 1; min-width: 150px;">
+                    <label>API Key</label>
+                    <div style="display:flex;gap:6px;align-items:center;">
+                      <input type="password" id="newModelFbKey2" placeholder="sk-or-... (ঐচ্ছিক)" style="flex:1;">
+                      <button type="button" class="btn-icon" title="API Key দেখুন" onclick="toggleKeyVisibility(this)"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          </details>
         </div>
 
-        <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: 4px;">
-          <button type="submit" class="btn btn-primary" style="padding: 9px 24px;">+ মডেল যোগ করুন</button>
+        <div style="display: flex; justify-content: flex-end; align-items: center;">
+          <button type="submit" class="btn btn-primary" style="padding: 8px 20px;">+ মডেল যোগ করুন</button>
         </div>
       </form>
 
-      <div class="table-container" style="margin-top: 12px;">
+      <div class="table-container" style="margin-top: 10px;">
         <table class="responsive-cards-table">
           <thead>
             <tr>
-              <th style="width: 70px; text-align: center;">ক্রম</th>
+              <th style="width: 64px; text-align: center;">ক্রম</th>
               <th>মডেল আইডি</th>
-              <th>প্রদর্শিত নাম</th>
-              <th>প্রধান API URL</th>
-              <th>প্রধান API Key</th>
-              <th>অভ্যন্তরীণ ৩টি API</th>
-              <th>ক্যাটাগরি ও প্ল্যান অ্যাক্সেস</th>
+              <th>নাম</th>
+              <th>Primary URL</th>
+              <th>API Key</th>
+              <th>স্লট সমূহ</th>
+              <th>ক্যাটাগরি ও প্ল্যান</th>
               <th>অ্যাকশন</th>
             </tr>
           </thead>
@@ -1614,196 +1617,173 @@
       </div>
     </div>
 
-    <!-- Section 5: System & API Settings (Image Model & Web Search API) -->
+    <!-- Section 5: System & API Settings (Image, Search & Live Voice) -->
     <div class="section" id="secSettings">
       <div class="section-header-wrap">
-        <h3 id="settingsSectionHeader">ইমেজ মডেল ও ওয়েব সার্চ API কনফিগারেশন</h3>
-        <span class="section-subtitle">Pollinations.ai সহ বিভিন্ন ইমেজ ইঞ্জিন ও ওয়েব সার্চ ইঞ্জিনের লাইভ কনফিগারেশন ও টেস্ট</span>
+        <h3 id="settingsSectionHeader">API ও ভয়েস সেটিংস</h3>
       </div>
 
-      <!-- Card 1: Image Generation Model & API Settings -->
-      <form id="imageSettingsForm" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); padding: 20px; border-radius: 14px; display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 12px;">
-          <h4 style="color: #60a5fa; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; margin: 0;">
-            <span></span> ছবি তৈরির মডেল ও API কনফিগারেশন (Image Generation)
-          </h4>
-          <span style="font-size: 0.8rem; color: var(--text-muted); background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.25); padding: 3px 10px; border-radius: 999px;">AI Image Engine</span>
+      <!-- Card 1: Image Generation -->
+      <form id="imageSettingsForm" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 16px; border-radius: 12px; display: flex; flex-direction: column; gap: 14px; margin-bottom: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+          <h4 style="color: var(--text-main); font-size: 0.95rem; font-weight: 600; margin: 0;">Image Generation</h4>
         </div>
 
         <div class="form-row">
           <div class="form-group" style="flex: 1.2; min-width: 220px;">
-            <label>ইমেজ মডেল প্রিসেট (Model Preset)</label>
-            <select id="imageModelPreset" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text-primary); font-size: 0.9rem;">
-              <optgroup label="Pollinations.ai (ফ্রি ও আনলিমিটেড - কোনো Key লাগবে না)">
-                <option value="pollinations/flux" selected>Pollinations: Flux.1 Schnell (ডিফল্ট - হাই কোয়ালিটি)</option>
-                <option value="pollinations/flux-realism">Pollinations: Flux Realism (বাস্তবানুগ ছবি)</option>
-                <option value="pollinations/flux-anime">Pollinations: Anime & Manga (অ্যানিমে আর্ট)</option>
-                <option value="pollinations/flux-3d">Pollinations: 3D Pixar Style (থ্রিডি আর্ট)</option>
-                <option value="pollinations/turbo">Pollinations: SDXL Turbo (অতি দ্রুত)</option>
-                <option value="pollinations/midjourney">Pollinations: Midjourney Style (আর্টিস্টিক)</option>
+            <label>মডেল প্রিসেট</label>
+            <select id="imageModelPreset">
+              <optgroup label="Pollinations.ai (ফ্রি)">
+                <option value="pollinations/flux" selected>Pollinations: Flux.1 Schnell</option>
+                <option value="pollinations/flux-realism">Pollinations: Flux Realism</option>
+                <option value="pollinations/flux-anime">Pollinations: Anime</option>
+                <option value="pollinations/flux-3d">Pollinations: 3D Style</option>
+                <option value="pollinations/turbo">Pollinations: SDXL Turbo</option>
+                <option value="pollinations/midjourney">Pollinations: Midjourney</option>
               </optgroup>
-              <optgroup label="অন্যান্য প্রোভাইডার (API Key প্রয়োজন)">
-                <option value="flux-1-schnell">Flux.1 Schnell (VyceAI / Fal.ai)</option>
-                <option value="flux-1-dev">Flux.1 Dev (VyceAI / Fal.ai)</option>
-                <option value="dall-e-3">DALL-E 3 (OpenAI Standard)</option>
-                <option value="dall-e-2">DALL-E 2 (OpenAI Legacy)</option>
-                <option value="recraft-v3">Recraft V3 (Design & Vector Art)</option>
-                <option value="stability-ai/sdxl">Stable Diffusion XL (SDXL)</option>
-                <option value="custom">কাস্টম মডেল আইডি (Custom Model ID)...</option>
+              <optgroup label="অন্যান্য (API Key প্রয়োজন)">
+                <option value="flux-1-schnell">Flux.1 Schnell</option>
+                <option value="flux-1-dev">Flux.1 Dev</option>
+                <option value="dall-e-3">DALL-E 3</option>
+                <option value="dall-e-2">DALL-E 2</option>
+                <option value="recraft-v3">Recraft V3</option>
+                <option value="stability-ai/sdxl">SDXL</option>
+                <option value="custom">Custom Model ID</option>
               </optgroup>
             </select>
           </div>
 
           <div class="form-group" style="flex: 1; min-width: 200px;">
-            <label>সক্রিয় মডেল আইডি (Active Model ID) *</label>
+            <label>মডেল আইডি *</label>
             <input type="text" id="settingImageModel" required placeholder="e.g. flux-1-schnell">
           </div>
 
           <div class="form-group" style="flex: 0.8; min-width: 160px;">
-            <label>ডিফল্ট ছবির মাপ (Default Size)</label>
-            <select id="settingImageSize" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text-primary); font-size: 0.9rem;">
-              <option value="1024x1024">1024x1024 (বর্গাকার / Square)</option>
-              <option value="1024x1792">1024x1792 (লম্বা / Portrait 9:16)</option>
-              <option value="1792x1024">1792x1024 (ওয়াইড / Landscape 16:9)</option>
-              <option value="512x512">512x512 (দ্রুত / Standard)</option>
+            <label>ছবির মাপ</label>
+            <select id="settingImageSize">
+              <option value="1024x1024">1024x1024</option>
+              <option value="1024x1792">1024x1792</option>
+              <option value="1792x1024">1792x1024</option>
+              <option value="512x512">512x512</option>
             </select>
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group" style="flex: 1.5; min-width: 260px;">
-            <label>ইমেজ API Base URL (OpenAI-compatible Endpoint)</label>
+            <label>API Base URL</label>
             <input type="text" id="settingImageUrl" placeholder="https://vyceai.com/v1/images/generations">
-            <span style="font-size: 0.76rem; color: var(--text-muted); margin-top: 4px;">ডিফল্ট: VyceAI বা OpenAI-কম্প্যাটিবল ইমেজ এন্ডপয়েন্ট। Pollinations হলে ফাঁকা রাখতে পারেন।</span>
           </div>
 
           <div class="form-group" style="flex: 1.2; min-width: 220px;">
             <label style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-              <span>ইমেজ API Key</span>
-              <span id="settingImageKeySavedBadge" style="display:none;font-size:0.7rem;padding:2px 8px;border-radius:999px;background:rgba(34,197,94,0.14);color:#4ade80;border:1px solid rgba(34,197,94,0.3);">✓ Key সংরক্ষিত (লুকানো)</span>
+              <span>API Key</span>
+              <span id="settingImageKeySavedBadge" style="display:none;font-size:0.7rem;padding:2px 8px;border-radius:999px;background:rgba(34,197,94,0.14);color:#4ade80;border:1px solid rgba(34,197,94,0.3);">✓ Saved</span>
             </label>
             <div style="display: flex; align-items: center; gap: 6px;">
               <div style="position: relative; display: flex; align-items: center; flex: 1;">
-                <input type="password" id="settingImageKey" placeholder="sk-... বা vyce API key" style="width: 100%; padding-right: 40px;">
-                <button type="button" id="toggleSettingImageKeyBtn" class="btn-icon" onclick="togglePasswordVisibility('settingImageKey')" style="position: absolute; right: 6px; background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px;" title="পাসওয়ার্ড দেখান / লুকান"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                <input type="password" id="settingImageKey" placeholder="sk-... / vyce key" style="width: 100%; padding-right: 40px;">
+                <button type="button" id="toggleSettingImageKeyBtn" class="btn-icon" onclick="togglePasswordVisibility('settingImageKey')" style="position: absolute; right: 6px; background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px;" title="দেখান / লুকান"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
               </div>
               <button type="button" id="clearSettingImageKeyBtn" class="btn btn-danger" style="display:none;padding:8px 10px;font-size:0.75rem;" onclick="clearSavedSystemKey('image')">✕ ক্লিয়ার</button>
             </div>
-            <span style="font-size: 0.76rem; color: var(--text-muted); margin-top: 4px;">সেভ করার পর Key সম্পূর্ণ লুকানো থাকে এবং আর দেখা যায় না।</span>
           </div>
         </div>
 
-        <div id="pollinationsInfoBadge" style="display: none; padding: 10px 14px; border-radius: 8px; background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.3); color: #4ade80; font-size: 0.82rem; margin-top: 6px;">
-          <strong>Pollinations.ai অ্যাক্টিভ:</strong> এটি ১০০% ফ্রি ও আনলিমিটেড ইমেজ জেনারেটর। কোনো API Key-র প্রয়োজন নেই। টেস্ট ছবি তৈরি করে প্রিভিউ দেখতে পারেন!
+        <div id="pollinationsInfoBadge" style="display: none; padding: 8px 12px; border-radius: 8px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); color: var(--text-sub); font-size: 0.8rem;">
+          Pollinations.ai — ফ্রি, API Key লাগবে না।
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 6px;">
-          <button type="button" id="btnTestImageGen" class="btn" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #e2e8f0; font-size: 0.85rem; padding: 8px 16px;">
-            টেস্ট ছবি তৈরি করুন
-          </button>
-          <button type="submit" id="btnSaveImageSettings" class="btn btn-primary" style="padding: 9px 24px;">
-            ইমেজ সেটিংস সংরক্ষণ করুন
-          </button>
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+          <button type="button" id="btnTestImageGen" class="btn btn-ghost">টেস্ট</button>
+          <button type="submit" id="btnSaveImageSettings" class="btn btn-primary" style="padding: 8px 20px;">সেভ করুন</button>
         </div>
 
-        <!-- Live Image Test Preview Box -->
-        <div id="imageTestResultBox" style="display: none; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 14px; margin-top: 6px;">
-          <div style="font-size: 0.85rem; font-weight: 600; color: #60a5fa; margin-bottom: 8px;">টেস্ট রেজাল্ট:</div>
+        <div id="imageTestResultBox" style="display: none; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px;">
+          <div style="font-size: 0.82rem; font-weight: 600; color: var(--text-sub); margin-bottom: 8px;">রেজাল্ট:</div>
           <div id="imageTestOutput" style="display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;"></div>
         </div>
       </form>
 
-      <!-- Card 2: Web Search API Settings -->
-      <form id="webSearchSettingsForm" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); padding: 20px; border-radius: 14px; display: flex; flex-direction: column; gap: 16px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 12px;">
-          <h4 style="color: #34d399; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; margin: 0;">
-            <span></span> ওয়েব সার্চ API কনফিগারেশন (Web Search Engine)
-          </h4>
-          <span style="font-size: 0.8rem; color: var(--text-muted); background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25); padding: 3px 10px; border-radius: 999px;">Live Browsing</span>
+      <!-- Card 2: Web Search -->
+      <form id="webSearchSettingsForm" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 16px; border-radius: 12px; display: flex; flex-direction: column; gap: 14px; margin-bottom: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+          <h4 style="color: var(--text-main); font-size: 0.95rem; font-weight: 600; margin: 0;">Web Search</h4>
         </div>
 
         <div class="form-row">
           <div class="form-group" style="flex: 1.2; min-width: 220px;">
-            <label>ওয়েব সার্চ প্রোভাইডার (Search Engine Provider) *</label>
-            <select id="settingSearchProvider" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text-primary); font-size: 0.9rem;">
-              <option value="tavily">Tavily Search API (AI Optimized & Clean Summaries - Recommended)</option>
-              <option value="serper">Serper.dev (Google Real-Time Search API)</option>
-              <option value="brave">Brave Search API (High Privacy Web Index)</option>
-              <option value="duckduckgo">DuckDuckGo HTML Scraper (Free - No API Key Needed)</option>
-              <option value="custom">Custom Web Search Proxy API...</option>
+            <label>প্রোভাইডার *</label>
+            <select id="settingSearchProvider">
+              <option value="tavily">Tavily</option>
+              <option value="serper">Serper.dev</option>
+              <option value="brave">Brave Search</option>
+              <option value="duckduckgo">DuckDuckGo (ফ্রি)</option>
+              <option value="custom">Custom URL</option>
             </select>
           </div>
 
           <div class="form-group" style="flex: 1.3; min-width: 240px;">
             <label style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-              <span>সার্চ API Key (Search API Key)</span>
-              <span id="settingSearchKeySavedBadge" style="display:none;font-size:0.7rem;padding:2px 8px;border-radius:999px;background:rgba(34,197,94,0.14);color:#4ade80;border:1px solid rgba(34,197,94,0.3);">✓ Key সংরক্ষিত (লুকানো)</span>
+              <span>API Key</span>
+              <span id="settingSearchKeySavedBadge" style="display:none;font-size:0.7rem;padding:2px 8px;border-radius:999px;background:rgba(34,197,94,0.14);color:#4ade80;border:1px solid rgba(34,197,94,0.3);">✓ Saved</span>
             </label>
             <div style="display: flex; align-items: center; gap: 6px;">
               <div style="position: relative; display: flex; align-items: center; flex: 1;">
-                <input type="password" id="settingSearchKey" placeholder="tvly-... বা serper key" style="width: 100%; padding-right: 40px;">
-                <button type="button" id="toggleSettingSearchKeyBtn" class="btn-icon" onclick="togglePasswordVisibility('settingSearchKey')" style="position: absolute; right: 6px; background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px;" title="পাসওয়ার্ড দেখান / লুকান"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                <input type="password" id="settingSearchKey" placeholder="tvly-... / serper key" style="width: 100%; padding-right: 40px;">
+                <button type="button" id="toggleSettingSearchKeyBtn" class="btn-icon" onclick="togglePasswordVisibility('settingSearchKey')" style="position: absolute; right: 6px; background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px;" title="দেখান / লুকান"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
               </div>
               <button type="button" id="clearSettingSearchKeyBtn" class="btn btn-danger" style="display:none;padding:8px 10px;font-size:0.75rem;" onclick="clearSavedSystemKey('search')">✕ ক্লিয়ার</button>
             </div>
-            <span style="font-size: 0.76rem; color: var(--text-muted); margin-top: 4px;">সেভ করার পর Key আর দেখা যায় না। DuckDuckGo সিলেক্ট থাকলে ফাঁকা রাখুন।</span>
           </div>
 
           <div class="form-group" style="flex: 0.7; min-width: 140px;">
-            <label>সর্বোচ্চ ফলাফল (Max Results)</label>
-            <select id="settingSearchMaxResults" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text-primary); font-size: 0.9rem;">
-              <option value="3">৩টি স্নিপেট</option>
-              <option value="4" selected>৪টি স্নিপেট (Recommended)</option>
-              <option value="5">৫টি স্নিপেট</option>
-              <option value="8">৮টি স্নিপেট</option>
+            <label>Max Results</label>
+            <select id="settingSearchMaxResults">
+              <option value="3">৩টি</option>
+              <option value="4" selected>৪টি</option>
+              <option value="5">৫টি</option>
+              <option value="8">৮টি</option>
             </select>
           </div>
         </div>
 
         <div class="form-row" id="customSearchUrlRow" style="display: none;">
           <div class="form-group" style="flex: 1;">
-            <label>কাস্টম সার্চ API এন্ডপয়েন্ট URL</label>
+            <label>কাস্টম সার্চ URL</label>
             <input type="text" id="settingSearchCustomUrl" placeholder="https://your-search-proxy.com/api/search">
           </div>
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 6px;">
-          <button type="button" id="btnTestWebSearch" class="btn" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #e2e8f0; font-size: 0.85rem; padding: 8px 16px;">
-            টেস্ট সার্চ করুন
-          </button>
-          <button type="submit" id="btnSaveSearchSettings" class="btn btn-primary" style="padding: 9px 24px;">
-            ওয়েব সার্চ সেটিংস সংরক্ষণ করুন
-          </button>
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+          <button type="button" id="btnTestWebSearch" class="btn btn-ghost">টেস্ট</button>
+          <button type="submit" id="btnSaveSearchSettings" class="btn btn-primary" style="padding: 8px 20px;">সেভ করুন</button>
         </div>
 
-        <!-- Live Search Test Preview Box -->
-        <div id="searchTestResultBox" style="display: none; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 14px; margin-top: 6px;">
-          <div style="font-size: 0.85rem; font-weight: 600; color: #34d399; margin-bottom: 8px;">টেস্ট সার্চ রেজাল্ট:</div>
+        <div id="searchTestResultBox" style="display: none; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px;">
+          <div style="font-size: 0.82rem; font-weight: 600; color: var(--text-sub); margin-bottom: 8px;">রেজাল্ট:</div>
           <pre id="searchTestOutput" style="font-size: 0.82rem; color: #e2e8f0; white-space: pre-wrap; word-break: break-word; background: rgba(0,0,0,0.4); padding: 10px; border-radius: 8px; margin: 0; max-height: 220px; overflow-y: auto;"></pre>
         </div>
       </form>
 
-      <!-- Card 3: Dedicated Live Voice API Settings -->
-      <form id="voiceLiveSettingsForm" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); padding: 20px; border-radius: 14px; display: flex; flex-direction: column; gap: 16px; margin-top: 16px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-          <h4 style="color: #a78bfa; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; margin: 0;">
-            লাইভ ভয়েস ইঞ্জিন ও API কনফিগারেশন (Gemini Live / Custom / Chat Models)
-          </h4>
-          <span style="font-size: 0.8rem; color: #ddd6fe; background: rgba(139,92,246,0.14); border: 1px solid rgba(139,92,246,0.3); padding: 3px 10px; border-radius: 999px;">Real-Time Bilingual Voice</span>
+      <!-- Card 3: Live Voice API -->
+      <form id="voiceLiveSettingsForm" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 16px; border-radius: 12px; display: flex; flex-direction: column; gap: 14px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+          <h4 style="color: var(--text-main); font-size: 0.95rem; font-weight: 600; margin: 0;">Live Voice Engine</h4>
         </div>
 
         <div class="form-row">
           <div class="form-group" style="flex: 1.3; min-width: 240px;">
-            <label>ভয়েস ইঞ্জিন মোড (Voice Engine Mode) *</label>
-            <select id="settingVoiceProvider" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text-primary); font-size: 0.9rem;">
-              <option value="gemini_live">Gemini Live API (Native Live Audio-In &amp; Voice-Out - Recommended)</option>
-              <option value="custom_api">Custom / Normal Voice API (OpenAI Audio / Whisper + Chat)</option>
-              <option value="chat_models">Chat Models (চ্যাট মডেল — বাংলা/ইংরেজি ট্রান্সলেট ও Alora TTS ভয়েস)</option>
+            <label>ভয়েস মোড *</label>
+            <select id="settingVoiceProvider">
+              <option value="gemini_live">Gemini Live API</option>
+              <option value="custom_api">Custom Voice API</option>
+              <option value="chat_models">Chat Models (TTS)</option>
             </select>
           </div>
 
           <div class="form-group" style="flex: 1.1; min-width: 220px;">
-            <label>লাইভ ভয়েস মডেল আইডি (Live Voice Model ID)</label>
+            <label>লাইভ মডেল আইডি</label>
             <input type="text" id="settingVoiceModel" list="geminiLiveModelSuggestions" placeholder="gemini-2.5-flash-native-audio-preview-12-2025">
             <datalist id="geminiLiveModelSuggestions">
               <option value="gemini-2.5-flash-native-audio-preview-12-2025"></option>
@@ -1818,47 +1798,47 @@
 
           <div class="form-group" style="flex: 1.2; min-width: 240px;">
             <label style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-              <span>ভয়েস API Key (Gemini / Custom Voice Key)</span>
-              <span id="settingVoiceKeySavedBadge" style="display:none;font-size:0.7rem;padding:2px 8px;border-radius:999px;background:rgba(34,197,94,0.14);color:#4ade80;border:1px solid rgba(34,197,94,0.3);">✓ Key সংরক্ষিত (লুকানো)</span>
+              <span>ভয়েস API Key</span>
+              <span id="settingVoiceKeySavedBadge" style="display:none;font-size:0.7rem;padding:2px 8px;border-radius:999px;background:rgba(34,197,94,0.14);color:#4ade80;border:1px solid rgba(34,197,94,0.3);">✓ Saved</span>
             </label>
             <div style="display: flex; align-items: center; gap: 6px;">
               <div style="position: relative; display: flex; align-items: center; flex: 1;">
-                <input type="password" id="settingVoiceKey" placeholder="AIza... বা কমা দিয়ে একাধিক Gemini/Groq Key (ফাঁকা রাখলে Models-এর Key ব্যবহৃত হবে)" style="width: 100%; padding-right: 40px;">
+                <input type="password" id="settingVoiceKey" placeholder="AIza... / Groq Key" style="width: 100%; padding-right: 40px;">
                 <button type="button" id="toggleSettingVoiceKeyBtn" class="btn-icon" onclick="togglePasswordVisibility('settingVoiceKey')" style="position: absolute; right: 6px; background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px;" title="দেখান / লুকান"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
               </div>
               <button type="button" id="clearSettingVoiceKeyBtn" class="btn btn-danger" style="display:none;padding:8px 10px;font-size:0.75rem;" onclick="clearSavedSystemKey('voice')">✕ ক্লিয়ার</button>
             </div>
-            <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">নিরাপদে এনক্রিপ্টেড থাকে; সেভ করার পর আর দেখা যায় না।</span>
           </div>
         </div>
 
-        <div class="form-row" id="customVoiceUrlRow">
-          <div class="form-group" style="flex: 1; min-width: 220px;">
-            <label>কাস্টম ভয়েস API URL (শুধুমাত্র Custom API মোডের জন্য)</label>
-            <input type="text" id="settingVoiceUrl" placeholder="https://api.openai.com/v1/chat/completions">
+        <details class="minimal-collapse">
+          <summary>অতিরিক্ত অপশন (Custom URL / Whisper / ভয়েস নির্দেশনা)</summary>
+          <div class="minimal-collapse-body">
+            <div class="form-row" id="customVoiceUrlRow">
+              <div class="form-group" style="flex: 1; min-width: 220px;">
+                <label>Custom Voice API URL</label>
+                <input type="text" id="settingVoiceUrl" placeholder="https://api.openai.com/v1/chat/completions">
+              </div>
+              <div class="form-group" style="flex: 1; min-width: 220px;">
+                <label>STT / Whisper URL</label>
+                <input type="text" id="settingVoiceSttUrl" placeholder="https://api.groq.com/openai/v1/audio/transcriptions">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>ভয়েস সিস্টেম নির্দেশনা</label>
+              <input type="text" id="settingVoicePrompt" placeholder="সংক্ষেপে সাবলীল বাংলা ও ইংরেজিতে কথা বলবে।">
+            </div>
           </div>
-          <div class="form-group" style="flex: 1; min-width: 220px;">
-            <label>অপশনাল STT / Whisper URL (Custom বা Chat Models অডিও ট্রান্সক্রিপশন)</label>
-            <input type="text" id="settingVoiceSttUrl" placeholder="https://api.groq.com/openai/v1/audio/transcriptions">
-          </div>
+        </details>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+          <button type="button" id="btnTestVoiceLive" class="btn btn-ghost">টেস্ট</button>
+          <button type="submit" id="btnSaveVoiceSettings" class="btn btn-primary" style="padding: 8px 20px;">সেভ করুন</button>
         </div>
 
-        <div class="form-group">
-          <label>ভয়েস সিস্টেম নির্দেশনা (Optional Bilingual Voice Persona Prompt)</label>
-          <input type="text" id="settingVoicePrompt" placeholder="যেমন: সংক্ষেপে সাবলীল বাংলা ও ইংরেজিতে বন্ধুসুলভভাবে কথা বলবে।">
-        </div>
-
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 6px;">
-          <button type="button" id="btnTestVoiceLive" class="btn" style="background: rgba(139,92,246,0.14); border: 1px solid rgba(139,92,246,0.35); color: #ddd6fe; font-size: 0.85rem; padding: 8px 16px;">
-            টেস্ট লাইভ ভয়েস
-          </button>
-          <button type="submit" id="btnSaveVoiceSettings" class="btn btn-primary" style="padding: 9px 24px;">
-            ভয়েস সেটিংস সংরক্ষণ করুন
-          </button>
-        </div>
-
-        <div id="voiceTestResultBox" style="display: none; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 14px; margin-top: 6px;">
-          <div style="font-size: 0.85rem; font-weight: 600; color: #a78bfa; margin-bottom: 8px;">টেস্ট ভয়েস রেজাল্ট:</div>
+        <div id="voiceTestResultBox" style="display: none; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px;">
+          <div style="font-size: 0.82rem; font-weight: 600; color: var(--text-sub); margin-bottom: 8px;">রেজাল্ট:</div>
           <div id="voiceTestOutput" style="font-size: 0.84rem; color: #e2e8f0; display: flex; flex-direction: column; gap: 8px;"></div>
         </div>
       </form>
@@ -1867,21 +1847,17 @@
     <!-- Section 6: System Prompt Settings -->
     <div class="section" id="secSystemPrompt">
       <div class="section-header-wrap">
-        <h3 id="systemPromptSectionHeader">️ সিস্টেম প্রম্পট (System Prompt)</h3>
-        <span class="section-subtitle">AI-এর মূল আচরণ, নির্দেশনা এবং ব্যক্তিত্ব পরিবর্তন করুন</span>
+        <h3 id="systemPromptSectionHeader">সিস্টেম প্রম্পট</h3>
       </div>
 
-      <form id="systemPromptSettingsForm" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); padding: 20px; border-radius: 14px; display: flex; flex-direction: column; gap: 16px;">
+      <form id="systemPromptSettingsForm" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 16px; border-radius: 12px; display: flex; flex-direction: column; gap: 14px;">
         <div class="form-group">
           <label>সিস্টেম প্রম্পট</label>
           <textarea id="settingSystemPrompt" rows="12" placeholder="You are Alora, a helpful AI assistant..." style="width: 100%; font-family: monospace; font-size: 0.85rem;"></textarea>
-          <span style="font-size: 0.76rem; color: var(--text-muted); margin-top: 4px;">এই প্রম্পটটি চ্যাটের সময় AI-এর কাছে মূল নির্দেশিকা হিসেবে পাঠানো হবে।</span>
         </div>
 
-        <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: 6px;">
-          <button type="submit" id="btnSaveSystemPrompt" class="btn btn-primary" style="padding: 9px 24px;">
-            প্রম্পট সংরক্ষণ করুন
-          </button>
+        <div style="display: flex; justify-content: flex-end; align-items: center;">
+          <button type="submit" id="btnSaveSystemPrompt" class="btn btn-primary" style="padding: 8px 20px;">সেভ করুন</button>
         </div>
       </form>
     </div>
@@ -1889,20 +1865,19 @@
     <!-- Section 7: Free Trial / Claim Offer -->
     <div class="section" id="secFreeTrial">
       <div class="section-header-wrap">
-        <h3 id="trialSectionHeader">ফ্রি ট্রায়াল অফার (Claim offer)</h3>
-        <span class="section-subtitle">চালু থাকলে ইউজাররা সাইডবার ও হেডারে "Claim offer" বাটন দেখবে; বন্ধ থাকলে "Upgrade plan" দেখাবে।</span>
+        <h3 id="trialSectionHeader">ফ্রি ট্রায়াল</h3>
       </div>
 
-      <form id="freeTrialSettingsForm" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); padding: 20px; border-radius: 14px; display: flex; flex-direction: column; gap: 16px;">
-        <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:600;">
-          <input type="checkbox" id="settingTrialEnabled" style="width:18px; height:18px;">
-          ফ্রি ট্রায়াল অফার চালু করুন
+      <form id="freeTrialSettingsForm" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 16px; border-radius: 12px; display: flex; flex-direction: column; gap: 14px;">
+        <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:600; color:var(--text-main);">
+          <input type="checkbox" id="settingTrialEnabled" style="width:16px; height:16px;">
+          ফ্রি ট্রায়াল অফার চালু রাখুন
         </label>
 
         <div class="form-row">
           <div class="form-group" style="flex: 1; min-width: 160px;">
             <label>ট্রায়াল প্ল্যান</label>
-            <select id="settingTrialPlan" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text-primary); font-size: 0.9rem;">
+            <select id="settingTrialPlan">
               <option value="Go">Go</option>
               <option value="Plus">Plus</option>
               <option value="Pro" selected>Pro</option>
@@ -1914,64 +1889,59 @@
             <input type="number" id="settingTrialDays" min="1" max="365" value="7">
           </div>
           <div class="form-group" style="flex: 1.4; min-width: 200px;">
-            <label>বাটনের লেখা</label>
+            <label>বাটন টেক্সট</label>
             <input type="text" id="settingTrialLabel" maxlength="40" placeholder="Claim offer">
           </div>
         </div>
 
         <div class="form-group">
-          <label>অফারের বিবরণ</label>
+          <label>বিবরণ</label>
           <input type="text" id="settingTrialDescription" maxlength="200" placeholder="Try Pro free for 7 days">
         </div>
 
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
           <span id="trialClaimCount" style="font-size:0.8rem; color:var(--text-muted);"></span>
-          <button type="submit" id="btnSaveTrialSettings" class="btn btn-primary" style="padding: 9px 24px;">
-            অফার সেটিংস সংরক্ষণ করুন
-          </button>
+          <button type="submit" id="btnSaveTrialSettings" class="btn btn-primary" style="padding: 8px 20px;">সেভ করুন</button>
         </div>
       </form>
     </div>
 
     <div class="section" id="secAppNotifyAds">
       <div class="section-header-wrap">
-        <h3 id="notifyAdsSectionHeader">অ্যাপ নোটিফিকেশন ও অ্যাডস কন্ট্রোল</h3>
-        <span class="section-subtitle">অ্যাপে নোটিফিকেশন পাঠাতে বা ভবিষ্যতে অ্যাডস সিস্টেম চালু/বন্ধ করতে এখান থেকে নিয়ন্ত্রণ করুন।</span>
+        <h3 id="notifyAdsSectionHeader">নোটিফিকেশন ও অ্যাডস</h3>
       </div>
 
-      <form id="appNotifyAdsForm" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); padding: 20px; border-radius: 14px; display: flex; flex-direction: column; gap: 16px;">
-        <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:600;">
-          <input type="checkbox" id="settingNotifEnabled" style="width:18px; height:18px;">
-          অ্যাপ ব্রডকাস্ট নোটিফিকেশন চালু করুন
+      <form id="appNotifyAdsForm" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 16px; border-radius: 12px; display: flex; flex-direction: column; gap: 14px;">
+        <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:600; color:var(--text-main);">
+          <input type="checkbox" id="settingNotifEnabled" style="width:16px; height:16px;">
+          ব্রডকাস্ট নোটিফিকেশন চালু করুন
         </label>
 
         <div class="form-row">
           <div class="form-group" style="flex: 1; min-width: 180px;">
-            <label>নোটিফিকেশনের শিরোনাম (Title)</label>
+            <label>শিরোনাম</label>
             <input type="text" id="settingNotifTitle" maxlength="80" placeholder="Alora Update">
           </div>
           <div class="form-group" style="flex: 1.6; min-width: 220px;">
-            <label>নোটিফিকেশনের বার্তা (Message)</label>
+            <label>বার্তা</label>
             <input type="text" id="settingNotifBody" maxlength="220" placeholder="New models & faster mobile mode are live!">
           </div>
         </div>
 
-        <hr style="border:none; border-top:1px solid rgba(255,255,255,0.08);">
+        <hr style="border:none; border-top:1px solid var(--border-color);">
 
-        <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:600;">
-          <input type="checkbox" id="settingAdsEnabled" style="width:18px; height:18px;">
-          অ্যাডস কন্ট্রোল চালু করুন (Ads Enabled — ভবিষ্যতের জন্য)
+        <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:600; color:var(--text-main);">
+          <input type="checkbox" id="settingAdsEnabled" style="width:16px; height:16px;">
+          অ্যাডস চালু করুন
         </label>
 
         <div class="form-group">
-          <label>অ্যাডস স্ট্যাটাস / নোট (ঐচ্ছিক)</label>
+          <label>নোট (ঐচ্ছিক)</label>
           <input type="text" id="settingAdsNote" maxlength="160" placeholder="Sponsored experiences enabled for free tier">
         </div>
 
         <div style="display:flex; justify-content:flex-end;">
-          <button type="submit" id="btnSaveNotifyAdsSettings" class="btn btn-primary" style="padding: 9px 24px;">
-            নোটিফিকেশন ও অ্যাডস সেটিংস সেভ করুন
-          </button>
+          <button type="submit" id="btnSaveNotifyAdsSettings" class="btn btn-primary" style="padding: 8px 20px;">সেভ করুন</button>
         </div>
       </form>
     </div>
@@ -1979,77 +1949,76 @@
     <!-- Section 9: Billing Rates, Payment Methods, Promo Codes & Orders Approval -->
     <div class="section" id="secBilling">
       <div class="section-header-wrap">
-        <h3 id="billingSectionHeader">পেমেন্ট মাধ্যম, কারেন্সি রেট, ডিসকাউন্ট ও অর্ডার</h3>
-        <span class="section-subtitle">USD/USDT থেকে BDT/USDT রেট, Crypto (BSC BEP-20 ও TRC-20), Binance/Bybit Pay, bKash, ডিসকাউন্ট কোড ও অর্ডার অনুমোদন পরিচালনা করুন।</span>
+        <h3 id="billingSectionHeader">পেমেন্ট ও অর্ডার</h3>
       </div>
 
       <!-- Card 1: Rates & Payment Wallets -->
-      <form id="billingSettingsForm" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); padding: 20px; border-radius: 14px; display: flex; flex-direction: column; gap: 16px;">
-        <h4 style="color: #60a5fa; font-size: 1rem; margin: 0;">১. লাইভ কারেন্সি রেট ও পেমেন্ট ওয়ালেট</h4>
+      <form id="billingSettingsForm" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 16px; border-radius: 12px; display: flex; flex-direction: column; gap: 14px;">
+        <h4 style="color: var(--text-main); font-size: 0.95rem; font-weight: 600; margin: 0;">কারেন্সি রেট ও পেমেন্ট ওয়ালেট</h4>
         <div class="form-row">
           <div class="form-group" style="flex: 1; min-width: 180px;">
-            <label>১ USD সমান কত BDT? (1 USD = BDT)</label>
+            <label>১ USD = BDT</label>
             <input type="number" step="0.01" min="1" id="settingUsdToBdtRate" value="120" required>
           </div>
           <div class="form-group" style="flex: 1; min-width: 180px;">
-            <label>১ USD সমান কত USDT? (1 USD = USDT)</label>
+            <label>১ USD = USDT</label>
             <input type="number" step="0.0001" min="0.01" id="settingUsdToUsdtRate" value="1" required>
           </div>
         </div>
 
-        <div style="background: rgba(59,130,246,0.06); border: 1px solid rgba(59,130,246,0.22); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 12px;">
-          <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:700; color:#93c5fd;">
-            <input type="checkbox" id="settingCryptoEnabled" style="width:18px; height:18px;" checked>
-            Direct Crypto (USDT) চালু রাখুন (BSC BEP-20 & TRC-20)
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
+          <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:600; color:var(--text-main);">
+            <input type="checkbox" id="settingCryptoEnabled" style="width:16px; height:16px;" checked>
+            Crypto (USDT) চালু রাখুন
           </label>
           <div class="form-row">
             <div class="form-group" style="flex: 1.2; min-width: 210px;">
-              <label>BSC (BEP-20) ওয়ালেট অ্যাড্রেস</label>
+              <label>BSC (BEP-20) অ্যাড্রেস</label>
               <input type="text" id="settingCryptoBscAddress" placeholder="0x...">
             </div>
             <div class="form-group" style="flex: 1; min-width: 200px;">
-              <label>BSC (BEP-20) USDT পেমেন্ট URL (ঐচ্ছিক)</label>
+              <label>BSC পেমেন্ট URL (ঐচ্ছিক)</label>
               <input type="text" id="settingCryptoBscUrl" placeholder="https://...">
             </div>
           </div>
           <div class="form-row">
             <div class="form-group" style="flex: 1.2; min-width: 210px;">
-              <label>TRON (TRC-20) ওয়ালেট অ্যাড্রেস</label>
+              <label>TRON (TRC-20) অ্যাড্রেস</label>
               <input type="text" id="settingCryptoTrc20Address" placeholder="T...">
             </div>
             <div class="form-group" style="flex: 1; min-width: 200px;">
-              <label>TRON (TRC-20) USDT পেমেন্ট URL (ঐচ্ছিক)</label>
+              <label>TRON পেমেন্ট URL (ঐচ্ছিক)</label>
               <input type="text" id="settingCryptoTrc20Url" placeholder="https://...">
             </div>
           </div>
         </div>
 
         <div class="form-row">
-          <div class="form-group" style="flex: 1; min-width: 200px; background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.22); border-radius: 12px; padding: 12px;">
-            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:700; color:#fbbf24; margin-bottom:6px;">
+          <div class="form-group" style="flex: 1; min-width: 200px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px;">
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:600; color:var(--text-main); margin-bottom:6px;">
               <input type="checkbox" id="settingBinanceEnabled" style="width:16px; height:16px;" checked> Binance Pay
             </label>
-            <input type="text" id="settingBinancePayId" placeholder="Binance Pay ID / Email">
+            <input type="text" id="settingBinancePayId" placeholder="Binance Pay ID">
           </div>
-          <div class="form-group" style="flex: 1; min-width: 200px; background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.22); border-radius: 12px; padding: 12px;">
-            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:700; color:#34d399; margin-bottom:6px;">
+          <div class="form-group" style="flex: 1; min-width: 200px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px;">
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:600; color:var(--text-main); margin-bottom:6px;">
               <input type="checkbox" id="settingBybitEnabled" style="width:16px; height:16px;" checked> Bybit Pay
             </label>
-            <input type="text" id="settingBybitPayId" placeholder="Bybit UID / Pay ID">
+            <input type="text" id="settingBybitPayId" placeholder="Bybit UID">
           </div>
         </div>
 
-        <div style="background: rgba(236,72,153,0.06); border: 1px solid rgba(236,72,153,0.22); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px;">
-          <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:700; color:#f472b6;">
-            <input type="checkbox" id="settingBkashEnabled" style="width:18px; height:18px;" checked> bKash পেমেন্ট চালু রাখুন
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
+          <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:600; color:var(--text-main);">
+            <input type="checkbox" id="settingBkashEnabled" style="width:16px; height:16px;" checked> bKash চালু রাখুন
           </label>
           <div class="form-row">
             <div class="form-group" style="flex: 1.3; min-width: 200px;">
-              <label>bKash নম্বর (Personal / Merchant)</label>
+              <label>bKash নম্বর</label>
               <input type="text" id="settingBkashNumber" placeholder="017XXXXXXXX">
             </div>
             <div class="form-group" style="flex: 0.9; min-width: 150px;">
-              <label>পেমেন্ট ধরন</label>
+              <label>ধরন</label>
               <select id="settingBkashType">
                 <option value="Send Money">Send Money</option>
                 <option value="Payment">Payment</option>
@@ -2060,23 +2029,23 @@
         </div>
 
         <div style="display:flex; justify-content:flex-end;">
-          <button type="submit" id="btnSaveBillingSettings" class="btn btn-primary" style="padding: 9px 24px;">পেমেন্ট ও রেট সেটিংস সেভ করুন</button>
+          <button type="submit" id="btnSaveBillingSettings" class="btn btn-primary" style="padding: 8px 20px;">সেভ করুন</button>
         </div>
       </form>
 
       <!-- Card 2: Promo / Discount Codes -->
-      <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); padding: 20px; border-radius: 14px; display: flex; flex-direction: column; gap: 14px;">
-        <h4 style="color: #c084fc; font-size: 1rem; margin: 0;">২. চেকআউট ডিসকাউন্ট / প্রোমো কোড</h4>
+      <div style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 16px; border-radius: 12px; display: flex; flex-direction: column; gap: 12px;">
+        <h4 style="color: var(--text-main); font-size: 0.95rem; font-weight: 600; margin: 0;">ডিসকাউন্ট কোড</h4>
         <form id="promoCodeForm" class="form-row" style="align-items:flex-end;">
           <div class="form-group" style="flex: 1.1; min-width: 140px;">
             <label>কোড *</label>
             <input type="text" id="newPromoCode" placeholder="SAVE20" maxlength="50" style="text-transform: uppercase;" required>
           </div>
           <div class="form-group" style="flex: 1; min-width: 130px;">
-            <label>ডিসকাউন্ট ধরন</label>
+            <label>ধরন</label>
             <select id="newPromoType">
-              <option value="percent">শতাংশ (%)</option>
-              <option value="fixed_usd">নির্দিষ্ট USD ($)</option>
+              <option value="percent">%</option>
+              <option value="fixed_usd">USD ($)</option>
             </select>
           </div>
           <div class="form-group" style="flex: 0.8; min-width: 110px;">
@@ -2088,10 +2057,10 @@
             <input type="number" min="1" id="newPromoMaxUses" value="100" required>
           </div>
           <div class="form-group" style="flex: 0.9; min-width: 110px;">
-            <label>মেয়াদ (দিন, 0=না)</label>
+            <label>মেয়াদ (দিন)</label>
             <input type="number" min="0" id="newPromoExpDays" value="0">
           </div>
-          <button type="submit" class="btn btn-primary" style="padding: 10px 18px;">+ প্রোমো তৈরি</button>
+          <button type="submit" class="btn btn-primary" style="padding: 9px 16px;">+ তৈরি</button>
         </form>
         <div class="table-container">
           <table class="responsive-cards-table">
@@ -2099,7 +2068,7 @@
               <tr>
                 <th>কোড</th>
                 <th>ডিসকাউন্ট</th>
-                <th>ব্যবহার (Used/Max)</th>
+                <th>ব্যবহার</th>
                 <th>মেয়াদ</th>
                 <th>অ্যাকশন</th>
               </tr>
@@ -2112,15 +2081,15 @@
       </div>
 
       <!-- Card 3: Payment Orders Approval Queue -->
-      <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); padding: 20px; border-radius: 14px; display: flex; flex-direction: column; gap: 14px;">
+      <div style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 16px; border-radius: 12px; display: flex; flex-direction: column; gap: 12px;">
         <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
-          <h4 style="color: #34d399; font-size: 1rem; margin: 0;">৩. ডাইরেক্ট পেমেন্ট অর্ডার ও অনুমোদন</h4>
+          <h4 style="color: var(--text-main); font-size: 0.95rem; font-weight: 600; margin: 0;">পেমেন্ট অর্ডার</h4>
           <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
             <select id="ordersFilterStatus" onchange="loadPaymentOrders()" style="padding:7px 12px; font-size:0.84rem;">
-              <option value="all">সকল অর্ডার</option>
-              <option value="pending">পেন্ডিং (Pending)</option>
-              <option value="approved">অনুমোদিত (Approved)</option>
-              <option value="rejected">বাতিল (Rejected)</option>
+              <option value="all">সব</option>
+              <option value="pending">পেন্ডিং</option>
+              <option value="approved">অনুমোদিত</option>
+              <option value="rejected">বাতিল</option>
             </select>
             <button type="button" class="btn btn-ghost" onclick="loadPaymentOrders()" style="padding:7px 14px; font-size:0.82rem;">রিফ্রেশ</button>
           </div>
@@ -2348,74 +2317,74 @@
       en: {
         backChat: "Back to Chat",
         langBtn: "বাংলা",
-        changePass: "Change Password",
+        changePass: "Password",
         logout: "Log Out",
-        statUsers: "Total Users",
-        statPro: "Pro Subscribers",
-        statMax: "Max Subscribers",
-        statRedeem: "Used Redeem Codes",
-        statMessages: "Total Message History",
-        tabUsers: "User Management",
-        tabPlans: "Plan Settings",
-        tabRedeem: "Redeem Codes",
-        tabModels: "AI Models",
-        tabSettings: "Image & Search APIs",
-        tabSystemPrompt: "System Prompt",
-        tabTrial: "Free Trial Offer",
-        tabNotifyAds: "Notify & Ads",
-        tabBilling: "Payments & Orders",
-        usersHeader: "User Directory & Account Controls",
-        plansHeader: "Dynamic Plan Settings (6 Tiers)",
-        redeemHeader: "Redeem Code Generator",
-        modelsHeader: "AI Model Settings",
-        settingsHeader: "Image Model & Web Search API Configuration",
-        systemPromptHeader: "System Prompt Settings",
-        trialHeader: "Free Trial Offer (Claim offer)",
-        notifyAdsHeader: "App Notifications & Ads Controls",
-        billingHeader: "Payments, Currency Rates, Promo Codes & Orders",
-        searchUserPlaceholder: "Search users (name, email, or plan)...",
+        statUsers: "Users",
+        statPro: "Pro",
+        statMax: "Max",
+        statRedeem: "Redeem",
+        statMessages: "Messages",
+        tabUsers: "Users",
+        tabPlans: "Plans",
+        tabRedeem: "Redeem",
+        tabModels: "Models",
+        tabSettings: "APIs & Voice",
+        tabSystemPrompt: "Prompt",
+        tabTrial: "Trial",
+        tabNotifyAds: "Notify",
+        tabBilling: "Payments",
+        usersHeader: "Users",
+        plansHeader: "Plans & Limits",
+        redeemHeader: "Redeem Codes",
+        modelsHeader: "AI Models",
+        settingsHeader: "APIs & Live Voice",
+        systemPromptHeader: "System Prompt",
+        trialHeader: "Free Trial",
+        notifyAdsHeader: "Notifications & Ads",
+        billingHeader: "Payments & Orders",
+        searchUserPlaceholder: "Search users...",
         thName: "Name",
         thEmail: "Email",
-        thPlan: "Current Plan",
-        thExpiry: "Subscription Expiry",
+        thPlan: "Plan",
+        thExpiry: "Expiry",
         thStatus: "Status",
-        thActions: "Actions (Plan & Block)"
+        thActions: "Actions"
       },
       bn: {
-        backChat: "চ্যাটে ফিরে যান",
+        backChat: "চ্যাট",
         langBtn: "English",
-        changePass: "পাসওয়ার্ড পরিবর্তন",
+        changePass: "পাসওয়ার্ড",
         logout: "লগআউট",
-        statUsers: "মোট ইউজার",
-        statPro: "Pro সাবস্ক্রাইবার",
-        statMax: "Max সাবস্ক্রাইবার",
-        statRedeem: "ব্যবহৃত রিডিম কোড",
-        statMessages: "মোট মেসেজ হিস্ট্রি",
-        tabUsers: "ইউজার ম্যানেজমেন্ট",
-        tabPlans: "প্ল্যান সেটিংস",
+        statUsers: "ইউজার",
+        statPro: "Pro",
+        statMax: "Max",
+        statRedeem: "রিডিম",
+        statMessages: "মেসেজ",
+        tabUsers: "ইউজার",
+        tabPlans: "প্ল্যান",
         tabRedeem: "রিডিম কোড",
-        tabModels: "AI মডেল",
-        tabSettings: "ইমেজ ও সার্চ API",
-        tabSystemPrompt: "সিস্টেম প্রম্পট",
-        tabTrial: "ফ্রি ট্রায়াল অফার",
-        tabNotifyAds: "নোটিফিকেশন ও অ্যাডস",
-        tabBilling: "পেমেন্ট, রেট ও অর্ডার",
-        usersHeader: "ইউজার তালিকা ও অ্যাকাউন্ট নিয়ন্ত্রণ",
-        plansHeader: "ডাইনামিক সাবস্ক্রিপশন লিমিট ও রেট-লিমিটিং",
-        redeemHeader: "রিডিম কোড জেনারেটর",
-        modelsHeader: "AI মডেল সেটিংস",
-        settingsHeader: "ইমেজ মডেল ও ওয়েব সার্চ API কনফিগারেশন",
-        systemPromptHeader: "সিস্টেম প্রম্পট সেটিংস",
-        trialHeader: "ফ্রি ট্রায়াল অফার (Claim offer)",
-        notifyAdsHeader: "অ্যাপ নোটিফিকেশন ও অ্যাডস কন্ট্রোল",
-        billingHeader: "পেমেন্ট মাধ্যম, কারেন্সি রেট, ডিসকাউন্ট ও অর্ডার",
-        searchUserPlaceholder: "ইউজার খুঁজুন (নাম, ইমেইল বা প্ল্যান)...",
+        tabModels: "মডেল",
+        tabSettings: "API ও ভয়েস",
+        tabSystemPrompt: "প্রম্পট",
+        tabTrial: "ফ্রি ট্রায়াল",
+        tabNotifyAds: "নোটিফিকেশন",
+        tabBilling: "পেমেন্ট",
+        usersHeader: "ইউজার ম্যানেজমেন্ট",
+        plansHeader: "প্ল্যান ও লিমিট",
+        redeemHeader: "রিডিম কোড",
+        modelsHeader: "AI মডেল",
+        settingsHeader: "API ও ভয়েস কনফিগারেশন",
+        systemPromptHeader: "সিস্টেম প্রম্পট",
+        trialHeader: "ফ্রি ট্রায়াল অফার",
+        notifyAdsHeader: "নোটিফিকেশন ও অ্যাডস",
+        billingHeader: "পেমেন্ট ও অর্ডার",
+        searchUserPlaceholder: "নাম, ইমেইল বা প্ল্যান খুঁজুন...",
         thName: "নাম",
         thEmail: "ইমেইল",
-        thPlan: "বর্তমান প্ল্যান",
-        thExpiry: "সাবস্ক্রিপশন মেয়াদ",
+        thPlan: "প্ল্যান",
+        thExpiry: "মেয়াদ",
         thStatus: "স্ট্যাটাস",
-        thActions: "অ্যাকশন (প্ল্যান পরিবর্তন ও ব্লক)"
+        thActions: "অ্যাকশন"
       }
     };
 
@@ -3256,7 +3225,7 @@
       } finally {
         if (btn) {
           btn.disabled = false;
-          btn.textContent = "⚡ Google AI Studio থেকে Live মডেল স্ক্যান করুন";
+          btn.textContent = "Gemini Live স্ক্যান";
         }
       }
     }
