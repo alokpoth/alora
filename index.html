@@ -5401,7 +5401,7 @@
     let contextTargetSessionId = null;
     let currentSettingsTab = "general";
 
-    const CURRENT_SW_CACHE = "alora-ai-v1.0.0.24-8";
+    const CURRENT_SW_CACHE = "alora-ai-v1.0.0.24-9";
 
     // Safely migrate & clean legacy stale storage keys and obsolete browser caches on startup
     // while keeping 100% of active user data (tokens, chats, theme, lang, models, settings, voice prefs).
@@ -8664,10 +8664,15 @@
     let ttsOnCompleteCallback = null;
     let ttsWatchdogTimer = null;
     let ttsSpeakDelayTimer = null;
+    let ttsNativeWatchdogTimer = null;
+    let ttsResumeInterval = null;
+    window.__activeTtsUtterance = null;
 
     function clearTtsTimers() {
       if (ttsWatchdogTimer) { clearTimeout(ttsWatchdogTimer); ttsWatchdogTimer = null; }
       if (ttsSpeakDelayTimer) { clearTimeout(ttsSpeakDelayTimer); ttsSpeakDelayTimer = null; }
+      if (ttsNativeWatchdogTimer) { clearTimeout(ttsNativeWatchdogTimer); ttsNativeWatchdogTimer = null; }
+      if (ttsResumeInterval) { clearInterval(ttsResumeInterval); ttsResumeInterval = null; }
     }
 
     function stopReadAloud() {
@@ -8675,12 +8680,17 @@
       ttsChunksQueue = [];
       ttsChunkIndex = 0;
       ttsOnCompleteCallback = null;
+      window.__activeTtsUtterance = null;
       const bridge = getNativeAndroidBridge();
       if (bridge && typeof bridge.stopSpeech === "function") {
         try { bridge.stopSpeech(); } catch (e) {}
       }
       if ("speechSynthesis" in window) {
-        try { window.speechSynthesis.cancel(); } catch(e) {}
+        try {
+          if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+            window.speechSynthesis.cancel();
+          }
+        } catch(e) {}
       }
       isSpeaking = false;
       if (activeAudioButton) {
@@ -8694,7 +8704,31 @@
       }
     }
 
+    function armNativeTtsWatchdog(bridge, pieceLen) {
+      if (ttsNativeWatchdogTimer) { clearTimeout(ttsNativeWatchdogTimer); ttsNativeWatchdogTimer = null; }
+      const startedAt = Date.now();
+      const maxWaitMs = Math.max(10000, Math.min(30000, pieceLen * 165));
+      const poll = () => {
+        ttsNativeWatchdogTimer = null;
+        if (!isSpeaking) return;
+        const elapsed = Date.now() - startedAt;
+        let stillSpeaking = false;
+        try {
+          if (bridge && typeof bridge.isSpeaking === "function") {
+            stillSpeaking = Boolean(bridge.isSpeaking());
+          }
+        } catch {}
+        if (!stillSpeaking || elapsed >= maxWaitMs) {
+          if (typeof window.onNativeTtsDone === "function") window.onNativeTtsDone();
+          return;
+        }
+        ttsNativeWatchdogTimer = setTimeout(poll, 1400);
+      };
+      ttsNativeWatchdogTimer = setTimeout(poll, Math.max(3200, Math.min(5500, pieceLen * 65)));
+    }
+
     function playNextTtsChunk() {
+      clearTtsTimers();
       if (!isSpeaking || ttsChunkIndex >= ttsChunksQueue.length) {
         const doneCb = ttsOnCompleteCallback;
         stopReadAloud();
@@ -8709,12 +8743,14 @@
       if (bridge && typeof bridge.speakTextWithStyle === "function") {
         try {
           if (bridge.speakTextWithStyle(piece, segLang, preset.pitch, preset.rate, preset.gender)) {
+            armNativeTtsWatchdog(bridge, piece.length);
             return;
           }
         } catch (e) {}
       } else if (bridge && typeof bridge.speakText === "function") {
         try {
           if (bridge.speakText(piece, segLang)) {
+            armNativeTtsWatchdog(bridge, piece.length);
             return;
           }
         } catch (e) {}
@@ -8725,6 +8761,7 @@
         const voices = window.speechSynthesis.getVoices() || [];
         const chosenVoice = pickWebVoiceForSegment(voices, segLang, preset);
         const u = new SpeechSynthesisUtterance(piece);
+        window.__activeTtsUtterance = u;
         if (chosenVoice) {
           u.voice = chosenVoice;
           u.lang = chosenVoice.lang || segLang;
@@ -8733,10 +8770,12 @@
         }
         u.pitch = preset.pitch;
         u.rate = preset.rate;
+        u.volume = 1;
         let finishedChunk = false;
         const advanceChunk = () => {
           if (finishedChunk) return;
           finishedChunk = true;
+          if (window.__activeTtsUtterance === u) window.__activeTtsUtterance = null;
           clearTtsTimers();
           if (isSpeaking && ttsChunkIndex < ttsChunksQueue.length) playNextTtsChunk();
           else {
@@ -8747,17 +8786,31 @@
         };
         u.onend = advanceChunk;
         u.onerror = advanceChunk;
-        ttsSpeakDelayTimer = setTimeout(() => {
-          ttsSpeakDelayTimer = null;
-          if (!isSpeaking) return;
+        const doSpeakNow = () => {
+          if (!isSpeaking || finishedChunk) return;
           try {
             if (window.speechSynthesis.paused) window.speechSynthesis.resume();
             window.speechSynthesis.speak(u);
-            ttsWatchdogTimer = setTimeout(advanceChunk, Math.max(7000, piece.length * 130));
+            ttsResumeInterval = setInterval(() => {
+              try {
+                if (isSpeaking && window.speechSynthesis && window.speechSynthesis.paused) {
+                  window.speechSynthesis.resume();
+                }
+              } catch {}
+            }, 2200);
+            ttsWatchdogTimer = setTimeout(advanceChunk, Math.max(8500, piece.length * 145));
           } catch (e) {
             advanceChunk();
           }
-        }, 35);
+        };
+        if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+          ttsSpeakDelayTimer = setTimeout(() => {
+            ttsSpeakDelayTimer = null;
+            doSpeakNow();
+          }, 30);
+        } else {
+          doSpeakNow();
+        }
       } else {
         const doneCb = ttsOnCompleteCallback;
         stopReadAloud();
@@ -8766,6 +8819,7 @@
     }
 
     window.onNativeTtsDone = function() {
+      if (ttsNativeWatchdogTimer) { clearTimeout(ttsNativeWatchdogTimer); ttsNativeWatchdogTimer = null; }
       if (isSpeaking) playNextTtsChunk();
     };
 
@@ -8793,14 +8847,16 @@
         .split(/(?<=[।.!?])\s+|\n+/)
         .map(s => s.trim())
         .filter(Boolean);
+      const isMobileTts = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
+      const maxChunkLen = isMobileTts ? 140 : 210;
       const chunks = [];
       for (const sent of rawSentences) {
         let rem = sent;
         while (rem.length > 0) {
-          if (rem.length <= 210) { chunks.push(rem); break; }
-          const cut = rem.slice(0, 210);
+          if (rem.length <= maxChunkLen) { chunks.push(rem); break; }
+          const cut = rem.slice(0, maxChunkLen);
           const lastPunc = Math.max(cut.lastIndexOf(","), cut.lastIndexOf(";"), cut.lastIndexOf(" "));
-          const splitIdx = lastPunc > 60 ? lastPunc + 1 : 210;
+          const splitIdx = lastPunc > 45 ? lastPunc + 1 : maxChunkLen;
           chunks.push(rem.slice(0, splitIdx).trim());
           rem = rem.slice(splitIdx).trim();
         }
@@ -9647,6 +9703,17 @@
       let lastMicPermError = "";
       let forceFlushCapture = false;
       let preferDirectSpeechRec = false;
+      let consecutiveSpeechErrors = 0;
+      let consecutiveNoSttErrors = 0;
+      let mobileRecCommitTimer = null;
+      let lastTurnEndedAt = 0;
+
+      function clearMobileRecCommitTimer() {
+        if (mobileRecCommitTimer) {
+          clearTimeout(mobileRecCommitTimer);
+          mobileRecCommitTimer = null;
+        }
+      }
 
       function clearRestartTimer() {
         if (restartTimer) {
@@ -9869,6 +9936,7 @@
 
       function stopRecognitionOnly() {
         clearRestartTimer();
+        clearMobileRecCommitTimer();
         stopWebMediaRecorder(true);
         const bridge = getNativeAndroidBridge();
         if (usingNative && bridge) {
@@ -9934,10 +10002,12 @@
       function resumeAfterVoiceTurn() {
         if (!active) return;
         if (enforceVoiceQuotaOrLock()) return;
+        lastTurnEndedAt = Date.now();
         if (!muted) {
           setOrbState("listening");
-          const delay = getNativeAndroidBridge() ? 380 : 280;
-          setTimeout(() => startVoiceModeListening(), delay);
+          const isMobileUa = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
+          const delay = getNativeAndroidBridge() ? 520 : (isMobileUa ? 460 : 280);
+          scheduleListeningRestart(delay);
         } else {
           setOrbState("paused");
         }
@@ -9996,8 +10066,47 @@
 
         setOrbState("thinking");
         stopRecognitionOnly();
+        consecutiveSpeechErrors = 0;
         if (voiceAbort) { try { voiceAbort.abort(); } catch (e) {} }
         voiceAbort = new AbortController();
+
+        const runDirectChatModelFallback = async (promptText) => {
+          const fallbackModel = selectedVoiceModel || selectedModel || "openrouter/free";
+          const token = getAuthToken();
+          const headers = { "Content-Type": "application/json" };
+          if (token) headers["Authorization"] = `Bearer ${token}`;
+          const historyForChat = serializeMessagesForApi(messagesHistory.slice(-6));
+          historyForChat.push({ role: "user", content: promptText });
+          const voiceHint = "Reply in 1 to 4 concise, warm conversational sentences suitable for reading aloud. Use plain spoken words only, no markdown or emojis. Match the user's language (Bengali or English).";
+          const cRes = await fetch(`${API_BASE}/chat/completions`, {
+            method: "POST",
+            headers,
+            body: JSON.stringify({
+              model: fallbackModel,
+              messages: historyForChat,
+              stream: false,
+              thinking: false,
+              custom_instructions: voiceHint
+            }),
+            signal: voiceAbort.signal
+          });
+          const cData = await cRes.json().catch(() => ({}));
+          if (!cRes.ok || cData.success === false) {
+            return { ok: false, status: cRes.status, data: cData };
+          }
+          const replyStr = cData.content || cData?.choices?.[0]?.message?.content || "";
+          return {
+            ok: Boolean(String(replyStr || "").trim()),
+            status: cRes.status,
+            data: {
+              success: true,
+              transcript: promptText,
+              reply: String(replyStr || ""),
+              model: cData.model || fallbackModel,
+              audio_base64: null
+            }
+          };
+        };
 
         try {
           const token = getAuthToken();
@@ -10005,8 +10114,9 @@
           if (token) headers["Authorization"] = `Bearer ${token}`;
           const preset = getActiveVoicePreset();
           const langSetting = getVoiceInputLanguageSetting();
+          const effectivePromptText = cleanPrompt || cleanFallback;
 
-          const res = await fetch(`${API_BASE}/chat/voice-live`, {
+          let res = await fetch(`${API_BASE}/chat/voice-live`, {
             method: "POST",
             headers,
             body: JSON.stringify({
@@ -10017,27 +10127,51 @@
               voice_preset: preset.id || "auto",
               language: langSetting,
               chat_model: selectedModel,
-              voice_model: selectedVoiceModel || undefined,
+              voice_model: selectedVoiceModel || selectedModel || undefined,
               messages: serializeMessagesForApi(messagesHistory.slice(-6))
             }),
             signal: voiceAbort.signal
           });
 
-          const data = await res.json().catch(() => ({}));
+          let data = await res.json().catch(() => ({}));
           if (!active) return;
+
+          // Seamless chat-model rescue: if /chat/voice-live is busy/5xx/404 and we already have spoken text, use /chat/completions directly
+          const isAuthOrQuotaError = res.status === 401 || res.status === 403 || res.status === 429 ||
+            data.code === "VOICE_LIMIT_REACHED" || data.code === "MESSAGE_LIMIT_REACHED" ||
+            data.code === "PLAN_UPGRADE_REQUIRED" || data.code === "MODEL_LIMIT_INSUFFICIENT" || data.code === "SAFETY_BLOCKED";
+          if ((!res.ok || data.success === false) && !isAuthOrQuotaError && data.code !== "NO_STT_KEY" && effectivePromptText) {
+            const directFallback = await runDirectChatModelFallback(effectivePromptText).catch(() => null);
+            if (!active) return;
+            if (directFallback && directFallback.ok) {
+              res = { ok: true, status: 200 };
+              data = directFallback.data;
+            }
+          }
 
           if (!res.ok || data.success === false) {
             const bridge = getNativeAndroidBridge();
             if (data.code === "NO_STT_KEY" && (Speech || (bridge && typeof bridge.startNativeVoice === "function"))) {
               preferDirectSpeechRec = true;
               cachedPlanMeta.voice_stt_available = false;
+              consecutiveNoSttErrors += 1;
+              if (consecutiveNoSttErrors > 2) {
+                muted = true;
+                setOrbState("paused", currentLanguage === "bn" ? "কথা বলতে অরবে ট্যাপ করুন" : "Tap the orb to speak");
+                if (transcriptEl) {
+                  transcriptEl.textContent = currentLanguage === "bn"
+                    ? "ডিভাইস ভয়েস রিকগনিশন পাওয়া যায়নি। ফোনে Google Speech চালু করুন অথবা অরবে ট্যাপ করে আবার চেষ্টা করুন।"
+                    : "Device speech recognition unavailable. Enable Google Speech or tap the orb to retry.";
+                }
+                return;
+              }
               setOrbState("listening");
               if (transcriptEl) {
                 transcriptEl.textContent = currentLanguage === "bn"
                   ? "আবার বলুন — সরাসরি ভয়েস রিকগনিশন চালু হচ্ছে..."
                   : "Speak again — direct speech recognition active...";
               }
-              scheduleListeningRestart(180);
+              scheduleListeningRestart(450);
               return;
             }
             if (res.status === 404) {
@@ -10072,6 +10206,8 @@
             }
             throw new Error(localizeServerError(data.error, "busyDesc"));
           }
+
+          consecutiveNoSttErrors = 0;
 
           if (data.empty_audio) {
             if (active && !muted) {
@@ -10373,6 +10509,7 @@
 
       async function startVoiceModeListening() {
         clearRestartTimer();
+        clearMobileRecCommitTimer();
         if (!active || muted) {
           if (active) setOrbState("paused");
           return;
@@ -10389,10 +10526,21 @@
         stopRecognitionOnly();
         setOrbState("listening");
 
-        const langPrefMode = getVoiceInputLanguageSetting();
         const lang = getEffectiveVoiceInputLang();
         const allowAudioCapture = !preferDirectSpeechRec && Boolean(cachedPlanMeta?.voice_stt_available);
+        const isMobileWeb = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
         const bridge = getNativeAndroidBridge();
+
+        // 1. Android Native App: ALWAYS prefer built-in Google SpeechRecognizer first (concrete locale avoids Android 13 auto-detect crashes on OEM devices)
+        if (bridge && typeof bridge.startNativeVoice === "function") {
+          usingNative = true;
+          try {
+            bridge.startNativeVoice(lang || "bn-BD");
+            return;
+          } catch (e) {
+            usingNative = false;
+          }
+        }
         if (allowAudioCapture && bridge && typeof bridge.startCustomAudio === "function") {
           usingNative = true;
           try {
@@ -10402,27 +10550,136 @@
             usingNative = false;
           }
         }
-        if (bridge && typeof bridge.startNativeVoice === "function") {
-          usingNative = true;
-          try {
-            bridge.startNativeVoice(langPrefMode === "auto" ? "auto" : lang);
-            return;
-          } catch (e) {
-            usingNative = false;
+
+        // 2. Mobile & Web Browser with native SpeechRecognition (Google Speech / Safari Speech): start SYNCHRONOUSLY inside user gesture before any await!
+        if (Speech) {
+          if (isMobileWeb) {
+            // On mobile Chrome/Safari, keeping a getUserMedia stream open locks the hardware mic and blocks SpeechRecognition!
+            stopMicMeter();
+          } else {
+            startDesktopMicMeter();
           }
-        }
-        if (bridge && typeof bridge.startCustomAudio === "function") {
-          usingNative = true;
           try {
-            bridge.startCustomAudio("live");
+            webRec = new Speech();
+            webRec.lang = lang;
+            webRec.continuous = false;
+            webRec.interimResults = true;
+            webRec.maxAlternatives = 1;
+            let heardText = "";
+            let permDenied = false;
+            let recErrorCode = "";
+            let recStarted = false;
+
+            webRec.onstart = () => {
+              recStarted = true;
+              consecutiveSpeechErrors = 0;
+              if (active && !muted) setOrbState("listening");
+            };
+            webRec.onresult = (ev) => {
+              let finalStr = "";
+              let interimStr = "";
+              let lastSeg = "";
+              for (let i = 0; i < (ev?.results?.length || 0); i++) {
+                const resItem = ev.results[i];
+                const seg = String(resItem?.[0]?.transcript || "").trim();
+                if (!seg) continue;
+                // Deduplicate identical consecutive segments emitted by Android Chrome SpeechRecognition
+                if (seg === lastSeg) continue;
+                lastSeg = seg;
+                if (resItem.isFinal) finalStr += (finalStr ? " " : "") + seg;
+                else interimStr += (interimStr ? " " : "") + seg;
+              }
+              const combined = (finalStr && interimStr && interimStr.startsWith(finalStr))
+                ? interimStr
+                : [finalStr, interimStr].filter(Boolean).join(" ").trim();
+              if (combined) {
+                heardText = combined;
+                if (transcriptEl) transcriptEl.textContent = `"${heardText}"`;
+                clearMobileRecCommitTimer();
+                if (isMobileWeb) {
+                  mobileRecCommitTimer = setTimeout(() => {
+                    mobileRecCommitTimer = null;
+                    if (webRec && active && !muted && phase === "listening" && heardText) {
+                      try { webRec.stop(); } catch {}
+                    }
+                  }, finalStr ? 700 : 1700);
+                }
+              }
+            };
+            webRec.onerror = (ev) => {
+              recErrorCode = String(ev?.error || "");
+              clearMobileRecCommitTimer();
+              if (!active) return;
+              if (recErrorCode === "not-allowed" || recErrorCode === "service-not-allowed") {
+                permDenied = true;
+                const justResumedOnMobile = isMobileWeb && !recStarted && (Date.now() - lastTurnEndedAt < 3500);
+                muted = true;
+                if (justResumedOnMobile) {
+                  const tapMsg = currentLanguage === "bn" ? "কথা বলতে অরবে ট্যাপ করুন" : "Tap the orb to speak";
+                  setOrbState("paused", tapMsg);
+                  if (transcriptEl) transcriptEl.textContent = tapMsg;
+                } else {
+                  showToast(currentLanguage === "bn" ? "মাইক্রোফোনের অনুমতি প্রয়োজন।" : "Microphone permission required.");
+                  setOrbState("paused", currentLanguage === "bn" ? "মাইক্রোফোনের অনুমতি দিন" : "Allow microphone permission");
+                }
+              } else if (recErrorCode === "network" || recErrorCode === "audio-capture" || recErrorCode === "aborted") {
+                consecutiveSpeechErrors += 1;
+              }
+            };
+            webRec.onend = async () => {
+              clearMobileRecCommitTimer();
+              webRec = null;
+              if (!active) return;
+              if (permDenied || muted) {
+                if (!muted) setOrbState("paused");
+                return;
+              }
+              if (heardText) {
+                consecutiveSpeechErrors = 0;
+                handleSpokenQuery(heardText);
+                return;
+              }
+              if (recErrorCode === "network" && allowAudioCapture && typeof MediaRecorder !== "undefined") {
+                const startedFallback = await startBrowserMediaRecorderCapture(lang);
+                if (startedFallback) return;
+              }
+              if (consecutiveSpeechErrors >= 3) {
+                muted = true;
+                const retryTapMsg = currentLanguage === "bn" ? "কথা বলতে অরবে ট্যাপ করুন" : "Tap the orb to speak";
+                setOrbState("paused", retryTapMsg);
+                if (transcriptEl) {
+                  transcriptEl.textContent = currentLanguage === "bn"
+                    ? "মাইক্রোফোন রিকগনিশন থেমে গেছে — আবার বলতে অরবে ট্যাপ করুন।"
+                    : "Voice recognition paused — tap the orb to speak again.";
+                }
+                return;
+              }
+              scheduleListeningRestart(isMobileWeb ? (recErrorCode && recErrorCode !== "no-speech" ? 750 : 420) : 280);
+            };
+            webRec.start();
             return;
           } catch (e) {
-            usingNative = false;
+            webRec = null;
+            consecutiveSpeechErrors += 1;
+            if (!isMobileWeb && allowAudioCapture && typeof MediaRecorder !== "undefined") {
+              const startedMedia = await startBrowserMediaRecorderCapture(lang);
+              if (startedMedia) return;
+            }
+            if (consecutiveSpeechErrors >= 2 || isMobileWeb) {
+              muted = true;
+              const tapMsg = currentLanguage === "bn" ? "কথা বলতে অরবে ট্যাপ করুন" : "Tap the orb to speak";
+              setOrbState("paused", tapMsg);
+              if (transcriptEl) transcriptEl.textContent = tapMsg;
+              return;
+            }
+            if (!muted) scheduleListeningRestart(600);
+            else setOrbState("paused");
+            return;
           }
         }
 
-        // Browser MediaRecorder + VAD (when Whisper/Custom STT is available or SpeechRecognition unsupported) -> Chat Model Voice
-        if ((allowAudioCapture || !Speech) && typeof MediaRecorder !== "undefined") {
+        // 3. Fallback for browsers without SpeechRecognition (e.g. Firefox Mobile): MediaRecorder + VAD -> STT -> Chat Model
+        if (typeof MediaRecorder !== "undefined") {
           const startedMedia = await startBrowserMediaRecorderCapture(lang);
           if (startedMedia) return;
         }
@@ -10435,64 +10692,8 @@
           return;
         }
 
-        if (!Speech) {
-          showToast(currentLanguage === "bn" ? "এই ডিভাইসে ভয়েস ইনপুট সমর্থিত নয়।" : "Voice input is not supported on this device.");
-          closeVoiceMode();
-          return;
-        }
-
-        const isMobileWeb = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
-        if (isMobileWeb) {
-          // On mobile Chrome/Safari, keeping a getUserMedia stream open locks the hardware mic and blocks SpeechRecognition!
-          stopMicMeter();
-        } else {
-          startDesktopMicMeter();
-        }
-        try {
-          webRec = new Speech();
-          webRec.lang = lang;
-          webRec.continuous = false;
-          webRec.interimResults = true;
-          let heardText = "";
-          let permDenied = false;
-          let recHadError = false;
-          webRec.onresult = (ev) => {
-            let tStr = "";
-            for (let i = 0; i < (ev?.results?.length || 0); i++) {
-              tStr += ev.results[i][0]?.transcript || "";
-            }
-            heardText = tStr.trim();
-            if (heardText && transcriptEl) transcriptEl.textContent = `"${heardText}"`;
-          };
-          webRec.onerror = (ev) => {
-            const code = ev?.error || "";
-            recHadError = true;
-            if (!active) return;
-            if (code === "not-allowed" || code === "service-not-allowed") {
-              permDenied = true;
-              showToast(currentLanguage === "bn" ? "মাইক্রোফোনের অনুমতি প্রয়োজন।" : "Microphone permission required.");
-              muted = true;
-              setOrbState("paused");
-            }
-          };
-          webRec.onend = () => {
-            webRec = null;
-            if (!active) return;
-            if (permDenied || muted) {
-              setOrbState("paused");
-              return;
-            }
-            if (heardText) {
-              handleSpokenQuery(heardText);
-            } else {
-              scheduleListeningRestart(recHadError && isMobileWeb ? 650 : 280);
-            }
-          };
-          webRec.start();
-        } catch (e) {
-          if (!muted) scheduleListeningRestart(600);
-          else setOrbState("paused");
-        }
+        showToast(currentLanguage === "bn" ? "এই ডিভাইসে ভয়েস ইনপুট সমর্থিত নয়।" : "Voice input is not supported on this device.");
+        closeVoiceMode();
       }
 
       window.__voiceModeHooks = {
@@ -10540,7 +10741,7 @@
         onEnd() {
           usingNative = false;
           if (active && phase === "listening" && !muted) {
-            scheduleListeningRestart(340);
+            scheduleListeningRestart(480);
           }
         },
         onError(msg) {
@@ -10552,8 +10753,16 @@
             showToast(String(msg));
             return;
           }
+          consecutiveSpeechErrors += 1;
+          if (consecutiveSpeechErrors >= 3) {
+            muted = true;
+            const tapMsg = currentLanguage === "bn" ? "কথা বলতে অরবে ট্যাপ করুন" : "Tap the orb to speak";
+            setOrbState("paused", tapMsg);
+            if (transcriptEl) transcriptEl.textContent = tapMsg;
+            return;
+          }
           if (!muted && phase === "listening") {
-            scheduleListeningRestart(650);
+            scheduleListeningRestart(700);
           } else {
             setOrbState("paused");
           }
@@ -10614,6 +10823,9 @@
         stopReadAloud();
         active = true;
         muted = false;
+        consecutiveSpeechErrors = 0;
+        consecutiveNoSttErrors = 0;
+        preferDirectSpeechRec = false;
         window.__voiceModeHooks.active = true;
         renderAloraVoiceCards();
         renderLiveVoiceModelPickers();
@@ -10628,18 +10840,22 @@
         }
         backdrop.classList.add("open");
         backdrop.setAttribute("aria-hidden", "false");
-        try {
-          const AudioCtor = window.AudioContext || window.webkitAudioContext;
-          if (AudioCtor && (!audioCtx || audioCtx.state === "closed")) {
-            audioCtx = new AudioCtor();
-          }
-          if (audioCtx && audioCtx.state === "suspended") {
-            audioCtx.resume().catch(() => {});
-          }
-        } catch {}
+        const isMobTap = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
+        if (!isMobTap || !Speech) {
+          try {
+            const AudioCtor = window.AudioContext || window.webkitAudioContext;
+            if (AudioCtor && (!audioCtx || audioCtx.state === "closed")) {
+              audioCtx = new AudioCtor();
+            }
+            if (audioCtx && audioCtx.state === "suspended") {
+              audioCtx.resume().catch(() => {});
+            }
+          } catch {}
+        }
         try {
           const bridge = getNativeAndroidBridge();
           if (!bridge && "speechSynthesis" in window && typeof SpeechSynthesisUtterance !== "undefined") {
+            window.speechSynthesis.getVoices();
             const unlockUtter = new SpeechSynthesisUtterance("");
             unlockUtter.volume = 0;
             window.speechSynthesis.speak(unlockUtter);
@@ -10660,6 +10876,8 @@
           startVoiceModeListening();
         } else if (phase === "paused") {
           muted = false;
+          consecutiveSpeechErrors = 0;
+          consecutiveNoSttErrors = 0;
           startVoiceModeListening();
         }
       });

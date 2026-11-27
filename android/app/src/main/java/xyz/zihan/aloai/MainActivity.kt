@@ -537,13 +537,17 @@ class MainActivity : AppCompatActivity() {
                         override fun onError(error: Int) {
                             isSpeechListening = false
                             destroySpeechRecognizer()
-                            if (!simpleFallback && (error == 12 || error == 13 || error == 14 || error == SpeechRecognizer.ERROR_SERVER || error == SpeechRecognizer.ERROR_AUDIO)) {
-                                // Device speech engine may reject multi-language detection extras -> retry cleanly with standard locale
-                                launchNativeSpeechRecognizer(langTag, simpleFallback = true)
+                            if (!simpleFallback && (error == SpeechRecognizer.ERROR_RECOGNIZER_BUSY || error == SpeechRecognizer.ERROR_CLIENT || error == 12 || error == 13 || error == 14 || error == SpeechRecognizer.ERROR_SERVER || error == SpeechRecognizer.ERROR_AUDIO)) {
+                                // Give Android RecognitionService Binder time to release, then retry cleanly with standard locale
+                                mainHandler.postDelayed({
+                                    if (!isFinishing && !isDestroyed) {
+                                        launchNativeSpeechRecognizer(langTag, simpleFallback = true)
+                                    }
+                                }, 220L)
                                 return
                             }
-                            if (error == SpeechRecognizer.ERROR_CLIENT || error == SpeechRecognizer.ERROR_RECOGNIZER_BUSY || error == 12 || error == 13 || error == 14 || error == SpeechRecognizer.ERROR_AUDIO) {
-                                // Never open Google UI popup; fall back seamlessly to custom AudioRecord capture
+                            if (error == 12 || error == 13 || error == 14) {
+                                // Device speech engine does not support requested language; fall back seamlessly to custom AudioRecord capture
                                 launchCustomAudioRecord("live")
                                 return
                             }

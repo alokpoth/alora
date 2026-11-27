@@ -79,18 +79,64 @@ function buildVoiceSystemInstruction(language, customPrompt = '') {
 
 function splitApiKeys(raw) {
   if (!raw || typeof raw !== 'string') return [];
-  return raw
+  const decrypted = decryptSecret(raw);
+  if (!decrypted || typeof decrypted !== 'string') return [];
+  return decrypted
     .split(/[\n,;]+/)
-    .map(k => k.trim())
-    .filter(k => k && !k.startsWith('sk-placeholder'));
+    .map(k => decryptSecret(k.trim()).trim())
+    .filter(k => k && !k.startsWith('sk-placeholder') && !k.startsWith('enc:v1:'));
+}
+
+function extractVoiceReplyFromRawBody(rawText) {
+  const trimmed = String(rawText || '').trim();
+  if (!trimmed) return '';
+  if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+    try {
+      const d = JSON.parse(trimmed);
+      const choice = Array.isArray(d?.choices) ? d.choices[0] : null;
+      if (choice) {
+        const msg = choice.message || {};
+        const content = typeof msg.content === 'string'
+          ? msg.content
+          : (Array.isArray(msg.content) ? msg.content.map(c => (c && c.text) || '').join('') : '');
+        const fallback = choice.text || '';
+        if (content || fallback) return String(content || fallback);
+      }
+      if (Array.isArray(d?.content)) {
+        const aText = d.content.map(c => (c && c.text) || '').join('');
+        if (aText) return aText;
+      }
+      const direct = d?.output_text || d?.response || d?.answer || d?.result || d?.text
+        || (typeof d?.content === 'string' ? d.content : '')
+        || (d?.message && typeof d.message.content === 'string' ? d.message.content : '');
+      if (direct) return String(direct);
+    } catch {}
+  }
+  if (trimmed.includes('data:')) {
+    const parts = [];
+    for (const line of trimmed.split('\n')) {
+      const lt = line.trim();
+      if (!lt.startsWith('data:')) continue;
+      const payload = lt.slice(5).trim();
+      if (!payload || payload === '[DONE]') continue;
+      try {
+        const j = JSON.parse(payload);
+        const tok = j?.choices?.[0]?.delta?.content ?? j?.choices?.[0]?.message?.content ?? j?.choices?.[0]?.text ?? '';
+        if (tok) parts.push(tok);
+      } catch {}
+    }
+    if (parts.length > 0) return parts.join('');
+  }
+  return '';
 }
 
 async function hasConfiguredVoiceStt() {
   try {
-    if (process.env.GROQ_API_KEY && String(process.env.GROQ_API_KEY).trim()) return true;
+    if (splitApiKeys(process.env.GROQ_API_KEY || '').length > 0) return true;
     const settings = await getSystemSettings().catch(() => ({}));
-    if (settings.voice_stt_url && isPublicHttpUrl(settings.voice_stt_url) && settings.voice_live_api_key) return true;
-    for (const vk of splitApiKeys(settings && settings.voice_live_api_key)) {
+    const liveVoiceKeys = splitApiKeys(settings && settings.voice_live_api_key);
+    if (settings.voice_stt_url && isPublicHttpUrl(settings.voice_stt_url) && liveVoiceKeys.length > 0) return true;
+    for (const vk of liveVoiceKeys) {
       if (vk.startsWith('gsk_')) return true;
     }
     const allModels = (await getPersistedModels().catch(() => [])) || [];
@@ -125,8 +171,8 @@ async function transcribeAudioFallback({ audioBase64, mimeType, sttUrl, apiKey, 
 
   const sttCandidates = [];
   if (sttUrl && isPublicHttpUrl(sttUrl)) {
-    const k = String(apiKey || settings.voice_live_api_key || '').trim();
-    if (k) {
+    const customKeys = splitApiKeys(apiKey || settings.voice_live_api_key || '');
+    for (const k of customKeys) {
       sttCandidates.push({
         url: sttUrl.trim(),
         key: k,
@@ -301,7 +347,7 @@ async function runCustomVoiceApiTurn({ apiUrl, apiKey, modelName, audioBase64, m
   };
 }
 
-async function resolveTargetChatModel(targetModelId, planName, planObj) {
+async function resolveAccessibleChatModels(primaryModelId, fallbackChatModelId, planName, planObj) {
   let allModels = [];
   if (getIsMongoConnected()) {
     allModels = await AiModel.find({ is_active: { $ne: false } }).sort({ order: 1, createdAt: 1 }).lean().catch(() => []);
@@ -318,27 +364,40 @@ async function resolveTargetChatModel(targetModelId, planName, planObj) {
     const mName = String(m.name || '').toLowerCase().trim();
     if (deletedSet && (deletedSet.has(mId) || deletedSet.has(mName))) return false;
     if (/generativelanguage\.googleapis\.com/i.test(String(m.base_url || ''))) return false;
-    return true;
+    return canPlanAccessModel(m, planName, planObj);
   });
 
-  const pickById = (idStr) => {
-    const clean = String(idStr || '').trim();
-    if (!clean) return null;
-    const raw = chatCandidates.find(m => (m.id === clean || m.model_id === clean));
-    if (!raw || !canPlanAccessModel(raw, planName, planObj)) return null;
-    return raw;
+  const ordered = [];
+  const seen = new Set();
+  const pushModel = (m) => {
+    if (!m) return;
+    const key = String(m.model_id || m.id || '').toLowerCase().trim();
+    if (!key || seen.has(key)) return;
+    seen.add(key);
+    ordered.push(m);
   };
 
-  let picked = pickById(targetModelId);
-  if (!picked) {
-    picked = chatCandidates.find(m => canPlanAccessModel(m, planName, planObj)) || null;
+  for (const wanted of [primaryModelId, fallbackChatModelId]) {
+    const clean = String(wanted || '').trim();
+    if (!clean) continue;
+    const found = chatCandidates.find(m => m.id === clean || m.model_id === clean);
+    if (found) pushModel(found);
   }
-  if (!picked) return null;
-  return (await getModelConfig(picked.model_id || picked.id)) || picked;
+  for (const m of chatCandidates) {
+    pushModel(m);
+  }
+
+  const resolved = [];
+  for (const m of ordered.slice(0, 4)) {
+    const fullCfg = (await getModelConfig(m.model_id || m.id)) || m;
+    resolved.push(fullCfg);
+  }
+  return resolved;
 }
 
 async function runChatModelVoiceTurn({
   targetModelId,
+  fallbackChatModelId = '',
   audioBase64,
   mimeType,
   textPrompt,
@@ -376,39 +435,49 @@ async function runChatModelVoiceTurn({
     throw err;
   }
 
-  const modelCfg = await resolveTargetChatModel(targetModelId, planName, planObj);
-  const safeDisplayName = getSafeModelDisplayName((modelCfg && (modelCfg.name || modelCfg.model_id || modelCfg.id)) || 'Alora');
-
+  const candidateModels = await resolveAccessibleChatModels(targetModelId, fallbackChatModelId, planName, planObj);
   const tiers = [];
-  if (modelCfg) {
-    tiers.push({
-      url: modelCfg.base_url || '',
-      key: modelCfg.api_key || '',
-      mod: modelCfg.api_model_1 || modelCfg.model_id || modelCfg.id,
-      type: modelCfg.type || ''
-    });
-    if (modelCfg.fallback_url_1 || modelCfg.api_model_2 || modelCfg.fallback_model_1) {
+  if (candidateModels.length > 0) {
+    for (const modelCfg of candidateModels) {
+      const displayName = getSafeModelDisplayName(modelCfg.name || modelCfg.model_id || modelCfg.id || 'Alora');
+      const modelKeyId = modelCfg.model_id || modelCfg.id || '';
       tiers.push({
-        url: modelCfg.fallback_url_1 || modelCfg.base_url || '',
-        key: modelCfg.fallback_key_1 || modelCfg.api_key || '',
-        mod: modelCfg.api_model_2 || modelCfg.fallback_model_1,
-        type: ''
+        url: modelCfg.base_url || '',
+        key: modelCfg.api_key || '',
+        mod: modelCfg.api_model_1 || modelCfg.model_id || modelCfg.id,
+        type: modelCfg.type || '',
+        modelKeyId,
+        displayName
       });
-    }
-    if (modelCfg.fallback_url_2 || modelCfg.api_model_3 || modelCfg.fallback_model_2) {
-      tiers.push({
-        url: modelCfg.fallback_url_2 || modelCfg.base_url || '',
-        key: modelCfg.fallback_key_2 || modelCfg.api_key || '',
-        mod: modelCfg.api_model_3 || modelCfg.fallback_model_2,
-        type: ''
-      });
+      if (modelCfg.fallback_url_1 || modelCfg.api_model_2 || modelCfg.fallback_model_1) {
+        tiers.push({
+          url: modelCfg.fallback_url_1 || modelCfg.base_url || '',
+          key: modelCfg.fallback_key_1 || modelCfg.api_key || '',
+          mod: modelCfg.api_model_2 || modelCfg.fallback_model_1,
+          type: '',
+          modelKeyId,
+          displayName
+        });
+      }
+      if (modelCfg.fallback_url_2 || modelCfg.api_model_3 || modelCfg.fallback_model_2) {
+        tiers.push({
+          url: modelCfg.fallback_url_2 || modelCfg.base_url || '',
+          key: modelCfg.fallback_key_2 || modelCfg.api_key || '',
+          mod: modelCfg.api_model_3 || modelCfg.fallback_model_2,
+          type: '',
+          modelKeyId,
+          displayName
+        });
+      }
     }
   } else {
     tiers.push({
       url: 'https://openrouter.ai/api/v1/chat/completions',
       key: process.env.OPENROUTER_API_KEY || (await getApiKeyFromSupabase('__openrouter_key__')) || '',
       mod: targetModelId || 'openrouter/free',
-      type: 'openrouter'
+      type: 'openrouter',
+      modelKeyId: targetModelId || 'openrouter/free',
+      displayName: 'Alora'
     });
   }
 
@@ -420,6 +489,7 @@ async function runChatModelVoiceTurn({
     { role: 'user', content: spokenText }
   ];
 
+  const seenTierAttempts = new Set();
   for (const tier of tiers) {
     if (!tier.mod) continue;
     if (/generativelanguage\.googleapis\.com/i.test(String(tier.url || '')) || tier.type === 'gemini') {
@@ -432,13 +502,31 @@ async function runChatModelVoiceTurn({
         if (tier.type === 'groq' || tier.mod === 'openai/gpt-oss-120b' || tier.mod === 'openai/gpt-oss-20b') {
           url = 'https://api.groq.com/openai/v1/chat/completions';
           key = key || decryptSecret(process.env.GROQ_API_KEY || (await getApiKeyFromSupabase('__groq_key__')) || '');
+        } else if (tier.type === 'vyce' || tier.mod === 'claude-sonnet-4-6' || tier.mod === 'gpt-5.6' || tier.mod === 'nemotron-ultra-550b') {
+          url = 'https://vyceai.com/v1/chat/completions';
+          key = key || decryptSecret(process.env.VYCE_API_KEY || (await getApiKeyFromSupabase('__vyce_key__')) || '');
         } else {
           url = 'https://openrouter.ai/api/v1/chat/completions';
           key = key || decryptSecret(process.env.OPENROUTER_API_KEY || (await getApiKeyFromSupabase('__openrouter_key__')) || '');
         }
       }
+      if (!key) {
+        key = decryptSecret((await getApiKeyFromSupabase(tier.mod)) || '');
+        if (!key && tier.modelKeyId && tier.modelKeyId !== tier.mod) {
+          key = decryptSecret((await getApiKeyFromSupabase(tier.modelKeyId)) || '');
+        }
+        if (!key) {
+          if (url.includes('openrouter.ai')) key = decryptSecret(process.env.OPENROUTER_API_KEY || (await getApiKeyFromSupabase('__openrouter_key__')) || '');
+          else if (url.includes('groq.com')) key = decryptSecret(process.env.GROQ_API_KEY || (await getApiKeyFromSupabase('__groq_key__')) || '');
+          else if (url.includes('vyceai.com')) key = decryptSecret(process.env.VYCE_API_KEY || (await getApiKeyFromSupabase('__vyce_key__')) || '');
+        }
+      }
       if (!isPublicHttpUrl(url)) continue;
       url = resolveChatCompletionUrl(url, tier.type || '');
+      const attemptKey = `${url}::${tier.mod}`;
+      if (seenTierAttempts.has(attemptKey)) continue;
+      seenTierAttempts.add(attemptKey);
+
       const headers = { 'Content-Type': 'application/json' };
       if (key) headers.Authorization = `Bearer ${key}`;
       const bodyWithTemp = JSON.stringify({ model: tier.mod, messages, temperature: 0.65, stream: false });
@@ -446,12 +534,12 @@ async function runChatModelVoiceTurn({
         method: 'POST',
         headers,
         body: bodyWithTemp,
-        signal: AbortSignal.timeout(15000)
+        signal: AbortSignal.timeout(22000)
       });
       if (r.status === 404 || r.status === 405) {
         const altUrl = getAlternateChatEndpointUrl(url);
         if (altUrl) {
-          const rAlt = await fetch(altUrl, { method: 'POST', headers, body: bodyWithTemp, signal: AbortSignal.timeout(15000) });
+          const rAlt = await fetch(altUrl, { method: 'POST', headers, body: bodyWithTemp, signal: AbortSignal.timeout(22000) });
           if (rAlt.status !== 404 && rAlt.status !== 405) {
             r = rAlt;
             url = altUrl;
@@ -463,12 +551,19 @@ async function runChatModelVoiceTurn({
           method: 'POST',
           headers,
           body: JSON.stringify({ model: tier.mod, messages, stream: false }),
-          signal: AbortSignal.timeout(15000)
+          signal: AbortSignal.timeout(22000)
         });
       }
       if (r.ok) {
-        const d = await r.json();
-        const txt = d?.choices?.[0]?.message?.content || d?.output_text || d?.response || '';
+        let txt = '';
+        if (typeof r.text === 'function') {
+          const rawBody = await r.text().catch(() => '');
+          txt = extractVoiceReplyFromRawBody(rawBody);
+        } else if (typeof r.json === 'function') {
+          const d = await r.json().catch(() => ({}));
+          txt = extractVoiceReplyFromRawBody(JSON.stringify(d || {}));
+        }
+        const safeDisplayName = tier.displayName || 'Alora';
         const sanitized = cleanSpokenText(sanitizeModelIdentityText(String(txt || ''), safeDisplayName));
         if (sanitized) {
           return {
@@ -550,6 +645,7 @@ async function executeVoiceTurn(payload = {}, forcedSettings = null, planObj = n
 
   return await runChatModelVoiceTurn({
     targetModelId,
+    fallbackChatModelId: String(chat_model || '').trim(),
     audioBase64: cleanAudio,
     mimeType: mime_type,
     textPrompt: cleanText,

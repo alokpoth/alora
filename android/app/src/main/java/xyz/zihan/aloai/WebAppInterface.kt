@@ -25,7 +25,15 @@ import java.util.Locale
 class WebAppInterface(private val activity: MainActivity) : TextToSpeech.OnInitListener {
 
     private var tts: TextToSpeech? = null
-    private var isTtsInitialized = false
+    @Volatile private var isTtsInitialized = false
+    private data class PendingTtsSpeech(
+        val text: String,
+        val lang: String?,
+        val pitch: Float,
+        val rate: Float,
+        val gender: String?
+    )
+    @Volatile private var pendingTtsSpeech: PendingTtsSpeech? = null
 
     init {
         try {
@@ -56,6 +64,21 @@ class WebAppInterface(private val activity: MainActivity) : TextToSpeech.OnInitL
                     tts?.setLanguage(Locale.US)
                 }
             } catch (_: Exception) {}
+            val pending = pendingTtsSpeech
+            pendingTtsSpeech = null
+            if (pending != null) {
+                val ok = speakTextWithStyle(pending.text, pending.lang, pending.pitch, pending.rate, pending.gender)
+                if (!ok) {
+                    activity.notifyTtsPlaybackDone()
+                }
+            }
+        } else {
+            isTtsInitialized = false
+            val hadPending = pendingTtsSpeech != null
+            pendingTtsSpeech = null
+            if (hadPending) {
+                activity.notifyTtsPlaybackDone()
+            }
         }
     }
 
@@ -80,7 +103,12 @@ class WebAppInterface(private val activity: MainActivity) : TextToSpeech.OnInitL
                 tts = engine
             } catch (_: Exception) {}
         }
-        if (engine == null || !isTtsInitialized) return false
+        if (engine == null) return false
+        if (!isTtsInitialized) {
+            pendingTtsSpeech = PendingTtsSpeech(stripped, lang, pitch, rate, voiceGender)
+            return true
+        }
+        pendingTtsSpeech = null
         return try {
             val hasBengaliScript = Regex("[\\u0980-\\u09FF]").containsMatchIn(stripped)
             val hasDevanagari = Regex("[\\u0900-\\u097F]").containsMatchIn(stripped)
@@ -145,6 +173,7 @@ class WebAppInterface(private val activity: MainActivity) : TextToSpeech.OnInitL
 
     @JavascriptInterface
     fun stopSpeech() {
+        pendingTtsSpeech = null
         try {
             tts?.stop()
         } catch (_: Exception) {}
