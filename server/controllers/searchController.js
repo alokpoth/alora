@@ -90,7 +90,16 @@ async function runGoogleNewsSearch(query, maxResults = 3) {
 async function executeSearch(query, forcedSettings = null) {
   const settings = forcedSettings || await getSystemSettings();
   const provider = String(settings.web_search_provider || 'duckduckgo').toLowerCase().trim();
-  const apiKey = String(settings.web_search_api_key || process.env.WEB_SEARCH_API_KEY || process.env.TAVILY_API_KEY || process.env.SERPER_API_KEY || process.env.BRAVE_API_KEY || '').trim();
+  const providerEnvKey = provider === 'tavily'
+    ? (process.env.TAVILY_API_KEY || process.env.WEB_SEARCH_API_KEY || '')
+    : provider === 'serper'
+      ? (process.env.SERPER_API_KEY || process.env.WEB_SEARCH_API_KEY || '')
+      : provider === 'brave'
+        ? (process.env.BRAVE_API_KEY || process.env.WEB_SEARCH_API_KEY || '')
+        : provider === 'custom'
+          ? (process.env.WEB_SEARCH_API_KEY || '')
+          : '';
+  const apiKey = String(settings.web_search_api_key || providerEnvKey || '').trim();
   const maxResults = Math.min(Math.max(parseInt(settings.web_search_max_results, 10) || 4, 1), 10);
   const customUrl = settings.web_search_custom_url ? String(settings.web_search_custom_url).trim() : '';
 
@@ -212,9 +221,14 @@ async function executeSearch(query, forcedSettings = null) {
         signal: AbortSignal.timeout(10000)
       });
       if (res.ok) {
-        const data = await res.json();
-        const content = data.results || data.snippet || data.answer || (typeof data === 'string' ? data : JSON.stringify(data));
-        return { results: String(content), provider: 'custom' };
+        const data = await res.json().catch(() => null);
+        if (data !== null && data !== undefined) {
+          const raw = (typeof data === 'object')
+            ? (data.results ?? data.snippet ?? data.answer ?? data)
+            : data;
+          const text = typeof raw === 'string' ? raw : JSON.stringify(raw ?? '');
+          if (text) return { results: text, provider: 'custom' };
+        }
       }
     } catch (e) {
       console.warn('[Custom Search API Exception]:', e.message);

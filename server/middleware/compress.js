@@ -19,6 +19,7 @@ function compressionMiddleware(req, res, next) {
   const origEnd = res.end.bind(res);
   const chunks = [];
   let bypassed = false;
+  let ended = false;
 
   function shouldCompress() {
     if (res.headersSent) return false;
@@ -31,9 +32,13 @@ function compressionMiddleware(req, res, next) {
   }
 
   res.write = function (chunk, encoding, cb) {
+    if (typeof encoding === 'function') {
+      cb = encoding;
+      encoding = undefined;
+    }
+    if (ended) return false;
     if (bypassed) return origWrite(chunk, encoding, cb);
-    const cType = String(res.getHeader('Content-Type') || '');
-    if (cType.includes('text/event-stream')) {
+    if (!shouldCompress()) {
       bypassed = true;
       for (const c of chunks) origWrite(c);
       chunks.length = 0;
@@ -54,13 +59,21 @@ function compressionMiddleware(req, res, next) {
       cb = encoding;
       encoding = undefined;
     }
+    if (ended) return res;
+    ended = true;
 
-    if (bypassed) return origEnd(chunk, encoding, cb);
+    if (bypassed) {
+      res.write = origWrite;
+      res.end = origEnd;
+      return origEnd(chunk, encoding, cb);
+    }
     if (chunk !== undefined && chunk !== null) {
       chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk, encoding));
     }
 
     const raw = chunks.length ? Buffer.concat(chunks) : null;
+    chunks.length = 0;
+
     if (
       req.method === 'HEAD' ||
       res.statusCode === 204 ||
@@ -77,14 +90,24 @@ function compressionMiddleware(req, res, next) {
     zlib.gzip(raw, { level: 6 }, (err, compressed) => {
       res.write = origWrite;
       res.end = origEnd;
-      if (err) {
+      if (res.writableEnded || res.destroyed) return;
+      if (err || res.headersSent) {
         return raw.length ? origEnd(raw, cb) : origEnd(cb);
       }
       res.removeHeader('Content-Length');
       res.setHeader('Content-Encoding', 'gzip');
-      res.setHeader('Vary', 'Accept-Encoding');
+      const existingVary = res.getHeader('Vary');
+      if (!existingVary) {
+        res.setHeader('Vary', 'Accept-Encoding');
+      } else {
+        const varyStr = Array.isArray(existingVary) ? existingVary.join(', ') : String(existingVary);
+        if (!/\baccept-encoding\b/i.test(varyStr)) {
+          res.setHeader('Vary', `${varyStr}, Accept-Encoding`);
+        }
+      }
       return origEnd(compressed, cb);
     });
+    return res;
   };
 
   next();

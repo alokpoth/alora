@@ -125,7 +125,25 @@ app.head('/api', (req, res) => res.status(200).end());
 app.get('/', healthHandler);
 app.head('/', (req, res) => res.status(200).end());
 
-// Diagnostic debug-models endpoint (admin only, secrets redacted)
+// API Routes with DB Connection Readiness, Rate Limiting & Anti-Cache Headers
+app.use(['/api', '/auth', '/chat', '/redeem', '/admin', '/zihan', '/search', '/payments', '/plans'], async (req, res, next) => {
+  try {
+    await ensureDBConnected();
+  } catch (dbErr) {
+    console.warn('[Vercel DB Middleware Warning]:', dbErr.message);
+  }
+  next();
+});
+app.use(['/api', '/auth', '/chat', '/redeem', '/admin', '/zihan', '/search', '/payments', '/plans'], (req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.setHeader('Surrogate-Control', 'no-store');
+  next();
+});
+app.use(['/api', '/chat', '/search', '/payments'], apiLimiter);
+
+// Diagnostic debug-models endpoint (admin only, secrets redacted; runs after ensureDBConnected)
 app.get('/api/debug-models', protect, adminOnly, async (req, res) => {
   try {
     const { getPersistedModels, getDeletedModelIds } = require('../utils/getModelConfig');
@@ -159,7 +177,7 @@ app.get('/api/debug-models', protect, adminOnly, async (req, res) => {
   }
 });
 
-// Public plans endpoint
+// Public plans endpoint (runs after ensureDBConnected so Vercel cold starts serve live MongoDB plans)
 const plansHandler = async (req, res) => {
   try {
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -186,24 +204,6 @@ const plansHandler = async (req, res) => {
 };
 app.get('/api/plans', plansHandler);
 app.get('/plans', plansHandler);
-
-// API Routes with Rate Limiting & Anti-Cache Headers
-app.use(['/api', '/auth', '/chat', '/redeem', '/admin', '/zihan', '/search', '/payments'], async (req, res, next) => {
-  try {
-    await ensureDBConnected();
-  } catch (dbErr) {
-    console.warn('[Vercel DB Middleware Warning]:', dbErr.message);
-  }
-  next();
-});
-app.use(['/api', '/auth', '/chat', '/redeem', '/admin', '/zihan', '/search', '/payments'], (req, res, next) => {
-  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  res.setHeader('Pragma', 'no-cache');
-  res.setHeader('Expires', '0');
-  res.setHeader('Surrogate-Control', 'no-store');
-  next();
-});
-app.use(['/api', '/chat', '/search', '/payments'], apiLimiter);
 
 // Mount main routes (with and without /api prefix for Vercel path flexibility)
 app.get(['/auth/login', '/auth/signup'], (req, res) => res.sendFile(path.join(__dirname, '..', 'login.html')));

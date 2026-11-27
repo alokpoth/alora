@@ -290,7 +290,7 @@ async function runCustomVoiceApiTurn({ apiUrl, apiKey, modelName, audioBase64, m
   if (!resp.ok) {
     throw new Error(`Custom Voice HTTP ${resp.status}`);
   }
-  const data = await resp.json();
+  const data = await resp.json().catch(() => ({}));
   const replyText = data?.choices?.[0]?.message?.content || data?.reply || data?.text || '';
   return {
     transcript: spokenText,
@@ -310,13 +310,16 @@ async function resolveTargetChatModel(targetModelId, planName, planObj) {
     allModels = (await getPersistedModels()) || [];
   }
 
-  const chatCandidates = (allModels || []).filter(m =>
-    m &&
-    m.is_active !== false &&
-    m.category !== 'voice' &&
-    m.category !== 'image' &&
-    !/generativelanguage\.googleapis\.com/i.test(String(m.base_url || ''))
-  );
+  const { getDeletedModelIds } = require('../../utils/getModelConfig');
+  const deletedSet = await getDeletedModelIds().catch(() => new Set());
+  const chatCandidates = (allModels || []).filter(m => {
+    if (!m || m.is_active === false || m.category === 'voice' || m.category === 'image') return false;
+    const mId = String(m.model_id || m.id || '').toLowerCase().trim();
+    const mName = String(m.name || '').toLowerCase().trim();
+    if (deletedSet && (deletedSet.has(mId) || deletedSet.has(mName))) return false;
+    if (/generativelanguage\.googleapis\.com/i.test(String(m.base_url || ''))) return false;
+    return true;
+  });
 
   const pickById = (idStr) => {
     const clean = String(idStr || '').trim();
@@ -328,7 +331,7 @@ async function resolveTargetChatModel(targetModelId, planName, planObj) {
 
   let picked = pickById(targetModelId);
   if (!picked) {
-    picked = chatCandidates.find(m => canPlanAccessModel(m, planName, planObj)) || chatCandidates[0] || null;
+    picked = chatCandidates.find(m => canPlanAccessModel(m, planName, planObj)) || null;
   }
   if (!picked) return null;
   return (await getModelConfig(picked.model_id || picked.id)) || picked;

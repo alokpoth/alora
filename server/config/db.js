@@ -17,17 +17,20 @@ const connectDB = async () => {
 
   const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/alokpoth_ai';
   const isLocalMongo = mongoUri.includes('localhost') || mongoUri.includes('127.0.0.1');
+  const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+  const maxPool = isServerless ? 5 : 20;
+  const minPool = isServerless ? 0 : 2;
 
   cachedPromise = mongoose.connect(mongoUri, {
-    maxPoolSize: 20,          // Maintain up to 20 socket connections for high concurrency
-    minPoolSize: 2,           // Keep at least 2 warm connections ready
-    serverSelectionTimeoutMS: isLocalMongo ? 2500 : 10000,
+    maxPoolSize: maxPool,
+    minPoolSize: minPool,
+    serverSelectionTimeoutMS: isLocalMongo ? 2500 : (isServerless ? 6000 : 10000),
     socketTimeoutMS: 30000,
-    maxIdleTimeMS: 30000,     // Close idle connections after 30s
-    autoIndex: true           // Build compound and TTL indexes automatically
+    maxIdleTimeMS: isServerless ? 15000 : 30000,
+    autoIndex: !isServerless
   }).then((conn) => {
     isMongoConnected = true;
-    console.log(`[Database] MongoDB Connected: ${conn.connection.host} (Pool Size: 5-20)`);
+    console.log(`[Database] MongoDB Connected: ${conn.connection.host} (Pool Size: ${minPool}-${maxPool}${isServerless ? ', serverless' : ''})`);
     return conn;
   }).catch((error) => {
     cachedPromise = null;

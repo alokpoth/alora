@@ -79,7 +79,11 @@ const protect = async (req, res, next) => {
     if (!user) {
       const { getPersistedUsers } = require('../../utils/getModelConfig');
       const users = await getPersistedUsers();
-      user = users.find(u => String(u._id || u.id) === String(userId) || (decoded.email && u.email && u.email.toLowerCase().trim() === decoded.email.toLowerCase().trim()));
+      const found = users.find(u => String(u._id || u.id) === String(userId) || (decoded.email && u.email && u.email.toLowerCase().trim() === decoded.email.toLowerCase().trim()));
+      if (found) {
+        const { password: _pw, ...safeUser } = found;
+        user = safeUser;
+      }
     }
 
     const adminEmails = ['zihanfakir@gmail.com', 'x@zihan.uk'];
@@ -87,9 +91,9 @@ const protect = async (req, res, next) => {
       const isVerifiedAdmin = user.role === 'admin' || (user.email && adminEmails.includes(user.email.toLowerCase().trim()));
       if (!user.subscription || typeof user.subscription !== 'object') {
         user.subscription = {
-          plan_name: isVerifiedAdmin ? 'Max' : (USER_PLANS.includes(decoded.plan) ? decoded.plan : 'Free'),
+          plan_name: isVerifiedAdmin ? 'Max' : 'Free',
           starts_at: new Date(),
-          expires_at: decoded.expires_at || null,
+          expires_at: null,
           is_active: true
         };
       } else if (isVerifiedAdmin && user.subscription.plan_name !== 'Max') {
@@ -193,7 +197,11 @@ const optionalProtect = async (req, res, next) => {
     if (!user) {
       const { getPersistedUsers } = require('../../utils/getModelConfig');
       const users = await getPersistedUsers();
-      user = users.find(u => String(u._id || u.id) === String(userId) || (decoded.email && u.email && u.email.toLowerCase().trim() === decoded.email.toLowerCase().trim()));
+      const found = users.find(u => String(u._id || u.id) === String(userId) || (decoded.email && u.email && u.email.toLowerCase().trim() === decoded.email.toLowerCase().trim()));
+      if (found) {
+        const { password: _pw, ...safeUser } = found;
+        user = safeUser;
+      }
     }
 
     const adminEmails = ['zihanfakir@gmail.com', 'x@zihan.uk'];
@@ -201,9 +209,9 @@ const optionalProtect = async (req, res, next) => {
       const isVerifiedAdmin = user.role === 'admin' || (user.email && adminEmails.includes(user.email.toLowerCase().trim()));
       if (!user.subscription || typeof user.subscription !== 'object') {
         user.subscription = {
-          plan_name: isVerifiedAdmin ? 'Max' : (USER_PLANS.includes(decoded.plan) ? decoded.plan : 'Free'),
+          plan_name: isVerifiedAdmin ? 'Max' : 'Free',
           starts_at: new Date(),
-          expires_at: decoded.expires_at || null,
+          expires_at: null,
           is_active: true
         };
       } else if (isVerifiedAdmin && user.subscription.plan_name !== 'Max') {

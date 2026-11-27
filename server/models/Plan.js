@@ -92,9 +92,12 @@ PlanSchema.index({ name: 1, is_active: 1 });
 PlanSchema.statics.seedDefaultPlans = async function() {
   let created = 0;
   for (const def of DEFAULT_PLANS) {
-    const exists = await this.exists({ name: def.name });
-    if (!exists) {
-      await this.create(def);
+    const res = await this.updateOne(
+      { name: def.name },
+      { $setOnInsert: def },
+      { upsert: true }
+    );
+    if (res && res.upsertedCount > 0) {
       created++;
     }
   }

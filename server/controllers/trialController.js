@@ -90,6 +90,7 @@ const claimFreeTrial = async (req, res) => {
       const email = (user.email || '').toLowerCase().trim();
 
       // Atomic reservation in MongoDB when connected + serialized settings update
+      let baseClaimed = claimed;
       if (getIsMongoConnected()) {
         const SystemSetting = require('../models/SystemSetting');
         const atomicRes = await SystemSetting.findOneAndUpdate(
@@ -102,16 +103,30 @@ const claimFreeTrial = async (req, res) => {
           if (recheck && Array.isArray(recheck.value?.free_trial_claimed) && keys.some(k => recheck.value.free_trial_claimed.includes(k))) {
             return res.status(400).json({ success: false, error: 'You have already claimed this free trial.' });
           }
+        } else if (Array.isArray(atomicRes.value?.free_trial_claimed)) {
+          baseClaimed = atomicRes.value.free_trial_claimed;
         }
       }
-      const uniqueClaimed = Array.from(new Set([...claimed, ...keys]));
+      const uniqueClaimed = Array.from(new Set([...baseClaimed, ...keys]));
       await saveSystemSettings({ free_trial_claimed: uniqueClaimed });
 
     if (getIsMongoConnected()) {
       const isStrictHex = Boolean(userId && /^[0-9a-fA-F]{24}$/.test(String(userId)));
       const q = isStrictHex ? { _id: String(userId) } : (email ? { email } : null);
       if (q) {
-        await User.updateOne(q, { $set: { subscription: { plan_name: promo.plan, starts_at: now, expires_at: expiresAt, is_active: true, payment_source: 'trial' } } });
+        try {
+          await User.updateOne(q, { $set: { subscription: subscriptionData } });
+        } catch (userUpdateErr) {
+          try {
+            const SystemSetting = require('../models/SystemSetting');
+            await SystemSetting.updateOne(
+              { key: '__system_settings__' },
+              { $pull: { 'value.free_trial_claimed': { $in: keys } } }
+            ).catch(() => {});
+            await saveSystemSettings({ free_trial_claimed: claimed });
+          } catch {}
+          throw userUpdateErr;
+        }
       }
     }
 

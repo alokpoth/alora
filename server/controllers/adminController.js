@@ -383,7 +383,7 @@ const updateUserRole = async (req, res) => {
 const toggleBlockUser = async (req, res) => {
   try {
     const { userId } = req.params;
-    const { is_blocked } = req.body;
+    const { is_blocked } = req.body || {};
     const cleanTarget = String(userId).toLowerCase().trim();
     const requesterId = String((req.user && (req.user._id || req.user.id)) || '').toLowerCase().trim();
 
@@ -1915,6 +1915,9 @@ const updateSettings = async (req, res) => {
 const testWebSearchSetting = async (req, res) => {
   try {
     const { query, provider, api_key, custom_url, max_results } = req.body || {};
+    if (custom_url && String(custom_url).trim() && !isPublicHttpUrl(String(custom_url).trim())) {
+      return res.status(400).json({ success: false, error: 'অকার্যকর বা অনিরাপদ কাস্টম ওয়েব সার্চ URL' });
+    }
     const cleanQuery = String(query || 'AI news').trim();
     const { getSystemSettings } = require('../../utils/getModelConfig');
     const saved = await getSystemSettings();
@@ -1936,6 +1939,9 @@ const testWebSearchSetting = async (req, res) => {
 const testImageGenSetting = async (req, res) => {
   try {
     const { prompt, model, api_url, api_key, size } = req.body || {};
+    if (api_url && String(api_url).trim() && !isPublicHttpUrl(String(api_url).trim())) {
+      return res.status(400).json({ success: false, error: 'অকার্যকর বা অনিরাপদ ইমেজ API URL' });
+    }
     const cleanPrompt = String(prompt || 'a cute glowing baby robot in cybernetic world, photorealistic, 8k').trim();
     const { getSystemSettings } = require('../../utils/getModelConfig');
     const saved = await getSystemSettings();
@@ -1963,6 +1969,9 @@ const testVoiceLiveSetting = async (req, res) => {
     const effectiveKey = (typeof api_key === 'string' && api_key.trim()) ? api_key.trim() : (saved.voice_live_api_key || '');
     if (api_url && String(api_url).trim() && !isPublicHttpUrl(String(api_url).trim())) {
       return res.status(400).json({ success: false, error: 'অকার্যকর বা অনিরাপদ কাস্টম ভয়েস API URL' });
+    }
+    if (stt_url && String(stt_url).trim() && !isPublicHttpUrl(String(stt_url).trim())) {
+      return res.status(400).json({ success: false, error: 'অকার্যকর বা অনিরাপদ ভয়েস STT API URL' });
     }
     const { executeVoiceTurn } = require('./voiceController');
     const forcedSettings = {
@@ -2018,7 +2027,7 @@ const getApiKeys = async (req, res) => {
 
 const saveApiKey = async (req, res) => {
   try {
-    const { provider, api_key } = req.body;
+    const { provider, api_key } = req.body || {};
     if (!provider || typeof provider !== 'string') {
       return res.status(400).json({ success: false, error: 'সঠিক প্রোভাইডারের নাম প্রদান করুন' });
     }
@@ -2082,7 +2091,8 @@ const getSystemLogs = async (req, res) => {
         user_id: l.user_id,
         model_id: l.model_id,
         tokens: l.tokens || 0,
-        type: l.model_id === 'image-generation' ? 'image' : 'chat',
+        cost: l.cost !== undefined && l.cost !== null ? Number(l.cost) : 1,
+        type: l.model_id === 'image-generation' ? 'image' : (l.model_id === 'voice-live' ? 'voice' : 'chat'),
         timestamp: l.timestamp || l.createdAt || new Date()
       }))
     });

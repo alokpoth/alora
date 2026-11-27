@@ -1,4 +1,5 @@
 const { Readable } = require('stream');
+const { StringDecoder } = require('string_decoder');
 const mongoose = require('mongoose');
 const UsageLog = require('../models/UsageLog');
 const { getIsMongoConnected } = require('../config/db');
@@ -47,11 +48,9 @@ function extractCompletionTextFromJson(json) {
 }
 
 function isStreamingUnsupportedError(status, errBodyText = '') {
-  if (status === 400 || status === 404 || status === 422 || status === 501) {
-    if (/stream|sse|event[- ]stream|unsupported|invalid.*param|alt=sse|not\s+support/i.test(errBodyText)) {
-      return true;
-    }
-    if (status === 400 || status === 404 || status === 501) return true;
+  if (status === 501) return true;
+  if (status === 400 || status === 404 || status === 422) {
+    return /stream|sse|event[- ]stream|unsupported|invalid.*param|alt=sse|not\s+support/i.test(String(errBodyText || ''));
   }
   return false;
 }
@@ -152,8 +151,9 @@ function detectRepetitionDegeneracy(text) {
 
 const streamChatCompletions = async (req, res) => {
   try {
-    const { messages } = req.body;
-    const cleanModel = (typeof req.body.model === 'string' && req.body.model.trim()) ? req.body.model.trim() : 'openrouter/free';
+    const body = (req.body && typeof req.body === 'object') ? req.body : {};
+    const { messages } = body;
+    const cleanModel = (typeof body.model === 'string' && body.model.trim()) ? body.model.trim() : 'openrouter/free';
     const model = cleanModel;
     const user = req.user;
 
@@ -161,12 +161,38 @@ const streamChatCompletions = async (req, res) => {
       return res.status(400).json({ success: false, error: 'সঠিক মেসেজ অ্যারে প্রদান করুন' });
     }
 
-    // Sanitize and cap messages array to prevent memory exhaustion (support string or array multimodal content)
+    // Sanitize and cap messages array to prevent memory exhaustion and block client-supplied system prompts
     const MAX_CONTENT_LENGTH = 32000;
-    const safeMessages = messages.slice(-100).filter(m => m && typeof m === 'object' && (typeof m.content === 'string' || Array.isArray(m.content))).map(m => ({
-      role: ['user', 'assistant', 'system'].includes(m.role) ? m.role : 'user',
-      content: typeof m.content === 'string' ? m.content.slice(0, MAX_CONTENT_LENGTH) : (Array.isArray(m.content) ? m.content.filter(c => c && typeof c === 'object' && (c.type === 'text' || c.type === 'image_url')).slice(0, 20) : '')
-    }));
+    const MAX_IMAGE_URL_LENGTH = 10 * 1024 * 1024;
+    const safeMessages = messages
+      .slice(-100)
+      .filter(m => m && typeof m === 'object' && (typeof m.content === 'string' || Array.isArray(m.content)))
+      .map(m => {
+        let sanitizedContent = '';
+        if (typeof m.content === 'string') {
+          sanitizedContent = m.content.slice(0, MAX_CONTENT_LENGTH);
+        } else if (Array.isArray(m.content)) {
+          sanitizedContent = m.content
+            .filter(c => c && typeof c === 'object' && (c.type === 'text' || c.type === 'image_url'))
+            .slice(0, 20)
+            .map(c => {
+              if (c.type === 'text') {
+                return { type: 'text', text: String(c.text || '').slice(0, MAX_CONTENT_LENGTH) };
+              }
+              const rawUrl = typeof c.image_url === 'string'
+                ? c.image_url
+                : (c.image_url && typeof c.image_url.url === 'string' ? c.image_url.url : '');
+              if (!rawUrl || rawUrl.length > MAX_IMAGE_URL_LENGTH) return null;
+              return { type: 'image_url', image_url: { url: rawUrl } };
+            })
+            .filter(Boolean);
+        }
+        return {
+          role: m.role === 'assistant' ? 'assistant' : 'user',
+          content: sanitizedContent
+        };
+      })
+      .filter(m => typeof m.content === 'string' || (Array.isArray(m.content) && m.content.length > 0));
     if (safeMessages.length === 0) {
       return res.status(400).json({ success: false, error: 'মেসেজের বিবরণ সঠিক নয়' });
     }
@@ -187,10 +213,17 @@ const streamChatCompletions = async (req, res) => {
       : (cleanModel || 'Alora AI');
     const safeDisplayName = getSafeModelDisplayName(rawAdminName);
 
+    const userCustomInstructions = (typeof body.custom_instructions === 'string' && body.custom_instructions.trim())
+      ? body.custom_instructions.trim().slice(0, 2000)
+      : '';
+
     // Pre-flight Safety Filter: blocks illegal/harmful hacking, phishing, malware & exploit requests before hitting any upstream LLM
-    const preflightSafety = inspectPromptSafety(safeMessages);
+    const msgSafety = inspectPromptSafety(safeMessages);
+    const preflightSafety = msgSafety.blocked
+      ? msgSafety
+      : (userCustomInstructions ? inspectPromptSafety(userCustomInstructions) : msgSafety);
     if (preflightSafety.blocked) {
-      if (req.body.stream === false) {
+      if (body.stream === false) {
         return res.status(400).json({
           success: false,
           code: 'SAFETY_BLOCKED',
@@ -208,10 +241,6 @@ const streamChatCompletions = async (req, res) => {
       res.write('data: [DONE]\n\n');
       return res.end();
     }
-
-    const userCustomInstructions = (typeof req.body.custom_instructions === 'string' && req.body.custom_instructions.trim())
-      ? req.body.custom_instructions.trim()
-      : '';
 
     const systemSettings = await getSystemSettings();
     const globalSystemPrompt = (systemSettings && systemSettings.system_prompt) 
@@ -278,7 +307,7 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
 
     const basePrompt = globalSystemPrompt ? globalSystemPrompt : defaultIdentity;
     const mandatorySecurityFooter = buildCoreSecurityAndIdentityDirective(safeDisplayName, {
-      webSearchFailed: req.body.web_search_failed === true
+      webSearchFailed: body.web_search_failed === true
     });
     const modelIdentityDirective = basePrompt +
       mandatorySecurityFooter +
@@ -316,16 +345,10 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
         const h = { 'Content-Type': 'application/json' };
         if (key) h['Authorization'] = `Bearer ${key}`;
 
-        const safeMessagesWithIdentity = [...safeMessages];
-        const sysIdx = safeMessagesWithIdentity.findIndex(m => m.role === 'system');
-        if (sysIdx >= 0) {
-          safeMessagesWithIdentity[sysIdx] = {
-            ...safeMessagesWithIdentity[sysIdx],
-            content: modelIdentityDirective + '\n\n' + (typeof safeMessagesWithIdentity[sysIdx].content === 'string' ? safeMessagesWithIdentity[sysIdx].content : '')
-          };
-        } else {
-          safeMessagesWithIdentity.unshift({ role: 'system', content: modelIdentityDirective });
-        }
+        const safeMessagesWithIdentity = [
+          { role: 'system', content: modelIdentityDirective },
+          ...safeMessages
+        ];
 
         const lowerMod = modName.toLowerCase();
         const p = includeExtraParams
@@ -363,7 +386,7 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
       }
     };
 
-    const clientWantsStream = req.body.stream !== false;
+    const clientWantsStream = body.stream !== false;
     const { getAlternateChatEndpointUrl } = require('../utils/secretVault');
 
     const executeTargetWithAutoStream = async (pType, url, key, modName, timeoutMs, cfg) => {
@@ -587,7 +610,7 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
         memoryStore.usageLogs.push({
           _id: 'log_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
           user_id: userId,
-          model_id: effectiveModel || model || safeDisplayName,
+          model_id: effectiveModel || cleanModel || safeDisplayName,
           cost: resolvedModelCost,
           timestamp: new Date()
         });
@@ -687,6 +710,18 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
       return emitNonStreamedReply(fullExtracted);
     }
 
+    // Validate upstream readable stream BEFORE flushing SSE headers or arming keepalive timers
+    const bodyStream = (response && response.body)
+      ? (typeof response.body.on === 'function' ? response.body : Readable.fromWeb(response.body))
+      : null;
+    if (!bodyStream) {
+      if (user) {
+        const { invalidateUserUsageCache } = require('../../utils/getModelConfig');
+        invalidateUserUsageCache(String(user._id || user.id));
+      }
+      return res.status(502).json({ success: false, code: 'MODEL_BUSY', error: 'মডেল থেকে উত্তর পাওয়া যায়নি।' });
+    }
+
     // Model supports real SSE streaming: Establish SSE pipeline
     res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
     res.setHeader('Cache-Control', 'no-cache, no-transform');
@@ -707,13 +742,6 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
     let hasStreamedData = false;
     let hasContentTokens = false;
     let streamIdleTimeout = null;
-
-    const bodyStream = (response && response.body)
-      ? (typeof response.body.on === 'function' ? response.body : Readable.fromWeb(response.body))
-      : null;
-    if (!bodyStream) {
-      return res.status(502).json({ success: false, code: 'MODEL_BUSY', error: 'মডেল থেকে উত্তর পাওয়া যায়নি।' });
-    }
 
     const resetStreamIdleWatchdog = () => {
       if (streamIdleTimeout) clearTimeout(streamIdleTimeout);
@@ -755,6 +783,7 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
         }
       };
 
+      const utf8Decoder = new StringDecoder('utf8');
       let openAiLineBuffer = '';
       let accumulatedStreamContent = '';
       const DEFAULT_TAIL_HOLD = 64;
@@ -804,8 +833,8 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
         if (cutIdx <= 0) return 0;
         // Never split across a partial <think> or </think> tag boundary
         const lookBackStart = Math.max(0, cutIdx - 8);
-        const partialIdx = str.indexOf('<', lookBackStart);
-        if (partialIdx !== -1 && partialIdx < cutIdx && partialIdx + 9 >= cutIdx) {
+        const partialIdx = str.lastIndexOf('<', cutIdx - 1);
+        if (partialIdx >= lookBackStart && partialIdx + 9 >= cutIdx) {
           const slice = str.slice(partialIdx).toLowerCase();
           if ('<think>'.startsWith(slice.slice(0, '<think>'.length)) || '</think>'.startsWith(slice.slice(0, '</think>'.length))) {
             cutIdx = partialIdx;
@@ -914,7 +943,7 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
         resetStreamIdleWatchdog();
 
         try {
-          openAiLineBuffer += chunk.toString('utf8');
+          openAiLineBuffer += typeof chunk === 'string' ? chunk : utf8Decoder.write(chunk);
           const lines = openAiLineBuffer.split('\n');
           openAiLineBuffer = lines.pop();
 
@@ -922,12 +951,19 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
             if (processOpenAiLine(line)) {
               console.warn('[Stream Watchdog] Repetition loop detected from upstream model, truncating and closing stream safely.');
               flushSanitizedTails();
+              if (hasEmittedVisibleContent) {
+                recordCompletionUsage();
+              } else if (user) {
+                const { invalidateUserUsageCache } = require('../../utils/getModelConfig');
+                invalidateUserUsageCache(String(user._id || user.id));
+              }
               try {
                 if (typeof bodyStream.destroy === 'function') bodyStream.destroy();
               } catch (e) {}
               if (!res.writableEnded) {
                 res.write('data: [DONE]\n\n');
                 if (typeof res.flush === 'function') res.flush();
+                res.end();
               }
               safeResolve();
               return;
@@ -940,14 +976,16 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
 
       bodyStream.on('end', async () => {
         try {
+          openAiLineBuffer += utf8Decoder.end();
           if (openAiLineBuffer && openAiLineBuffer.trim()) {
             processOpenAiLine(openAiLineBuffer);
             openAiLineBuffer = '';
           }
           flushSanitizedTails();
 
-          // Record usage log only after stream successfully delivers tokens
-          if (hasContentTokens) {
+          // Record usage log only after stream successfully delivers visible output tokens
+          let deliveredOutput = hasEmittedVisibleContent;
+          if (deliveredOutput) {
             recordCompletionUsage();
           } else if (attemptedStream && activeRetryTarget && !res.writableEnded) {
             // Stream ended with zero visible tokens -> auto-learn non-streaming and retry once with stream=false
@@ -967,9 +1005,14 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
               if (fbText && !res.writableEnded) {
                 res.write(`data: ${JSON.stringify({ model: safeDisplayName, non_stream: true, choices: [{ delta: { content: fbText } }] })}\n\n`);
                 if (typeof res.flush === 'function') res.flush();
+                deliveredOutput = true;
                 recordCompletionUsage();
               }
             }
+          }
+          if (!deliveredOutput && user) {
+            const { invalidateUserUsageCache } = require('../../utils/getModelConfig');
+            invalidateUserUsageCache(String(user._id || user.id));
           }
         } catch (streamErr) {
           console.error('[Stream End Callback Error]:', streamErr.message);
@@ -1197,7 +1240,7 @@ async function generateImageCompanionText(originalPrompt, chatModelId, userLang 
 
 const generateImage = async (req, res) => {
   try {
-    const { prompt, size, style, model, chat_model, enhance, language, include_caption } = req.body;
+    const { prompt, size, style, model, chat_model, enhance, language, include_caption } = req.body || {};
     if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
       return res.status(400).json({ success: false, error: 'অনুগ্রহ করে একটি সঠিক প্রম্পট প্রদান করুন।' });
     }

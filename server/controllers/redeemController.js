@@ -11,7 +11,7 @@ const claimRedeemCode = async (req, res) => {
   let claimedCodeId = null;
   let userId = null;
   try {
-    const { code } = req.body;
+    const { code } = req.body || {};
     const user = req.user;
     if (!user) {
       return res.status(401).json({ success: false, error: 'রিডিম কোড সক্রিয় করতে অনুগ্রহ করে প্রথমে অ্যাকাউন্টে লগইন করুন।' });
@@ -50,9 +50,21 @@ const claimRedeemCode = async (req, res) => {
         if ((redeemCode.use_count || 0) >= (redeemCode.max_uses || 1)) {
           return res.status(400).json({ success: false, error: 'এই কাস্টম রিডিম কোডটির সর্বোচ্চ ব্যবহার সীমা পূর্ণ হয়েছে!' });
         }
-        // Atomically increment use_count and add to used_by_list
+        // Atomically increment use_count and add to used_by_list while preventing concurrent duplicate claims by the same user
+        const userEmailClean = user.email ? user.email.toLowerCase().trim() : '';
+        const notUsedByConditions = [
+          { 'used_by_list.user_id': { $ne: userId } },
+          { 'used_by_list.user_id': { $ne: String(userId) } }
+        ];
+        if (userEmailClean) {
+          notUsedByConditions.push({ 'used_by_list.email': { $ne: userEmailClean } });
+        }
         redeemCode = await RedeemCode.findOneAndUpdate(
-          { code: cleanCode, use_count: { $lt: redeemCode.max_uses || 1 } },
+          {
+            code: cleanCode,
+            use_count: { $lt: redeemCode.max_uses || 1 },
+            $and: notUsedByConditions
+          },
           [
             {
               $set: {
@@ -60,7 +72,7 @@ const claimRedeemCode = async (req, res) => {
                 used_by_list: {
                   $concatArrays: [
                     { $ifNull: ['$used_by_list', []] },
-                    [{ user_id: userId, email: user.email || '', used_at: now }]
+                    [{ user_id: userId, email: userEmailClean, used_at: now }]
                   ]
                 }
               }
@@ -74,7 +86,7 @@ const claimRedeemCode = async (req, res) => {
           { new: true }
         );
         if (!redeemCode) {
-          return res.status(400).json({ success: false, error: 'এই কাস্টম রিডিম কোডটির সর্বোচ্চ ব্যবহার সীমা পূর্ণ হয়েছে!' });
+          return res.status(400).json({ success: false, error: 'এই কাস্টম রিডিম কোডটি ইতিমধ্যে ব্যবহৃত হয়েছে অথবা সর্বোচ্চ সীমা পূর্ণ হয়েছে!' });
         }
         claimedCodeId = redeemCode._id;
       } else {
@@ -145,6 +157,7 @@ const claimRedeemCode = async (req, res) => {
       if (uQuery) {
         await User.updateOne(uQuery, { $set: { subscription: subscriptionData } });
       }
+      claimedCodeId = null;
       user.subscription = subscriptionData;
 
       // Also sync to Supabase and memoryStore so multi-store stays in sync

@@ -1,5 +1,5 @@
-/* Alora AI - Progressive Web App Service Worker (v1.0.0.24-7) */
-const CACHE_NAME = 'alora-ai-v1.0.0.24-7';
+/* Alora AI - Progressive Web App Service Worker (v1.0.0.24-8) */
+const CACHE_NAME = 'alora-ai-v1.0.0.24-8';
 
 // Core assets to pre-cache on service worker install
 const CORE_ASSETS = [
@@ -131,16 +131,17 @@ self.addEventListener('notificationclick', (event) => {
   const targetUrl = (event.notification.data && event.notification.data.url)
     ? event.notification.data.url
     : '/';
+  const resolvedTargetUrl = new URL(targetUrl, self.location.origin).href;
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
       for (const client of windowClients) {
-        if (client.url === targetUrl && 'focus' in client) {
+        if (client.url === resolvedTargetUrl && 'focus' in client) {
           return client.focus();
         }
       }
       if (clients.openWindow) {
-        return clients.openWindow(targetUrl);
+        return clients.openWindow(resolvedTargetUrl);
       }
     })
   );
@@ -246,12 +247,37 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Always let browser handle API navigations/OAuth redirects directly without SW interception
+  // Always let browser handle non-GET mutations and API navigations/OAuth redirects directly
   if (url.pathname === '/api' || url.pathname.startsWith('/api/')) {
     if (req.mode === 'navigate' || req.destination === 'document' || req.method !== 'GET') {
       return;
     }
     event.respondWith(fetch(req, { cache: 'no-store' }).catch(makeOfflineApiResponse));
+    return;
+  }
+
+  if (req.method !== 'GET') {
+    return;
+  }
+
+  // Bypass caching for sensitive/admin/OAuth/download navigations (keep /auth/login, /auth/signup & /redeem offline-capable)
+  const navPath = url.pathname;
+  if (
+    navPath.startsWith('/auth/google') ||
+    navPath.startsWith('/auth/discord') ||
+    navPath === '/payments' ||
+    navPath.startsWith('/payments/') ||
+    navPath === '/zihan' ||
+    navPath.startsWith('/zihan/') ||
+    navPath === '/zihan.html' ||
+    navPath === '/health' ||
+    navPath.startsWith('/health/') ||
+    navPath === '/debug-route' ||
+    navPath.endsWith('.apk') ||
+    navPath.endsWith('.ipa') ||
+    navPath.endsWith('.zip') ||
+    navPath.endsWith('.tar.gz')
+  ) {
     return;
   }
 
@@ -262,11 +288,6 @@ self.addEventListener('fetch', (event) => {
     req.destination === 'document' ||
     (req.headers.get('accept') && req.headers.get('accept').includes('text/html'));
   if (!isPageNavigation && isDynamicOrApiRequest(url, req)) {
-    // For non-GET requests, pass through without service worker interception so browser handles it natively
-    if (req.method !== 'GET') {
-      return;
-    }
-
     // For GET dynamic requests, perform network-only fetch and return clean offline JSON if disconnected
     event.respondWith(fetch(req, { cache: 'no-store' }).catch(makeOfflineApiResponse));
     return;
@@ -284,7 +305,9 @@ self.addEventListener('fetch', (event) => {
             (networkResponse.type === 'basic' || networkResponse.type === 'default')
           ) {
             const clone = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
+            event.waitUntil(
+              caches.open(CACHE_NAME).then((cache) => cache.put(req, clone)).catch(() => {})
+            );
           }
           return networkResponse;
         })
@@ -354,13 +377,20 @@ self.addEventListener('fetch', (event) => {
         .then((networkResponse) => {
           if (networkResponse && (networkResponse.status === 200 || networkResponse.type === 'opaque')) {
             const clone = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
+            event.waitUntil(
+              caches.open(CACHE_NAME).then((cache) => cache.put(req, clone)).catch(() => {})
+            );
           }
           return networkResponse;
         })
         .catch(() => null);
 
-      return cachedResponse || fetchPromise.then((response) => {
+      if (cachedResponse) {
+        event.waitUntil(fetchPromise);
+        return cachedResponse;
+      }
+
+      return fetchPromise.then((response) => {
         if (response) return response;
         return new Response('Asset unavailable offline', { status: 408 });
       });

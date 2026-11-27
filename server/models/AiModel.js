@@ -36,7 +36,7 @@ AiModelSchema.index({ order: 1, createdAt: 1 });
 AiModelSchema.statics.seedDefaultModels = async function() {
   const count = await this.countDocuments();
   if (count === 0) {
-    await this.create([
+    const defaults = [
       { model_id: "openrouter/free", name: "Alo Go", provider: "Alora", type: "openrouter", premium: false, efficient: false, order: 1 },
       { model_id: "openai/gpt-oss-20b", name: "Alo Flash", provider: "Alora", type: "groq", premium: false, efficient: false, order: 2 },
       { model_id: "hy3", name: "Alo HY3", provider: "Alora", type: "bai", premium: false, efficient: false, order: 3 },
@@ -45,8 +45,18 @@ AiModelSchema.statics.seedDefaultModels = async function() {
       { model_id: "nemotron-ultra-550b", name: "Alo Ultra", provider: "Alora", type: "vyce", premium: true, efficient: false, order: 6 },
       { model_id: "claude-sonnet-4-6", name: "Alo Elite", provider: "Alora", type: "vyce", premium: true, efficient: false, order: 7 },
       { model_id: "gpt-5.6", name: "Alo Max", provider: "Alora", type: "vyce", premium: true, efficient: true, order: 8 }
-    ]);
-    console.log('[Database Seed] Default AI Models created.');
+    ];
+    await this.bulkWrite(
+      defaults.map((doc) => ({
+        updateOne: {
+          filter: { model_id: doc.model_id },
+          update: { $setOnInsert: doc },
+          upsert: true
+        }
+      })),
+      { ordered: false }
+    );
+    console.log('[Database Seed] Default AI Models ensured.');
   }
 };
 

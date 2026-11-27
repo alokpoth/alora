@@ -177,7 +177,10 @@ router.get('/app-config', async (req, res) => {
 const pingCache = new Map();
 const PING_CACHE_TTL_MS = 60000; // 60s cache
 const setPingCache = (key, data) => {
-  if (pingCache.size > 200) pingCache.clear();
+  if (pingCache.size >= 200) {
+    const oldestKey = pingCache.keys().next().value;
+    if (oldestKey !== undefined) pingCache.delete(oldestKey);
+  }
   pingCache.set(key, { timestamp: Date.now(), data });
 };
 
@@ -196,7 +199,7 @@ router.get('/ping', async (req, res) => {
     }
 
     const { getApiKeyFromSupabase, getModelConfig } = require('../../utils/getModelConfig');
-    const { decryptSecret, resolveChatCompletionUrl } = require('../utils/secretVault');
+    const { decryptSecret, resolveChatCompletionUrl, isPublicHttpUrl } = require('../utils/secretVault');
     let aiModelConfig = await getModelConfig(cleanModel);
 
     if (!aiModelConfig || aiModelConfig.is_active === false) {
@@ -230,6 +233,12 @@ router.get('/ping', async (req, res) => {
       pingUrl = pingUrl.replace(/\/+$/, '') + '/models';
     }
 
+    if (!isPublicHttpUrl(pingUrl)) {
+      const respData = { success: true, latency: null, status: 'offline' };
+      setPingCache(cleanModel, respData);
+      return res.json(respData);
+    }
+
     let method = 'GET';
     let headers = {};
     if (targetKey) {
@@ -249,6 +258,9 @@ router.get('/ping', async (req, res) => {
         signal: controller.signal
       });
       clearTimeout(timeoutId);
+      if (pingRes.body && typeof pingRes.body.cancel === 'function') {
+        pingRes.body.cancel().catch(() => {});
+      }
       
       const ms = Math.round(performance.now() - start);
       let respData;

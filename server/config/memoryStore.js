@@ -93,6 +93,7 @@ const seedDefaultAdmin = async () => {
       if (Array.isArray(data.redeemCodes)) memoryStore.redeemCodes = data.redeemCodes;
       if (Array.isArray(data.promoCodes)) memoryStore.promoCodes = data.promoCodes;
       if (Array.isArray(data.paymentOrders)) memoryStore.paymentOrders = data.paymentOrders;
+      if (Array.isArray(data.usageLogs)) memoryStore.usageLogs = data.usageLogs.slice(-5000);
       if (Array.isArray(data.models)) {
         memoryStore.models = data.models.map(m => {
           const mod = { ...m };
@@ -160,7 +161,7 @@ const seedDefaultAdmin = async () => {
   }
   saveBackup().catch(() => {});
 };
-seedDefaultAdmin().catch(err => {
+const seedReady = seedDefaultAdmin().catch(err => {
   console.error('[Memory DB Seed Error]:', err.message);
 });
 
@@ -184,4 +185,4 @@ const flushOnExit = () => {
 };
 process.once('beforeExit', () => { flushOnExit(); });
 
-module.exports = { memoryStore, debouncedSave, saveBackup, flushOnExit };
+module.exports = { memoryStore, debouncedSave, saveBackup, flushOnExit, seedReady };

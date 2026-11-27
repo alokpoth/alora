@@ -22,11 +22,20 @@ function getSafeModelDisplayName(rawName) {
   // Even if admin stored a raw upstream model ID without a custom name, fall back safely
   if (
     lower.startsWith('gemini-') ||
+    lower.startsWith('gpt-') ||
+    lower.startsWith('chatgpt') ||
     lower.startsWith('openai/') ||
     lower.startsWith('openrouter/') ||
     lower.startsWith('anthropic/') ||
     lower.startsWith('claude-') ||
+    lower.startsWith('meta-llama/') ||
     lower.startsWith('llama-') ||
+    lower.startsWith('qwen') ||
+    lower.startsWith('mistral') ||
+    lower.startsWith('grok') ||
+    lower.startsWith('groq/') ||
+    lower.startsWith('xai/') ||
+    lower.startsWith('cohere/') ||
     lower.includes('deepseek')
   ) {
     return 'Alora AI';
@@ -229,7 +238,7 @@ function extractSystemDirectiveLeakPatterns(systemPromptText) {
       const norm = seg.replace(/\s+/g, ' ').trim();
       if (norm.length >= 16 && !seen.has(norm.toLowerCase())) {
         seen.add(norm.toLowerCase());
-        patterns.push(new RegExp('\\s*' + escapeRegex(norm).replace(/\\ /g, '\\s+'), 'gi'));
+        patterns.push(new RegExp('\\s*' + escapeRegex(norm).replace(/ +/g, '\\s+'), 'gi'));
       }
     }
   }
@@ -259,8 +268,9 @@ function extractSystemDirectiveLeakPatterns(systemPromptText) {
       seen.add(key);
 
       // Avoid excessively huge multi-line regexes; slice clean 160-char prefix if long
-      const sample = target.length > 160 ? target.slice(0, 160).trim() : target;
-      patterns.push(new RegExp('\\s*' + escapeRegex(sample).replace(/\\ /g, '\\s+'), 'gi'));
+      const normalizedTarget = target.replace(/\s+/g, ' ').trim();
+      const sample = normalizedTarget.length > 160 ? normalizedTarget.slice(0, 160).trim() : normalizedTarget;
+      patterns.push(new RegExp('\\s*' + escapeRegex(sample).replace(/ +/g, '\\s+'), 'gi'));
     }
   }
 
@@ -277,9 +287,9 @@ function sanitizeModelIdentityText(text, adminModelName, options = {}) {
   const isReasoning = Boolean(options && options.isReasoning);
   const extraPatterns = Array.isArray(options && options.extraBlockedPatterns) ? options.extraBlockedPatterns : [];
 
-  const hasFastTrigger = /(gemini|openai|chatgpt|gpt-\d|openrouter|groq|anthropic|claude|deepseek|llama|mistral|qwen|grok|google|googleapis|vyceai|xai|vertex|keep\s+natural|no\s+mention|system\s+prompt|developer\s+prompt|developer\s+instruction|non-negotiable|mandatory|strict\s+model|identity\s+concealment|cognitive\s+intelligence|honest\s+abstention|by\s+zihan\s+fakir\.|internal\s+assistant\s+guidelines|prompt\s+injection|user'?s\s+personal\s+custom|===|<<sys>>|জ[ে]মিনি|চ্যাটজিপিটি|ওপেনএআই|গুগল|অ্যানথ্রপিক|ডিপসিক|ক্লড)/i.test(text);
+  const hasFastTrigger = /(gemini|openai|chatgpt|gpt-\d|openrouter|groq|anthropic|claude|deepseek|llama|meta|mistral|qwen|grok|bard|palm|cohere|google|googleapis|vyceai|xai|vertex|keep\s+natural|no\s+mention|system\s+prompt|developer\s+prompt|developer\s+instruction|non-negotiable|mandatory|strict\s+model|identity\s+concealment|cognitive\s+intelligence|honest\s+abstention|by\s+zihan\s+fakir\.|internal\s+assistant\s+guidelines|prompt\s+injection|user'?s\s+personal\s+custom|my\s+instructions?|instructed\s+|told\s+(?:not\s+to|to)|===|<<sys>>|\[system|<\/?system>|জ[ে]মিনি|চ্যাটজিপিটি|ওপেনএআই|গুগল|অ্যানথ্রপিক|ডিপসিক|ক্লড|মেটা|লামা|গ্রক|কুইয়েন|সিস্টেম\s+প্রম্পট|গোপন\s+নির্দেশনা|নির্দেশনা\s+অনুযায়ী|অন্য\s+কোনো\s+মডেলের\s+নাম)/i.test(text);
 
-  if (!hasFastTrigger && extraPatterns.length === 0) {
+  if (!isReasoning && !hasFastTrigger && extraPatterns.length === 0) {
     return text;
   }
 
@@ -334,8 +344,8 @@ function sanitizeModelIdentityText(text, adminModelName, options = {}) {
   }
 
   // 7. Replace direct Bengali self-identification patterns
-  out = out.replace(/(আমি\s+(?:একটি\s+)?(?:বৃহৎ\s+ভাষা|লার্জ\s+ল্যাঙ্গুয়েজ)\s+মডেল[,।]?\s*(?:যা\s+)?)?(?:গুগল|Google|OpenAI|ওপেনএআই|Anthropic|অ্যানথ্রপিক|Meta|মেটা)\s*(?:দ্বারা|কর্তৃক)\s*(?:প্রশিক্ষিত|তৈরি|পরিচালিত)/gi, `আমি ${safeName}, Alora AI-এর একটি মডেল`);
-  out = out.replace(/(আমার\s+নাম|আমি)\s+(?:Gemini|জেমিনি|ChatGPT|চ্যাটজিপিটি|Claude|ক্লড|Llama|লামা|DeepSeek|ডিপসিক|Qwen|কুইয়েন|Grok|গ্রক)\b/gi, `$1 ${safeName}`);
+  out = out.replace(/(আমি\s+(?:একটি\s+)?(?:(?:বৃহৎ\s+ভাষা|লার্জ\s+ল্যাঙ্গুয়েজ)\s+মডেল[,।]?\s*(?:যা\s+)?)?)(?:গুগল|Google|OpenAI|ওপেনএআই|Anthropic|অ্যানথ্রপিক|Meta|মেটা)\s*(?:দ্বারা|কর্তৃক)\s*(?:প্রশিক্ষিত|তৈরি|পরিচালিত)/gi, `আমি ${safeName}, Alora AI-এর একটি মডেল`);
+  out = out.replace(/(আমার\s+নাম|আমি)\s+(?:(?:Gemini|ChatGPT|Claude|Llama|DeepSeek|Qwen|Grok)\b|(?:জেমিনি|চ্যাটজিপিটি|ক্লড|লামা|ডিপসিক|কুইয়েন|গ্রক)(?=$|[\s.,!?।;:'")\]\-]))/gi, (_, prefix) => `${prefix} ${safeName}`);
   out = out.replace(/(?:গুগলের|Google-এর|OpenAI-এর|ওপেনএআই-এর)\s+(?:Gemini|জেমিনি|ChatGPT|চ্যাটজিপিটি|তৈরি এআই)/gi, `${safeName}`);
 
   // Collapse excess consecutive blank lines left by stripped directive blocks (without trimming outer spaces)

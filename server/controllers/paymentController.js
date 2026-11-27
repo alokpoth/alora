@@ -293,6 +293,8 @@ const submitOrder = async (req, res) => {
     }
 
     let appliedPromo = null;
+    let promoClaimedInMongo = false;
+    let promoClaimedInMemory = false;
     const cleanPromo = String(promo_code || '').trim().toUpperCase();
     if (cleanPromo) {
       const promoDoc = await findPromoDoc(cleanPromo);
@@ -301,12 +303,14 @@ const submitOrder = async (req, res) => {
         return res.status(400).json({ success: false, error: errMsg });
       }
 
+      const promoNow = new Date();
       if (getIsMongoConnected()) {
         const claimed = await PromoCode.findOneAndUpdate(
           {
             code: cleanPromo,
             is_active: true,
-            use_count: { $lt: Number(promoDoc.max_uses) || 1 }
+            use_count: { $lt: Number(promoDoc.max_uses) || 1 },
+            $or: [{ expires_at: null }, { expires_at: { $gt: promoNow } }]
           },
           { $inc: { use_count: 1 } },
           { new: true }
@@ -315,6 +319,7 @@ const submitOrder = async (req, res) => {
           return res.status(400).json({ success: false, error: 'ডিসকাউন্ট কোডটি এই মুহূর্তে ব্যবহারযোগ্য নয়।' });
         }
         appliedPromo = claimed;
+        promoClaimedInMongo = true;
         try {
           let promos = [...(await getPersistedPromoCodes())];
           const pIdx = promos.findIndex(p => String(p.code || '').toUpperCase() === cleanPromo);
@@ -336,6 +341,7 @@ const submitOrder = async (req, res) => {
         promos[pIdx].use_count = (Number(promos[pIdx].use_count) || 0) + 1;
         await savePersistedPromoCodes(promos);
         appliedPromo = promos[pIdx];
+        promoClaimedInMemory = true;
       }
     }
 
@@ -370,10 +376,27 @@ const submitOrder = async (req, res) => {
     };
 
     if (getIsMongoConnected()) {
-      await PaymentOrder.create(orderPayload);
+      try {
+        await PaymentOrder.create(orderPayload);
+      } catch (orderErr) {
+        if (promoClaimedInMongo && appliedPromo) {
+          await PromoCode.updateOne({ code: appliedPromo.code, use_count: { $gt: 0 } }, { $inc: { use_count: -1 } }).catch(() => {});
+        }
+        if (promoClaimedInMemory && appliedPromo) {
+          try {
+            let promos = [...(await getPersistedPromoCodes())];
+            const pIdx = promos.findIndex(p => String(p.code || '').toUpperCase() === appliedPromo.code);
+            if (pIdx !== -1 && (Number(promos[pIdx].use_count) || 0) > 0) {
+              promos[pIdx].use_count = Number(promos[pIdx].use_count) - 1;
+              await savePersistedPromoCodes(promos);
+            }
+          } catch {}
+        }
+        throw orderErr;
+      }
     }
 
-    let persistedOrders = [...(await getPersistedPaymentOrders())];
+    let persistedOrders = (await getPersistedPaymentOrders()).filter(o => o && o.order_id !== orderId);
     persistedOrders.unshift(orderPayload);
     await savePersistedPaymentOrders(persistedOrders);
     debouncedSave();

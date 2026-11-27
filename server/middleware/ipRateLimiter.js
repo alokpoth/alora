@@ -29,12 +29,16 @@ const createRateLimiter = ({
     const key = `${prefix}:${cleanIp}`;
     const now = Date.now();
 
-    // Prevent memory bloat under high connection volume
+    // Prevent memory bloat under high connection volume (evict expired, then oldest FIFO entries)
     if (localStore.size > 5000) {
       for (const [k, r] of localStore.entries()) {
         if (now > r.resetTime) localStore.delete(k);
       }
-      if (localStore.size > 5000) localStore.clear();
+      while (localStore.size > 5000) {
+        const oldestKey = localStore.keys().next().value;
+        if (oldestKey === undefined) break;
+        localStore.delete(oldestKey);
+      }
     }
 
     let record = localStore.get(key);

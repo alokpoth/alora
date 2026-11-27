@@ -825,7 +825,7 @@
     (async function syncHelpPlanLimits() {
       try {
         const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        const base = isLocal ? '' : (window.location.hostname.endsWith('onrender.com') ? '' : 'https://alora-backend-emw3.onrender.com');
+        const base = isLocal ? '' : ((window.location.hostname.endsWith('onrender.com') || window.location.hostname.endsWith('.vercel.app')) ? '' : 'https://alora-backend-emw3.onrender.com');
         const res = await fetch(`${base}/api/plans?_t=${Date.now()}`, { cache: 'no-store' });
         const data = await res.json();
         if (data && data.success && Array.isArray(data.plans) && data.plans.length) {
