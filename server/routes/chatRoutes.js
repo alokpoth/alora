@@ -194,31 +194,22 @@ router.get('/ping', async (req, res) => {
       return res.json(cached.data);
     }
 
-    const { getPersistedModels, getApiKeyFromSupabase, getModelConfig } = require('../../utils/getModelConfig');
-    let aiModelConfig = null;
-    if (getIsMongoConnected()) {
-      aiModelConfig = await AiModel.findOne({ $or: [{ model_id: cleanModel }, { id: cleanModel }] });
-    } else {
-      const allModels = await getPersistedModels();
-      aiModelConfig = allModels.find(m => (m.id === cleanModel || m.model_id === cleanModel));
-    }
-    
-    if (!aiModelConfig) {
-      aiModelConfig = await getModelConfig(cleanModel);
-    }
+    const { getApiKeyFromSupabase, getModelConfig } = require('../../utils/getModelConfig');
+    const { decryptSecret, resolveChatCompletionUrl } = require('../utils/secretVault');
+    let aiModelConfig = await getModelConfig(cleanModel);
 
-    if (!aiModelConfig) {
+    if (!aiModelConfig || aiModelConfig.is_active === false) {
       const respData = { success: true, latency: null, status: 'offline' };
       setPingCache(cleanModel, respData);
       return res.json(respData);
     }
 
-    let targetUrl = (aiModelConfig.base_url || 'https://openrouter.ai/api/v1/chat/completions').trim();
-    let targetKey = aiModelConfig.api_key;
+    let targetUrl = resolveChatCompletionUrl(aiModelConfig.base_url || 'https://openrouter.ai/api/v1/chat/completions');
+    let targetKey = decryptSecret(aiModelConfig.api_key || '');
     if (!targetKey) {
-      targetKey = await getApiKeyFromSupabase(cleanModel);
+      targetKey = decryptSecret((await getApiKeyFromSupabase(cleanModel)) || '');
       if (!targetKey && aiModelConfig.id && aiModelConfig.id !== cleanModel) {
-        targetKey = await getApiKeyFromSupabase(aiModelConfig.id);
+        targetKey = decryptSecret((await getApiKeyFromSupabase(aiModelConfig.id)) || '');
       }
     }
     if (!targetKey) {
@@ -226,6 +217,7 @@ router.get('/ping', async (req, res) => {
       else if (targetUrl.includes('groq.com')) targetKey = process.env.GROQ_API_KEY || (await getApiKeyFromSupabase('__groq_key__'));
       else if (targetUrl.includes('b.ai')) targetKey = process.env.BAI_API_KEY || (await getApiKeyFromSupabase('__bai_key__'));
       else if (targetUrl.includes('vyceai.com')) targetKey = process.env.VYCE_API_KEY || (await getApiKeyFromSupabase('__vyce_key__'));
+      targetKey = decryptSecret(targetKey || '');
     }
 
     let pingUrl = targetUrl;

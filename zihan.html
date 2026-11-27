@@ -2307,7 +2307,7 @@
         plansHeader: "Plans & Limits",
         redeemHeader: "Redeem Codes",
         modelsHeader: "AI Models",
-        settingsHeader: "APIs & Live Voice",
+        settingsHeader: "APIs & Voice Settings",
         systemPromptHeader: "System Prompt",
         trialHeader: "Free Trial",
         notifyAdsHeader: "Notifications & Ads",
@@ -2583,14 +2583,26 @@
         return trimmed.replace(/\/+$/, '');
       }
       trimmed = trimmed.replace(/\/+$/, '');
-      if (!trimmed.endsWith('/chat/completions')) {
-        if (trimmed.endsWith('/completions')) {
-          trimmed = trimmed.replace(/\/completions$/, '/chat/completions');
-        } else {
-          trimmed = trimmed + '/chat/completions';
-        }
+      if (trimmed.endsWith('/completions') && !trimmed.endsWith('/chat/completions')) {
+        trimmed = trimmed.replace(/\/completions$/, '/chat/completions');
       }
-      return trimmed;
+      try {
+        const parsed = new URL(trimmed);
+        const low = parsed.hostname.toLowerCase();
+        const pName = (parsed.pathname || '/').replace(/\/+$/, '') || '/';
+        if (low.includes('openrouter.ai') && (pName === '/' || pName === '/api' || pName === '/chat/completions' || pName === '/v1/chat/completions')) {
+          return `${parsed.origin}/api/v1/chat/completions`;
+        }
+        if (low.includes('groq.com') && (pName === '/' || pName === '/openai' || pName === '/chat/completions' || pName === '/v1/chat/completions')) {
+          return `${parsed.origin}/openai/v1/chat/completions`;
+        }
+        if (trimmed.endsWith('/chat/completions')) return trimmed;
+        if (pName === '/') return `${parsed.origin}/v1/chat/completions`;
+        return `${trimmed}/chat/completions`;
+      } catch {
+        if (!trimmed.endsWith('/chat/completions')) return trimmed + '/chat/completions';
+        return trimmed;
+      }
     }
 
     function getCurrentTableData() {
@@ -2886,6 +2898,7 @@
                   <option value="chat" ${(m.category || 'chat') === 'chat' ? 'selected' : ''}>Chat</option>
                   <option value="image" ${m.category === 'image' ? 'selected' : ''}>Image</option>
                 </select>
+                <label style="font-size:0.68rem;display:inline-flex;align-items:center;gap:3px;cursor:pointer;background:rgba(255,255,255,0.04);padding:2px 6px;border-radius:5px;border:1px solid rgba(255,255,255,0.1);"><input type="checkbox" class="model-active-cb" ${m.is_active !== false ? 'checked' : ''}>চালু</label>
                 <span class="model-live-tier-preview" style="font-size:0.66rem; padding:1px 7px; border-radius:999px; background:rgba(255,255,255,0.08); color:var(--text-primary); font-weight:600;"></span>
               </div>
               <div style="display:flex; gap:5px; flex-wrap:wrap;">
@@ -2900,12 +2913,14 @@
             </div>
           </td>
           <td data-label="অ্যাকশন">
-            <div style="display: flex; gap: 6px;">
+            <div style="display: flex; gap: 5px; flex-wrap: nowrap;">
+              <button type="button" class="btn btn-ghost model-test-btn" style="padding: 6px 9px; font-size: 0.76rem;" title="API টেস্ট করুন">টেস্ট</button>
               <button type="button" class="btn btn-success model-save-btn" style="padding: 6px 12px; font-size: 0.78rem;">Save</button>
               <button type="button" class="btn btn-danger model-del-btn" style="padding: 6px 10px; font-size: 0.78rem;">মুছুন</button>
             </div>
           </td>
         `;
+        const testBtn = tr.querySelector(".model-test-btn");
         const saveBtn = tr.querySelector(".model-save-btn");
         const delBtn = tr.querySelector(".model-del-btn");
         const tierPreview = tr.querySelector(".model-live-tier-preview");
@@ -2934,6 +2949,7 @@
           });
         }
 
+        if (testBtn) testBtn.addEventListener("click", () => testModelConfig(mId, testBtn));
         if (saveBtn) saveBtn.addEventListener("click", () => saveModelConfig(mId, saveBtn));
         if (delBtn) delBtn.addEventListener("click", () => deleteModel(mId, delBtn));
         tbody.appendChild(tr);
@@ -3141,6 +3157,38 @@
       });
     }
 
+    async function testModelConfig(modelId, btn) {
+      const tr = btn ? btn.closest("tr") : null;
+      const rawUrl = tr?.querySelector(".model-input-url")?.value.trim() || "";
+      const rawKey = tr?.querySelector(".model-input-key")?.value.trim() || "";
+      const payload = { model_id: modelId };
+      if (rawUrl) payload.base_url = normalizeApiUrl(rawUrl);
+      if (rawKey) payload.api_key = rawKey;
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = "...";
+      }
+      try {
+        const res = await authFetch(`${API_BASE}/zihan/models/test`, {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message || `'${modelId}' চালু আছে!`, "success");
+        } else {
+          showToast(data.error || `'${modelId}' রেসপন্স দেয়নি`, "error");
+        }
+      } catch (e) {
+        showToast("সার্ভারে সংযোগ করা যায়নি", "error");
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = "টেস্ট";
+        }
+      }
+    }
+
     async function saveModelConfig(modelId, btn) {
       const tbody = document.getElementById("modelTableBody");
       let tr = btn ? btn.closest("tr") : null;
@@ -3159,6 +3207,8 @@
       if (urlInput && base_url) urlInput.value = base_url;
       const api_key = tr.querySelector(".model-input-key")?.value.trim() || "";
       const category = tr.querySelector(".model-input-cat")?.value || "chat";
+      const isActiveCb = tr.querySelector(".model-active-cb");
+      const is_active = isActiveCb ? Boolean(isActiveCb.checked) : true;
       const allowed_plans = Array.from(tr.querySelectorAll(".model-plan-cb:checked")).map(cb => cb.value);
       if (allowed_plans.length === 0) {
         showToast("অন্তত ১টি প্ল্যান সিলেক্ট করুন (যেমন Max বা Plus+)", "error");
@@ -3172,6 +3222,7 @@
         base_url,
         premium,
         efficient,
+        is_active,
         category,
         allowed_plans
       };
@@ -3212,6 +3263,7 @@
             if (api_key) target.has_api_key = true;
             target.premium = premium;
             target.efficient = efficient;
+            target.is_active = is_active;
             target.category = category;
             target.allowed_plans = allowed_plans;
             if (typeof loadPlans === "function") loadPlans();

@@ -1077,7 +1077,7 @@
         limitsApplyBtn: 'Limits apply',
         quotaLine: function(lim, hrs, imgLim, voiceLim, highest) {
           var unit = hrs === 1 ? '1 hour' : hrs + ' hours';
-          var voicePart = (voiceLim > 0) ? (' · ' + voiceLim + ' live voice') : '';
+          var voicePart = (voiceLim > 0) ? (' · ' + voiceLim + ' voice') : '';
           var imgPart = (imgLim > 0) ? (' · ' + imgLim + ' images') : '';
           return lim + ' messages' + voicePart + imgPart + ' per ' + unit + (highest ? ' (highest)' : '');
         },
@@ -1153,7 +1153,7 @@
         restoreBtn: 'সাবস্ক্রিপশন পুনরুদ্ধার / ভাউচার রিডিম',
         limitsApplyBtn: 'লিমিট সমূহ প্রযোজ্য',
         quotaLine: function(lim, hrs, imgLim, voiceLim, highest) {
-          var voicePart = (voiceLim > 0) ? (' · ' + toBnDigits(voiceLim) + 'টি লাইভ ভয়েস') : '';
+          var voicePart = (voiceLim > 0) ? (' · ' + toBnDigits(voiceLim) + 'টি ভয়েস') : '';
           var imgPart = (imgLim > 0) ? (' · ' + toBnDigits(imgLim) + 'টি ছবি') : '';
           return 'প্রতি ' + toBnDigits(hrs) + ' ঘণ্টায় ' + toBnDigits(lim) + 'টি বার্তা' + voicePart + imgPart + (highest ? ' (সর্বোচ্চ)' : '');
         },
@@ -1686,7 +1686,7 @@
               : `${limObj.message_limit} messages / ${limObj.window_hours}h`);
 
           const voiceVal = Number(limObj.voice_limit) > 0
-            ? (currentLang === 'bn' ? `${toBnDigits(limObj.voice_limit)} লাইভ ভয়েস` : `${limObj.voice_limit} live voice`)
+            ? (currentLang === 'bn' ? `${toBnDigits(limObj.voice_limit)} ভয়েস` : `${limObj.voice_limit} voice`)
             : (currentLang === 'bn' ? 'ভয়েস নেই' : 'No voice');
 
           const imgVal = Number(limObj.image_limit) > 0

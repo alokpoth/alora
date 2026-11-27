@@ -13,7 +13,7 @@ const {
   invalidateUserUsageCache
 } = require('../../utils/getModelConfig');
 const { DEFAULT_PLANS_MAP } = require('../utils/planDefaults');
-const { isPublicHttpUrl, canPlanAccessModel } = require('../utils/secretVault');
+const { isPublicHttpUrl, canPlanAccessModel, decryptSecret, resolveChatCompletionUrl, getAlternateChatEndpointUrl } = require('../utils/secretVault');
 const { redactSecrets } = require('../utils/safeError');
 const {
   getSafeModelDisplayName,
@@ -242,13 +242,11 @@ async function runCustomVoiceApiTurn({ apiUrl, apiKey, modelName, audioBase64, m
     return { transcript: '', reply: '', audio_base64: null, audio_mime: null, empty_audio: true, provider: 'custom_api' };
   }
 
+  const cleanVoiceKey = decryptSecret(apiKey || '');
   const headers = { 'Content-Type': 'application/json' };
-  if (apiKey) headers.Authorization = `Bearer ${apiKey.trim()}`;
+  if (cleanVoiceKey) headers.Authorization = `Bearer ${cleanVoiceKey}`;
 
-  let finalUrl = apiUrl.trim().replace(/\/+$/, '');
-  if (!finalUrl.endsWith('/chat/completions') && !finalUrl.endsWith('/completions')) {
-    finalUrl += '/chat/completions';
-  }
+  let finalUrl = resolveChatCompletionUrl(apiUrl);
 
   const messages = [
     { role: 'system', content: systemInstruction },
@@ -258,17 +256,32 @@ async function runCustomVoiceApiTurn({ apiUrl, apiKey, modelName, audioBase64, m
     { role: 'user', content: spokenText }
   ];
 
-  const resp = await fetch(finalUrl, {
+  const reqBodyWithTemp = JSON.stringify({ model: modelName || 'gpt-4o-mini', messages, temperature: 0.65, stream: false });
+  let resp = await fetch(finalUrl, {
     method: 'POST',
     headers,
-    body: JSON.stringify({
-      model: modelName || 'gpt-4o-mini',
-      messages,
-      temperature: 0.65,
-      stream: false
-    }),
+    body: reqBodyWithTemp,
     signal: AbortSignal.timeout(18000)
   });
+
+  if (resp.status === 404 || resp.status === 405) {
+    const altUrl = getAlternateChatEndpointUrl(finalUrl);
+    if (altUrl) {
+      const rAlt = await fetch(altUrl, { method: 'POST', headers, body: reqBodyWithTemp, signal: AbortSignal.timeout(18000) });
+      if (rAlt.status !== 404 && rAlt.status !== 405) {
+        resp = rAlt;
+        finalUrl = altUrl;
+      }
+    }
+  }
+  if (resp.status === 400 || resp.status === 422) {
+    resp = await fetch(finalUrl, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ model: modelName || 'gpt-4o-mini', messages, stream: false }),
+      signal: AbortSignal.timeout(18000)
+    });
+  }
 
   if (!resp.ok) {
     throw new Error(`Custom Voice HTTP ${resp.status}`);
@@ -407,28 +420,45 @@ async function runChatModelVoiceTurn({
     }
     try {
       let url = tier.url;
-      let key = tier.key;
+      let key = decryptSecret(tier.key || '');
       if (!url) {
         if (tier.type === 'groq' || tier.mod === 'openai/gpt-oss-120b' || tier.mod === 'openai/gpt-oss-20b') {
           url = 'https://api.groq.com/openai/v1/chat/completions';
-          key = key || process.env.GROQ_API_KEY || (await getApiKeyFromSupabase('__groq_key__')) || '';
+          key = key || decryptSecret(process.env.GROQ_API_KEY || (await getApiKeyFromSupabase('__groq_key__')) || '');
         } else {
           url = 'https://openrouter.ai/api/v1/chat/completions';
-          key = key || process.env.OPENROUTER_API_KEY || (await getApiKeyFromSupabase('__openrouter_key__')) || '';
+          key = key || decryptSecret(process.env.OPENROUTER_API_KEY || (await getApiKeyFromSupabase('__openrouter_key__')) || '');
         }
       }
       if (!isPublicHttpUrl(url)) continue;
-      if (!url.endsWith('/chat/completions') && !url.endsWith('/completions')) {
-        url = url.replace(/\/+$/, '') + '/chat/completions';
-      }
+      url = resolveChatCompletionUrl(url, tier.type || '');
       const headers = { 'Content-Type': 'application/json' };
       if (key) headers.Authorization = `Bearer ${key}`;
-      const r = await fetch(url, {
+      const bodyWithTemp = JSON.stringify({ model: tier.mod, messages, temperature: 0.65, stream: false });
+      let r = await fetch(url, {
         method: 'POST',
         headers,
-        body: JSON.stringify({ model: tier.mod, messages, temperature: 0.65, stream: false }),
+        body: bodyWithTemp,
         signal: AbortSignal.timeout(15000)
       });
+      if (r.status === 404 || r.status === 405) {
+        const altUrl = getAlternateChatEndpointUrl(url);
+        if (altUrl) {
+          const rAlt = await fetch(altUrl, { method: 'POST', headers, body: bodyWithTemp, signal: AbortSignal.timeout(15000) });
+          if (rAlt.status !== 404 && rAlt.status !== 405) {
+            r = rAlt;
+            url = altUrl;
+          }
+        }
+      }
+      if (r.status === 400 || r.status === 422) {
+        r = await fetch(url, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ model: tier.mod, messages, stream: false }),
+          signal: AbortSignal.timeout(15000)
+        });
+      }
       if (r.ok) {
         const d = await r.json();
         const txt = d?.choices?.[0]?.message?.content || d?.output_text || d?.response || '';

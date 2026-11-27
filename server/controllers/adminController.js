@@ -1131,15 +1131,12 @@ const normalizeBaseUrl = (url) => {
   ) {
     return trimmed;
   }
+  const { resolveChatCompletionUrl } = require('../utils/secretVault');
   trimmed = trimmed.replace(/\/+$/, '');
-  if (!trimmed.endsWith('/chat/completions')) {
-    if (trimmed.endsWith('/completions')) {
-      trimmed = trimmed.replace(/\/completions$/, '/chat/completions');
-    } else {
-      trimmed = trimmed + '/chat/completions';
-    }
+  if (trimmed.endsWith('/completions') && !trimmed.endsWith('/chat/completions')) {
+    trimmed = trimmed.replace(/\/completions$/, '/chat/completions');
   }
-  return trimmed;
+  return resolveChatCompletionUrl(trimmed);
 };
 
 const updateModel = async (req, res) => {
@@ -1734,6 +1731,113 @@ const reorderModels = async (req, res) => {
     return res.status(400).json({ success: false, error: 'সঠিক তথ্য দিন' });
   } catch (error) {
     return sendServerError(res, error, 'Internal server error', '[Admin Error]:');
+  }
+};
+
+const testModelConnection = async (req, res) => {
+  try {
+    const body = req.body || {};
+    const rawId = String(body.model_id || body.id || '').trim();
+    if (!rawId) {
+      return res.status(400).json({ success: false, error: 'Model ID দিন।' });
+    }
+    const { getModelConfig, getApiKeyFromSupabase } = require('../../utils/getModelConfig');
+    const { decryptSecret, isPublicHttpUrl, resolveChatCompletionUrl, getAlternateChatEndpointUrl } = require('../utils/secretVault');
+    const saved = await getModelConfig(rawId);
+    const overrideUrl = typeof body.base_url === 'string' && body.base_url.trim() ? normalizeBaseUrl(body.base_url.trim()) : '';
+    const overrideKey = typeof body.api_key === 'string' && body.api_key.trim() ? body.api_key.trim() : '';
+
+    const rawSlots = [
+      {
+        slot: 1,
+        mod: (saved?.api_model_1 || saved?.model_id || rawId).trim(),
+        url: overrideUrl || (saved?.base_url || '').trim(),
+        key: overrideKey || decryptSecret(saved?.api_key || '')
+      },
+      {
+        slot: 2,
+        mod: (saved?.api_model_2 || saved?.fallback_model_1 || '').trim(),
+        url: (saved?.fallback_url_1 || saved?.base_url || overrideUrl || '').trim(),
+        key: decryptSecret(saved?.fallback_key_1 || '')
+      },
+      {
+        slot: 3,
+        mod: (saved?.api_model_3 || saved?.fallback_model_2 || '').trim(),
+        url: (saved?.fallback_url_2 || saved?.base_url || overrideUrl || '').trim(),
+        key: decryptSecret(saved?.fallback_key_2 || '')
+      }
+    ].filter(s => s.mod);
+
+    if (!rawSlots.length) {
+      return res.status(404).json({ success: false, error: 'মডেল পাওয়া যায়নি।' });
+    }
+
+    const errors = [];
+    for (const s of rawSlots) {
+      let endpoint = s.url;
+      let key = s.key;
+      if (!endpoint) {
+        if (saved?.type === 'groq' || s.mod.includes('gpt-oss')) {
+          endpoint = 'https://api.groq.com/openai/v1/chat/completions';
+          key = key || process.env.GROQ_API_KEY || (await getApiKeyFromSupabase('__groq_key__')) || '';
+        } else {
+          endpoint = 'https://openrouter.ai/api/v1/chat/completions';
+          key = key || process.env.OPENROUTER_API_KEY || (await getApiKeyFromSupabase('__openrouter_key__')) || '';
+        }
+      }
+      endpoint = resolveChatCompletionUrl(endpoint);
+      key = decryptSecret(key || '');
+      if (!isPublicHttpUrl(endpoint)) {
+        errors.push(`API ${s.slot}: অবৈধ URL`);
+        continue;
+      }
+      const headers = { 'Content-Type': 'application/json' };
+      if (key) headers.Authorization = `Bearer ${key}`;
+      const payloadStr = JSON.stringify({
+        model: s.mod,
+        messages: [{ role: 'user', content: 'Say OK' }],
+        max_tokens: 8,
+        stream: false
+      });
+      const started = Date.now();
+      try {
+        let resp = await fetch(endpoint, { method: 'POST', headers, body: payloadStr, signal: AbortSignal.timeout(12000) });
+        if (resp.status === 404 || resp.status === 405) {
+          const alt = getAlternateChatEndpointUrl(endpoint);
+          if (alt) {
+            const rAlt = await fetch(alt, { method: 'POST', headers, body: payloadStr, signal: AbortSignal.timeout(12000) });
+            if (rAlt.status !== 404 && rAlt.status !== 405) {
+              resp = rAlt;
+              endpoint = alt;
+            }
+          }
+        }
+        const latencyMs = Date.now() - started;
+        if (resp.ok) {
+          const data = await resp.json().catch(() => ({}));
+          const reply = String(data?.choices?.[0]?.message?.content || data?.choices?.[0]?.text || '').trim().slice(0, 40);
+          return res.json({
+            success: true,
+            slot: s.slot,
+            model: s.mod,
+            endpoint,
+            latencyMs,
+            message: `✓ API ${s.slot} (${s.mod}) সফল — ${latencyMs}ms${reply ? ` · "${reply}"` : ''}`
+          });
+        }
+        const errTxt = (await resp.text().catch(() => '')).slice(0, 120);
+        errors.push(`API ${s.slot} HTTP ${resp.status}${errTxt ? `: ${errTxt.replace(/\s+/g, ' ')}` : ''}`);
+      } catch (e) {
+        errors.push(`API ${s.slot}: ${e.message || 'Timeout/Network error'}`);
+      }
+    }
+
+    return res.status(502).json({
+      success: false,
+      error: errors.join(' | ') || 'কোনো API স্লট থেকে উত্তর পাওয়া যায়নি।'
+    });
+  } catch (error) {
+    return sendServerError(res, error, 'Model test failed', '[Admin Model Test Error]:');
   }
 };
 
@@ -2335,6 +2439,7 @@ module.exports = {
   deletePromoCode,
   getPaymentOrders,
   approvePaymentOrder,
-  rejectPaymentOrder
+  rejectPaymentOrder,
+  testModelConnection
 };
 

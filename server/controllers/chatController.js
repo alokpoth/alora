@@ -74,6 +74,12 @@ const resolveModelTarget = async (targetModelId, customUrl, customKey, targetMod
     : ((targetModelConfig && (targetModelConfig.api_model_1 || targetModelConfig.model_id || targetModelConfig.id)) || 'openrouter/free');
   let providerType = 'custom';
 
+  const { decryptSecret, resolveChatCompletionUrl } = require('../utils/secretVault');
+  if (targetKey) targetKey = decryptSecret(targetKey);
+  if (!targetKey && targetModelConfig && targetModelConfig.api_key) {
+    targetKey = decryptSecret(targetModelConfig.api_key);
+  }
+
   // CASE A: Admin explicitly configured a base_url -> honor Admin's URL, API key, and model ID
   if (explicitUrl) {
     if (explicitUrl.includes('openrouter.ai')) {
@@ -92,11 +98,8 @@ const resolveModelTarget = async (targetModelId, customUrl, customKey, targetMod
         if (!targetKey && targetModelId) targetKey = await getApiKeyFromSupabase(targetModelId);
       }
     }
-    let bUrl = explicitUrl;
-    if (!bUrl.endsWith('/chat/completions') && !bUrl.endsWith('/completions') && !bUrl.includes('/v1/messages')) {
-      bUrl = bUrl.replace(/\/+$/, '') + '/chat/completions';
-    }
-    targetUrl = bUrl;
+    targetUrl = resolveChatCompletionUrl(explicitUrl, providerType);
+    if (targetKey) targetKey = decryptSecret(targetKey);
     return { targetUrl, targetKey, actualModel, providerType };
   }
 
@@ -117,6 +120,7 @@ const resolveModelTarget = async (targetModelId, customUrl, customKey, targetMod
     if (!targetKey) targetKey = (await getApiKeyFromSupabase(actualModel)) || process.env.OPENROUTER_API_KEY || DEFAULT_OPENROUTER_KEY || (await getApiKeyFromSupabase('__openrouter_key__'));
   }
 
+  if (targetKey) targetKey = decryptSecret(targetKey);
   return { targetUrl, targetKey, actualModel, providerType };
 };
 
@@ -167,18 +171,14 @@ const streamChatCompletions = async (req, res) => {
       return res.status(400).json({ success: false, error: 'মেসেজের বিবরণ সঠিক নয়' });
     }
 
-    // Load model configuration with API key
-    let aiModelConfig = null;
-    if (getIsMongoConnected() && cleanModel) {
-      aiModelConfig = await AiModel.findOne({ $or: [{ model_id: cleanModel }, { id: cleanModel }] });
-      if (aiModelConfig && !aiModelConfig.api_key) {
-        const supabaseConfig = await getModelConfig(cleanModel);
-        if (supabaseConfig && supabaseConfig.api_key) {
-          aiModelConfig = { ...aiModelConfig.toObject(), api_key: supabaseConfig.api_key };
-        }
-      }
-    } else {
-      aiModelConfig = await getModelConfig(cleanModel);
+    // Load model configuration with decrypted API keys (works identically in MongoDB and memory mode)
+    let aiModelConfig = cleanModel ? await getModelConfig(cleanModel) : null;
+    if (aiModelConfig && aiModelConfig.is_active === false) {
+      return res.status(403).json({
+        success: false,
+        code: 'MODEL_DISABLED',
+        error: 'এই মডেলটি অ্যাডমিন দ্বারা বর্তমানে বন্ধ রয়েছে।'
+      });
     }
 
     // Admin-configured model name: strictly used as display identity
@@ -361,6 +361,8 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
     };
 
     const clientWantsStream = req.body.stream !== false;
+    const { getAlternateChatEndpointUrl } = require('../utils/secretVault');
+
     const executeTargetWithAutoStream = async (pType, url, key, modName, timeoutMs, cfg) => {
       const capKey = `${pType}::${String(url || '').split('?')[0]}::${modName}`;
       const modeCfg = cfg?.streaming_mode || 'auto';
@@ -371,22 +373,58 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
         wantStream = false;
       }
 
-      let r = await tryFetchTarget(pType, url, key, modName, timeoutMs, wantStream, true);
+      let activeUrl = url;
+      let r = await tryFetchTarget(pType, activeUrl, key, modName, timeoutMs, wantStream, true);
+
+      // Handle bare-domain vs /v1/chat/completions path mismatches cleanly
+      if (r && (r.status === 404 || r.status === 405)) {
+        const altUrl = getAlternateChatEndpointUrl(activeUrl);
+        if (altUrl) {
+          const rAlt = await tryFetchTarget(pType, altUrl, key, modName, timeoutMs, wantStream, true);
+          if (rAlt && rAlt.status !== 404 && rAlt.status !== 405) {
+            r = rAlt;
+            activeUrl = altUrl;
+          }
+        }
+      }
+
+      // Retry strict OpenAI-compatible gateways that reject extra params (400/422) or SSE streaming
+      if (r && !r.ok && (r.status === 400 || r.status === 422)) {
+        const errBody = await r.text().catch(() => '');
+        const explicitlyStreamErr = /stream|sse|event[- ]stream|alt=sse/i.test(errBody);
+        if (wantStream && modeCfg !== 'stream' && explicitlyStreamErr) {
+          console.warn(`[Auto-Stream Fallback] ${modName} does not support SSE (status ${r.status}); retrying with stream=false.`);
+          modelStreamingCapability.set(capKey, false);
+          r = await tryFetchTarget(pType, activeUrl, key, modName, timeoutMs, false, false);
+          return { resp: r, capKey, attemptedStream: false, retryTarget: { pType, url: activeUrl, key, modName } };
+        }
+        // First retry without optional OpenAI/reasoning params on strict gateways (preserving streaming)
+        r = await tryFetchTarget(pType, activeUrl, key, modName, timeoutMs, wantStream, false);
+        if (r && !r.ok && wantStream && modeCfg !== 'stream' && (r.status === 400 || r.status === 422)) {
+          const errBody2 = await r.text().catch(() => '');
+          if (isStreamingUnsupportedError(r.status, errBody2)) {
+            console.warn(`[Auto-Stream Fallback] ${modName} does not support SSE (status ${r.status}); retrying with stream=false.`);
+            modelStreamingCapability.set(capKey, false);
+            r = await tryFetchTarget(pType, activeUrl, key, modName, timeoutMs, false, false);
+            return { resp: r, capKey, attemptedStream: false, retryTarget: { pType, url: activeUrl, key, modName } };
+          }
+          return { resp: { ok: false, status: r.status }, capKey, attemptedStream: wantStream, retryTarget: { pType, url: activeUrl, key, modName } };
+        }
+        return { resp: r, capKey, attemptedStream: wantStream, retryTarget: { pType, url: activeUrl, key, modName } };
+      }
+
       if (r && !r.ok && wantStream && modeCfg !== 'stream') {
         const errBody = await r.text().catch(() => '');
         if (isStreamingUnsupportedError(r.status, errBody)) {
           console.warn(`[Auto-Stream Fallback] ${modName} does not support SSE/params (status ${r.status}); retrying with stream=false.`);
           modelStreamingCapability.set(capKey, false);
-          r = await tryFetchTarget(pType, url, key, modName, timeoutMs, false, false);
-          return { resp: r, capKey, attemptedStream: false, retryTarget: { pType, url, key, modName } };
+          r = await tryFetchTarget(pType, activeUrl, key, modName, timeoutMs, false, false);
+          return { resp: r, capKey, attemptedStream: false, retryTarget: { pType, url: activeUrl, key, modName } };
         }
-        return { resp: { ok: false, status: r.status }, capKey, attemptedStream: wantStream, retryTarget: { pType, url, key, modName } };
+        return { resp: { ok: false, status: r.status }, capKey, attemptedStream: wantStream, retryTarget: { pType, url: activeUrl, key, modName } };
       }
-      if (r && !r.ok && r.status === 400) {
-        // Retry once without optional OpenAI/Gemini params on strict gateways
-        r = await tryFetchTarget(pType, url, key, modName, timeoutMs, wantStream, false);
-      }
-      return { resp: r, capKey, attemptedStream: wantStream, retryTarget: { pType, url, key, modName } };
+
+      return { resp: r, capKey, attemptedStream: wantStream, retryTarget: { pType, url: activeUrl, key, modName } };
     };
 
     // Primary model attempt
@@ -398,31 +436,22 @@ You are an exceptionally brilliant, thoughtful, and human-like AI assistant name
     let effectiveModel = cleanModel || safeDisplayName;
 
     // Helper to resolve an internal API tier or reference model
+    const { decryptSecret } = require('../utils/secretVault');
     const resolveTierTarget = async (tierModelId, tierUrl, tierKey) => {
       const cleanModId = (tierModelId || '').trim();
       const cleanUrl = (tierUrl || '').trim();
-      const cleanKey = (tierKey || '').trim();
+      const cleanKey = decryptSecret((tierKey || '').trim());
       if (!cleanModId && !cleanUrl) return null;
 
-      // Check if tierModelId refers to another saved model configuration in DB
+      // Check if tierModelId refers to another saved model configuration in DB (with decrypted keys)
       let refModelConfig = null;
       if (cleanModId && cleanModId !== cleanModel) {
-        if (getIsMongoConnected()) {
-          refModelConfig = await AiModel.findOne({ $or: [{ model_id: cleanModId }, { id: cleanModId }] });
-          if (refModelConfig && !refModelConfig.api_key) {
-            const supabaseConfig = await getModelConfig(cleanModId);
-            if (supabaseConfig && supabaseConfig.api_key) {
-              refModelConfig = { ...refModelConfig.toObject(), api_key: supabaseConfig.api_key };
-            }
-          }
-        } else {
-          refModelConfig = await getModelConfig(cleanModId);
-        }
+        refModelConfig = await getModelConfig(cleanModId);
       }
 
       const effectiveMod = cleanModId || (refModelConfig?.api_model_1 || refModelConfig?.model_id) || actualModel;
       const effectiveUrl = cleanUrl || (refModelConfig ? refModelConfig.base_url : (aiModelConfig?.base_url || ''));
-      const effectiveKey = cleanKey || (refModelConfig ? refModelConfig.api_key : (!cleanUrl ? (aiModelConfig?.api_key || '') : ''));
+      const effectiveKey = cleanKey || decryptSecret(refModelConfig ? refModelConfig.api_key : (!cleanUrl ? (aiModelConfig?.api_key || '') : ''));
 
       return await resolveModelTarget(effectiveMod, effectiveUrl, effectiveKey, refModelConfig || null);
     };

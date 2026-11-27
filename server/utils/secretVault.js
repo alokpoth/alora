@@ -141,6 +141,48 @@ function deriveLegacyFlagsFromAllowedPlans(allowedPlans) {
   return { premium: false, efficient: false };
 }
 
+function resolveChatCompletionUrl(rawUrl, hintProvider = '') {
+  const s = String(rawUrl || '').trim();
+  if (!s) return '';
+  if (s.includes('/v1/messages')) return s;
+  const trimmed = s.replace(/\/+$/, '');
+  const low = trimmed.toLowerCase();
+  const provider = String(hintProvider || '').toLowerCase();
+  try {
+    const parsed = new URL(trimmed);
+    const pName = (parsed.pathname || '/').replace(/\/+$/, '') || '/';
+    // Repair malformed OpenRouter/Groq URLs missing /api/v1 or /openai/v1
+    if ((provider === 'openrouter' || low.includes('openrouter.ai')) && (pName === '/' || pName === '/api' || pName === '/chat/completions' || pName === '/v1/chat/completions')) {
+      return `${parsed.origin}/api/v1/chat/completions`;
+    }
+    if ((provider === 'groq' || low.includes('groq.com')) && (pName === '/' || pName === '/openai' || pName === '/chat/completions' || pName === '/v1/chat/completions')) {
+      return `${parsed.origin}/openai/v1/chat/completions`;
+    }
+    if (s.endsWith('/chat/completions') || s.endsWith('/completions')) {
+      return trimmed;
+    }
+    if (pName === '/') {
+      return `${parsed.origin}/v1/chat/completions`;
+    }
+    return `${trimmed}/chat/completions`;
+  } catch {
+    if (s.endsWith('/chat/completions') || s.endsWith('/completions')) return trimmed;
+    return `${trimmed}/chat/completions`;
+  }
+}
+
+function getAlternateChatEndpointUrl(rawUrl) {
+  const s = String(rawUrl || '').trim();
+  if (!s || s.includes('/v1/messages')) return null;
+  if (s.endsWith('/v1/chat/completions')) {
+    return s.slice(0, -'/v1/chat/completions'.length) + '/chat/completions';
+  }
+  if (s.endsWith('/chat/completions')) {
+    return s.slice(0, -'/chat/completions'.length) + '/v1/chat/completions';
+  }
+  return null;
+}
+
 module.exports = {
   encryptSecret,
   decryptSecret,
@@ -148,5 +190,7 @@ module.exports = {
   isPublicHttpUrl,
   deriveDefaultAllowedPlans,
   deriveLegacyFlagsFromAllowedPlans,
-  canPlanAccessModel
+  canPlanAccessModel,
+  resolveChatCompletionUrl,
+  getAlternateChatEndpointUrl
 };

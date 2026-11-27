@@ -3765,7 +3765,7 @@
                   </svg>
                 </button>
 
-                <button type="button" class="composer-tool-btn" id="voiceModeBtn" title="Live Voice Mode" aria-label="Live Voice Mode">
+                <button type="button" class="composer-tool-btn" id="voiceModeBtn" title="Voice Mode" aria-label="Voice Mode">
                   <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                     <path d="M4 10v4"/><path d="M8 7v10"/><path d="M12 4v16"/><path d="M16 7v10"/><path d="M20 10v4"/>
                   </svg>
@@ -4708,7 +4708,7 @@
         voiceInputLangSub: "Choose primary listening language for Voice Mode & Mic (Auto detects UI)",
         speechVoiceTitle: "Alora Bilingual Voices (BN + EN + Multi)",
         speechVoiceSub: "Every voice automatically speaks Bengali, English, and other languages naturally",
-        liveVoiceModelsTitle: "Live Voice Models",
+        liveVoiceModelsTitle: "Voice Models",
         speechDefaultOption: "Use Curated Alora Voice (Recommended)",
         speechPreviewTitle: "Test Selected Voice",
         speechPreviewSub: "Preview how the active voice speaks Bengali and English",
@@ -4912,7 +4912,7 @@
         voiceInputLangSub: "মাইক ও ভয়েস মোডের প্রধান শোনার ভাষা বেছে নিন (অটো দিলে বাংলা/ইংরেজি বুঝবে)",
         speechVoiceTitle: "Alora দ্বিভাষিক ভয়েস (বাংলা + ইংরেজি + অন্যান্য)",
         speechVoiceSub: "প্রতিটি ভয়েসই বাংলা, ইংরেজি ও অন্যান্য ভাষায় স্বাভাবিক উচ্চারণে কথা বলে",
-        liveVoiceModelsTitle: "লাইভ ভয়েস মডেলসমূহ",
+        liveVoiceModelsTitle: "ভয়েস মডেলসমূহ",
         speechDefaultOption: "Alora কিউরেটেড ভয়েস ব্যবহার করুন (প্রস্তাবিত)",
         speechPreviewTitle: "নির্বাচিত ভয়েস পরীক্ষা করুন",
         speechPreviewSub: "বর্তমান ভয়েসটি বাংলা ও ইংরেজিতে কেমন শোনায় তা পরীক্ষা করুন",
@@ -5173,7 +5173,7 @@
         voiceBtn.style.opacity = st.voiceLocked ? "0.42" : "";
         voiceBtn.title = st.voiceLocked
           ? (currentLanguage === "bn" ? "ভয়েস বা বার্তা সীমা শেষ হয়েছে" : "Voice or message limit reached")
-          : "Live Voice Mode";
+          : "Voice Mode";
       }
       if (plusBtn) {
         plusBtn.style.opacity = st.msgLocked ? "0.4" : "";
@@ -5924,7 +5924,7 @@
         if (barEl) barEl.style.width = "100%";
         if (voiceEl) {
           voiceEl.style.display = "inline";
-          voiceEl.textContent = `${currentLanguage === "bn" ? "লাইভ ভয়েস" : "Live Voice"}: ${t("unlimitedWord")}`;
+          voiceEl.textContent = `${currentLanguage === "bn" ? "ভয়েস মোড" : "Voice"}: ${t("unlimitedWord")}`;
         }
         if (imgEl) imgEl.textContent = `${t("imagesPrefix")}: ${t("unlimitedWord")}`;
         if (rstEl) rstEl.textContent = t("adminAccessLabel");
@@ -6079,9 +6079,9 @@
       if (titleEl) titleEl.textContent = t("claimTrialHeading");
       if (descEl) descEl.textContent = promoOfferState.description || (currentLanguage === "bn" ? `${days} দিনের জন্য ${plan} প্ল্যান ফ্রি ট্রায়াল নিন` : `Try ${plan} free for ${days} days`);
       if (detailsEl) {
-        const vNoteBn = Number(pInfo.voice_limit) > 0 ? ` · ${pInfo.voice_limit}টি লাইভ ভয়েস` : "";
+        const vNoteBn = Number(pInfo.voice_limit) > 0 ? ` · ${pInfo.voice_limit}টি ভয়েস` : "";
         const iNoteBn = Number(pInfo.image_limit) > 0 ? ` · ${pInfo.image_limit}টি ছবি` : "";
-        const vNoteEn = Number(pInfo.voice_limit) > 0 ? ` · ${pInfo.voice_limit} live voice` : "";
+        const vNoteEn = Number(pInfo.voice_limit) > 0 ? ` · ${pInfo.voice_limit} voice` : "";
         const iNoteEn = Number(pInfo.image_limit) > 0 ? ` · ${pInfo.image_limit} images` : "";
         detailsEl.innerHTML = currentLanguage === "bn"
           ? `
@@ -8093,6 +8093,17 @@
             window.location.href = "/auth/signup";
             return;
           }
+          if (res.status === 401) {
+            if (row && existingAssistantIdx === null) row.remove();
+            showToast(currentLanguage === "bn" ? "সেশনের মেয়াদ শেষ হয়েছে, অনুগ্রহ করে আবার লগইন করুন।" : "Session expired. Please log in again.");
+            window.location.href = "/auth/login";
+            return;
+          }
+          if (errData.code === "MODEL_DISABLED") {
+            const disabledErr = new Error(localizeServerError(errData.error, "busyDesc"));
+            disabledErr.code = "MODEL_DISABLED";
+            throw disabledErr;
+          }
           if (res.status === 403 || errData.code === "PLAN_UPGRADE_REQUIRED") {
             renderUpgradeCard(content, errData.error);
             soundEngine.error();
@@ -8164,22 +8175,26 @@
               const chunk = trimmed.slice(5).trim();
               if (chunk === "[DONE]") break;
 
+              let json = null;
               try {
-                const json = JSON.parse(chunk);
-                if (json.error) {
-                  throw new Error(json.error);
-                }
-                const delta = json.choices?.[0]?.delta?.content
-                  ?? json.choices?.[0]?.delta?.text
-                  ?? json.choices?.[0]?.text
-                  ?? "";
+                json = JSON.parse(chunk);
+              } catch {
+                continue;
+              }
+              if (json && json.error) {
+                const errMsg = typeof json.error === "string"
+                  ? json.error
+                  : (json.error.message || t("busyDesc"));
+                throw new Error(errMsg);
+              }
+              const delta = json?.choices?.[0]?.delta?.content
+                ?? json?.choices?.[0]?.delta?.text
+                ?? json?.choices?.[0]?.text
+                ?? "";
 
-                if (delta) {
-                  streamBuffer += delta;
-                  scheduleStreamRender();
-                }
-              } catch(e) {
-                if (e && e.message && !e.message.includes("JSON")) throw e;
+              if (delta) {
+                streamBuffer += delta;
+                scheduleStreamRender();
               }
             }
           }

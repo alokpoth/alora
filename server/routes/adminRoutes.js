@@ -32,7 +32,8 @@ const {
   deletePromoCode,
   getPaymentOrders,
   approvePaymentOrder,
-  rejectPaymentOrder
+  rejectPaymentOrder,
+  testModelConnection
 } = require('../controllers/adminController');
 const { protect } = require('../middleware/authMiddleware');
 const { adminOnly } = require('../middleware/adminMiddleware');
@@ -72,6 +73,7 @@ router.delete('/redeem/:codeId', deleteRedeemCode);
 
 router.get('/models', getModels);
 router.post('/models', addModel);
+router.post('/models/test', testModelConnection);
 router.put('/models/reorder', reorderModels);
 router.put('/models/:modelId(*)', updateModel);
 router.delete('/models', deleteModel);
