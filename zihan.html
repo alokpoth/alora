@@ -1413,6 +1413,10 @@
             <label>প্রদর্শিত নাম *</label>
             <input type="text" id="newModelName" required placeholder="e.g. ALO 3 Mini">
           </div>
+          <div class="form-group" style="flex: 1.4; min-width: 220px;">
+            <label>মডেল বিবরণ / সাবটাইটেল (ঐচ্ছিক)</label>
+            <input type="text" id="newModelDescription" maxlength="300" placeholder="যেমন: Great for everyday tasks and fast answers">
+          </div>
           <div class="form-group" style="min-width: 165px;">
             <label>ক্যাটাগরি</label>
             <select id="newModelCategory">
@@ -1520,7 +1524,7 @@
             <tr>
               <th style="width: 64px; text-align: center;">ক্রম</th>
               <th>মডেল আইডি</th>
-              <th>নাম</th>
+              <th>নাম ও বিবরণ</th>
               <th>Primary URL</th>
               <th>API Key</th>
               <th>স্লট সমূহ</th>
@@ -2561,6 +2565,7 @@
       rows.forEach((tr, idx) => {
         const mId = tr.dataset.modelId;
         const name = tr.querySelector(".model-input-name")?.value.trim() || "";
+        const description = tr.querySelector(".model-input-desc")?.value.trim() || "";
         const raw_url = tr.querySelector(".model-input-url")?.value.trim() || "";
         const base_url = normalizeApiUrl(raw_url);
         const api_key = tr.querySelector(".model-input-key")?.value.trim() || "";
@@ -2576,6 +2581,7 @@
           id: mId,
           model_id: mId,
           name: name || original.name || mId,
+          description,
           base_url: base_url,
           api_key: api_key || original.api_key || "",
           fallback_model_1,
@@ -2819,7 +2825,12 @@
             </div>
           </td>
           <td data-label="মডেল আইডি"><div class="code-chip" style="font-size: 0.75rem;">${escapeHtml(mId)}</div></td>
-          <td data-label="প্রদর্শিত নাম" class="td-stack"><input type="text" class="model-input-name" value="${escapeHtml(m.name || '')}" style="width: 130px; padding: 6px 8px; font-size: 0.82rem;"></td>
+          <td data-label="নাম ও বিবরণ" class="td-stack">
+            <div style="display:flex; flex-direction:column; gap:5px; min-width:165px;">
+              <input type="text" class="model-input-name" value="${escapeHtml(m.name || '')}" placeholder="প্রদর্শিত নাম" style="width: 100%; padding: 6px 8px; font-size: 0.82rem;">
+              <input type="text" class="model-input-desc" value="${escapeHtml(m.description || '')}" maxlength="300" placeholder="সাবটাইটেল (খালি থাকলে ডিফল্ট)" title="মডেলের নিচে দেখানো বিবরণ" style="width: 100%; padding: 5px 8px; font-size: 0.74rem; color: var(--text-sub);">
+            </div>
+          </td>
           <td data-label="API URL" class="td-stack"><input type="text" class="model-input-url" value="${escapeHtml(m.base_url || '')}" placeholder="API Base URL" onblur="if(this.value.trim()) this.value = normalizeApiUrl(this.value)" style="width: 140px; padding: 6px 8px; font-size: 0.82rem;"></td>
           <td data-label="API Key" class="td-stack">
             <div style="display: flex; align-items: center; gap: 4px; width: 100%;">
@@ -3147,6 +3158,7 @@
       if (!tr) return;
 
       const name = tr.querySelector(".model-input-name")?.value.trim() || "";
+      const description = tr.querySelector(".model-input-desc")?.value.trim() || "";
       const raw_url = tr.querySelector(".model-input-url")?.value.trim() || "";
       const base_url = normalizeApiUrl(raw_url);
       const urlInput = tr.querySelector(".model-input-url");
@@ -3165,6 +3177,7 @@
       const currentMod = currentModelsList.find(m => (m.id === modelId || m.model_id === modelId)) || {};
       const payload = {
         name,
+        description,
         base_url,
         premium,
         efficient,
@@ -3205,6 +3218,7 @@
           const target = currentModelsList.find(m => (m.id === modelId || m.model_id === modelId));
           if (target) {
             target.name = name;
+            target.description = description;
             target.base_url = base_url;
             if (api_key) target.has_api_key = true;
             target.premium = premium;
@@ -3272,6 +3286,7 @@
       const submitBtn = e.target.querySelector("button[type='submit']");
       const model_id = document.getElementById("newModelId").value.trim();
       const name = document.getElementById("newModelName").value.trim();
+      const description = document.getElementById("newModelDescription")?.value.trim() || "";
       const category = document.getElementById("newModelCategory")?.value || "chat";
       const allowed_plans = Array.from(document.querySelectorAll(".new-model-plan-cb:checked")).map(cb => cb.value);
       if (allowed_plans.length === 0) {
@@ -3317,6 +3332,7 @@
           body: JSON.stringify({
             model_id,
             name,
+            description,
             premium,
             efficient,
             category,

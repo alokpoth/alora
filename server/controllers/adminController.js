@@ -1373,12 +1373,13 @@ const updateModel = async (req, res) => {
 const addModel = async (req, res) => {
   try {
     const {
-      model_id, name,
+      model_id, name, description,
       base_url, api_key, api_model_1,
       fallback_url_1, fallback_key_1, fallback_model_1, api_model_2,
       fallback_url_2, fallback_key_2, fallback_model_2, api_model_3,
       premium, efficient, provider, type, category, allowed_plans, streaming_mode
     } = req.body;
+    const cleanDesc = typeof description === 'string' ? description.trim().slice(0, 300) : '';
     const cleanStreamingMode = ['auto', 'stream', 'non_stream'].includes(String(streaming_mode || '').trim())
       ? String(streaming_mode).trim()
       : 'auto';
@@ -1437,6 +1438,7 @@ const addModel = async (req, res) => {
         await AiModel.create({
           model_id: cleanModelId,
           name: cleanName,
+          description: cleanDesc,
           base_url: cleanBaseUrl,
           api_key: api_key ? encryptSecret(api_key.trim()) : '',
           api_model_1: cleanApiModel1,
@@ -1465,6 +1467,7 @@ const addModel = async (req, res) => {
       id: cleanModelId,
       model_id: cleanModelId,
       name: cleanName,
+      description: cleanDesc,
       base_url: cleanBaseUrl,
       api_key: api_key ? api_key.trim() : '',
       api_model_1: cleanApiModel1,

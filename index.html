@@ -5397,7 +5397,7 @@
     let contextTargetSessionId = null;
     let currentSettingsTab = "general";
 
-    const CURRENT_SW_CACHE = "alora-ai-v1.0.0.24-5";
+    const CURRENT_SW_CACHE = "alora-ai-v1.0.0.24-6";
 
     // Safely migrate & clean legacy stale storage keys and obsolete browser caches on startup
     // while keeping 100% of active user data (tokens, chats, theme, lang, models, settings, voice prefs).
@@ -9364,10 +9364,11 @@
             card.type = "button";
             card.className = `alora-voice-card ${isSel ? "active" : ""}`;
             if (isLocked) card.style.opacity = "0.68";
+            const customVoiceDesc = (typeof m.description === "string" && m.description.trim()) ? m.description.trim() : "Chat Voice Model";
             card.innerHTML = `
               <div class="alora-voice-card-meta">
                 <span class="alora-voice-card-title">${escapeHtml(mName)}</span>
-                <span class="alora-voice-card-sub">Chat Voice Model · ${escapeHtml(finalBadge)}</span>
+                <span class="alora-voice-card-sub">${escapeHtml(customVoiceDesc)} · ${escapeHtml(finalBadge)}</span>
               </div>
               <span style="font-size:0.75rem; font-weight:600; color:var(--text-main);">${isSel ? "✓" : ""}</span>
             `;
@@ -9411,7 +9412,7 @@
         let { badgeText, badgeStyle, defaultDesc } = getModelPlanBadgeInfo(m);
         if (isLocked) badgeText = `🔒 ${badgeText}`;
 
-        const desc = m.description || defaultDesc;
+        const desc = (typeof m.description === "string" && m.description.trim()) ? m.description.trim() : defaultDesc;
         const item = document.createElement("div");
         item.className = `model-option-item ${isSelected ? "selected" : ""}`;
         if (isLocked) item.style.opacity = "0.72";
